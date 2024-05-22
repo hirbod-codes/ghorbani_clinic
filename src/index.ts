@@ -1,6 +1,10 @@
 import { app, BrowserWindow, ipcMain, Menu } from 'electron'
 import { template } from './Electron/Menu/Templates/MainMenu'
 
+app.commandLine.appendSwitch('ignore-gpu-blacklist');
+app.commandLine.appendSwitch('disable-gpu');
+app.commandLine.appendSwitch('disable-gpu-compositing');
+
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string
 
@@ -8,19 +12,17 @@ if (require('electron-squirrel-startup')) {
     app.quit()
 }
 
-const isWindows: boolean = process.platform === 'win32'
-
 const createWindow = async (): Promise<BrowserWindow> => {
-    const mainWindow = new BrowserWindow({
-        height: 600,
-        width: 800,
-        center: true,
-        fullscreen: false,
-        frame: isWindows ? false : true,
-        webPreferences: {
-            preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-        },
-    })
+  const mainWindow = new BrowserWindow({
+    height: 600,
+    width: 800,
+    center: true,
+    fullscreen: false,
+    frame: false,
+    webPreferences: {
+      preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+    },
+  })
 
     mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY)
 
