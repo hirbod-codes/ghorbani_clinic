@@ -1,8 +1,8 @@
-class Auth {
-    static User: User | null
+export class Auth {
+    static user: User | null = null
 }
 
-class User {
+export class User {
     username: string
     password: string
 
