@@ -1,5 +1,6 @@
-import { app, BrowserWindow, ipcMain, Menu } from 'electron'
-import { template } from './Electron/Menu/Templates/MainMenu'
+import { app, BrowserWindow } from 'electron'
+import { handleMenuEvents } from './Electron/Menu/menu';
+import { handleAuthEvents } from './Electron/Auth/auth';
 
 app.commandLine.appendSwitch('ignore-gpu-blacklist');
 app.commandLine.appendSwitch('disable-gpu');
@@ -13,16 +14,16 @@ if (require('electron-squirrel-startup')) {
 }
 
 const createWindow = async (): Promise<BrowserWindow> => {
-  const mainWindow = new BrowserWindow({
-    height: 600,
-    width: 800,
-    center: true,
-    fullscreen: false,
-    frame: false,
-    webPreferences: {
-      preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-    },
-  })
+    const mainWindow = new BrowserWindow({
+        height: 600,
+        width: 800,
+        center: true,
+        fullscreen: false,
+        frame: false,
+        webPreferences: {
+            preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+        },
+    })
 
     mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY)
 
@@ -34,52 +35,8 @@ const createWindow = async (): Promise<BrowserWindow> => {
 app.on('ready', async () => {
     await createWindow()
 
-    ipcMain.on('open-menu', (e) => {
-        const menu = Menu.buildFromTemplate(template)
-        menu.popup({ window: BrowserWindow.fromWebContents(e.sender) })
-    })
-
-    ipcMain.on('minimize', () => {
-        const browserWindow = BrowserWindow.getFocusedWindow()
-
-        if (browserWindow.minimizable)
-            browserWindow.minimize()
-    })
-
-    ipcMain.on('maximize', () => {
-        const browserWindow = BrowserWindow.getFocusedWindow()
-
-        if (browserWindow.maximizable)
-            browserWindow.maximize()
-    })
-
-    ipcMain.on('unmaximize', () => {
-        const browserWindow = BrowserWindow.getFocusedWindow()
-
-        browserWindow.unmaximize()
-    })
-
-    ipcMain.on('maxUnmax', () => {
-        const browserWindow = BrowserWindow.getFocusedWindow()
-
-        if (browserWindow.isMaximized())
-            browserWindow.unmaximize()
-        else
-            browserWindow.maximize()
-    })
-
-    ipcMain.on('close', () => {
-        const browserWindow = BrowserWindow.getFocusedWindow()
-
-        browserWindow.close()
-    })
-
-    ipcMain.handle('isMaximized', () => {
-        const browserWindow = BrowserWindow.getFocusedWindow()
-
-        if (browserWindow !== null)
-            return browserWindow.isMaximized()
-    })
+    handleMenuEvents()
+    handleAuthEvents()
 })
 
 app.on('window-all-closed', () => {

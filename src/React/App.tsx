@@ -1,10 +1,14 @@
-import { Box, CssBaseline, Fade, Modal, PaletteMode, Paper, ThemeProvider, createTheme, useMediaQuery } from '@mui/material'
-import { useMemo, useState } from 'react'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { CssBaseline, Fade, Modal, PaletteMode, Paper, ThemeProvider, createTheme, useMediaQuery, AppBar, Drawer, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography } from '@mui/material'
+import { useMemo, useRef, useState } from 'react'
 import { Home } from './routes/Home'
 import { MenuBar } from './components/MenuBar'
-import { Auth } from './auth'
 import { LoginForm } from './LoginForm'
+import { AuthContext } from '../Electron/Auth/renderer/AuthContext'
+import type { authAPI } from '../Electron/Auth/renderer/authAPI'
+
+import SettingsIcon from '@mui/icons-material/SettingsOutlined';
+import MenuIcon from '@mui/icons-material/MenuOutlined';
+import LogoutIcon from '@mui/icons-material/LogoutOutlined';
 
 export function App() {
     const mode: PaletteMode = useMediaQuery('(prefers-color-scheme: dark)') ? 'dark' : 'light'
@@ -19,27 +23,85 @@ export function App() {
         [mode],
     )
 
-    const [user, setUser] = useState(Auth.user)
+    const isCalled = useRef(false)
+
+    const [user, setUser] = useState(null);
+
+    (window as typeof window & { authAPI: authAPI }).authAPI.getAuthenticatedUser().then((u) => {
+        if (!isCalled.current && u != null && user == null) {
+            isCalled.current = true
+
+            setUser(u)
+        }
+    })
+
+    const [open, setOpen] = useState(false)
+    const [content, setContent] = useState(<Home />)
+
+    const list = [
+        {
+            text: 'Users',
+            icon: <SettingsIcon />,
+            content: <Home />
+        },
+        {
+            text: 'Settings',
+            icon: <SettingsIcon />,
+            content: <></>
+        }
+    ]
 
     return (
         <>
             <ThemeProvider theme={theme}>
-                <CssBaseline />
-                <MenuBar />
-                <Box sx={{ height: '20px' }} />
-                <BrowserRouter>
-                    <Routes>
-                        <Route path='/main_window' element={<Home />} />
-                    </Routes>
-                </BrowserRouter>
-                <Modal open={user == null} closeAfterTransition disableEscapeKeyDown disableAutoFocus>
+                <AuthContext.Provider value={{ user, setUser }}>
+                    <CssBaseline />
+
+                    <MenuBar />
+
+                    {
+                        user &&
+                        <>
+                            <AppBar position='relative'>
+                                <Toolbar>
+                                    <IconButton size='large' color='inherit' onClick={() => setOpen(true)} sx={{ mr: 2 }}>
+                                        <MenuIcon fontSize='inherit' />
+                                    </IconButton>
+                                    <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
+                                        {user.username}
+                                    </Typography>
+                                    <IconButton size='large' color='inherit' onClick={() => setUser(null)}>
+                                        <LogoutIcon fontSize='inherit' />
+                                    </IconButton>
+                                </Toolbar>
+                            </AppBar>
+                            <Drawer open={open} onClose={() => setOpen(false)}>
+                                <List>
+                                    {list.map((elm, index) => (
+                                        <ListItem key={index}>
+                                            <ListItemButton onClick={() => { setContent(elm.content) }}>
+                                                <ListItemIcon>
+                                                    {elm.icon}
+                                                </ListItemIcon>
+                                                <ListItemText primary={elm.text} />
+                                            </ListItemButton>
+                                        </ListItem>
+                                    ))}
+                                </List>
+                            </Drawer>
+                        </>
+                    }
+                    {content}
+                </AuthContext.Provider>
+
+                <Modal open={user == null} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
                     <Fade in={user == null} timeout={500}>
                         <Paper sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '30rem' }}>
-                            <LoginForm onLoggedIn={(u) => { setUser(u); }} />
+                            <LoginForm />
                         </Paper>
                     </Fade>
                 </Modal>
-            </ThemeProvider>
+            </ThemeProvider >
         </>
     )
 }
