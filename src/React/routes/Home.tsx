@@ -8,7 +8,7 @@ export function Home() {
     const { user } = useContext(AuthContext)
 
     if (!user)
-        return (<>null</>)
+        return (<>{null}</>)
     else
         return (
             <>

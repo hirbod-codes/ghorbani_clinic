@@ -1,7 +1,9 @@
+import * as db from './Electron/Database/renderer/mongodb'
 import * as auth from './Electron/Auth/renderer/auth'
 import * as menu from './Electron/Menu/renderer/menu'
 import type { menuAPI } from './Electron/Menu/renderer/menuAPI'
 import type { authAPI } from './Electron/Auth/renderer/authAPI'
+import type { dbAPI } from './Electron/Database/renderer/dbAPI'
 import { contextBridge } from 'electron'
 
 contextBridge.exposeInMainWorld('menuAPI', {
@@ -19,3 +21,8 @@ contextBridge.exposeInMainWorld('authAPI', {
     login: auth.login,
     logout: auth.logout,
 } as authAPI)
+
+contextBridge.exposeInMainWorld('dbAPI', {
+    getConfig: db.getConfig,
+    updateConfig: db.updateConfig,
+} as dbAPI)

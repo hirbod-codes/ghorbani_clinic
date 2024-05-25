@@ -5,13 +5,17 @@ import { MenuBar } from './components/MenuBar'
 import { LoginForm } from './LoginForm'
 import { AuthContext } from '../Electron/Auth/renderer/AuthContext'
 import type { authAPI } from '../Electron/Auth/renderer/authAPI'
+import { Settings } from './routes/Settings'
 
+import HomeIcon from '@mui/icons-material/HomeOutlined';
 import SettingsIcon from '@mui/icons-material/SettingsOutlined';
 import MenuIcon from '@mui/icons-material/MenuOutlined';
 import LogoutIcon from '@mui/icons-material/LogoutOutlined';
+import LightModeIcon from '@mui/icons-material/LightModeOutlined'
+import DarkModeIcon from '@mui/icons-material/DarkModeOutlined'
 
 export function App() {
-    const mode: PaletteMode = useMediaQuery('(prefers-color-scheme: dark)') ? 'dark' : 'light'
+    const [mode, setMode] = useState<PaletteMode>(useMediaQuery('(prefers-color-scheme: dark)') ? 'dark' : 'light');
 
     const theme = useMemo(
         () =>
@@ -40,14 +44,14 @@ export function App() {
 
     const list = [
         {
-            text: 'Users',
-            icon: <SettingsIcon />,
+            text: 'Home',
+            icon: <HomeIcon />,
             content: <Home />
         },
         {
             text: 'Settings',
             icon: <SettingsIcon />,
-            content: <></>
+            content: <Settings />
         }
     ]
 
@@ -63,14 +67,17 @@ export function App() {
                         user &&
                         <>
                             <AppBar position='relative'>
-                                <Toolbar>
+                                <Toolbar variant="dense">
                                     <IconButton size='large' color='inherit' onClick={() => setOpen(true)} sx={{ mr: 2 }}>
                                         <MenuIcon fontSize='inherit' />
                                     </IconButton>
                                     <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
                                         {user.username}
                                     </Typography>
-                                    <IconButton size='large' color='inherit' onClick={() => setUser(null)}>
+                                    <IconButton size='medium' color='inherit' onClick={() => setMode(mode == 'dark' ? 'light' : 'dark')}>
+                                        {mode == 'light' ? <LightModeIcon fontSize='inherit' /> : <DarkModeIcon fontSize='inherit' />}
+                                    </IconButton>
+                                    <IconButton size='medium' color='inherit' onClick={() => setUser(null)}>
                                         <LogoutIcon fontSize='inherit' />
                                     </IconButton>
                                 </Toolbar>
@@ -79,7 +86,7 @@ export function App() {
                                 <List>
                                     {list.map((elm, index) => (
                                         <ListItem key={index}>
-                                            <ListItemButton onClick={() => { setContent(elm.content) }}>
+                                            <ListItemButton onClick={() => { setContent(elm.content); setOpen(false) }}>
                                                 <ListItemIcon>
                                                     {elm.icon}
                                                 </ListItemIcon>

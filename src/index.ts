@@ -1,6 +1,7 @@
 import { app, BrowserWindow } from 'electron'
 import { handleMenuEvents } from './Electron/Menu/menu';
 import { handleAuthEvents } from './Electron/Auth/auth';
+import { handleDbEvents } from './Electron/Database/mongodb';
 
 app.commandLine.appendSwitch('ignore-gpu-blacklist');
 app.commandLine.appendSwitch('disable-gpu');
@@ -37,6 +38,7 @@ app.on('ready', async () => {
 
     handleMenuEvents()
     handleAuthEvents()
+    handleDbEvents()
 })
 
 app.on('window-all-closed', () => {

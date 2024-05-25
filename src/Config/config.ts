@@ -1,24 +1,74 @@
-import { PaletteMode } from '@mui/material'
-import { app, nativeTheme } from 'electron'
+import { app } from 'electron'
 import fs from 'fs'
 import path from 'path'
+import { hashSync } from 'bcrypt'
+import { User } from '../Electron/Auth/auth-types'
 
-export function readConfig() {
-    const configFile = path.join(app.getAppPath(), 'src', 'Config', 'config.json')
-    let configJson
-    fs.readFile(configFile, (err, data) => {
-        if (err)
-            throw new Error('No config provided.')
-
-        configJson = data
-    })
-
-    return JSON.parse(configJson)
+export type MongodbConfig = {
+    url: string,
+    databaseName: string,
+    auth: {
+        username: string,
+        password: string,
+    },
 }
 
-export async function readThemeMode(): Promise<PaletteMode> {
-    const themeModeFile = path.join(app.getAppPath(), 'src', 'Config', 'theme-mode.json')
-    const themeModeJson = fs.readFileSync(themeModeFile).toString()
+export type Config = {
+    mongodb: MongodbConfig,
+}
 
-    return JSON.parse(themeModeJson).themeMode ?? (nativeTheme.shouldUseDarkColors ? 'dark' : 'light')
+export function readConfig(): Config {
+    const configFile = path.join(app.getAppPath(), 'src', 'Config', 'config.json')
+
+    if (!fs.existsSync(configFile))
+        return writeConfig()
+    else {
+        const configJson = fs.readFileSync(configFile).toString()
+        return JSON.parse(configJson)
+    }
+}
+
+export function writeConfig(config: Config = {
+    "mongodb": {
+        "url": null,
+        "databaseName": "",
+        "auth": {
+            "username": "",
+            "password": ""
+        }
+    }
+}): Config {
+    const configFile = path.join(app.getAppPath(), 'src', 'Config', 'config.json')
+
+    fs.writeFileSync(configFile, JSON.stringify(config))
+
+    return config
+}
+
+export type AuthConfig = { authenticatedUserIndex: number | null, users: User[] }
+
+export function writeAuth(auth: AuthConfig = {
+    authenticatedUserIndex: null,
+    users: [
+        { username: 'Ghorbani', password: hashSync('adminPass', 10) },
+        { username: 'Secretary', password: hashSync('secretaryPass', 10) },
+    ]
+}): AuthConfig {
+    const authFile = path.join(app.getAppPath(), 'src', 'Config', 'auth.json')
+
+    fs.writeFileSync(authFile, JSON.stringify(auth))
+
+    return auth
+}
+
+export function readAuth(): AuthConfig {
+    const authFile = path.join(app.getAppPath(), 'src', 'Config', 'auth.json')
+
+    if (!fs.existsSync(authFile))
+        return writeAuth()
+    else {
+        const authJson = fs.readFileSync(authFile).toString()
+        const auth = JSON.parse(authJson)
+        return auth
+    }
 }

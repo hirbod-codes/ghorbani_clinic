@@ -3,6 +3,12 @@ version: "3.8"
 services:
     mongodb:
         container_name: mongodb
-        image: mongo:4
+        build:
+            context: ./
+            dockerfile: ./mongodb/mongodb.Dockerfile
         ports:
-            - 8081:27017
+            - 8082:27017
+        environment:
+            username: admin
+            password: password
+            databaseName: primaryDB
