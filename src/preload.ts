@@ -25,4 +25,12 @@ contextBridge.exposeInMainWorld('authAPI', {
 contextBridge.exposeInMainWorld('dbAPI', {
     getConfig: db.getConfig,
     updateConfig: db.updateConfig,
+    createPatient: db.createPatient,
+    getPatient: db.getPatient,
+    updatePatient: db.updatePatient,
+    deletePatient: db.deletePatient,
+    uploadFiles: db.uploadFiles,
+    retrieveFiles: db.retrieveFiles,
+    openFile: db.openFile,
+    deleteFiles: db.deleteFiles,
 } as dbAPI)

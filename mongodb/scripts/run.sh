@@ -15,6 +15,7 @@ db.createUser(
     user: \"$username\",
     pwd: \"$password\",
     roles: [
+      { role: \"root\", db: \"admin\" },
       { role: \"userAdminAnyDatabase\", db: \"admin\" },
       { role: \"readWriteAnyDatabase\", db: \"admin\" }
     ]

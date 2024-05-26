@@ -1,1 +1,10 @@
-{"mongodb":{"url":"mongodb://localhost:8082","databaseName":"primaryDB","auth":{"username":"admin","password":"password"}}}
+{
+    "mongodb": {
+        "url": "mongodb://localhost:8082",
+        "databaseName": "primaryDB",
+        "auth": {
+            "username": "admin",
+            "password": "password"
+        }
+    }
+}

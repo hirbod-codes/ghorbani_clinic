@@ -1,0 +1,16 @@
+export type Patient = {
+    schemaVersion: number,
+    _id?: string,
+    socialId: number,
+    firstName?: string,
+    lastName?: string,
+    gender?: 'male' | 'female',
+    age?: number,
+    birthDate?: Date,
+    documentsIds?: string[],
+    diagnosis?: string[],
+    visitDues?: Date[],
+    address?: string,
+    createdAt?: Date,
+    updatedAt?: Date,
+}

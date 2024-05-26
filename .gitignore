@@ -90,3 +90,6 @@ typings/
 
 # Electron-Forge
 out/
+
+# temporarily downloaded files
+tmp/

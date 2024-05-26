@@ -2,6 +2,8 @@ import { app, BrowserWindow } from 'electron'
 import { handleMenuEvents } from './Electron/Menu/menu';
 import { handleAuthEvents } from './Electron/Auth/auth';
 import { handleDbEvents } from './Electron/Database/mongodb';
+import fs from 'fs'
+import path from 'path'
 
 app.commandLine.appendSwitch('ignore-gpu-blacklist');
 app.commandLine.appendSwitch('disable-gpu');
@@ -34,17 +36,23 @@ const createWindow = async (): Promise<BrowserWindow> => {
 }
 
 app.on('ready', async () => {
+    fs.mkdirSync(path.join(app.getAppPath(), 'tmp', 'downloads'), { recursive: true })
+
     await createWindow()
 
     handleMenuEvents()
     handleAuthEvents()
-    handleDbEvents()
+    await handleDbEvents()
 })
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit()
     }
+})
+
+app.on('quit', () => {
+    fs.rmSync(path.join(app.getAppPath(), 'tmp'), { recursive: true })
 })
 
 app.on('activate', async () => {
