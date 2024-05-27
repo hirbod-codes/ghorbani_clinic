@@ -8,6 +8,7 @@ export type Patient = {
     age?: number,
     birthDate?: Date,
     documentsIds?: string[],
+    medicalHistory?: string[],
     diagnosis?: string[],
     visitDues?: Date[],
     address?: string,

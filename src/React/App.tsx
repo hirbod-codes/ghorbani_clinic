@@ -1,4 +1,4 @@
-import { CssBaseline, Fade, Modal, PaletteMode, Paper, ThemeProvider, createTheme, useMediaQuery, AppBar, Drawer, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography } from '@mui/material'
+import { CssBaseline, Modal, PaletteMode, Paper, ThemeProvider, createTheme, useMediaQuery, AppBar, Drawer, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Slide } from '@mui/material'
 import { useMemo, useRef, useState } from 'react'
 import { Home } from './routes/Home'
 import { MenuBar } from './components/MenuBar'
@@ -60,9 +60,7 @@ export function App() {
             <ThemeProvider theme={theme}>
                 <AuthContext.Provider value={{ user, setUser }}>
                     <CssBaseline />
-
                     <MenuBar />
-
                     {
                         user &&
                         <>
@@ -99,15 +97,14 @@ export function App() {
                         </>
                     }
                     {content}
+                    <Modal open={user == null} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
+                        <Slide direction={user == null ? 'up' : 'down'} in={user == null} timeout={250}>
+                            <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
+                                <LoginForm />
+                            </Paper>
+                        </Slide>
+                    </Modal>
                 </AuthContext.Provider>
-
-                <Modal open={user == null} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
-                    <Fade in={user == null} timeout={500}>
-                        <Paper sx={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: '30rem' }}>
-                            <LoginForm />
-                        </Paper>
-                    </Fade>
-                </Modal>
             </ThemeProvider >
         </>
     )
