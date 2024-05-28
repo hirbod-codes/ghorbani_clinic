@@ -16,7 +16,7 @@ export function Home() {
     const [searchError, setSearchError] = useState(false)
     const [searchHelperText, setSearchHelperText] = useState('')
     const [patient, setPatient] = useState<Patient | null>(null)
-    const [openPatientCreationModal, setOpenPatientCreationModal] = useState(false)
+    const [openPatientCreationModal, setOpenPatientCreationModal] = useState(true)
     const [openPatientViewerModal, setOpenPatientViewerModal] = useState(false)
 
     const [modalDirection, setModalDirection] = useState<"up" | "left" | "right" | "down">('up')
@@ -68,7 +68,7 @@ export function Home() {
 
                     <Modal onClose={() => { setModalDirection('down'); setOpenPatientCreationModal(false) }} open={openPatientCreationModal} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
                         <Slide direction={modalDirection} in={openPatientCreationModal} timeout={250}>
-                            <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
+                            <Paper sx={{ maxHeight: '30rem', height: '85%', maxWidth: '40rem', width: '60%', padding: '0.5rem 2rem', overflowY: 'auto' }}>
                                 <CreatePatient />
                             </Paper>
                         </Slide>
@@ -76,7 +76,7 @@ export function Home() {
 
                     <Modal onClose={() => { setModalDirection('down'); setOpenPatientViewerModal(false) }} open={openPatientViewerModal} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
                         <Slide direction={modalDirection} in={openPatientViewerModal} timeout={250}>
-                            <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
+                            <Paper sx={{ maxHeight: '30rem', height: '85%', maxWidth: '40rem', width: '60%', padding: '0.5rem 2rem', overflowY: 'auto' }}>
                                 <ShowPatient patient={patient} />
                             </Paper>
                         </Slide>
