@@ -1,0 +1,15 @@
+{
+    "version": "0.2",
+    "ignorePaths": [
+        "cspell.json",
+        "src/React/components/astro.ts",
+        "src/React/components/time-helpers.ts",
+        "src/React/components/persian-calendar.ts",
+        "src/React/components/gregorian-calendar.ts"
+    ],
+    "dictionaryDefinitions": [],
+    "dictionaries": [],
+    "words": [],
+    "ignoreWords": [],
+    "import": []
+}
