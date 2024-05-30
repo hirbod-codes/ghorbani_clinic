@@ -2,12 +2,6 @@ import { TropicalYear, deltat, equationOfTime, equinox } from './astro'
 import { number } from 'yup'
 import { jd_to_gregorian } from './gregorian-calendar'
 
-export type PersianDate = {
-    year: number,
-    month: number,
-    day: number,
-}
-
 export const PERSIAN_MONTHS_FA = [
     'فروردین',
     'اردیبهشت',
@@ -162,7 +156,7 @@ export function persian_to_jd(date: PersianDate): number {
             (((date.month - 1) * 30) + 6)
         ) +
         (date.day - 1);
-    return jd + 0.5;
+    return jd;
 }
 
 export function validatePersianYear(date: PersianDate): void {
