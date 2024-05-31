@@ -1,9 +1,9 @@
 import { Box, Button, Stack, TextField } from "@mui/material";
 import { useRef, useState } from "react";
-import type { dbAPI } from "../../Electron/Database/renderer/dbAPI";
-import { MongodbConfig } from "../../Config/config";
+import type { dbAPI } from "../../../Electron/Database/renderer/dbAPI";
+import { MongodbConfig } from "../../../Config/config";
 
-export function Settings() {
+export function Database() {
     const [url, setUrl] = useState('')
     const [dbUsername, setDBUsername] = useState('')
     const [dbPassword, setDBPassword] = useState('')

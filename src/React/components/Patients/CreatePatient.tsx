@@ -208,8 +208,6 @@ export function CreatePatient() {
                         </Stack>
                     </Grid>
                     <Grid item xs={12}>
-                    </Grid>
-                    <Grid item xs={12}>
                         <Stack direction='row' spacing={1} divider={<Divider orientation='vertical' variant='middle' flexItem />} >
                             {files.length !== 0 &&
                                 <Button disabled variant='text'>
@@ -238,6 +236,8 @@ export function CreatePatient() {
                                 </Button>
                             }
                         </Stack>
+                    </Grid>
+                    <Grid item xs={12}>
                     </Grid>
                     <Grid item xs={12}>
                         <Button variant="contained" onClick={submit} fullWidth>

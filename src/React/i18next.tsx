@@ -5,18 +5,36 @@ import { initReactI18next } from "react-i18next";
 import Persian from "./components/Localization/Translations/Persian.json";
 import English from "./components/Localization/Translations/English.json";
 
-export const languages = {
+export type Language = {
+    code: string,
+    name: string,
+}
+
+export const languages: Language[] = [
+    {
+        code: 'fa',
+        name: 'Persian',
+    },
+    {
+        code: 'en',
+        name: 'English',
+    }
+]
+
+export const resources = {
     fa: {
+        Name: 'Persian',
         translation: Persian,
     },
     en: {
+        Name: 'English',
         translation: English,
     },
 }
 
 i18next.use(initReactI18next)
     .init({
-        resources: languages,
+        resources,
         lng: 'en',
         fallbackLng: 'en',
     });
