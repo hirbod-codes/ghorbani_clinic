@@ -193,16 +193,16 @@ export function App() {
                                     open={Boolean(languageAnchorEl)}
                                     onClose={() => setLanguageAnchorEl(null)}
                                 >
-                                    <MenuItem onClick={() => { updateConfiguration.updateLocale('Persian', 'rtl', faIR); setLanguageAnchorEl(null) }}>Persian</MenuItem>
-                                    <MenuItem onClick={() => { updateConfiguration.updateLocale('Gregorian', 'ltr', enUS); setLanguageAnchorEl(null) }}>English</MenuItem>
+                                    <MenuItem selected={configuration.locale.getLocale(configuration.locale.reactLocale) === 'fa'} onClick={() => { updateConfiguration.updateLocale('Persian', 'rtl', faIR); setLanguageAnchorEl(null) }}>Persian</MenuItem>
+                                    <MenuItem selected={configuration.locale.getLocale(configuration.locale.reactLocale) === 'en'} onClick={() => { updateConfiguration.updateLocale('Gregorian', 'ltr', enUS); setLanguageAnchorEl(null) }}>English</MenuItem>
                                 </Menu>
                                 <Menu
                                     anchorEl={timeZoneAnchorEl}
                                     open={Boolean(timeZoneAnchorEl)}
                                     onClose={() => setTimeZoneAnchorEl(null)}
                                 >
-                                    <MenuItem onClick={() => { updateConfiguration.updateTimeZone('Asia/Tehran'); setTimeZoneAnchorEl(null) }}>Asia - Tehran</MenuItem>
-                                    <MenuItem onClick={() => { updateConfiguration.updateTimeZone('UTC'); setTimeZoneAnchorEl(null) }}>UTC</MenuItem>
+                                    <MenuItem selected={configuration.locale.zone === 'Asia/Tehran'} onClick={() => { updateConfiguration.updateTimeZone('Asia/Tehran'); setTimeZoneAnchorEl(null) }}>Asia - Tehran</MenuItem>
+                                    <MenuItem selected={configuration.locale.zone === 'UTC'} onClick={() => { updateConfiguration.updateTimeZone('UTC'); setTimeZoneAnchorEl(null) }}>UTC</MenuItem>
                                 </Menu>
                             </>
                         }
