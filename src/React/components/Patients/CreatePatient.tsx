@@ -99,7 +99,7 @@ export function CreatePatient() {
     }
 
     const [openVisitShowModal, setOpenVisitShowModal] = useState(false)
-    const [openVisitCreateModal, setOpenVisitCreateModal] = useState(true)
+    const [openVisitCreateModal, setOpenVisitCreateModal] = useState(false)
     const [visitDues, setVisitDues] = useState<VisitDue[]>([])
 
 

@@ -1,6 +1,7 @@
 import { TropicalYear, deltat, equationOfTime, equinox } from './astro'
 import { number } from 'yup'
 import { jd_to_gregorian } from './gregorian-calendar'
+import type { PersianDate } from './date-time'
 
 export const PERSIAN_MONTHS_FA = [
     'فروردین',

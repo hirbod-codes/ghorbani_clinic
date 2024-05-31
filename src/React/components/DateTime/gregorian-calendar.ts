@@ -1,5 +1,6 @@
 import { mod } from './astro'
 import { number } from 'yup'
+import type { GregorianDate } from './date-time'
 
 export const GREGORIAN_MONTHS_FA = [
     'جَنیوئری',

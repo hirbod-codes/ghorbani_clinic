@@ -3,19 +3,19 @@ import { jd_to_persian, persian_to_jd } from "./persian-calendar"
 import { DateTime } from "luxon"
 import type { Date, Time, GregorianDate, PersianDate } from './date-time'
 import { useContext } from "react"
-import { LocaleContext } from "./LocaleContext"
+import { ConfigurationContext } from "../../../React/ConfigurationContext"
 
 export function getDateTime(date: DateTime): DateTime
 export function getDateTime(date: Date, time: Time, fromZone: string): DateTime
 export function getDateTime(date: DateTime | Date, time?: Time, fromZone?: string): DateTime {
-    const toLocale = useContext(LocaleContext)
+    const toLocale = useContext(ConfigurationContext).get.locale
 
     let formattedDate
     if (time === undefined)
-        formattedDate = (date as DateTime).setLocale(toLocale.language).setZone(toLocale.zone)
+        formattedDate = (date as DateTime).setLocale(toLocale.getLocale(toLocale.reactLocale)).setZone(toLocale.zone)
     else {
         formattedDate = DateTime.fromFormat(`${date.year}/${date.month}/${date.day} ${time.hour}:${time.minute}:${time.second} `, 'y/M/d H:m:s', { zone: fromZone })
-        formattedDate = formattedDate.setLocale(toLocale.language).setZone(toLocale.zone)
+        formattedDate = formattedDate.setLocale(toLocale.getLocale(toLocale.reactLocale)).setZone(toLocale.zone)
     }
 
     return formattedDate
@@ -24,14 +24,14 @@ export function getDateTime(date: DateTime | Date, time?: Time, fromZone?: strin
 export function getRawDateTime(date: DateTime): { date: Date, time: Time }
 export function getRawDateTime(date: Date, time: Time, fromZone: string): { date: Date, time: Time }
 export function getRawDateTime(date: DateTime | Date, time?: Time, fromZone?: string): { date: Date, time: Time } {
-    const toLocale = useContext(LocaleContext)
+    const toLocale = useContext(ConfigurationContext).get.locale
 
     let formattedDate: DateTime
     if (time === undefined)
-        formattedDate = (date as DateTime).setLocale(toLocale.language).setZone(toLocale.zone)
+        formattedDate = (date as DateTime).setLocale(toLocale.getLocale(toLocale.reactLocale)).setZone(toLocale.zone)
     else {
         formattedDate = DateTime.fromFormat(`${date.year}/${date.month}/${date.day} ${time.hour}:${time.minute}:${time.second} `, 'y/M/d H:m:s', { zone: fromZone })
-        formattedDate = formattedDate.setLocale(toLocale.language).setZone(toLocale.zone)
+        formattedDate = formattedDate.setLocale(toLocale.getLocale(toLocale.reactLocale)).setZone(toLocale.zone)
     }
 
     switch (toLocale.calendar) {
