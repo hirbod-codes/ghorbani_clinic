@@ -39,7 +39,7 @@ export const GREGORIAN_EPOCH = 1721425.5;
  * 
  * @param year 
  */
-export function leap_gregorian(year: number): boolean {
+export function isLeapGregorianYear(year: number): boolean {
     return ((year % 4) == 0) && (!(((year % 100) == 0) && ((year % 400) != 0)));
 }
 
@@ -73,7 +73,7 @@ export function gregorian_to_jd(date: GregorianDate): number {
         Math.floor((date.year - 1) / 400) +
         Math.floor((((367 * date.month) - 362) / 12) +
             ((date.month <= 2) ? 0 :
-                (leap_gregorian(date.year) ? -1 : -2)
+                (isLeapGregorianYear(date.year) ? -1 : -2)
             ) +
             date.day);
 }
@@ -103,7 +103,7 @@ export function jd_to_gregorian(jd: number): GregorianDate {
     const yearday = wjd - gregorian_to_jd({ year, month: 1, day: 1 });
     const leapadj = (
         (wjd < gregorian_to_jd({ year, month: 3, day: 1 })) ? 0
-            : (leap_gregorian(year) ? 1 : 2)
+            : (isLeapGregorianYear(year) ? 1 : 2)
     );
     const month = Math.floor((((yearday + leapadj) * 12) + 373) / 367);
     const day = (wjd - gregorian_to_jd({ year, month: month, day: 1 })) + 1;
@@ -122,7 +122,7 @@ export function validateGregorianMonth(date: GregorianDate): void {
 }
 
 export function validateGregorianDay(date: GregorianDate): void {
-    if (!number().required().positive().integer().min(0).max(30).isValidSync(date.day) || date.day >= getGregorianMonths(leap_gregorian(date.year), 'en')[date.month].days)
+    if (!number().required().positive().integer().min(0).max(30).isValidSync(date.day) || date.day >= getGregorianMonths(isLeapGregorianYear(date.year), 'en')[date.month].days)
         throw new Error(`Invalid day provided(${date.day}) in Gregorian calendar.`)
 }
 

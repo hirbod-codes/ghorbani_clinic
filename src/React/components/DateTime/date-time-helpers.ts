@@ -1,60 +1,84 @@
-import { gregorian_to_jd, jd_to_gregorian } from "./gregorian-calendar"
-import { jd_to_persian, persian_to_jd } from "./persian-calendar"
+import { getGregorianMonths, gregorian_to_jd, isLeapGregorianYear, jd_to_gregorian } from "./gregorian-calendar"
+import { getPersianMonths, isLeapPersianYear, jd_to_persian, persian_to_jd } from "./persian-calendar"
 import { DateTime } from "luxon"
 import type { Date, Time, GregorianDate, PersianDate } from './date-time'
-import { useContext } from "react"
-import { ConfigurationContext } from "../../../React/ConfigurationContext"
+import { Calendar, Locale } from "../Localization/types"
 
-export function getDateTime(date: DateTime): DateTime
-export function getDateTime(date: Date, time: Time, fromZone: string): DateTime
-export function getDateTime(date: DateTime | Date, time?: Time, fromZone?: string): DateTime {
-    const toLocale = useContext(ConfigurationContext).get.locale
-
-    let formattedDate
-    if (time === undefined)
-        formattedDate = (date as DateTime).setLocale(toLocale.getLocale(toLocale.reactLocale)).setZone(toLocale.zone)
-    else {
-        formattedDate = DateTime.fromFormat(`${date.year}/${date.month}/${date.day} ${time.hour}:${time.minute}:${time.second} `, 'y/M/d H:m:s', { zone: fromZone })
-        formattedDate = formattedDate.setLocale(toLocale.getLocale(toLocale.reactLocale)).setZone(toLocale.zone)
-    }
-
-    return formattedDate
+export function toFormat(date: { date: Date, time: Time }, locale: Locale, format = 'cccc d/M/y H:m:s') {
+    return DateTime
+        .local(date.date.year, date.date.month, date.date.day, date.time.hour, date.time.minute, date.time.second, { zone: locale.zone })
+        .setLocale(locale.getLocale(locale.reactLocale))
+        .toFormat(format)
 }
 
-export function getRawDateTime(date: DateTime): { date: Date, time: Time }
-export function getRawDateTime(date: Date, time: Time, fromZone: string): { date: Date, time: Time }
-export function getRawDateTime(date: DateTime | Date, time?: Time, fromZone?: string): { date: Date, time: Time } {
-    const toLocale = useContext(ConfigurationContext).get.locale
+export function fromUnix(toLocale: Locale, unixTimestamp: number): { date: Date, time: Time } {
+    const dateTime = DateTime.fromSeconds(unixTimestamp).setZone(toLocale.zone).setLocale(toLocale.getLocale(toLocale.reactLocale))
 
-    let formattedDate: DateTime
-    if (time === undefined)
-        formattedDate = (date as DateTime).setLocale(toLocale.getLocale(toLocale.reactLocale)).setZone(toLocale.zone)
-    else {
-        formattedDate = DateTime.fromFormat(`${date.year}/${date.month}/${date.day} ${time.hour}:${time.minute}:${time.second} `, 'y/M/d H:m:s', { zone: fromZone })
-        formattedDate = formattedDate.setLocale(toLocale.getLocale(toLocale.reactLocale)).setZone(toLocale.zone)
-    }
+    return fromDateTime(toLocale, 'Gregorian', dateTime)
+}
 
-    switch (toLocale.calendar) {
-        case 'Persian':
-            break
-        case 'Gregorian':
-            break
-        default:
-            throw new Error(`unsupported calendar: ${toLocale.calendar} `)
-    }
+export function fromUnixToFormat(toLocale: Locale, unixTimestamp: number, format = 'cccc d/M/y H:m:s'): string {
+    return toFormat(fromUnix(toLocale, unixTimestamp), toLocale, format)
+}
+
+export function fromDateTimeParts(toLocale: Locale, fromLocale: Locale, date: Date, time?: Time): { date: Date, time: Time } {
+    if (!time)
+        time = { hour: 0, minute: 0, second: 0 }
+
+    const dateTime = DateTime
+        .local(date.year, date.month, date.day, time.hour, time.minute, time.second, { zone: fromLocale.zone })
+        .setZone(toLocale.zone)
+        .setLocale(toLocale.getLocale(toLocale.reactLocale))
+
+    return fromDateTime(toLocale, fromLocale.calendar, dateTime)
+}
+
+export function fromDateTimePartsToFormat(toLocale: Locale, fromLocale: Locale, date: Date, time?: Time, format = 'cccc d/M/y H:m:s'): string {
+    return toFormat(fromDateTimeParts(toLocale, fromLocale, date, time), toLocale, format)
+}
+
+export function fromDateTime(toLocale: Locale, fromCalendar: Calendar, dateTime: DateTime): { date: Date, time: Time } {
+    dateTime = dateTime
+        .setZone(toLocale.zone)
+        .setLocale(toLocale.getLocale(toLocale.reactLocale))
+
+    let date
+    if (toLocale.calendar === fromCalendar)
+        date = { year: dateTime.year, month: dateTime.month, day: dateTime.day }
+    else
+        switch (toLocale.calendar) {
+            case 'Persian':
+                date = gregorianToPersian({ year: dateTime.year, month: dateTime.month, day: dateTime.day })
+                break;
+
+            case 'Gregorian':
+                date = persianToGregorian({ year: dateTime.year, month: dateTime.month, day: dateTime.day })
+                break;
+
+            default:
+                throw new Error('invalid value for calendar provided.')
+        }
 
     return {
-        date: {
-            year: formattedDate.year,
-            month: formattedDate.month,
-            day: formattedDate.day,
-        },
+        date,
         time: {
-            hour: formattedDate.hour,
-            minute: formattedDate.minute,
-            second: formattedDate.second,
+            hour: dateTime.hour,
+            minute: dateTime.minute,
+            second: dateTime.second,
         }
     }
+}
+
+export function fromDateTimeToFormat(toLocale: Locale, fromCalendar: Calendar, dateTime: DateTime, format = 'cccc d/M/y H:m:s'): string {
+    return toFormat(fromDateTime(toLocale, fromCalendar, dateTime), toLocale, format)
+}
+
+export function getLocaleMonths(locale: Locale, year: number): { name: string, days: number }[] {
+    const lang = locale.getLocale(locale.reactLocale)
+    if (lang === 'fa')
+        return getPersianMonths(isLeapPersianYear(year))
+    if (lang === 'en')
+        return getGregorianMonths(isLeapGregorianYear(year))
 }
 
 /**

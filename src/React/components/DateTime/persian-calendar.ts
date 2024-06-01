@@ -3,6 +3,26 @@ import { number } from 'yup'
 import { jd_to_gregorian } from './gregorian-calendar'
 import type { PersianDate } from './date-time'
 
+export const PERSIAN_WEEK_DAYS_FA = [
+    'شنبه',
+    'یکشنبه',
+    'دوشنبه',
+    'سه‌شنبه',
+    'چهارشنبه',
+    'پنج‌شنبه',
+    'جمعه',
+]
+
+export const PERSIAN_WEEK_DAYS_EN = [
+    'Shanbeh',
+    'Yekshanbeh',
+    'Doshanbeh',
+    'Seshanbeh',
+    'Charshanbeh',
+    'Panjshanbeh',
+    'Jomeh',
+]
+
 export const PERSIAN_MONTHS_FA = [
     'فروردین',
     'اردیبهشت',
@@ -51,7 +71,7 @@ export function getPersianMonths(isLeapYear: boolean, locale: 'en' | 'fa' = 'en'
     return keys.map((k, i) => ({ name: k, days: values[i] }))
 }
 
-export function leap_persian(year: number): boolean {
+export function isLeapPersianYear(year: number): boolean {
     return (persian_to_jd({ year: year + 1, month: 1, day: 1 }) - persian_to_jd({ year, month: 1, day: 1 })) > 365;
 }
 
@@ -171,7 +191,7 @@ export function validatePersianMonth(date: PersianDate): void {
 }
 
 export function validatePersianDay(date: PersianDate): void {
-    if (!number().required().positive().integer().min(0).max(30).isValidSync(date.day) || date.day >= getPersianMonths(leap_persian(date.year), 'en')[date.month].days)
+    if (!number().required().positive().integer().min(0).max(30).isValidSync(date.day) || date.day >= getPersianMonths(isLeapPersianYear(date.year), 'en')[date.month].days)
         throw new Error(`Invalid day provided(${date.day}) in Persian calendar.`)
 }
 

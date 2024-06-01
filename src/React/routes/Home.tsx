@@ -16,7 +16,7 @@ export function Home() {
     const [searchError, setSearchError] = useState(false)
     const [searchHelperText, setSearchHelperText] = useState('')
     const [patient, setPatient] = useState<Patient | null>(null)
-    const [openPatientCreationModal, setOpenPatientCreationModal] = useState(false)
+    const [openPatientCreationModal, setOpenPatientCreationModal] = useState(true)
     const [openPatientViewerModal, setOpenPatientViewerModal] = useState(false)
 
     const [modalDirection, setModalDirection] = useState<"up" | "left" | "right" | "down">('up')

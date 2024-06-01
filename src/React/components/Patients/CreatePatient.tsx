@@ -1,15 +1,14 @@
 import { styled } from '@mui/material/styles';
 import { Grid, Modal, Paper, Button, Stack, TextField, Select, MenuItem, ButtonGroup, InputLabel, FormControl, Divider, Slide, List, ListItemButton, ListItemIcon, ListItemText, IconButton } from '@mui/material';
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 // import type { dbAPI } from '../../../Electron/Database/renderer/dbAPI';
 import { DateTime } from 'luxon'
 
 import AddIcon from '@mui/icons-material/AddOutlined';
 
-import { persianToGregorian } from '../DateTime/date-time-helpers';
-import { PERSIAN_MONTHS_EN, jd_to_persian, validatePersianDate } from '../DateTime/persian-calendar';
-import { gregorian_to_jd } from '../DateTime/gregorian-calendar';
+import { fromDateTime, fromDateTimeParts, getLocaleMonths, persianToGregorian, toFormat } from '../DateTime/date-time-helpers';
 import type { PersianDate } from '../DateTime/date-time';
+import { ConfigurationContext } from '../../ConfigurationContext';
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -42,22 +41,8 @@ type VisitDue = {
 }
 
 export function CreatePatient() {
-    // let g_year = 2025, p_year = 1404
-    // const years = []
-    // for (let i = 0; i < 100; i++) {
-    //     years.push({
-    //         g_year: g_year,
-    //         g_year_leap: leap_gregorian(g_year),
-    //         p_year: p_year,
-    //         p_year_leap: leap_persian(p_year)
-    //     })
-    //     g_year--
-    //     p_year--
-    // }
-    // console.log(years);
-    // console.log(years.filter(e => e.g_year_leap || e.p_year_leap));
-
-    // const [id, setId] = useState('')
+    const locale = useContext(ConfigurationContext).get.locale
+    const localeMonths = getLocaleMonths(locale, DateTime.local({ zone: locale.zone }).year)
 
     const [firstName, setFirstName] = useState<string>('')
     const [lastName, setLastName] = useState<string>('')
@@ -67,34 +52,29 @@ export function CreatePatient() {
 
     const [gender, setGender] = useState('')
 
-    // in Gregorian calendar
     const [birth, setBirth] = useState<Birth>({ age: undefined, birthDateTimestamp: undefined, year: undefined, month: undefined, day: undefined })
     const setBirthDate = (birth: Birth) => {
-        console.log('setBirthDate was called');
+        const date: PersianDate = { year: birth.year, month: birth.month, day: birth.day }
 
-        let date: PersianDate
-        try {
-            date = { year: birth.year, month: birth.month, day: birth.day }
-            validatePersianDate(date)
-            console.log('date', date);
-        } catch (error) { return }
+        const convertedDate = fromDateTimeParts(
+            { ...locale, calendar: 'Gregorian' },
+            locale,
+            date
+        )
 
-        // const convertedDate = getLocalizedDate(date)
-
-        const rawConvertedDate = persianToGregorian(date)
-        // const rawConvertedDate = jd_to_gregorian(persian_to_jd(date))
-
-        console.log(`${rawConvertedDate.year}/${rawConvertedDate.month}/${rawConvertedDate.day}`)
-
-        const convertedDate = DateTime.fromFormat(`${rawConvertedDate.year}/${rawConvertedDate.month}/${rawConvertedDate.day}`, 'y/M/d', { zone: 'Asia/Tehran' })
-        console.log('convertedDate', convertedDate.toLocaleString(DateTime.DATETIME_FULL), convertedDate.toUnixInteger(), convertedDate.year - DateTime.now().setZone("Asia/Tehran").year);
+        const now = DateTime.local({ zone: locale.zone })
+        const today = fromDateTime(
+            { ...locale },
+            'Gregorian',
+            now
+        )
 
         setBirth({
             year: birth.year,
             month: birth.month,
             day: birth.day,
-            age: DateTime.now().setZone("Asia/Tehran").year - convertedDate.year,
-            birthDateTimestamp: convertedDate.toUnixInteger(),
+            age: today.date.year - convertedDate.date.year,
+            birthDateTimestamp: now.toUnixInteger(),
         })
     }
 
@@ -102,19 +82,24 @@ export function CreatePatient() {
     const [openVisitCreateModal, setOpenVisitCreateModal] = useState(false)
     const [visitDues, setVisitDues] = useState<VisitDue[]>([])
 
-
-    const now = DateTime.now().setZone("Asia/Tehran")
-    const today = jd_to_persian(gregorian_to_jd({ year: now.year, month: now.month, day: now.day }))
+    const now = DateTime.local({ zone: locale.zone })
+    const today = fromDateTime(
+        { ...locale },
+        'Gregorian',
+        now
+    )
+    console.log('now', now);
     console.log('today', today);
     const defaultVisitDue: VisitDue = {
-        year: today.year,
-        month: today.month,
-        day: today.day,
-        hour: now.hour,
-        minute: now.minute,
-        second: now.second,
+        year: today.date.year,
+        month: today.date.month,
+        day: today.date.day,
+        hour: today.time.hour,
+        minute: today.time.minute,
+        second: today.time.second,
         visitTimestamp: now.toUnixInteger(),
     }
+    console.log('defaultVisitDue', defaultVisitDue);
     const [addingVisitDue, setAddingVisitDue] = useState<VisitDue>(defaultVisitDue)
     console.log(`${addingVisitDue.hour}:${addingVisitDue.minute}:${addingVisitDue.second}`)
 
@@ -131,12 +116,15 @@ export function CreatePatient() {
                 <h1>Register patient</h1>
                 <Grid container spacing={2} >
                     <Grid item>
+                        {/* First name */}
                         <TextField variant='standard' onChange={(e) => setFirstName(e.target.value)} id='firstName' value={firstName} label='firstName' sx={{ width: '7rem' }} />
                     </Grid>
                     <Grid item>
+                        {/* Last name */}
                         <TextField variant='standard' onChange={(e) => setLastName(e.target.value)} id='lastName' value={lastName} label='lastName' sx={{ width: '7rem' }} />
                     </Grid>
                     <Grid item>
+                        {/* Social Id */}
                         <TextField variant='standard' onChange={(e) => {
                             const s = e.target.value
                             console.log(s);
@@ -149,6 +137,7 @@ export function CreatePatient() {
                         }} id='socialId' value={socialId} label='socialId' type='number' sx={{ width: '7rem' }} error={socialIdError} helperText={socialIdError ? 'must have 10 digits' : ''} />
                     </Grid>
                     <Grid item>
+                        {/* Gender */}
                         <FormControl variant='standard' >
                             <InputLabel id="gender-label">Gender</InputLabel>
                             <Select onChange={(e) => setGender(e.target.value as 'male' | 'female')} labelId="gender-label" id='gender' value={gender} sx={{ width: '7rem' }} >
@@ -158,9 +147,11 @@ export function CreatePatient() {
                         </FormControl>
                     </Grid>
                     <Grid item>
+                        {/* Age */}
                         <TextField variant='standard' id='age' value={birth.age === undefined || birth.age <= 0 ? '' : birth.age} label='age' type='number' sx={{ width: '7rem' }} disabled />
                     </Grid>
                     <Grid item>
+                        {/* Birth Date */}
                         <ButtonGroup variant="text" >
                             <TextField variant='standard' onChange={(e) => {
                                 try {
@@ -175,13 +166,13 @@ export function CreatePatient() {
                                 <Select onChange={(e) => {
                                     try {
                                         if (birth.year === undefined || birth.day === undefined)
-                                            setBirth({ ...birth, month: PERSIAN_MONTHS_EN.indexOf(e.target.value.toString()) + 1 })
+                                            setBirth({ ...birth, month: localeMonths.findIndex(m => m.name === e.target.value.toString()) + 1 })
                                         else
-                                            setBirthDate({ ...birth, month: PERSIAN_MONTHS_EN.indexOf(e.target.value.toString()) + 1 })
+                                            setBirthDate({ ...birth, month: localeMonths.findIndex(m => m.name === e.target.value.toString()) + 1 })
                                     } catch (error) { console.error('month', error); return }
-                                }} labelId="month-label" id='birthDateMonth' value={birth.month === undefined ? '' : PERSIAN_MONTHS_EN[birth.month - 1]} sx={{ width: '7rem' }} >
-                                    {PERSIAN_MONTHS_EN.map((m, i) =>
-                                        <MenuItem key={i} value={m}>{m}</MenuItem>
+                                }} labelId="month-label" id='birthDateMonth' value={birth.month === undefined ? '' : localeMonths[birth.month - 1].name} sx={{ width: '7rem' }} >
+                                    {localeMonths.map((m, i) =>
+                                        <MenuItem key={i} value={m.name}>{m.name}</MenuItem>
                                     )}
                                 </Select>
                             </FormControl>
@@ -196,6 +187,7 @@ export function CreatePatient() {
                         </ButtonGroup>
                     </Grid>
                     <Grid item>
+                        {/* Visit Controls */}
                         <Stack direction='row' spacing={1} divider={<Divider orientation='vertical' variant='middle' flexItem />} >
                             {visitDues.length !== 0 &&
                                 <Button variant="text" onClick={() => setOpenVisitShowModal(true)}>
@@ -208,6 +200,7 @@ export function CreatePatient() {
                         </Stack>
                     </Grid>
                     <Grid item xs={12}>
+                        {/* Files */}
                         <Stack direction='row' spacing={1} divider={<Divider orientation='vertical' variant='middle' flexItem />} >
                             {files.length !== 0 &&
                                 <Button disabled variant='text'>
@@ -240,29 +233,29 @@ export function CreatePatient() {
                     <Grid item xs={12}>
                     </Grid>
                     <Grid item xs={12}>
+                        {/* Submit */}
                         <Button variant="contained" onClick={submit} fullWidth>
                             submit
                         </Button>
                     </Grid>
                 </Grid>
             </Stack>
+            {/* Show Visits */}
             <Modal open={openVisitShowModal} onClose={() => setOpenVisitShowModal(false)} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
                 <Slide direction={openVisitShowModal ? 'up' : 'down'} in={openVisitShowModal} timeout={250}>
                     <Paper sx={{ maxWidth: '40rem', padding: '0.5rem 2rem', overflowY: 'auto' }}>
                         <List dense>
                             {visitDues.map((e, i) =>
-                                <>
-                                    {i !== 0 && <Divider key={`${i}-divider`} />}
-                                    <ListItemButton key={`${i}`}>
-                                        <ListItemIcon>{i + 1}</ListItemIcon>
-                                        <ListItemText primary={`${e.year}/${e.month}/${e.day} | ${e.hour.toString().padStart(2, '0')}:${e.minute.toString().padStart(2, '0')}:${e.second.toString().padStart(2, '0')}`} />
-                                    </ListItemButton>
-                                </>
+                                <ListItemButton key={i}>
+                                    <ListItemIcon>{i + 1}</ListItemIcon>
+                                    <ListItemText primary={toFormat({ date: { year: e.year, month: e.month, day: e.day }, time: { hour: 0, minute: 0, second: 0 } }, locale, 'cccc d/M/y')} />
+                                </ListItemButton>
                             )}
                         </List>
                     </Paper>
                 </Slide>
             </Modal>
+            {/* Create Visit */}
             <Modal open={openVisitCreateModal} onClose={() => setOpenVisitCreateModal(false)} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
                 <Slide direction={openVisitCreateModal ? 'up' : 'down'} in={openVisitCreateModal} timeout={250}>
                     <Paper sx={{ maxWidth: '40rem', padding: '0.5rem 2rem', overflowY: 'auto' }}>
@@ -276,11 +269,11 @@ export function CreatePatient() {
                                 <InputLabel id="month-label">Month</InputLabel>
                                 <Select onChange={(e) => {
                                     try {
-                                        setAddingVisitDue({ ...addingVisitDue, month: PERSIAN_MONTHS_EN.indexOf(e.target.value.toString()) + 1 })
+                                        setAddingVisitDue({ ...addingVisitDue, month: localeMonths.findIndex(m => m.name === e.target.value.toString()) + 1 })
                                     } catch (error) { console.error('month', error); return }
-                                }} labelId="month-label" id='visitDueMonth' value={addingVisitDue.month === undefined ? '' : PERSIAN_MONTHS_EN[addingVisitDue.month - 1]} sx={{ width: '7rem' }} >
-                                    {PERSIAN_MONTHS_EN.map((m, i) =>
-                                        <MenuItem key={i} value={m}>{m}</MenuItem>
+                                }} labelId="month-label" id='visitDueMonth' value={addingVisitDue.month === undefined ? '' : localeMonths[addingVisitDue.month - 1].name} sx={{ width: '7rem' }} >
+                                    {localeMonths.map((m, i) =>
+                                        <MenuItem key={i} value={m.name}>{m.name}</MenuItem>
                                     )}
                                 </Select>
                             </FormControl>

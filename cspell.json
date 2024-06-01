@@ -4,8 +4,8 @@
         "cspell.json",
         "src/React/components/astro.ts",
         "src/React/components/time-helpers.ts",
-        "src/React/components/persian-calendar.ts",
-        "src/React/components/gregorian-calendar.ts"
+        "src/React/components/DateTime/persian-calendar.ts",
+        "src/React/components/DateTime/gregorian-calendar.ts"
     ],
     "dictionaryDefinitions": [],
     "dictionaries": [],
