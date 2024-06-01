@@ -74,11 +74,11 @@ export function fromDateTimeToFormat(toLocale: Locale, fromCalendar: Calendar, d
 }
 
 export function getLocaleMonths(locale: Locale, year: number): { name: string, days: number }[] {
-    const lang = locale.getLocale(locale.reactLocale)
-    if (lang === 'fa')
-        return getPersianMonths(isLeapPersianYear(year))
-    if (lang === 'en')
-        return getGregorianMonths(isLeapGregorianYear(year))
+    const language = locale.getLocale(locale.reactLocale)
+    if (locale.calendar === 'Persian')
+        return getPersianMonths(isLeapPersianYear(year), language)
+    if (locale.calendar === 'Gregorian')
+        return getGregorianMonths(isLeapGregorianYear(year), language)
 }
 
 /**

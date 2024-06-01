@@ -43,7 +43,7 @@ export function isLeapGregorianYear(year: number): boolean {
     return ((year % 4) == 0) && (!(((year % 100) == 0) && ((year % 400) != 0)));
 }
 
-export function getGregorianMonths(isLeapYear: boolean, locale: 'en' | 'fa' = 'en'): { name: string, days: number }[] {
+export function getGregorianMonths(isLeapYear: boolean, locale = 'en'): { name: string, days: number }[] {
     let keys
     if (locale == 'en')
         keys = GREGORIAN_MONTHS_EN
