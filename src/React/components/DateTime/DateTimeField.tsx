@@ -5,13 +5,6 @@ import { TimeField } from './TimeField';
 
 
 export function DateTimeField({ variant, defaultDate, defaultTime, onChange, onDateChange, onTimeChange }: { defaultTime?: Time; defaultDate?: Date; onChange?: ({ time, date }: { time: Time; date: Date; }) => void; onDateChange?: (date: Date) => void; onTimeChange?: (time: Time) => void; variant?: "standard" | "outlined" | "filled"; }) {
-    if (!onchange)
-        onChange = () => null;
-    if (!onDateChange)
-        onDateChange = () => null;
-    if (!onTimeChange)
-        onTimeChange = () => null;
-
     const [date, setDate] = useState<Date>();
     const [time, setTime] = useState<Time>();
 
@@ -23,7 +16,8 @@ export function DateTimeField({ variant, defaultDate, defaultTime, onChange, onD
                 onChange={(date) => {
                     setDate(date);
                     onDateChange(date);
-                    onChange({ time, date });
+                    if (time)
+                        onChange({ time, date });
                 }} />
             <TimeField
                 defaultTime={defaultTime}
@@ -31,7 +25,8 @@ export function DateTimeField({ variant, defaultDate, defaultTime, onChange, onD
                 onChange={(time) => {
                     setTime(time);
                     onTimeChange(time);
-                    onChange({ date, time });
+                    if (date)
+                        onChange({ date, time });
                 }} />
         </>
     );

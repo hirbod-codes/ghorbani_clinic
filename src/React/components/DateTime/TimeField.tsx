@@ -4,9 +4,6 @@ import type { Time } from './date-time';
 
 
 export function TimeField({ defaultTime, onChange, variant }: { defaultTime?: Time; onChange?: (time: Time) => void; variant?: "standard" | "outlined" | "filled"; }) {
-    if (!onchange)
-        onChange = () => null;
-
     const [hour, setHour] = useState<number>(undefined);
     const [minute, setMinute] = useState<number>(undefined);
     const [second, setSecond] = useState<number>(undefined);

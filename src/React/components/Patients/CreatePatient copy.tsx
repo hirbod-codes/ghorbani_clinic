@@ -11,7 +11,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 
 import { fromDateTime, fromDateTimeParts, fromUnix, toFormat } from '../DateTime/date-time-helpers';
-import type { Date, PersianDate } from '../DateTime/date-time';
+import type { Date } from '../DateTime/date-time';
 import { ConfigurationContext } from '../../ConfigurationContext';
 import { Patient } from '../../../Electron/Database/Models/Patient';
 import type { Visit } from '../../../Electron/Database/Models/Visit';
@@ -51,9 +51,8 @@ export function CreatePatient({ inputPatient }: { inputPatient?: Patient | null 
 
     const [socialIdError, setSocialIdError] = useState<boolean>(false)
 
-    // const [birth, setBirth] = useState<Date>({ year: undefined, month: undefined, day: undefined })
-    const setBirthDate = (birth: Date) => {
-        const date: PersianDate = { year: birth.year, month: birth.month, day: birth.day }
+    const setBirthDate = (date: Date) => {
+        console.log('setBirthDate called')
         const birthDate = fromDateTimeParts({ ...locale, calendar: 'Gregorian' }, locale, date)
 
         const now = DateTime.local({ zone: locale.zone })
@@ -200,7 +199,7 @@ export function CreatePatient({ inputPatient }: { inputPatient?: Patient | null 
                     </Grid>
                     <Grid item>
                         {/* Birth Date */}
-                        <DateField onChange={(date) => setBirthDate(date)} defaultDate={fromUnix(locale, inputPatient.birthDate).date} />
+                        <DateField onChange={(date) => setBirthDate(date)} defaultDate={patient?.birthDate ? fromUnix(locale, patient.birthDate).date : undefined} />
                     </Grid>
                     <Grid item>
                         {/* Medical History */}
@@ -290,17 +289,6 @@ export function CreatePatient({ inputPatient }: { inputPatient?: Patient | null 
                     <Paper sx={{ maxWidth: '40rem', padding: '0.5rem 2rem', overflowY: 'auto' }}>
                         <Stack direction='column' alignItems={'center'}>
                             <DateTimeField onChange={(dateTime) => setAddingVisitDue({ ...dateTime.date, ...dateTime.time })} defaultDate={fromDateTime(locale, locale.calendar, DateTime.local({ zone: locale.zone })).date} />
-                            <DateField onChange={(date) => setAddingVisitDue({ ...addingVisitDue, year: date.year, month: date.month, day: date.day })} defaultDate={fromDateTime(locale, locale.calendar, DateTime.local({ zone: locale.zone })).date} />
-
-                            <TextField
-                                type='time'
-                                label='Time'
-                                variant='standard'
-                                inputProps={{ step: '1' }}
-                                value={addingVisitDue.hour === undefined ? '' : `${addingVisitDue.hour.toString().padStart(2, '0')}:${addingVisitDue.minute.toString().padStart(2, '0')}:${addingVisitDue.second.toString().padStart(2, '0')}`}
-                                onChange={(e) => setAddingVisitDue({ ...addingVisitDue, hour: Number(e.target.value.split(':')[0]), minute: Number(e.target.value.split(':')[1]), second: Number(e.target.value.split(':')[2]), })}
-                                sx={{ width: '7rem' }}
-                            />
 
                             <Diagnosis onChange={(strings) => setAddingVisitDue({ ...addingVisitDue, diagnosis: strings })} />
 
