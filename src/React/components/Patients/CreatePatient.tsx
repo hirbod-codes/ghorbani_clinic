@@ -1,10 +1,13 @@
 import { styled } from '@mui/material/styles';
-import { Grid, Modal, Paper, Button, Stack, TextField, Select, MenuItem, ButtonGroup, InputLabel, FormControl, Divider, Slide, List, ListItemButton, ListItemIcon, ListItemText, IconButton, DialogTitle, DialogContent, DialogContentText, DialogActions, Dialog } from '@mui/material';
-import { useState, useContext } from 'react';
+import { Grid, Modal, Paper, Button, Stack, TextField, Select, MenuItem, ButtonGroup, InputLabel, FormControl, Divider, Slide, List, ListItemButton, ListItemIcon, ListItemText, IconButton, DialogTitle, DialogContent, DialogContentText, DialogActions, Dialog, Snackbar, Alert, AlertColor, AlertPropsColorOverrides } from '@mui/material';
+import type { OverridableStringUnion } from '@mui/types/index'
+import { useState, useContext, ReactNode } from 'react';
 import type { dbAPI } from '../../../Electron/Database/renderer/dbAPI';
 import { DateTime } from 'luxon'
 
 import AddIcon from '@mui/icons-material/AddOutlined';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 
 import { fromDateTime, fromDateTimeParts, getLocaleMonths, toFormat } from '../DateTime/date-time-helpers';
 import type { PersianDate } from '../DateTime/date-time';
@@ -40,7 +43,7 @@ type VisitDue = {
     visitTimestamp: number,
 }
 
-export function CreatePatient() {
+export function CreatePatientOld() {
     const locale = useContext(ConfigurationContext).get.locale
     const localeMonths = getLocaleMonths(locale, DateTime.local({ zone: locale.zone }).year)
 
@@ -95,29 +98,48 @@ export function CreatePatient() {
     const [files, setFiles] = useState<{ fileName: string, bytes: Buffer | Uint8Array }[]>([])
 
     const submit = async () => {
-        const id = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.createPatient({
-            schemaVersion: '0.0.1',
-            socialId: Number(socialId),
-            firstName: firstName,
-            lastName: lastName,
-            gender: gender,
-            age: birth.age,
-            birthDate: birth.birthDateTimestamp,
-            medicalHistory: medicalHistory,
-            visitDues: visitDues.map(v => v.visitTimestamp),
-            address: address,
-            createdAt: DateTime.local({ zone: locale.zone }).toUnixInteger(),
-            updatedAt: DateTime.local({ zone: locale.zone }).toUnixInteger(),
-        })
-        console.log(id);
+        let id = undefined, result = undefined
 
-        const result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.uploadFiles(id, files);
-        console.log(result);
+        try {
+            id = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.createPatient({
+                schemaVersion: '0.0.1',
+                socialId: Number(socialId),
+                firstName: firstName,
+                lastName: lastName,
+                gender: gender,
+                age: birth.age,
+                birthDate: birth.birthDateTimestamp,
+                medicalHistory: medicalHistory,
+                visitDues: visitDues.map(v => v.visitTimestamp),
+                address: address,
+                createdAt: DateTime.local({ zone: locale.zone }).toUnixInteger(),
+                updatedAt: DateTime.local({ zone: locale.zone }).toUnixInteger(),
+
+                //
+            })
+
+            result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.uploadFiles(id, files)
+        } finally {
+            if (result !== true) {
+                setSnackbarSeverity('error')
+                setSnackbarMessage('failed to register the patient.')
+                setOpenSnackbar(true)
+            }
+
+            setSnackbarSeverity('error')
+            setSnackbarMessage('failed to register the patient.')
+            setOpenSnackbar(true)
+        }
     }
 
     const [dialogOpen, setDialogOpen] = useState(false)
     const [dialogTitle, setDialogTitle] = useState('')
     const [dialogContent, setDialogContent] = useState('')
+
+    const [openSnackbar, setOpenSnackbar] = useState(true)
+    const [snackbarSeverity, setSnackbarSeverity] = useState<OverridableStringUnion<AlertColor, AlertPropsColorOverrides>>('info')
+    const [snackbarMessage, setSnackbarMessage] = useState('')
+    const [snackbarAction] = useState<ReactNode | null>(null)
 
     return (
         <>
@@ -232,14 +254,12 @@ export function CreatePatient() {
                             >
                                 Add documents
                                 <VisuallyHiddenInput type="file" multiple={true} onChange={async (e) => {
-                                    const fs = files
-                                    console.log('e.target.files', e.target.files)
+                                    const fs: { fileName: string, bytes: Buffer | Uint8Array }[] = []
+                                    fs.concat(files)
                                     for (const f of (e.target.files as unknown) as File[])
                                         fs.push({ fileName: f.name, bytes: new Uint8Array(await f.arrayBuffer()) })
 
-                                    console.log(fs.map(e => e.fileName))
                                     setFiles(fs)
-                                    console.log(files.length)
                                 }} />
                             </Button>
                             {files.length !== 0 &&
@@ -349,6 +369,17 @@ export function CreatePatient() {
                     <Button onClick={() => { submit(); setDialogOpen(false) }}>Yes</Button>
                 </DialogActions>
             </Dialog>
+
+            <Snackbar
+                open={openSnackbar}
+                autoHideDuration={7000}
+                onClose={() => setOpenSnackbar(false)}
+                action={snackbarAction}
+            >
+                <Alert icon={snackbarSeverity === 'success' ? <CheckIcon fontSize="inherit" /> : (snackbarSeverity === 'error' ? <CloseIcon fontSize="inherit" /> : null)} severity={snackbarSeverity}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </>
     )
 }

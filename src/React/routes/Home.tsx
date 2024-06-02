@@ -1,9 +1,9 @@
-import { Box, Modal, Paper, Divider, Grid, IconButton, Stack, TextField, Slide } from '@mui/material';
+import { Box, Modal, Paper, Divider, Grid, IconButton, Stack, TextField, Slide, CircularProgress, Button } from '@mui/material';
 
 import { AnimatedCounter } from '../components/AnimatedCounter';
 import { AuthContext } from '../../Electron/Auth/renderer/AuthContext';
 import { useContext, useRef, useState } from 'react';
-import { CreatePatient } from '../components/Patients/CreatePatient';
+import { CreatePatient } from '../components/Patients/CreatePatient copy';
 import type { Patient } from '../../Electron/Database/Models/Patient';
 import { ShowPatient } from '../components/Patients/ShowPatient';
 
@@ -16,29 +16,44 @@ export function Home() {
     const [searchError, setSearchError] = useState(false)
     const [searchHelperText, setSearchHelperText] = useState('')
     const [patient, setPatient] = useState<Patient | null>(null)
-    const [openPatientCreationModal, setOpenPatientCreationModal] = useState(true)
+
+    const [openPatientCreationModal, setOpenPatientCreationModal] = useState(false)
     const [openPatientViewerModal, setOpenPatientViewerModal] = useState(false)
 
-    const [modalDirection, setModalDirection] = useState<"up" | "left" | "right" | "down">('up')
     const modalContainerRef = useRef<HTMLElement>(null);
 
-    const search = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const [searching, setSearching] = useState(true)
+
+    const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.value.length !== 10) {
             setSearchHelperText('must have 10 digits.')
             setSearchError(true)
-        } else {
+            return
+        }
+
+        search(e.target.value)
+    }
+    const search = async (socialId: string) => {
+        try {
             setSearchHelperText('')
             setSearchError(false)
+
+            setSearching(true)
+            setPatient(null)
+
+            const patientJson = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.getPatient(socialId)
+            console.log('patientJson', patientJson);
+
+            const patient = JSON.parse(patientJson)
+            console.log('patient', patient);
+
+            if (patient) {
+                setPatient(patient)
+                setOpenPatientViewerModal(true)
+            }
+        } finally {
+            setSearching(false)
         }
-
-        const patient = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.getPatient(Number(e.target.value))
-
-        if (patient) {
-            setPatient(patient)
-            setModalDirection('up')
-            setOpenPatientViewerModal(true)
-        }
-
     }
 
     if (!user)
@@ -46,14 +61,15 @@ export function Home() {
     else
         return (
             <Box ref={modalContainerRef}>
+                <Button onClick={() => search('2222222222')}>a</Button>
                 <Grid container rowSpacing={2} sx={{ border: '1px solid red' }}>
                     <Grid item xs={12} sx={{ border: '1px solid gray' }}>
                     </Grid>
                     <Grid item xs={12} sx={{ border: '1px solid gray' }}>
                         <Stack spacing={1} direction={'row'} divider={<Divider orientation="vertical" variant='middle' flexItem />} justifyContent='center' alignItems='center'>
-                            <TextField variant='filled' size='small' type='number' onChange={search} id='search' label='Search' error={searchError} helperText={searchHelperText} />
+                            <TextField variant='filled' size='small' type='number' onChange={handleSearch} id='search' label='Search' error={searchError} helperText={searchHelperText} />
                             <Box>
-                                <IconButton size='small' color='inherit' onClick={() => { setModalDirection('up'); setOpenPatientCreationModal(true) }}>
+                                <IconButton size='small' color='inherit' onClick={() => { setOpenPatientCreationModal(true) }}>
                                     <AddIcon />
                                 </IconButton>
                             </Box>
@@ -65,23 +81,27 @@ export function Home() {
                     <Grid item sx={{ border: '1px solid gray' }} xs={12} container justifyContent={'center'}>
                         <AnimatedCounter countTo={500} />
                     </Grid>
-
-                    <Modal onClose={() => { setModalDirection('down'); setOpenPatientCreationModal(false) }} open={openPatientCreationModal} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
-                        <Slide direction={modalDirection} in={openPatientCreationModal} timeout={250}>
-                            <Paper sx={{ maxHeight: '30rem', height: '85%', maxWidth: '40rem', width: '60%', padding: '0.5rem 2rem', overflowY: 'auto' }}>
-                                <CreatePatient />
-                            </Paper>
-                        </Slide>
-                    </Modal>
-
-                    <Modal onClose={() => { setModalDirection('down'); setOpenPatientViewerModal(false) }} open={openPatientViewerModal} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
-                        <Slide direction={modalDirection} in={openPatientViewerModal} timeout={250}>
-                            <Paper sx={{ maxHeight: '30rem', height: '85%', maxWidth: '40rem', width: '60%', padding: '0.5rem 2rem', overflowY: 'auto' }}>
-                                <ShowPatient patient={patient} />
-                            </Paper>
-                        </Slide>
-                    </Modal>
+                    <Grid item xs={12} container justifyContent={'center'}>
+                        {searching && <CircularProgress />}
+                    </Grid>
                 </Grid>
+
+                <Modal onClose={() => { setOpenPatientCreationModal(false) }} open={openPatientCreationModal} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
+                    <Slide direction={openPatientCreationModal ? 'up' : 'down'} in={openPatientCreationModal} timeout={250}>
+                        <Paper sx={{ maxWidth: '40rem', width: '60%', padding: '0.5rem 2rem', overflowY: 'auto' }}>
+                            <CreatePatient />
+                        </Paper>
+                    </Slide>
+                </Modal>
+
+                <Modal onClose={() => { setOpenPatientViewerModal(false) }} open={openPatientViewerModal} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
+                    <Slide direction={openPatientViewerModal ? 'up' : 'down'} in={openPatientViewerModal} timeout={250}>
+                        <Paper sx={{ maxWidth: '40rem', width: '60%', padding: '0.5rem 2rem', overflowY: 'auto' }}>
+                            <CreatePatient inputPatient={patient} />
+                            {/* <ShowPatient patient={patient} /> */}
+                        </Paper>
+                    </Slide>
+                </Modal>
             </Box>
         );
 }

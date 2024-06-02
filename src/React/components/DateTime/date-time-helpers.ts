@@ -3,10 +3,16 @@ import { getPersianMonths, isLeapPersianYear, jd_to_persian, persian_to_jd } fro
 import { DateTime } from "luxon"
 import type { Date, Time, GregorianDate, PersianDate } from './date-time'
 import { Calendar, Locale } from "../Localization/types"
+import { number } from "yup"
 
-export function toFormat(date: { date: Date, time: Time }, locale: Locale, format = 'cccc d/M/y H:m:s') {
+export function toFormat(date: number, locale: Locale, format: string): string
+export function toFormat(date: { date: Date, time: Time }, locale: Locale, format: string): string
+export function toFormat(date: { date: Date, time: Time } | number, locale: Locale, format = 'cccc d/M/y H:m:s'): string {
+    if (number().required().isValidSync(date))
+        date = fromUnix(locale, date)
+
     return DateTime
-        .local(date.date.year, date.date.month, date.date.day, date.time.hour, date.time.minute, date.time.second, { zone: locale.zone })
+        .local(date.date.year, date.date.month, date.date.day, date.time.hour, date.time.minute, date.time.second)
         .setLocale(locale.getLocale(locale.reactLocale))
         .toFormat(format)
 }

@@ -15,6 +15,8 @@ export function ShowPatient({ patient }: { patient: Patient | null }) {
     return (
         <>
             <h1>Show patient</h1>
+            <h2>{patient._id}</h2>
+            <h2>{patient.socialId}</h2>
             <Button startIcon={<CloudDownloadIcon />} onClick={() => (window as typeof window & { dbAPI: dbAPI }).dbAPI.openFile(id, fileName)} />
         </>
     )
