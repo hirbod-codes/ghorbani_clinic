@@ -68,7 +68,7 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
         let id = undefined, result = undefined
 
         try {
-            if (inputPatient !== null) {
+            if (inputPatient) {
                 id = patient._id
                 if (!await (window as typeof window & { dbAPI: dbAPI }).dbAPI.updatePatient(patient))
                     throw new Error('failed to update the patient.')
@@ -88,6 +88,8 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
             result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.uploadFiles(id, files)
             if (!result)
                 throw new Error('failed to upload the patient\'s documents.')
+        } catch (error) {
+            console.error(error)
         } finally {
             if (result !== true) {
                 setSnackbarSeverity('error')
@@ -95,8 +97,8 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
                 setOpenSnackbar(true)
             }
 
-            setSnackbarSeverity('error')
-            setSnackbarMessage('failed to register the patient.')
+            setSnackbarSeverity('success')
+            setSnackbarMessage('The patient was successfully registered.')
             setOpenSnackbar(true)
         }
     }

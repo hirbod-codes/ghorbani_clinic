@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo } from 'react';
-import { DataGrid, GridColDef, GridPaginationMeta, useGridApiRef } from '@mui/x-data-grid';
+import { DataGrid, GridAutosizeOptions, GridColDef, GridPaginationMeta, useGridApiRef, GridToolbar } from '@mui/x-data-grid';
 import { Patient } from '../../../Electron/Database/Models/Patient';
 import type { dbAPI } from '../../../Electron/Database/renderer/dbAPI';
 import { StringHumanizer } from '../string-helpers';
@@ -23,11 +23,11 @@ export function PatientDataGrid() {
     if (isLoading)
         (window as typeof window & { dbAPI: dbAPI }).dbAPI.getPatients(paginationModel.page, paginationModel.pageSize)
             .then((patientsJson) => {
-                const patients = JSON.parse(patientsJson).map((p: Patient) => ({ id: p._id, schemaVersion: p.schemaVersion, medicalHistory: p.medicalHistory }))
-                // for (const patient of patients) {
-                //     patient.id = patient._id
-                //     delete patient._id
-                // }
+                const patients = JSON.parse(patientsJson)
+                for (const patient of patients) {
+                    patient.id = patient._id
+                    delete patient._id
+                }
                 setPatients(patients)
                 if (patients.length < paginationModel.pageSize)
                     setHasNextPage(false)
@@ -66,75 +66,68 @@ export function PatientDataGrid() {
         includeHeaders: true,
         expand: true,
     })
-
+    if (apiRef.current.autosizeColumns)
+        apiRef.current.autosizeColumns(autosizeOptions)
     return (
         <div style={{ height: 400, width: '100%' }}>
-            <Stack
-                spacing={1}
-                direction="row"
-                alignItems="center"
-                sx={{ mb: 1 }}
-                useFlexGap
-                flexWrap="wrap"
-            >
-                <Button
-                    variant="outlined"
-                    onClick={() => apiRef.current.autosizeColumns(autosizeOptions)}
-                >
-                    Autosize columns
+            <Stack spacing={1} direction="row" sx={{ mb: 1 }} flexWrap="wrap" >
+                <Button variant="outlined" onClick={() => apiRef.current.autosizeColumns(autosizeOptions)}>
+                    Resize
                 </Button>
-                <FormControlLabel
-                    sx={{ ml: 0 }}
+                <FormControlLabel sx={{ ml: 0 }} label="Include headers"
                     control={
                         <Checkbox
-                            checked={includeHeaders}
-                            onChange={(ev) => setIncludeHeaders(ev.target.checked)}
+                            checked={autosizeOptions.includeHeaders}
+                            onChange={(ev) => setAutosizeOptions({ ...autosizeOptions, includeHeaders: ev.target.checked })}
                         />
                     }
-                    label="Include headers"
                 />
-                <FormControlLabel
-                    sx={{ ml: 0 }}
+                <FormControlLabel sx={{ ml: 0 }} label="Include outliers"
                     control={
                         <Checkbox
-                            checked={includeOutliers}
-                            onChange={(event) => setExcludeOutliers(event.target.checked)}
+                            checked={autosizeOptions.includeOutliers}
+                            onChange={(ev) => setAutosizeOptions({ ...autosizeOptions, includeOutliers: ev.target.checked })}
                         />
                     }
-                    label="Include outliers"
                 />
-                <TextField
-                    size="small"
-                    label="Outliers factor"
-                    value={outliersFactor}
-                    onChange={(ev) => setOutliersFactor(ev.target.value)}
-                    sx={{ width: '12ch' }}
+                <TextField size="small" variant='standard' label="Outliers factor" value={autosizeOptions.outliersFactor} sx={{ width: '12ch' }}
+                    onChange={(ev) => setAutosizeOptions({ ...autosizeOptions, outliersFactor: Number(ev.target.value) })}
                 />
-                <FormControlLabel
-                    sx={{ ml: 0 }}
+                <FormControlLabel sx={{ ml: 0 }} label="Expand"
                     control={
                         <Checkbox
-                            checked={expand}
-                            onChange={(ev) => setExpand(ev.target.checked)}
+                            checked={autosizeOptions.expand}
+                            onChange={(ev) => setAutosizeOptions({ ...autosizeOptions, expand: ev.target.checked })}
                         />
                     }
-                    label="Expand"
                 />
             </Stack>
             <DataGrid
                 apiRef={apiRef}
+                slots={{
+                    toolbar: GridToolbar,
+                }}
                 rows={patients}
                 rowCount={-1}
                 columns={columns}
-                autosizeOptions={autosizeOptions}
-                // initialState={{ ...data.initialState, pagination: { rowCount: -1 } }}
+                initialState={{
+                    columns: {
+                        columnVisibilityModel: {
+                            id: false,
+                        },
+                        orderedFields: ['Created at']
+                    },
+                    pagination: {
+                        rowCount: -1,
+                    },
+                    density: 'comfortable'
+                }}
                 paginationMeta={paginationMeta}
                 loading={isLoading}
                 pageSizeOptions={[5, 10, 25, 50]}
                 paginationModel={paginationModel}
                 paginationMode="server"
-                onPaginationModelChange={(m, d) => { setIsLoading(true); setPaginationModel(m) }}
-                density="compact"
+                onPaginationModelChange={(m) => { setIsLoading(true); setPaginationModel(m) }}
             />
         </div>
     );
