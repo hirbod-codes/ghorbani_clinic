@@ -1,8 +1,9 @@
-import { InferType, array, number, object, string } from "yup"
+import { ObjectId } from "mongodb";
+import { InferType, array, number, object, string, mixed } from "yup"
 
 export const patientSchema = object().required().shape({
     schemaVersion: string().required().min(6).max(10),
-    _id: string().optional().length(24),
+    _id: mixed<string | ObjectId>().optional().oneOf([typeof string, typeof ObjectId]),
     socialId: string().required().length(10),
     firstName: string().optional(),
     lastName: string().optional(),

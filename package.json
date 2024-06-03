@@ -26,6 +26,7 @@
     "@electron-forge/plugin-webpack": "^7.4.0",
     "@electron/fuses": "^1.8.0",
     "@electron/remote": "^2.1.2",
+    "@faker-js/faker": "^8.4.1",
     "@mui/x-data-grid-generator": "^7.6.1",
     "@types/bcrypt": "^5.0.2",
     "@types/luxon": "^3.4.2",

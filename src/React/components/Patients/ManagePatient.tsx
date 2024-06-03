@@ -54,7 +54,7 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
     else if (!patient && inputPatient) {
         setPatient(inputPatient)
         if (inputPatient.birthDate)
-            getVisits(inputPatient._id).then((v) => {
+            getVisits(inputPatient._id as string).then((v) => {
                 setLoading(false)
                 setVisits(v)
             })
@@ -85,7 +85,7 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
                 }
             }
 
-            result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.uploadFiles(id, files)
+            result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.uploadFiles(id as string, files)
             if (!result)
                 throw new Error('failed to upload the patient\'s documents.')
         } catch (error) {
@@ -237,7 +237,7 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
             {/* Manage Visits */}
             <Modal open={openVisitCreateModal} onClose={() => setOpenVisitCreateModal(false)} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
                 <Slide direction={openVisitCreateModal ? 'up' : 'down'} in={openVisitCreateModal} timeout={250}>
-                    <Paper sx={{ maxWidth: '40rem', maxHeight: '75%', padding: '0.5rem 2rem', overflowY: 'auto' }}>
+                    <Paper sx={{ maxWidth: '40rem', width: '60%', maxHeight: '75%', padding: '0.5rem 2rem', overflowY: 'auto' }}>
                         <ManageVisits onComplete={(visits: Visit[]) => { setVisits(visits); setOpenVisitCreateModal(false) }} defaultVisits={visits} />
                     </Paper>
                 </Slide>

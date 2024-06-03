@@ -1,7 +1,7 @@
 import { Stack, Divider, IconButton, Box, Accordion, AccordionSummary, Typography, AccordionDetails } from '@mui/material';
-import { useState, useContext } from 'react';
+import { useState, useContext, useRef } from 'react';
 import { DateTime } from 'luxon';
-import { fromDateTime, fromDateTimeParts, fromUnixToFormat } from '../DateTime/date-time-helpers';
+import { fromDateTimeParts, fromUnix, fromUnixToFormat } from '../DateTime/date-time-helpers';
 import { ConfigurationContext } from '../../ConfigurationContext';
 import type { Visit } from '../../../Electron/Database/Models/Visit';
 import { Diagnosis } from './Diagnosis';
@@ -28,8 +28,13 @@ export function ManageVisits({ patientId, defaultVisits, onComplete }: { patient
 
     const [visits, setVisits] = useState<Visit[]>([getDefaultVisit()]);
 
-    if (!visits && defaultVisits)
+    const isDefaultSet = useRef(false)
+    if (!isDefaultSet.current && defaultVisits) {
         setVisits([...defaultVisits]);
+        isDefaultSet.current = true
+    }
+
+    console.log('ManageVisits', 'visits', visits, 'defaultVisits', defaultVisits)
 
     return (
         <Stack direction='column' alignItems={'center'} spacing={2} divider={<Divider orientation='horizontal' variant='middle' flexItem />}>
@@ -47,8 +52,8 @@ export function ManageVisits({ patientId, defaultVisits, onComplete }: { patient
                                 visits[i].due = DateTime.local(convertedDate.date.year, convertedDate.date.month, convertedDate.date.day, convertedDate.time.hour, convertedDate.time.minute, convertedDate.time.second, { zone: locale.zone }).toUnixInteger();
                                 setVisits([...visits]);
                             }}
-                            defaultDate={fromDateTime(locale, 'Gregorian', DateTime.local({ zone: locale.zone })).date}
-                            defaultTime={fromDateTime(locale, 'Gregorian', DateTime.local({ zone: locale.zone })).time}
+                            defaultDate={fromUnix(locale, visits[i].due).date}
+                            defaultTime={fromUnix(locale, visits[i].due).time}
                         />
 
                         <Box sx={{ p: 2 }}>

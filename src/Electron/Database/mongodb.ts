@@ -1,12 +1,13 @@
 import { app, ipcMain, shell } from "electron";
 import { MongodbConfig, readConfig, writeConfig } from "../../Config/config";
-import { Db, GridFSBucket, MongoClient, ObjectId } from "mongodb";
+import { Collection, Db, GridFSBucket, MongoClient, ObjectId } from "mongodb";
 import { patientSchema, type Patient } from "./Models/Patient";
 import path from 'path'
 import fs from 'fs'
 import { Visit } from "./Models/Visit";
 import { array } from "yup";
 import type { dbAPI } from "./renderer/dbAPI";
+import { seed } from "./seed-patients";
 
 class MongoDB implements dbAPI {
     private static isInitialized = false
@@ -101,16 +102,22 @@ class MongoDB implements dbAPI {
 
         const indexes = await db.collection('visits').indexes()
 
-        if (indexes.find(i => i.name === 'unique-patientId') === undefined)
-            await db.createIndex('visits', { patientId: 1 }, { unique: true, name: 'unique-patientId' })
+        if (indexes.find(i => i.name === 'patientId') === undefined)
+            await db.createIndex('visits', { patientId: 1 }, { name: 'patientId' })
 
         if (indexes.find(i => i.name === 'due') === undefined)
             await db.createIndex('visits', { due: 1 }, { name: 'due' })
+
+        if (indexes.find(i => i.name === 'created-at') === undefined)
+            await db.createIndex('visits', { createdAt: 1 }, { name: 'created-at' })
+
+        if (indexes.find(i => i.name === 'updated-at') === undefined)
+            await db.createIndex('visits', { updatedAt: 1 }, { name: 'updated-at' })
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////// Patients
 
-    private async getPatientsCollection() {
+    async getPatientsCollection(): Promise<Collection<Patient>> {
         return (await this.getDb()).collection<Patient>('patients')
     }
 
@@ -131,6 +138,35 @@ class MongoDB implements dbAPI {
      * @param socialId 
      * @returns json string of Patient
      */
+    async getPatientWithVisits(socialId: string): Promise<string | null> {
+        try {
+            const patients = await (await this.getPatientsCollection()).aggregate([
+                {
+                    $match: {
+                        socialId: socialId
+                    }
+                },
+                {
+                    $lookup: {
+                        from: 'visits',
+                        localField: '_id',
+                        foreignField: 'patientId',
+                        as: 'visits'
+                    }
+                }
+            ]).toArray()
+            return JSON.stringify(patients)
+        } catch (error) {
+            console.error(error);
+            return null
+        }
+    }
+
+    /**
+     * 
+     * @param socialId 
+     * @returns json string of Patient
+     */
     async getPatient(socialId: string): Promise<string | null> {
         let patient: Patient = await (await this.getPatientsCollection()).findOne({ socialId: socialId })
         if (!patientSchema.isValidSync(patient))
@@ -142,7 +178,37 @@ class MongoDB implements dbAPI {
 
     async getPatients(offset: number, count: number): Promise<string | null> {
         try {
-            const patients: Patient[] = await (await this.getPatientsCollection()).find().limit(count).skip(offset).sort('createdAt', -1).toArray()
+            const patients: Patient[] = await (await this.getPatientsCollection()).find().limit(count).skip(offset * count).sort('createdAt', -1).toArray()
+            return JSON.stringify(patients)
+        } catch (error) {
+            console.error(error);
+            return null
+        }
+    }
+
+    async getPatientsWithVisits(offset: number, count: number): Promise<string | null> {
+        try {
+            const patients = await (await this.getPatientsCollection()).aggregate([
+                {
+                    $lookup: {
+                        from: 'visits',
+                        localField: '_id',
+                        foreignField: 'patientId',
+                        as: 'visits'
+                    }
+                },
+                {
+                    $sort: {
+                        'createdAt': -1
+                    }
+                },
+                {
+                    $skip: offset * count
+                },
+                {
+                    $limit: count
+                }
+            ]).toArray()
             return JSON.stringify(patients)
         } catch (error) {
             console.error(error);
@@ -151,7 +217,7 @@ class MongoDB implements dbAPI {
     }
 
     async updatePatient(patient: Patient): Promise<boolean> {
-        return (await (await this.getPatientsCollection()).replaceOne({ _id: patient._id }, patient)).matchedCount === 1
+        return (await (await this.getPatientsCollection()).updateOne({ _id: patient._id }, patient, { upsert: true })).matchedCount === 1
     }
 
     async deletePatient(id: string): Promise<boolean> {
@@ -160,7 +226,7 @@ class MongoDB implements dbAPI {
 
     //////////////////////////////////////////////////////////////////////////////////////////// Visits
 
-    async getVisitsCollection() {
+    async getVisitsCollection(): Promise<Collection<Visit>> {
         return (await this.getDb()).collection<Visit>('visits')
     }
 
@@ -181,7 +247,7 @@ class MongoDB implements dbAPI {
     }
 
     async updateVisit(visit: Visit): Promise<boolean> {
-        return (await (await this.getVisitsCollection()).replaceOne({ _id: visit._id }, visit)).matchedCount === 1
+        return (await (await this.getVisitsCollection()).updateOne({ _id: visit._id }, visit, { upsert: true })).matchedCount === 1
     }
 
     async deleteVisit(id: string): Promise<boolean> {
@@ -191,7 +257,7 @@ class MongoDB implements dbAPI {
 
     //////////////////////////////////////////////////////////////////////////////////////////// Documents
 
-    async getBucket() {
+    async getBucket(): Promise<GridFSBucket> {
         return new GridFSBucket(await this.getDb(), { bucketName: 'fs' });
     }
 
@@ -380,6 +446,14 @@ export async function handleDbEvents() {
         return await db.createPatient(patient)
     })
 
+    ipcMain.handle('get-patient-with-visits', async (_e, { socialId }: { socialId: string }) => {
+        return await db.getPatientWithVisits(socialId)
+    })
+
+    ipcMain.handle('get-patients-with-visits', async (_e, { offset, count }: { offset: number, count: number }) => {
+        return await db.getPatientsWithVisits(offset, count)
+    })
+
     ipcMain.handle('get-patient', async (_e, { socialId }: { socialId: string }) => {
         return await db.getPatient(socialId)
     })
@@ -435,4 +509,8 @@ export async function handleDbEvents() {
     ipcMain.handle('delete-file', async (_e, { fileId }: { fileId: string }) => {
         return await db.deleteFiles(fileId)
     })
+
+    if (!app.isPackaged) {
+        await seed(50, await db.getPatientsCollection(), await db.getVisitsCollection())
+    }
 }

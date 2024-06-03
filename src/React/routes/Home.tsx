@@ -8,7 +8,6 @@ import type { Patient } from '../../Electron/Database/Models/Patient';
 
 import AddIcon from '@mui/icons-material/AddOutlined';
 import type { dbAPI } from '../../Electron/Database/renderer/dbAPI';
-import ServerPaginationGridNoRowCount from '../components/Patients/PatientDataGrid copy';
 import { PatientDataGrid } from '../components/Patients/PatientDataGrid';
 
 export function Home() {
@@ -92,11 +91,6 @@ export function Home() {
                             <PatientDataGrid />
                         </Paper>
                     </Grid>
-                    {/* <Grid item xs={12}>
-                        <Paper sx={{ m: 5, p: 5, pt: 2, pb: 2 }}>
-                            <ServerPaginationGridNoRowCount />
-                        </Paper>
-                    </Grid> */}
                 </Grid>
 
                 <Modal onClose={() => { setOpenPatientCreationModal(false) }} open={openPatientCreationModal} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>

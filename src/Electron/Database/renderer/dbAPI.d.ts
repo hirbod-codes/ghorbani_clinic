@@ -8,6 +8,8 @@ export type dbAPI = {
      * @returns The id of the created patient
      */
     createPatient(patient: Patient): Promise<string>,
+    getPatientWithVisits(socialId: string): Promise<string | null>,
+    getPatientsWithVisits(offset: number, count: number): Promise<string | null>,
     /**
      * 
      * @param socialId
