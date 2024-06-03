@@ -27,6 +27,7 @@ contextBridge.exposeInMainWorld('dbAPI', {
     updateConfig: db.updateConfig,
     createPatient: db.createPatient,
     getPatient: db.getPatient,
+    getPatients: db.getPatients,
     updatePatient: db.updatePatient,
     deletePatient: db.deletePatient,
     createVisit: db.createVisit,

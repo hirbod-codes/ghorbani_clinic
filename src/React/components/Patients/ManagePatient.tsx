@@ -1,23 +1,20 @@
 import { styled } from '@mui/material/styles';
-import { Grid, Modal, Paper, Button, Stack, TextField, Select, MenuItem, InputLabel, FormControl, Divider, Slide, List, ListItemButton, ListItemIcon, ListItemText, IconButton, DialogTitle, DialogContent, DialogContentText, DialogActions, Dialog, Snackbar, Alert, AlertColor, AlertPropsColorOverrides, CircularProgress } from '@mui/material';
+import { Grid, Modal, Paper, Button, Stack, TextField, Select, MenuItem, InputLabel, FormControl, Divider, Slide, DialogTitle, DialogContent, DialogContentText, DialogActions, Dialog, Snackbar, Alert, AlertColor, AlertPropsColorOverrides, CircularProgress } from '@mui/material';
 import type { OverridableStringUnion } from '@mui/types/index'
 import { useState, useContext, ReactNode } from 'react';
 import type { dbAPI } from '../../../Electron/Database/renderer/dbAPI';
 import { DateTime } from 'luxon'
 
 import AddIcon from '@mui/icons-material/AddOutlined';
-import DoneIcon from '@mui/icons-material/DoneOutlined';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 
-import { fromDateTime, fromDateTimeParts, fromUnix, toFormat } from '../DateTime/date-time-helpers';
-import type { Date } from '../DateTime/date-time';
+import { fromDateTimeParts, fromUnix } from '../DateTime/date-time-helpers';
 import { ConfigurationContext } from '../../ConfigurationContext';
 import { Patient } from '../../../Electron/Database/Models/Patient';
 import type { Visit } from '../../../Electron/Database/Models/Visit';
-import { Diagnosis } from '../Visits/Diagnosis';
 import { DateField } from '../DateTime/DateField';
-import { DateTimeField } from '../DateTime/DateTimeField';
+import { ManageVisits } from '../Visits/ManageVisits';
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -31,43 +28,21 @@ const VisuallyHiddenInput = styled('input')({
     width: 1,
 });
 
-type VisitDue = {
-    year: number,
-    month: number,
-    day: number,
-    hour: number,
-    minute: number,
-    second: number,
-    diagnosis?: string[],
-}
-
 async function getVisits(patientId: string): Promise<Visit[]> {
     const result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.getVisits(patientId)
     return JSON.parse(result)
 }
 
-export function CreatePatient({ inputPatient }: { inputPatient?: Patient | null | undefined }) {
+export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null | undefined }) {
     const locale = useContext(ConfigurationContext).get.locale
 
     const [socialIdError, setSocialIdError] = useState<boolean>(false)
-
-    const setBirthDate = (date: Date) => {
-        console.log('setBirthDate called')
-        const birthDate = fromDateTimeParts({ ...locale, calendar: 'Gregorian' }, locale, date)
-
-        const now = DateTime.local({ zone: locale.zone })
-
-        setPatient({
-            ...patient,
-            age: now.year - birthDate.date.year,
-            birthDate: DateTime.local(birthDate.date.year, birthDate.date.month, birthDate.date.day, { zone: locale.zone }).toUnixInteger(),
-        })
-    }
 
     const [loading, setLoading] = useState<boolean>(true)
 
     const [patient, setPatient] = useState<Patient>()
     const [visits, setVisits] = useState<Visit[]>([])
+
     if (!patient && !inputPatient) {
         setPatient({
             schemaVersion: 'v0.0.1',
@@ -85,23 +60,7 @@ export function CreatePatient({ inputPatient }: { inputPatient?: Patient | null 
             })
     }
 
-    const [openVisitShowModal, setOpenVisitShowModal] = useState(false)
     const [openVisitCreateModal, setOpenVisitCreateModal] = useState(false)
-    const now = DateTime.local({ zone: locale.zone })
-    const today = fromDateTime(
-        { ...locale },
-        'Gregorian',
-        now
-    )
-    const defaultVisitDue: VisitDue = {
-        year: today.date.year,
-        month: today.date.month,
-        day: today.date.day,
-        hour: today.time.hour,
-        minute: today.time.minute,
-        second: today.time.second,
-    }
-    const [addingVisitDue, setAddingVisitDue] = useState<VisitDue>(defaultVisitDue)
 
     const [files, setFiles] = useState<{ fileName: string, bytes: Buffer | Uint8Array }[]>([])
 
@@ -199,7 +158,17 @@ export function CreatePatient({ inputPatient }: { inputPatient?: Patient | null 
                     </Grid>
                     <Grid item>
                         {/* Birth Date */}
-                        <DateField onChange={(date) => setBirthDate(date)} defaultDate={patient?.birthDate ? fromUnix(locale, patient.birthDate).date : undefined} />
+                        <DateField onChange={(date) => {
+                            const birthDate = fromDateTimeParts({ ...locale, calendar: 'Gregorian' }, locale, date)
+
+                            const now = DateTime.local({ zone: locale.zone })
+
+                            setPatient({
+                                ...patient,
+                                age: now.year - birthDate.date.year,
+                                birthDate: DateTime.local(birthDate.date.year, birthDate.date.month, birthDate.date.day, { zone: locale.zone }).toUnixInteger(),
+                            })
+                        }} defaultDate={patient?.birthDate ? fromUnix(locale, patient.birthDate).date : undefined} />
                     </Grid>
                     <Grid item>
                         {/* Medical History */}
@@ -212,13 +181,8 @@ export function CreatePatient({ inputPatient }: { inputPatient?: Patient | null 
                     <Grid item>
                         {/* Visit Controls */}
                         <Stack direction='row' spacing={1} divider={<Divider orientation='vertical' variant='middle' flexItem />} >
-                            {visits.length !== 0 &&
-                                <Button variant="text" onClick={() => setOpenVisitShowModal(true)}>
-                                    Show visits
-                                </Button>
-                            }
                             <Button variant="text" onClick={() => setOpenVisitCreateModal(true)} startIcon={<AddIcon />}>
-                                Add a visit
+                                set visits
                             </Button>
                         </Stack>
                     </Grid>
@@ -268,51 +232,11 @@ export function CreatePatient({ inputPatient }: { inputPatient?: Patient | null 
                     </Grid>
                 </Grid>
             </Stack>
-            {/* Show Visits */}
-            <Modal open={openVisitShowModal} onClose={() => setOpenVisitShowModal(false)} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
-                <Slide direction={openVisitShowModal ? 'up' : 'down'} in={openVisitShowModal} timeout={250}>
-                    <Paper sx={{ maxWidth: '40rem', padding: '0.5rem 2rem', overflowY: 'auto' }}>
-                        <List dense>
-                            {visits.map((e, i) =>
-                                <ListItemButton key={i}>
-                                    <ListItemIcon>{i + 1}</ListItemIcon>
-                                    <ListItemText primary={toFormat(e.due, locale, 'cccc d/M/y')} />
-                                </ListItemButton>
-                            )}
-                        </List>
-                    </Paper>
-                </Slide>
-            </Modal>
-            {/* Create Visit */}
+            {/* Manage Visits */}
             <Modal open={openVisitCreateModal} onClose={() => setOpenVisitCreateModal(false)} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
                 <Slide direction={openVisitCreateModal ? 'up' : 'down'} in={openVisitCreateModal} timeout={250}>
-                    <Paper sx={{ maxWidth: '40rem', padding: '0.5rem 2rem', overflowY: 'auto' }}>
-                        <Stack direction='column' alignItems={'center'}>
-                            <DateTimeField onChange={(dateTime) => setAddingVisitDue({ ...dateTime.date, ...dateTime.time })} defaultDate={fromDateTime(locale, locale.calendar, DateTime.local({ zone: locale.zone })).date} />
-
-                            <Diagnosis onChange={(strings) => setAddingVisitDue({ ...addingVisitDue, diagnosis: strings })} />
-
-                            <Stack direction='row' justifyContent={'flex-end'} sx={{ width: '100%' }}>
-                                <IconButton
-                                    color='primary'
-                                    onClick={() => {
-                                        const convertedDate = fromDateTimeParts({ ...locale, calendar: 'Gregorian' }, locale, addingVisitDue)
-                                        visits.push({
-                                            schemaVersion: 'v0.0.1',
-                                            patientId: patient._id,
-                                            diagnosis: addingVisitDue.diagnosis ?? [],
-                                            due: DateTime.local(convertedDate.date.year, convertedDate.date.month, convertedDate.date.day, { zone: locale.zone }).toUnixInteger(),
-                                            createdAt: DateTime.local(convertedDate.date.year, convertedDate.date.month, convertedDate.date.day, { zone: locale.zone }).toUnixInteger(),
-                                            updatedAt: DateTime.local(convertedDate.date.year, convertedDate.date.month, convertedDate.date.day, { zone: locale.zone }).toUnixInteger(),
-                                        })
-                                        setVisits(visits)
-                                        setOpenVisitCreateModal(false)
-                                    }}
-                                >
-                                    <DoneIcon />
-                                </IconButton>
-                            </Stack>
-                        </Stack>
+                    <Paper sx={{ maxWidth: '40rem', maxHeight: '75%', padding: '0.5rem 2rem', overflowY: 'auto' }}>
+                        <ManageVisits onComplete={(visits: Visit[]) => { setVisits(visits); setOpenVisitCreateModal(false) }} defaultVisits={visits} />
                     </Paper>
                 </Slide>
             </Modal>

@@ -15,6 +15,10 @@ export async function createPatient(patient: Patient): Promise<string> {
     return await ipcRenderer.invoke('create-patient', { patient })
 }
 
+export async function getPatients(offset: number, count: number): Promise<string | null> {
+    return await ipcRenderer.invoke('get-patients', { offset, count })
+}
+
 export async function getPatient(socialId: string): Promise<string | null> {
     return await ipcRenderer.invoke('get-patient', { socialId })
 }

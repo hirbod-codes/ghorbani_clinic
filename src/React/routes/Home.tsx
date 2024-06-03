@@ -3,12 +3,13 @@ import { Box, Modal, Paper, Divider, Grid, IconButton, Stack, TextField, Slide, 
 import { AnimatedCounter } from '../components/AnimatedCounter';
 import { AuthContext } from '../../Electron/Auth/renderer/AuthContext';
 import { useContext, useRef, useState } from 'react';
-import { CreatePatient } from '../components/Patients/CreatePatient copy';
+import { ManagePatient } from '../components/Patients/ManagePatient';
 import type { Patient } from '../../Electron/Database/Models/Patient';
-import { ShowPatient } from '../components/Patients/ShowPatient';
 
 import AddIcon from '@mui/icons-material/AddOutlined';
 import type { dbAPI } from '../../Electron/Database/renderer/dbAPI';
+import ServerPaginationGridNoRowCount from '../components/Patients/PatientDataGrid copy';
+import { PatientDataGrid } from '../components/Patients/PatientDataGrid';
 
 export function Home() {
     const { user } = useContext(AuthContext)
@@ -22,7 +23,7 @@ export function Home() {
 
     const modalContainerRef = useRef<HTMLElement>(null);
 
-    const [searching, setSearching] = useState(true)
+    const [searching, setSearching] = useState(false)
 
     const handleSearch = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.value.length !== 10) {
@@ -81,15 +82,27 @@ export function Home() {
                     <Grid item sx={{ border: '1px solid gray' }} xs={12} container justifyContent={'center'}>
                         <AnimatedCounter countTo={500} />
                     </Grid>
-                    <Grid item xs={12} container justifyContent={'center'}>
-                        {searching && <CircularProgress />}
+                    {searching &&
+                        <Grid item xs={12} container justifyContent={'center'}>
+                            <CircularProgress />
+                        </Grid>
+                    }
+                    <Grid item xs={12}>
+                        <Paper sx={{ m: 5, p: 5, pt: 2, pb: 2 }}>
+                            <PatientDataGrid />
+                        </Paper>
                     </Grid>
+                    {/* <Grid item xs={12}>
+                        <Paper sx={{ m: 5, p: 5, pt: 2, pb: 2 }}>
+                            <ServerPaginationGridNoRowCount />
+                        </Paper>
+                    </Grid> */}
                 </Grid>
 
                 <Modal onClose={() => { setOpenPatientCreationModal(false) }} open={openPatientCreationModal} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
                     <Slide direction={openPatientCreationModal ? 'up' : 'down'} in={openPatientCreationModal} timeout={250}>
                         <Paper sx={{ maxWidth: '40rem', width: '60%', padding: '0.5rem 2rem', overflowY: 'auto' }}>
-                            <CreatePatient />
+                            <ManagePatient />
                         </Paper>
                     </Slide>
                 </Modal>
@@ -97,8 +110,7 @@ export function Home() {
                 <Modal onClose={() => { setOpenPatientViewerModal(false) }} open={openPatientViewerModal} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
                     <Slide direction={openPatientViewerModal ? 'up' : 'down'} in={openPatientViewerModal} timeout={250}>
                         <Paper sx={{ maxWidth: '40rem', width: '60%', padding: '0.5rem 2rem', overflowY: 'auto' }}>
-                            <CreatePatient inputPatient={patient} />
-                            {/* <ShowPatient patient={patient} /> */}
+                            <ManagePatient inputPatient={patient} />
                         </Paper>
                     </Slide>
                 </Modal>

@@ -12,6 +12,8 @@ export function ShowPatient({ patient }: { patient: Patient | null }) {
     const [id, setId] = useState('')
     const [fileName, setFileName] = useState('')
 
+    const keys = Object.keys(patient)
+
     return (
         <>
             <h1>Show patient</h1>

@@ -14,6 +14,7 @@ export type dbAPI = {
      * @returns json string of Patient
      */
     getPatient(socialId: string): Promise<string | null>,
+    getPatients(offset: number, count: number): Promise<string | null>,
     updatePatient(patient: Patient): Promise<boolean>,
     deletePatient(id: string): Promise<boolean>,
 

@@ -24,7 +24,7 @@ export function TimeField({ defaultTime, onChange, variant }: { defaultTime?: Ti
                 label='Time'
                 variant={variant ?? 'standard'}
                 inputProps={{ step: '1' }}
-                value={hour === undefined ? '' : `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:${second.toString().padStart(2, '0')}`}
+                value={hour === undefined ? '' : `${hour?.toString().padStart(2, '0')}:${minute?.toString().padStart(2, '0')}:${second?.toString().padStart(2, '0')}`}
                 onChange={(e) => {
                     setHour(Number(e.target.value.split(':')[0]));
                     setMinute(Number(e.target.value.split(':')[1]));

@@ -10,6 +10,7 @@ import type { dbAPI } from "./renderer/dbAPI";
 
 class MongoDB implements dbAPI {
     private static isInitialized = false
+    private static db: Db | null = null
 
     async getConfig(): Promise<MongodbConfig> {
         return readConfig().mongodb
@@ -26,6 +27,9 @@ class MongoDB implements dbAPI {
     }
 
     async getDb(): Promise<Db | null> {
+        if (MongoDB.db != null)
+            return MongoDB.db
+
         const c = readConfig()
 
         const client = new MongoClient(c.mongodb.url, {
@@ -38,9 +42,9 @@ class MongoDB implements dbAPI {
         });
 
         try {
-            const db = client.db(c.mongodb.databaseName)
-            db.command({ ping: 1 })
-            return db
+            MongoDB.db = client.db(c.mongodb.databaseName)
+            MongoDB.db.command({ ping: 1 })
+            return MongoDB.db
         } catch (error) {
             console.error(error);
 
@@ -134,6 +138,16 @@ class MongoDB implements dbAPI {
 
         patient = patientSchema.cast(patient)
         return JSON.stringify(patient)
+    }
+
+    async getPatients(offset: number, count: number): Promise<string | null> {
+        try {
+            const patients: Patient[] = await (await this.getPatientsCollection()).find().limit(count).skip(offset).sort('createdAt', -1).toArray()
+            return JSON.stringify(patients)
+        } catch (error) {
+            console.error(error);
+            return null
+        }
     }
 
     async updatePatient(patient: Patient): Promise<boolean> {
@@ -368,6 +382,10 @@ export async function handleDbEvents() {
 
     ipcMain.handle('get-patient', async (_e, { socialId }: { socialId: string }) => {
         return await db.getPatient(socialId)
+    })
+
+    ipcMain.handle('get-patients', async (_e, { offset, count }: { offset: number, count: number }) => {
+        return await db.getPatients(offset, count)
     })
 
     ipcMain.handle('update-patient', async (_e, { patient }: { patient: Patient }) => {

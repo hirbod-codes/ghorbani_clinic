@@ -7,8 +7,6 @@ import { ConfigurationContext } from '../../ConfigurationContext';
 
 
 export function DateField({ defaultDate, onChange, variant }: { defaultDate?: Date; onChange?: (date: Date) => void; variant?: "standard" | "outlined" | "filled"; }) {
-    console.log('defaultDate', defaultDate);
-
     const locale = useContext(ConfigurationContext).get.locale;
     const localeMonths = getLocaleMonths(locale, DateTime.local({ zone: locale.zone }).year);
 
