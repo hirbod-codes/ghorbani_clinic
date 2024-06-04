@@ -1,5 +1,5 @@
 import { useState, useRef, useMemo, useContext, ReactNode } from 'react';
-import { DataGrid, GridColDef, GridPaginationMeta, useGridApiRef, GridToolbar } from '@mui/x-data-grid';
+import { DataGrid, GridColDef, GridPaginationMeta, useGridApiRef, GridToolbar, GridActionsCellItem } from '@mui/x-data-grid';
 import { Patient } from '../../../Electron/Database/Models/Patient';
 import type { dbAPI } from '../../../Electron/Database/renderer/dbAPI';
 import { StringHumanizer } from '../string-helpers';
@@ -16,8 +16,13 @@ import { ConfigurationContext } from '../../../React/ConfigurationContext';
 import type { Visit } from '../../../Electron/Database/Models/Visit';
 import { ManageVisits } from '../Visits/ManageVisits';
 
-import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
+import EditIcon from '@mui/icons-material/EditOutlined';
+import DeleteIcon from '@mui/icons-material/DeleteOutlined';
+import CheckIcon from '@mui/icons-material/CheckOutlined';
+import CloseIcon from '@mui/icons-material/CloseOutlined';
+import { ManagePatient } from './ManagePatient';
+
+type Row = Patient & { visits: Visit[], id: string, actions: ReactNode[] }
 
 export function PatientDataGrid() {
     const locale = useContext(ConfigurationContext).get.locale
@@ -33,9 +38,11 @@ export function PatientDataGrid() {
     const [patients, setPatients] = useState<Patient[]>([]);
 
     const [showVisits, setShowVisits] = useState(false)
-    const [showLongText, setShowLongText] = useState(false)
 
-    const [focusedPatient, setFocusedPatient] = useState<Patient & { visits: Visit[], id: string, actions: ReactNode[] }>()
+    const [showPatient, setShowPatient] = useState(false)
+    const [focusedPatient, setFocusedPatient] = useState<Row>()
+
+    const [showLongText, setShowLongText] = useState(false)
     const [longText, setLongText] = useState<string[]>([])
 
     if (isLoading)
@@ -121,12 +128,28 @@ export function PatientDataGrid() {
         return column
     }) : []
 
+    columns.push({
+        field: 'actions',
+        type: 'actions',
+        getActions: ({ row }) => [
+            <GridActionsCellItem
+                icon={<DeleteIcon />}
+                label="Delete"
+                onClick={() => deletePatient(row)}
+            />,
+            <GridActionsCellItem
+                icon={<EditIcon />}
+                label="Edit"
+                onClick={() => { setFocusedPatient(row); setShowPatient(true) }}
+            />,
+        ]
+    })
+
     console.log('PatientDataGrid', 'columns', columns)
     console.log('PatientDataGrid', 'patients', patients)
     console.log('PatientDataGrid', 'focusedPatient', focusedPatient)
 
     const paginationMetaRef = useRef<GridPaginationMeta>();
-
     // Memoize to avoid flickering when the `hasNextPage` is `undefined` during refetch
     const paginationMeta = useMemo(() => {
         if (
@@ -156,6 +179,27 @@ export function PatientDataGrid() {
 
             setSnackbarSeverity('success')
             setSnackbarMessage('The patient was successfully registered.')
+            setOpenSnackbar(true)
+        }
+    }
+
+    const deletePatient = async (row: Row) => {
+        let e = false
+        try {
+            if (!await (window as typeof window & { dbAPI: dbAPI }).dbAPI.deletePatient(row.id))
+                throw new Error('failed to delete the patient.')
+        } catch (error) {
+            console.error(error)
+            e = true
+        } finally {
+            if (e !== true) {
+                setSnackbarSeverity('error')
+                setSnackbarMessage('failed to delete the patient.')
+                setOpenSnackbar(true)
+            }
+
+            setSnackbarSeverity('success')
+            setSnackbarMessage('The patient was successfully deleted.')
             setOpenSnackbar(true)
         }
     }
@@ -198,6 +242,14 @@ export function PatientDataGrid() {
                     onPaginationModelChange={(m) => { setIsLoading(true); setPaginationModel(m) }}
                 />
             </div>
+
+            <Modal onClose={() => { setShowPatient(false) }} open={showPatient} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
+                <Slide direction={showPatient ? 'up' : 'down'} in={showPatient} timeout={250}>
+                    <Paper sx={{ maxWidth: '80%', maxHeight: '75%', padding: '0.5rem 2rem', overflowY: 'auto' }}>
+                        <ManagePatient inputPatient={focusedPatient} />
+                    </Paper>
+                </Slide>
+            </Modal>
 
             <Modal onClose={() => { setShowVisits(false) }} open={showVisits} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
                 <Slide direction={showVisits ? 'up' : 'down'} in={showVisits} timeout={250}>

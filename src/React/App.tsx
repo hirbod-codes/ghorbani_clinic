@@ -110,6 +110,14 @@ export function App() {
         setAuthFetched(true)
     })
 
+    const logout = async () => {
+        if (await (window as typeof window & { authAPI: authAPI }).authAPI.logout()) {
+            // 
+        }
+
+        setUser(null)
+    }
+
     // Navigation
     const [openDrawer, setOpenDrawer] = useState(false)
     const [openSettingsList, setOpenSettingsList] = useState(false)
@@ -139,7 +147,7 @@ export function App() {
                                                     {configuration.theme.palette.mode == 'light' ? <LightModeIcon fontSize='inherit' /> : <DarkModeIcon fontSize='inherit' />}
                                                 </IconButton>
                                                 {user &&
-                                                    <IconButton size='medium' color='inherit' onClick={() => setUser(null)}>
+                                                    <IconButton size='medium' color='inherit' onClick={() => logout()}>
                                                         <LogoutIcon fontSize='inherit' />
                                                     </IconButton>
                                                 }

@@ -1,15 +1,14 @@
 import { ipcMain } from 'electron'
 import { compareSync } from 'bcrypt'
-import { User } from './auth-types'
-import { readAuth, writeAuth } from '../../Config/config'
+import { Auth, User } from './auth-types'
+import { readAuth } from '../../Config/config'
 
 function login(username: string, password: string): boolean {
     const auth = readAuth()
 
     for (let i = 0; i < auth.users.length; i++)
         if (auth.users[i].username === username && compareSync(password, auth.users[i].password)) {
-            auth.authenticatedUserIndex = i
-            writeAuth(auth)
+            Auth.authenticatedUser = new User(username, password)
             return true
         }
 
@@ -17,28 +16,13 @@ function login(username: string, password: string): boolean {
 }
 
 function logout(): boolean {
-    try {
-        const auth = readAuth()
+    Auth.authenticatedUser = null
 
-        if (auth.authenticatedUserIndex != null) {
-            auth.authenticatedUserIndex = null
-            writeAuth(auth)
-        }
-
-        return true
-    }
-    catch (err) {
-        return false
-    }
+    return true
 }
 
 function getAuthenticatedUser(): User {
-    const auth = readAuth()
-
-    if (auth.authenticatedUserIndex == null || auth.authenticatedUserIndex == undefined)
-        return null
-    else
-        return new User(auth.users[auth.authenticatedUserIndex].username, auth.users[auth.authenticatedUserIndex].password)
+    return Auth.authenticatedUser
 }
 
 export function handleAuthEvents() {

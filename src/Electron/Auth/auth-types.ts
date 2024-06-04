@@ -1,5 +1,5 @@
 export class Auth {
-    static user: User | null = null
+    static authenticatedUser: User | null = null
 }
 
 export class User {

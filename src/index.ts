@@ -4,6 +4,7 @@ import { handleAuthEvents } from './Electron/Auth/auth';
 import { handleDbEvents } from './Electron/Database/mongodb';
 import fs from 'fs'
 import path from 'path'
+import { logout } from './Electron/Auth/renderer/auth';
 
 app.commandLine.appendSwitch('ignore-gpu-blacklist');
 app.commandLine.appendSwitch('disable-gpu');
@@ -51,7 +52,8 @@ app.on('window-all-closed', () => {
     }
 })
 
-app.on('quit', () => {
+app.on('quit', async () => {
+    await logout()
     fs.rmSync(path.join(app.getAppPath(), 'tmp'), { recursive: true })
 })
 
