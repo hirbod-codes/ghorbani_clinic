@@ -1,10 +1,10 @@
 import { Box, Divider, IconButton, Button, Stack, TextField, List, ListItem, ListItemIcon, ListItemText } from "@mui/material";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 import AddIcon from '@mui/icons-material/AddOutlined';
 import CloseIcon from '@mui/icons-material/CloseOutlined';
 
-export function Diagnosis({ onChange }: { onChange?: (notes: string[]) => void }) {
+export function Diagnosis({ onChange, defaultNotes }: { defaultNotes?: string[], onChange?: (notes: string[]) => void }) {
     const [notes, setNotes] = useState<string[]>([])
 
     const updateNotes = (notes: string[]): void => {
@@ -12,6 +12,12 @@ export function Diagnosis({ onChange }: { onChange?: (notes: string[]) => void }
 
         if (onChange)
             onChange(notes)
+    }
+
+    const isDefaultSet = useRef(false)
+    if (!isDefaultSet.current && defaultNotes) {
+        setNotes([...defaultNotes]);
+        isDefaultSet.current = true
     }
 
     return (
@@ -27,6 +33,8 @@ export function Diagnosis({ onChange }: { onChange?: (notes: string[]) => void }
                                         variant='standard'
                                         value={notes[i] ?? ''}
                                         multiline
+                                        maxRows={4}
+                                        fullWidth
                                         onChange={(e) => {
                                             notes[i] = e.target.value
                                             updateNotes(notes)

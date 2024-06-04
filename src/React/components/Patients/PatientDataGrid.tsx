@@ -35,8 +35,7 @@ export function PatientDataGrid() {
     const [showVisits, setShowVisits] = useState(false)
     const [showLongText, setShowLongText] = useState(false)
 
-    const [focusedPatientId, setFocusedPatientId] = useState<string>()
-    const [visits, setVisits] = useState<Visit[]>([])
+    const [focusedPatient, setFocusedPatient] = useState<Patient & { visits: Visit[], id: string, actions: ReactNode[] }>()
     const [longText, setLongText] = useState<string[]>([])
 
     if (isLoading)
@@ -61,42 +60,70 @@ export function PatientDataGrid() {
             })
             .catch(() => setIsLoading(false))
 
-    const columns: GridColDef[] = patients.length > 0 ? Object.keys(patients[patients.length - 1]).filter(k => k !== '_id').map(k => ({
-        field: k === '_id' ? 'id' : k,
-        headerName: new StringHumanizer(k === '_id' ? 'id' : k).humanize(),
-        editable: true,
-        renderCell: ({ row, field }) => {
-            if (!row[field])
-                return null
-
-            switch (field) {
-                case 'createdAt':
-                    return fromUnixToFormat(locale, row[field])
-
-                case 'updatedAt':
-                    return fromUnixToFormat(locale, row[field])
-
-                case 'birthDate':
-                    return fromUnixToFormat(locale, row[field])
-
-                case 'visits':
-                    return (<Button variant='text' onClick={() => { setFocusedPatientId(row['id']); setVisits(row[field]); setShowVisits(true) }}>visits</Button>)
-
-                case 'medicalHistory':
-                    return row[field][0] ? (<Button variant='text' onClick={() => { setLongText(row[field]); setShowLongText(true) }}>{row[field][0].slice(0, 10)}</Button>) : null
-
-                case 'address':
-                    return (<Button variant='text' onClick={() => { setLongText(row[field]); setShowLongText(true) }}>{row[field].slice(0, 10)}</Button>)
-
-                default:
-                    return row[field]
-            }
+    const columns: GridColDef[] = patients.length > 0 ? Object.keys(patients[patients.length - 1]).filter(k => k !== '_id').map(k => {
+        const column: GridColDef = {
+            field: k === '_id' ? 'id' : k,
+            headerName: new StringHumanizer(k === '_id' ? 'id' : k).humanize(),
+            editable: true,
         }
-    })) : []
+
+        switch (k) {
+            case 'createdAt':
+                column.type = 'number'
+                column.renderCell = ({ row }) => fromUnixToFormat(locale, row[k]);
+                break;
+
+            case 'updatedAt':
+                column.type = 'number'
+                column.renderCell = ({ row }) => fromUnixToFormat(locale, row[k]);
+                break;
+
+            case 'birthDate':
+                column.type = 'number'
+                column.renderCell = ({ row }) => fromUnixToFormat(locale, row[k]);
+                break;
+
+            case 'visits':
+                column.renderCell = ({ row }) => (<Button variant='text' onClick={() => { setFocusedPatient(row); setShowVisits(true); }}>visits</Button>);
+                break;
+
+            case 'medicalHistory':
+                column.renderCell = ({ row }) => row[k][0] ? (<Button variant='text' onClick={() => { setLongText(row[k]); setShowLongText(true); }}>{row[k][0].slice(0, 10)}</Button>) : null;
+                break;
+
+            case 'address':
+                column.renderCell = ({ row }) => (<Button variant='text' onClick={() => { setLongText([row[k]]); setShowLongText(true); }}>{row[k].slice(0, 10)}</Button>);
+                break;
+
+            case 'age':
+                column.type = 'number'
+                break;
+
+            case 'socialId':
+                column.type = 'string'
+                break;
+
+            case 'firstName':
+                column.type = 'string'
+                break;
+
+            case 'lastName':
+                column.type = 'string'
+                break;
+
+            case 'gender':
+                column.type = 'string'
+                break;
+
+            default:
+        }
+
+        return column
+    }) : []
 
     console.log('PatientDataGrid', 'columns', columns)
     console.log('PatientDataGrid', 'patients', patients)
-    console.log('PatientDataGrid', 'visits', visits, 'focusedPatientId', focusedPatientId)
+    console.log('PatientDataGrid', 'focusedPatient', focusedPatient)
 
     const paginationMetaRef = useRef<GridPaginationMeta>();
 
@@ -105,9 +132,9 @@ export function PatientDataGrid() {
         if (
             hasNextPage !== undefined &&
             paginationMetaRef.current?.hasNextPage !== hasNextPage
-        ) {
+        )
             paginationMetaRef.current = { hasNextPage };
-        }
+
         return paginationMetaRef.current;
     }, [hasNextPage]);
 
@@ -155,13 +182,14 @@ export function PatientDataGrid() {
                                 id: false,
                                 schemaVersion: false,
                             },
-                            orderedFields: ['Created at']
+                            orderedFields: ['createdAt', ...columns.map(c => c.field)]
                         },
                         pagination: {
                             rowCount: -1,
                         },
                     }}
                     density='comfortable'
+                    rowSelection={false}
                     loading={isLoading}
                     paginationMeta={paginationMeta}
                     pageSizeOptions={[5, 10, 25, 50]}
@@ -173,15 +201,15 @@ export function PatientDataGrid() {
 
             <Modal onClose={() => { setShowVisits(false) }} open={showVisits} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
                 <Slide direction={showVisits ? 'up' : 'down'} in={showVisits} timeout={250}>
-                    <Paper sx={{ maxWidth: '40rem', width: '60%', maxHeight: '75%', padding: '0.5rem 2rem', overflowY: 'auto' }}>
-                        <ManageVisits defaultVisits={visits} patientId={focusedPatientId} onComplete={() => { updatePatientVisits(visits); setShowVisits(false) }} />
+                    <Paper sx={{ maxWidth: '80%', maxHeight: '75%', padding: '0.5rem 2rem', overflowY: 'auto' }}>
+                        <ManageVisits defaultVisits={focusedPatient?.visits} patientId={focusedPatient?.id} onComplete={(visits) => { updatePatientVisits(visits); setShowVisits(false) }} />
                     </Paper>
                 </Slide>
             </Modal>
 
             <Modal onClose={() => { setShowLongText(false) }} open={showLongText} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
                 <Slide direction={showLongText ? 'up' : 'down'} in={showLongText} timeout={250}>
-                    <Paper sx={{ maxWidth: '40rem', width: '60%', padding: '0.5rem 2rem', overflowY: 'auto' }}>
+                    <Paper sx={{ maxWidth: '80%', padding: '0.5rem 2rem', overflowY: 'auto' }}>
                         {longText.map((t, i) => (
                             <h3 key={i}>{t}</h3>
                         ))}

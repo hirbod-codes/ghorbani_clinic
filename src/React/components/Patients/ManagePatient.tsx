@@ -232,6 +232,9 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
                             Complete
                         </Button>
                     </Grid>
+                    <Grid item xs={12}>
+                        <ManageVisits onComplete={(visits: Visit[]) => { setVisits(visits); setOpenVisitCreateModal(false) }} defaultVisits={visits} />
+                    </Grid>
                 </Grid>
             </Stack>
             {/* Manage Visits */}

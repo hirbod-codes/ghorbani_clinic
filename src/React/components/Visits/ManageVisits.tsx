@@ -34,7 +34,8 @@ export function ManageVisits({ patientId, defaultVisits, onComplete }: { patient
         isDefaultSet.current = true
     }
 
-    console.log('ManageVisits', 'visits', visits, 'defaultVisits', defaultVisits)
+    if (visits.length === 0)
+        setVisits([getDefaultVisit()])
 
     return (
         <Stack direction='column' alignItems={'center'} spacing={2} divider={<Divider orientation='horizontal' variant='middle' flexItem />}>
@@ -60,7 +61,7 @@ export function ManageVisits({ patientId, defaultVisits, onComplete }: { patient
                             <Diagnosis onChange={(strings) => {
                                 visits[i].diagnosis = strings;
                                 setVisits([...visits]);
-                            }} />
+                            }} defaultNotes={visits[i].diagnosis} />
                         </Box>
                     </AccordionDetails>
                 </Accordion>
