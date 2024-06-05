@@ -7,7 +7,7 @@ import { ManagePatient } from '../components/Patients/ManagePatient';
 import type { Patient } from '../../Electron/Database/Models/Patient';
 
 import AddIcon from '@mui/icons-material/AddOutlined';
-import type { dbAPI } from '../../Electron/Database/renderer/dbAPI';
+import type { dbAPI } from '../../Electron/Database/dbAPI';
 import { PatientDataGrid } from '../components/Patients/PatientDataGrid';
 
 export function Home() {

@@ -3,7 +3,7 @@ import * as auth from './Electron/Auth/renderer/auth'
 import * as menu from './Electron/Menu/renderer/menu'
 import type { menuAPI } from './Electron/Menu/renderer/menuAPI'
 import type { authAPI } from './Electron/Auth/renderer/authAPI'
-import type { dbAPI } from './Electron/Database/renderer/dbAPI'
+import type { dbAPI } from './Electron/Database/dbAPI'
 import { contextBridge } from 'electron'
 
 contextBridge.exposeInMainWorld('menuAPI', {

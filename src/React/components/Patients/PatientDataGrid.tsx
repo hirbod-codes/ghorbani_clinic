@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useContext, ReactNode } from 'react';
 import { DataGrid, GridColDef, GridPaginationMeta, useGridApiRef, GridToolbar, GridActionsCellItem } from '@mui/x-data-grid';
 import { Patient } from '../../../Electron/Database/Models/Patient';
-import type { dbAPI } from '../../../Electron/Database/renderer/dbAPI';
+import type { dbAPI } from '../../../Electron/Database/dbAPI';
 import { StringHumanizer } from '../string-helpers';
 
 import Button from '@mui/material/Button';

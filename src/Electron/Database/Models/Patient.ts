@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import { InferType, array, number, object, mixed, string } from "yup"
-import type { Operation } from "../../Auth/types.";
+import type { Operation } from "../../Auth/types";
 import { RoleName } from "../../Auth/roles";
 import { DateTime } from "luxon";
 
@@ -73,6 +73,8 @@ export function getPrivileges(operation?: Operation | RoleName): string[] {
             case 'secretary':
                 return [
                     `create.${collectionName}`,
+                    `read.${collectionName}`,
+                    ...readableFields.filter(f => f === 'firstName' || f === 'lastName').map(f => getPrivilege('read', f)),
                 ]
 
             default:

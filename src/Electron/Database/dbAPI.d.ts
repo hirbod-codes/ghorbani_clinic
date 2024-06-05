@@ -1,7 +1,9 @@
 export type dbAPI = {
     getConfig: () => Promise<MongodbConfig>,
     updateConfig: (config: MongodbConfig) => Promise<boolean>,
+}
 
+export type IPatientRepository = dbAPI & {
     /**
      * 
      * @param patient
@@ -19,7 +21,9 @@ export type dbAPI = {
     getPatients(offset: number, count: number): Promise<string | null>,
     updatePatient(patient: Patient): Promise<boolean>,
     deletePatient(id: string): Promise<boolean>,
+}
 
+export type IVisitRepository = dbAPI & {
     /**
      * 
      * @param visit
@@ -34,7 +38,9 @@ export type dbAPI = {
     getVisits(patientId: string): Promise<string | null>,
     updateVisit(visit: Visit): Promise<boolean>,
     deleteVisit(id: string): Promise<boolean>,
+}
 
+export type IFileRepository = dbAPI & {
     uploadFiles(patientId: string, files: { fileName: string, bytes: Buffer | Uint8Array }[]): Promise<boolean>,
     /**
      * 

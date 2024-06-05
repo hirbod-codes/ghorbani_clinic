@@ -2,7 +2,7 @@ import { styled } from '@mui/material/styles';
 import { Grid, Modal, Paper, Button, Stack, TextField, Select, MenuItem, InputLabel, FormControl, Divider, Slide, DialogTitle, DialogContent, DialogContentText, DialogActions, Dialog, Snackbar, Alert, AlertColor, AlertPropsColorOverrides, CircularProgress } from '@mui/material';
 import type { OverridableStringUnion } from '@mui/types/index'
 import { useState, useContext, ReactNode } from 'react';
-import type { dbAPI } from '../../../Electron/Database/renderer/dbAPI';
+import type { dbAPI } from '../../../Electron/Database/dbAPI';
 import { DateTime } from 'luxon'
 
 import AddIcon from '@mui/icons-material/AddOutlined';

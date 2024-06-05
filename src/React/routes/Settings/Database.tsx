@@ -1,6 +1,6 @@
 import { Box, Button, Stack, TextField } from "@mui/material";
 import { useRef, useState } from "react";
-import type { dbAPI } from "../../../Electron/Database/renderer/dbAPI";
+import type { dbAPI } from "../../../Electron/Database/dbAPI";
 import { MongodbConfig } from "../../../Config/config";
 
 export function Database() {

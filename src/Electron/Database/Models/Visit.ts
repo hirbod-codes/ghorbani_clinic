@@ -1,6 +1,6 @@
 import { ObjectId } from "mongodb";
 import { InferType, array, mixed, number, object, string } from "yup";
-import type { Operation } from "../../Auth/types.";
+import type { Operation } from "../../Auth/types";
 import { RoleName } from "../../../Electron/Auth/roles";
 
 export const collectionName = 'visits'
