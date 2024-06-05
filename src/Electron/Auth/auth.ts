@@ -8,7 +8,7 @@ function login(username: string, password: string): boolean {
 
     for (let i = 0; i < auth.users.length; i++)
         if (auth.users[i].username === username && compareSync(password, auth.users[i].password)) {
-            Auth.authenticatedUser = new User(username, password)
+            Auth.authenticatedUser = new User(username, auth.users[i].password, auth.users[i].roleName)
             return true
         }
 

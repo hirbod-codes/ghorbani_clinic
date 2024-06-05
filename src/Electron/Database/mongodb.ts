@@ -1,13 +1,16 @@
 import { app, ipcMain, shell } from "electron";
 import { MongodbConfig, readConfig, writeConfig } from "../../Config/config";
 import { Collection, Db, GridFSBucket, MongoClient, ObjectId } from "mongodb";
-import { patientSchema, type Patient } from "./Models/Patient";
+import { patientSchema, type Patient, getPrivilege as getPatientsPrivilege, getPrivileges as getPatientsPrivileges, collectionName as patientCollectionName } from "./Models/Patient";
 import path from 'path'
 import fs from 'fs'
-import { Visit } from "./Models/Visit";
+import { Visit, getPrivilege as getVisitsPrivilege, getPrivileges as getVisitsPrivileges, collectionName as visitCollectionName } from "./Models/Visit";
 import { array } from "yup";
 import type { dbAPI } from "./renderer/dbAPI";
 import { seed } from "./seed-patients";
+import { Auth } from "../Auth/auth-types";
+import { Unauthorized } from "./Unauthorized";
+import { DateTime } from "luxon";
 
 class MongoDB implements dbAPI {
     private static isInitialized = false
@@ -76,49 +79,49 @@ class MongoDB implements dbAPI {
     private async addPatientsCollection() {
         const db = await this.getDb();
 
-        if (!(await db.listCollections().toArray()).map(e => e.name).includes('patients'))
-            await db.createCollection('patients')
+        if (!(await db.listCollections().toArray()).map(e => e.name).includes(patientCollectionName))
+            await db.createCollection(patientCollectionName)
 
-        const indexes = await db.collection('patients').indexes()
+        const indexes = await db.collection(patientCollectionName).indexes()
 
         if (indexes.find(i => i.name === 'unique-socialId') === undefined)
-            await db.createIndex('patients', { socialId: 1 }, { unique: true, name: 'unique-socialId' })
+            await db.createIndex(patientCollectionName, { socialId: 1 }, { unique: true, name: 'unique-socialId' })
 
         if (indexes.find(i => i.name === 'visit-dues') === undefined)
-            await db.createIndex('patients', { visitDues: 1 }, { name: 'visit-dues' })
+            await db.createIndex(patientCollectionName, { visitDues: 1 }, { name: 'visit-dues' })
 
         if (indexes.find(i => i.name === 'created-at') === undefined)
-            await db.createIndex('patients', { createdAt: 1 }, { name: 'created-at' })
+            await db.createIndex(patientCollectionName, { createdAt: 1 }, { name: 'created-at' })
 
         if (indexes.find(i => i.name === 'updated-at') === undefined)
-            await db.createIndex('patients', { updatedAt: 1 }, { name: 'updated-at' })
+            await db.createIndex(patientCollectionName, { updatedAt: 1 }, { name: 'updated-at' })
     }
 
     private async addVisitsCollection() {
         const db = await this.getDb();
 
-        if (!(await db.listCollections().toArray()).map(e => e.name).includes('visits'))
-            await db.createCollection('visits')
+        if (!(await db.listCollections().toArray()).map(e => e.name).includes(visitCollectionName))
+            await db.createCollection(visitCollectionName)
 
-        const indexes = await db.collection('visits').indexes()
+        const indexes = await db.collection(visitCollectionName).indexes()
 
         if (indexes.find(i => i.name === 'patientId') === undefined)
-            await db.createIndex('visits', { patientId: 1 }, { name: 'patientId' })
+            await db.createIndex(visitCollectionName, { patientId: 1 }, { name: 'patientId' })
 
         if (indexes.find(i => i.name === 'due') === undefined)
-            await db.createIndex('visits', { due: 1 }, { name: 'due' })
+            await db.createIndex(visitCollectionName, { due: 1 }, { name: 'due' })
 
         if (indexes.find(i => i.name === 'created-at') === undefined)
-            await db.createIndex('visits', { createdAt: 1 }, { name: 'created-at' })
+            await db.createIndex(visitCollectionName, { createdAt: 1 }, { name: 'created-at' })
 
         if (indexes.find(i => i.name === 'updated-at') === undefined)
-            await db.createIndex('visits', { updatedAt: 1 }, { name: 'updated-at' })
+            await db.createIndex(visitCollectionName, { updatedAt: 1 }, { name: 'updated-at' })
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////// Patients
 
     async getPatientsCollection(): Promise<Collection<Patient>> {
-        return (await this.getDb()).collection<Patient>('patients')
+        return (await this.getDb()).collection<Patient>(patientCollectionName)
     }
 
     /**
@@ -127,9 +130,15 @@ class MongoDB implements dbAPI {
      * @returns The id of the created patient
      */
     async createPatient(patient: Patient): Promise<string> {
+        if (!getPatientsPrivileges(Auth.authenticatedUser.roleName).includes(`create.${patientCollectionName}`))
+            throw new Unauthorized()
+
         if (!patientSchema.isValidSync(patient))
             throw new Error('Invalid patient info provided.')
         patient = patientSchema.cast(patient)
+        patient.schemaVersion = 'v0.0.1'
+        patient.createdAt = DateTime.utc().toUnixInteger()
+        patient.updatedAt = DateTime.utc().toUnixInteger()
         return (await (await this.getPatientsCollection()).insertOne(patient)).insertedId.toString()
     }
 
@@ -139,8 +148,12 @@ class MongoDB implements dbAPI {
      * @returns json string of Patient
      */
     async getPatientWithVisits(socialId: string): Promise<string | null> {
+        const privileges = getPatientsPrivileges(Auth.authenticatedUser.roleName);
+        if (privileges.filter(p => p == `read.${patientCollectionName}` || p == `read.${visitCollectionName}`).length !== 2)
+            throw new Unauthorized()
+
         try {
-            const patients = await (await this.getPatientsCollection()).aggregate([
+            let patients = await (await this.getPatientsCollection()).aggregate([
                 {
                     $match: {
                         socialId: socialId
@@ -148,13 +161,16 @@ class MongoDB implements dbAPI {
                 },
                 {
                     $lookup: {
-                        from: 'visits',
+                        from: visitCollectionName,
                         localField: '_id',
                         foreignField: 'patientId',
-                        as: 'visits'
+                        as: visitCollectionName
                     }
                 }
             ]).toArray()
+
+            patients = patients.map(p => Object.fromEntries(Object.entries(p).filter(arr => privileges.includes(`read.${patientCollectionName}.${arr[0]}`))))
+
             return JSON.stringify(patients)
         } catch (error) {
             console.error(error);
@@ -168,17 +184,31 @@ class MongoDB implements dbAPI {
      * @returns json string of Patient
      */
     async getPatient(socialId: string): Promise<string | null> {
+        const privileges = getPatientsPrivileges(Auth.authenticatedUser.roleName);
+        if (!privileges.includes(`create.${patientCollectionName}`))
+            throw new Unauthorized()
+
         let patient: Patient = await (await this.getPatientsCollection()).findOne({ socialId: socialId })
         if (!patientSchema.isValidSync(patient))
             throw new Error('Invalid patient info provided.')
 
         patient = patientSchema.cast(patient)
+
+        patient = Object.fromEntries(Object.entries(patient).filter(arr => privileges.includes(`read.${patientCollectionName}.${arr[0]}`)))
+
         return JSON.stringify(patient)
     }
 
     async getPatients(offset: number, count: number): Promise<string | null> {
+        const privileges = getPatientsPrivileges(Auth.authenticatedUser.roleName);
+        if (!privileges.includes(`create.${patientCollectionName}`))
+            throw new Unauthorized()
+
         try {
-            const patients: Patient[] = await (await this.getPatientsCollection()).find().limit(count).skip(offset * count).sort('createdAt', -1).toArray()
+            let patients: Patient[] = await (await this.getPatientsCollection()).find().limit(count).skip(offset * count).sort('createdAt', -1).toArray()
+
+            patients = patients.map(p => Object.fromEntries(Object.entries(p).filter(arr => privileges.includes(`read.${patientCollectionName}.${arr[0]}`))))
+
             return JSON.stringify(patients)
         } catch (error) {
             console.error(error);
@@ -187,14 +217,18 @@ class MongoDB implements dbAPI {
     }
 
     async getPatientsWithVisits(offset: number, count: number): Promise<string | null> {
+        const privileges = getPatientsPrivileges(Auth.authenticatedUser.roleName);
+        if (privileges.filter(p => p == `read.${patientCollectionName}` || p == `read.${visitCollectionName}`).length !== 2)
+            throw new Unauthorized()
+
         try {
-            const patients = await (await this.getPatientsCollection()).aggregate([
+            let patients = await (await this.getPatientsCollection()).aggregate([
                 {
                     $lookup: {
-                        from: 'visits',
+                        from: visitCollectionName,
                         localField: '_id',
                         foreignField: 'patientId',
-                        as: 'visits'
+                        as: visitCollectionName
                     }
                 },
                 {
@@ -209,6 +243,8 @@ class MongoDB implements dbAPI {
                     $limit: count
                 }
             ]).toArray()
+            patients = patients.map(p => Object.fromEntries(Object.entries(p).filter(arr => privileges.includes(`read.${patientCollectionName}.${arr[0]}`))))
+
             return JSON.stringify(patients)
         } catch (error) {
             console.error(error);
@@ -217,6 +253,10 @@ class MongoDB implements dbAPI {
     }
 
     async updatePatient(patient: Patient): Promise<boolean> {
+        const privileges = getPatientsPrivileges(Auth.authenticatedUser.roleName);
+        if (privileges.filter(f => f === `update.${patientCollectionName}` || f === ``).length !== 2)
+            throw new Unauthorized()
+
         return (await (await this.getPatientsCollection()).updateOne({ _id: patient._id }, patient, { upsert: true })).matchedCount === 1
     }
 
@@ -227,7 +267,7 @@ class MongoDB implements dbAPI {
     //////////////////////////////////////////////////////////////////////////////////////////// Visits
 
     async getVisitsCollection(): Promise<Collection<Visit>> {
-        return (await this.getDb()).collection<Visit>('visits')
+        return (await this.getDb()).collection<Visit>(visitCollectionName)
     }
 
     async createVisit(visit: Visit): Promise<string> {

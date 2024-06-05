@@ -1,6 +1,7 @@
 import { ObjectId } from "mongodb";
 import { InferType, array, mixed, number, object, string } from "yup";
-import type { Operation } from "./types.";
+import type { Operation } from "../../Auth/types.";
+import { RoleName } from "../../../Electron/Auth/roles";
 
 export const collectionName = 'visits'
 
@@ -39,17 +40,32 @@ export function getPrivilege(operation: Operation, field: keyof Visit): string |
 }
 
 export function getPrivileges(): string[]
+export function getPrivileges(operation: RoleName): string[]
 export function getPrivileges(operation: Operation): string[]
-export function getPrivileges(operation?: Operation): string[] {
+export function getPrivileges(operation?: Operation | RoleName): string[] {
     if (!operation)
         return [
             `create.${collectionName}`,
             `read.${collectionName}`,
             `update.${collectionName}`,
             `delete.${collectionName}`,
-            ...readableFields.map(f => `read.${collectionName}.${f}`),
-            ...updatableFields.map(f => `update.${collectionName}.${f}`),
+            ...readableFields.map(f => getPrivilege('read', f)),
+            ...updatableFields.map(f => getPrivilege('update', f)),
         ]
+
+    if (mixed<RoleName>().required().isValidSync(operation))
+        switch (operation) {
+            case 'doctor':
+                return getPrivileges()
+
+            case 'secretary':
+                return [
+                    `create.${collectionName}`,
+                ]
+
+            default:
+                throw new Error('Invalid role name provided.')
+        }
 
     if (operation === 'delete' || operation === 'create')
         return []

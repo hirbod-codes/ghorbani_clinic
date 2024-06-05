@@ -50,8 +50,8 @@ export type AuthConfig = { authenticatedUserIndex: number | null, users: User[] 
 export function writeAuth(auth: AuthConfig = {
     authenticatedUserIndex: null,
     users: [
-        { username: 'Ghorbani', password: hashSync('adminPass', 10) },
-        { username: 'Secretary', password: hashSync('secretaryPass', 10) },
+        { username: 'Ghorbani', password: hashSync('adminPass', 10), roleName: 'doctor' },
+        { username: 'Secretary', password: hashSync('secretaryPass', 10), roleName: 'secretary' },
     ]
 }): AuthConfig {
     const authFile = path.join(app.getAppPath(), 'src', 'Config', 'auth.json')
