@@ -6,7 +6,7 @@ import { PaletteMode, Theme } from "@mui/material";
 export type Configuration = {
     get: {
         locale: Locale,
-        theme: Theme,
+        theme: Theme
     },
     set: {
         updateTheme: (mode: PaletteMode, direction: 'rtl' | 'ltr', locale: Localization) => void,

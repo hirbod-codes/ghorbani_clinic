@@ -73,8 +73,8 @@ export function getPrivileges(operation?: Operation | RoleName): string[] {
             case 'secretary':
                 return [
                     `create.${collectionName}`,
-                    `read.${collectionName}`,
-                    ...readableFields.filter(f => f === 'firstName' || f === 'lastName').map(f => getPrivilege('read', f)),
+                    // `read.${collectionName}`,
+                    // ...readableFields.filter(f => f === 'firstName' || f === 'lastName').map(f => getPrivilege('read', f)),
                 ]
 
             default:

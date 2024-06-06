@@ -40,6 +40,7 @@ export function App() {
             },
             getInitialLocale.getReactLocale(getInitialLocale.i18n)
         ),
+        privileges: []
     })
 
     const updateTheme = (mode: PaletteMode, direction: 'rtl' | 'ltr', locale: Localization) => {
@@ -98,13 +99,16 @@ export function App() {
 
     // Authentication
     const isCalled = useRef(false)
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState<{ username: string, roleName: string, privileges: string[] }>(null);
     const [authFetched, setAuthFetched] = useState(false);
-    (window as typeof window & { authAPI: authAPI }).authAPI.getAuthenticatedUser().then((u) => {
+    (window as typeof window & { authAPI: authAPI }).authAPI.getAuthenticatedUser().then(async (u) => {
         if (!isCalled.current && u != null && user == null) {
             isCalled.current = true
 
-            setUser(u)
+            setUser({
+                ...u,
+                privileges: await (window as typeof window & { authAPI: authAPI }).authAPI.getAuthenticatedUserPrivileges()
+            })
         }
 
         setAuthFetched(true)

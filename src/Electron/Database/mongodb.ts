@@ -1,14 +1,12 @@
-import { app, ipcMain } from "electron";
 import { MongodbConfig, readConfig, writeConfig } from "../../Config/config";
 import { Collection, Db, GridFSBucket, MongoClient } from "mongodb";
 import { type Patient, collectionName as patientsCollectionName } from "./Models/Patient";
 import { Visit, collectionName as visitsCollectionName } from "./Models/Visit";
 import type { dbAPI } from "./dbAPI";
-import { seed } from "./seed-patients";
-import { FileRepository } from "./FileRepository";
-import { VisitRepository } from "./VisitRepository";
-import { PatientRepository } from "./PatientRepository";
 import { collectionName as filesCollectionName } from "./Models/File";
+import { ipcMain, ipcRenderer } from "electron";
+import type { MainProcessResponse } from "../types";
+import { Unauthorized } from "./Unauthorized";
 
 export class MongoDB implements dbAPI {
     private static isInitialized = false
@@ -54,7 +52,6 @@ export class MongoDB implements dbAPI {
             return null
         }
     }
-
 
     async initializeDb() {
         try {
@@ -127,40 +124,35 @@ export class MongoDB implements dbAPI {
     async getBucket(): Promise<GridFSBucket> {
         return new GridFSBucket(await this.getDb(), { bucketName: filesCollectionName });
     }
-}
 
-export async function handleDbEvents() {
-    const db = new MongoDB()
-    const patientRepository = new PatientRepository()
-    const visitRepository = new VisitRepository()
-    const fileRepository = new FileRepository()
+    static handleRendererEvents() {
+        return {
+            getConfig: async (): Promise<MongodbConfig> => {
+                return await ipcRenderer.invoke('get-config')
+            },
+            updateConfig: async (config: MongodbConfig): Promise<boolean> => {
+                return await ipcRenderer.invoke('update-config', { config })
+            },
+        }
+    }
 
-    await db.initializeDb()
+    async handleEvents(): Promise<void> {
+        ipcMain.handle('get-config', async () => await this.getConfig())
+        ipcMain.handle('update-config', async (_e, { config }: { config: MongodbConfig; }) => await this.updateConfig(config) != null)
+    }
 
-    ipcMain.handle('get-config', async () => await db.getConfig())
-    ipcMain.handle('update-config', async (_e, { config }: { config: MongodbConfig }) => await db.updateConfig(config) != null)
-
-    ipcMain.handle('create-patient', async (_e, { patient }: { patient: Patient }) => await patientRepository.createPatient(patient))
-    ipcMain.handle('get-patient-with-visits', async (_e, { socialId }: { socialId: string }) => await patientRepository.getPatientWithVisits(socialId))
-    ipcMain.handle('get-patients-with-visits', async (_e, { offset, count }: { offset: number, count: number }) => await patientRepository.getPatientsWithVisits(offset, count))
-    ipcMain.handle('get-patient', async (_e, { socialId }: { socialId: string }) => await patientRepository.getPatient(socialId))
-    ipcMain.handle('get-patients', async (_e, { offset, count }: { offset: number, count: number }) => await patientRepository.getPatients(offset, count))
-    ipcMain.handle('update-patient', async (_e, { patient }: { patient: Patient }) => await patientRepository.updatePatient(patient))
-    ipcMain.handle('delete-patient', async (_e, { id }: { id: string }) => await patientRepository.deletePatient(id))
-    ipcMain.handle('create-visit', async (_e, { visit }: { visit: Visit }) => await visitRepository.createVisit(visit))
-
-    ipcMain.handle('get-visits', async (_e, { patientId }: { patientId: string }) => await visitRepository.getVisits(patientId))
-    ipcMain.handle('update-visit', async (_e, { visit }: { visit: Visit }) => await visitRepository.updateVisit(visit))
-    ipcMain.handle('delete-visit', async (_e, { id }: { id: string }) => await visitRepository.deleteVisit(id))
-    ipcMain.handle('upload-files', async (_e, { patientId, files }: { patientId: string, files: { fileName: string, bytes: Buffer | Uint8Array }[] }) => await fileRepository.uploadFiles(patientId, files))
-
-    ipcMain.handle('retrieve-files', async (_e, { patientId }: { patientId: string }) => await fileRepository.retrieveFiles(patientId))
-    ipcMain.handle('download-file', async (_e, { patientId, fileName }: { patientId: string, fileName: string }) => await fileRepository.downloadFile(patientId, fileName))
-    ipcMain.handle('download-files', async (_e, { patientId }: { patientId: string }) => await fileRepository.downloadFiles(patientId))
-    ipcMain.handle('open-file', async (_e, { patientId, fileName }: { patientId: string, fileName: string }) => await fileRepository.openFile(patientId, fileName))
-    ipcMain.handle('delete-file', async (_e, { fileId }: { fileId: string }) => await fileRepository.deleteFiles(fileId))
-
-    if (!app.isPackaged) {
-        await seed(50, await db.getPatientsCollection(), await db.getVisitsCollection())
+    async handleErrors(callback: () => Promise<unknown>): Promise<MainProcessResponse<string>> {
+        try {
+            return {
+                code: 200,
+                data: JSON.stringify(await callback())
+            }
+        }
+        catch (error) {
+            if (error instanceof Unauthorized)
+                return { code: 403 }
+            else
+                return { code: 500 }
+        }
     }
 }

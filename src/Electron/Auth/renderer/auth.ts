@@ -1,6 +1,10 @@
 import { ipcRenderer } from 'electron'
 import { User } from '../auth-types'
 
+export async function getAuthenticatedUserPrivileges(): Promise<string[]> {
+    return await ipcRenderer.invoke('get-authenticated-user-privileges')
+}
+
 export async function getAuthenticatedUser(): Promise<User | null> {
     return await ipcRenderer.invoke('get-authenticated-user')
 }

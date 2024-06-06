@@ -1,8 +1,8 @@
 import { styled } from '@mui/material/styles';
-import { Grid, Modal, Paper, Button, Stack, TextField, Select, MenuItem, InputLabel, FormControl, Divider, Slide, DialogTitle, DialogContent, DialogContentText, DialogActions, Dialog, Snackbar, Alert, AlertColor, AlertPropsColorOverrides, CircularProgress } from '@mui/material';
+import { Grid, Button, Stack, TextField, Select, MenuItem, InputLabel, FormControl, Divider, DialogTitle, DialogContent, DialogContentText, DialogActions, Dialog, Snackbar, Alert, AlertColor, AlertPropsColorOverrides, CircularProgress } from '@mui/material';
 import type { OverridableStringUnion } from '@mui/types/index'
 import { useState, useContext, ReactNode } from 'react';
-import type { dbAPI } from '../../../Electron/Database/dbAPI';
+import type { IFileRepository, IPatientRepository, IVisitRepository } from '../../../Electron/Database/dbAPI';
 import { DateTime } from 'luxon'
 
 import AddIcon from '@mui/icons-material/AddOutlined';
@@ -29,7 +29,7 @@ const VisuallyHiddenInput = styled('input')({
 });
 
 async function getVisits(patientId: string): Promise<Visit[]> {
-    const result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.getVisits(patientId)
+    const result = await (window as typeof window & { dbAPI: IVisitRepository }).dbAPI.getVisits(patientId)
     return JSON.parse(result)
 }
 
@@ -60,8 +60,6 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
             })
     }
 
-    const [openVisitCreateModal, setOpenVisitCreateModal] = useState(false)
-
     const [files, setFiles] = useState<{ fileName: string, bytes: Buffer | Uint8Array }[]>([])
 
     const submit = async () => {
@@ -70,22 +68,22 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
         try {
             if (inputPatient) {
                 id = patient._id
-                if (!await (window as typeof window & { dbAPI: dbAPI }).dbAPI.updatePatient(patient))
+                if (!await (window as typeof window & { dbAPI: IPatientRepository }).dbAPI.updatePatient(patient))
                     throw new Error('failed to update the patient.')
                 for (const visit of visits)
-                    if (!await (window as typeof window & { dbAPI: dbAPI }).dbAPI.updateVisit(visit))
+                    if (!await (window as typeof window & { dbAPI: IVisitRepository }).dbAPI.updateVisit(visit))
                         throw new Error('failed to update the patient\'s visits.')
             }
             else {
-                id = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.createPatient(patient)
+                id = await (window as typeof window & { dbAPI: IPatientRepository }).dbAPI.createPatient(patient)
                 for (const visit of visits) {
                     visit.patientId = id
-                    if (!await (window as typeof window & { dbAPI: dbAPI }).dbAPI.createVisit(visit))
+                    if (!await (window as typeof window & { dbAPI: IVisitRepository }).dbAPI.createVisit(visit))
                         throw new Error('failed to create the patient\'s visits.')
                 }
             }
 
-            result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.uploadFiles(id as string, files)
+            result = await (window as typeof window & { dbAPI: IFileRepository }).dbAPI.uploadFiles(id as string, files)
             if (!result)
                 throw new Error('failed to upload the patient\'s documents.')
         } catch (error) {
@@ -180,14 +178,6 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
                         {/* Address */}
                         <TextField variant='standard' id='address' value={patient.address ?? ''} label='Address' sx={{ width: '7rem' }} multiline rows={patient.address ? 3 : 1} onChange={(e) => setPatient({ ...patient, address: e.target.value })} />
                     </Grid>
-                    <Grid item>
-                        {/* Visit Controls */}
-                        <Stack direction='row' spacing={1} divider={<Divider orientation='vertical' variant='middle' flexItem />} >
-                            <Button variant="text" onClick={() => setOpenVisitCreateModal(true)} startIcon={<AddIcon />}>
-                                set visits
-                            </Button>
-                        </Stack>
-                    </Grid>
                     <Grid item xs={12}>
                         {/* Files */}
                         <Stack direction='row' spacing={1} divider={<Divider orientation='vertical' variant='middle' flexItem />} >
@@ -222,6 +212,10 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
                     </Grid>
                     <Grid item xs={12}>
                     </Grid>
+                    {/* Manage Visits */}
+                    <Grid item xs={12}>
+                        <ManageVisits onComplete={(visits: Visit[]) => setVisits(visits)} defaultVisits={visits} />
+                    </Grid>
                     <Grid item xs={12}>
                         {/* Submit */}
                         <Button variant="contained" fullWidth onClick={() => {
@@ -232,19 +226,8 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
                             Complete
                         </Button>
                     </Grid>
-                    <Grid item xs={12}>
-                        <ManageVisits onComplete={(visits: Visit[]) => { setVisits(visits); setOpenVisitCreateModal(false) }} defaultVisits={visits} />
-                    </Grid>
                 </Grid>
             </Stack>
-            {/* Manage Visits */}
-            <Modal open={openVisitCreateModal} onClose={() => setOpenVisitCreateModal(false)} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
-                <Slide direction={openVisitCreateModal ? 'up' : 'down'} in={openVisitCreateModal} timeout={250}>
-                    <Paper sx={{ maxWidth: '40rem', width: '60%', maxHeight: '75%', padding: '0.5rem 2rem', overflowY: 'auto' }}>
-                        <ManageVisits onComplete={(visits: Visit[]) => { setVisits(visits); setOpenVisitCreateModal(false) }} defaultVisits={visits} />
-                    </Paper>
-                </Slide>
-            </Modal>
 
             <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} >
                 <DialogTitle>

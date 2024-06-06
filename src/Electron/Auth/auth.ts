@@ -2,6 +2,7 @@ import { ipcMain } from 'electron'
 import { compareSync } from 'bcrypt'
 import { Auth, User } from './auth-types'
 import { readAuth } from '../../Config/config'
+import { getPrivileges } from './roles'
 
 function login(username: string, password: string): boolean {
     const auth = readAuth()
@@ -21,20 +22,22 @@ function logout(): boolean {
     return true
 }
 
-function getAuthenticatedUser(): User {
-    return Auth.authenticatedUser
+function getAuthenticatedUser(): { username: string, roleName: string } | null {
+    if (!Auth.authenticatedUser)
+        return null
+    return { username: Auth.authenticatedUser.username, roleName: Auth.authenticatedUser.roleName }
+}
+
+function getAuthenticatedUserPrivileges(): string[] {
+    return getPrivileges(Auth.authenticatedUser.roleName)
 }
 
 export function handleAuthEvents() {
-    ipcMain.handle('get-authenticated-user', () => {
-        return getAuthenticatedUser()
-    })
+    ipcMain.handle('get-authenticated-user-privileges', () => getAuthenticatedUserPrivileges())
 
-    ipcMain.handle('login', (_e, { username, password }: { username: string, password: string }) => {
-        return login(username, password)
-    })
+    ipcMain.handle('get-authenticated-user', () => getAuthenticatedUser())
 
-    ipcMain.handle('logout', () => {
-        return logout()
-    })
+    ipcMain.handle('login', (_e, { username, password }: { username: string, password: string }) => login(username, password))
+
+    ipcMain.handle('logout', () => logout())
 }

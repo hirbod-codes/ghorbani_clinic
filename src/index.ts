@@ -1,7 +1,7 @@
 import { app, BrowserWindow } from 'electron'
 import { handleMenuEvents } from './Electron/Menu/menu';
 import { handleAuthEvents } from './Electron/Auth/auth';
-import { handleDbEvents } from './Electron/Database/mongodb';
+import { handleDbEvents } from "./Electron/Database/handleDbEvents";
 import fs from 'fs'
 import path from 'path'
 import { logout } from './Electron/Auth/renderer/auth';
@@ -37,6 +37,7 @@ const createWindow = async (): Promise<BrowserWindow> => {
 }
 
 app.on('ready', async () => {
+    fs.rmSync(path.join(app.getAppPath(), 'tmp'), { recursive: true })
     fs.mkdirSync(path.join(app.getAppPath(), 'tmp', 'downloads'), { recursive: true })
 
     await createWindow()

@@ -4,40 +4,20 @@ export type dbAPI = {
 }
 
 export type IPatientRepository = dbAPI & {
-    /**
-     * 
-     * @param patient
-     * @returns The id of the created patient
-     */
-    createPatient(patient: Patient): Promise<string>,
-    getPatientWithVisits(socialId: string): Promise<string | null>,
-    getPatientsWithVisits(offset: number, count: number): Promise<string | null>,
-    /**
-     * 
-     * @param socialId
-     * @returns json string of Patient
-     */
-    getPatient(socialId: string): Promise<string | null>,
-    getPatients(offset: number, count: number): Promise<string | null>,
-    updatePatient(patient: Patient): Promise<boolean>,
-    deletePatient(id: string): Promise<boolean>,
+    createPatient(patient: Patient): Promise<InsertOneResult>,
+    getPatientWithVisits(socialId: string): Promise<Patient & { visits: Visit[] }>,
+    getPatient(socialId: string): Promise<Patient>,
+    getPatients(offset: number, count: number): Promise<Patient[]>,
+    getPatientsWithVisits(offset: number, count: number): Promise<(Patient & { visits: Visit[] })[]>,
+    updatePatient(patient: Patient): Promise<UpdateResult>,
+    deletePatient(id: string): Promise<DeleteResult>
 }
 
 export type IVisitRepository = dbAPI & {
-    /**
-     * 
-     * @param visit
-     * @returns The id of the created visit
-     */
-    createVisit(visit: Visit): Promise<string>,
-    /**
-     * 
-     * @param patientId
-     * @returns json string of Visit[]
-     */
-    getVisits(patientId: string): Promise<string | null>,
-    updateVisit(visit: Visit): Promise<boolean>,
-    deleteVisit(id: string): Promise<boolean>,
+    createVisit(visit: Visit): Promise<InsertOneResult>,
+    getVisits(patientId: string): Promise<Visit[]>,
+    updateVisit(visit: Visit): Promise<UpdateResult>,
+    deleteVisit(id: string): Promise<DeleteResult>,
 }
 
 export type IFileRepository = dbAPI & {

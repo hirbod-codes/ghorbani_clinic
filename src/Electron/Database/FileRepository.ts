@@ -1,4 +1,4 @@
-import { app, shell } from "electron";
+import { app, ipcMain, ipcRenderer, shell } from "electron";
 import { ObjectId } from "mongodb";
 import path from 'path';
 import fs from 'fs';
@@ -193,5 +193,25 @@ export class FileRepository extends MongoDB implements IFileRepository {
             console.error(error);
             return false;
         }
+    }
+
+    static handleRendererEvents() {
+        return {
+            uploadFiles: async (patientId: string, files: { fileName: string, bytes: Buffer | Uint8Array }[]): Promise<boolean> => JSON.parse(await ipcRenderer.invoke('upload-files', { patientId, files })),
+            retrieveFiles: async (patientId: string): Promise<string | null> => JSON.parse(await ipcRenderer.invoke('retrieve-files', { patientId })),
+            downloadFile: async (patientId: string, fileName: string): Promise<string | null> => JSON.parse(await ipcRenderer.invoke('download-file', { patientId, fileName })),
+            downloadFiles: async (patientId: string): Promise<string | null> => JSON.parse(await ipcRenderer.invoke('download-files', { patientId })),
+            openFile: async (patientId: string, fileName: string): Promise<void> => JSON.parse(await ipcRenderer.invoke('open-file', { patientId, fileName })),
+            deleteFiles: async (patientId: string): Promise<boolean> => JSON.parse(await ipcRenderer.invoke('delete-files', { patientId })),
+        }
+    }
+
+    async handleEvents(): Promise<void> {
+        ipcMain.handle('upload-files', async (_e, { patientId, files }: { patientId: string, files: { fileName: string, bytes: Buffer | Uint8Array }[] }) => this.handleErrors(async () => await this.uploadFiles(patientId, files)))
+        ipcMain.handle('retrieve-files', async (_e, { patientId }: { patientId: string }) => this.handleErrors(async () => await this.retrieveFiles(patientId)))
+        ipcMain.handle('download-file', async (_e, { patientId, fileName }: { patientId: string, fileName: string }) => this.handleErrors(async () => await this.downloadFile(patientId, fileName)))
+        ipcMain.handle('download-files', async (_e, { patientId }: { patientId: string }) => this.handleErrors(async () => await this.downloadFiles(patientId)))
+        ipcMain.handle('open-file', async (_e, { patientId, fileName }: { patientId: string, fileName: string }) => this.handleErrors(async () => await this.openFile(patientId, fileName)))
+        ipcMain.handle('delete-file', async (_e, { fileId }: { fileId: string }) => this.handleErrors(async () => await this.deleteFiles(fileId)))
     }
 }

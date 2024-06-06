@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo, useContext, ReactNode } from 'react';
 import { DataGrid, GridColDef, GridPaginationMeta, useGridApiRef, GridToolbar, GridActionsCellItem } from '@mui/x-data-grid';
 import { Patient } from '../../../Electron/Database/Models/Patient';
-import type { dbAPI } from '../../../Electron/Database/dbAPI';
+import type { IPatientRepository, IVisitRepository } from '../../../Electron/Database/dbAPI';
 import { StringHumanizer } from '../string-helpers';
 
 import Button from '@mui/material/Button';
@@ -46,7 +46,7 @@ export function PatientDataGrid() {
     const [longText, setLongText] = useState<string[]>([])
 
     if (isLoading)
-        (window as typeof window & { dbAPI: dbAPI }).dbAPI.getPatientsWithVisits(paginationModel.page, paginationModel.pageSize)
+        (window as typeof window & { dbAPI: IPatientRepository }).dbAPI.getPatientsWithVisits(paginationModel.page, paginationModel.pageSize)
             .then((patientsJson) => {
                 const patients = JSON.parse(patientsJson)
                 for (const patient of patients) {
@@ -165,7 +165,7 @@ export function PatientDataGrid() {
         let e = false
         try {
             for (const visit of visits)
-                if (!await (window as typeof window & { dbAPI: dbAPI }).dbAPI.updateVisit(visit))
+                if (!await (window as typeof window & { dbAPI: IVisitRepository }).dbAPI.updateVisit(visit))
                     throw new Error('failed to update the patient\'s visits.')
         } catch (error) {
             console.error(error)
@@ -186,7 +186,7 @@ export function PatientDataGrid() {
     const deletePatient = async (row: Row) => {
         let e = false
         try {
-            if (!await (window as typeof window & { dbAPI: dbAPI }).dbAPI.deletePatient(row.id))
+            if (!await (window as typeof window & { dbAPI: IPatientRepository }).dbAPI.deletePatient(row.id))
                 throw new Error('failed to delete the patient.')
         } catch (error) {
             console.error(error)
