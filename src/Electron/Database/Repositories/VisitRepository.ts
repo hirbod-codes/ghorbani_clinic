@@ -8,9 +8,13 @@ import { extractKeysRecursive } from "../helpers";
 import { getFieldsInPrivileges } from "../../Auth/roles";
 import { ipcMain } from "electron";
 import { DeleteResult, InsertOneResult, UpdateResult } from "mongodb";
+import { Unauthenticated } from "../Unauthenticated";
 
 export class VisitRepository extends MongoDB implements IVisitRepository {
     async createVisit(visit: Visit): Promise<InsertOneResult> {
+        if (!Auth.authenticatedUser)
+            throw new Unauthenticated();
+
         if (!getPrivileges(Auth.authenticatedUser.roleName).includes(`create.${collectionName}`))
             throw new Unauthorized();
 
@@ -26,6 +30,9 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
     }
 
     async getVisits(patientId: string): Promise<Visit[]> {
+        if (!Auth.authenticatedUser)
+            throw new Unauthenticated();
+
         const privileges = getPrivileges(Auth.authenticatedUser.roleName);
         if (!privileges.includes(`read.${collectionName}`))
             throw new Unauthorized();
@@ -38,6 +45,9 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
     }
 
     async updateVisit(visit: Visit): Promise<UpdateResult> {
+        if (!Auth.authenticatedUser)
+            throw new Unauthenticated();
+
         const privileges = getPrivileges(Auth.authenticatedUser.roleName);
         if (!privileges.includes(`update.${collectionName}`))
             throw new Unauthorized();
@@ -56,6 +66,9 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
     }
 
     async deleteVisit(id: string): Promise<DeleteResult> {
+        if (!Auth.authenticatedUser)
+            throw new Unauthenticated();
+
         const privileges = getPrivileges(Auth.authenticatedUser.roleName);
         if (!privileges.includes(`delete.${collectionName}`))
             throw new Unauthorized();

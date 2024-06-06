@@ -6,11 +6,13 @@ export class Auth {
 
 export class User {
     username: string
-    password: string
+    password?: string
     roleName: RoleName
+    privileges: string[]
 
-    constructor(username: string, password: string, roleName: RoleName) {
+    constructor(username: string, roleName: RoleName, privileges: string[]) {
         this.username = username
         this.roleName = roleName
+        this.privileges = privileges
     }
 }

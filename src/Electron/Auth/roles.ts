@@ -1,5 +1,6 @@
 import { getPrivileges as getPatientsPrivileges } from '../Database/Models/Patient'
 import { getPrivileges as getVisitsPrivileges } from '../Database/Models/Visit'
+import { getPrivileges as getFilesPrivileges } from '../Database/Models/File'
 import type { Operation } from './types'
 
 
@@ -23,7 +24,8 @@ export function getFieldsInPrivileges(privileges: string[], operation: Operation
 export function getPrivileges(roleName: RoleName): string[] {
     const privileges = [
         ...getPatientsPrivileges(roleName),
-        ...getVisitsPrivileges(roleName)
+        ...getVisitsPrivileges(roleName),
+        ...getFilesPrivileges(roleName),
     ]
 
     switch (roleName) {

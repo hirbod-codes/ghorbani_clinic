@@ -1,7 +1,7 @@
 import { Box, Button, TextField } from '@mui/material';
 import { useContext, useState } from 'react';
-import type { authAPI } from '../Electron/Auth/renderer/authAPI';
-import { AuthContext } from '../Electron/Auth/renderer/AuthContext';
+import type { authAPI } from '../../Electron/Auth/renderer/authAPI';
+import { AuthContext } from '../../Electron/Auth/renderer/AuthContext';
 
 export function LoginForm() {
     const [username, setUsername] = useState('');

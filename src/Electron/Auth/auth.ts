@@ -9,7 +9,7 @@ function login(username: string, password: string): boolean {
 
     for (let i = 0; i < auth.users.length; i++)
         if (auth.users[i].username === username && compareSync(password, auth.users[i].password)) {
-            Auth.authenticatedUser = new User(username, auth.users[i].password, auth.users[i].roleName)
+            Auth.authenticatedUser = new User(username, auth.users[i].roleName, getPrivileges(auth.users[i].roleName))
             return true
         }
 
@@ -22,10 +22,10 @@ function logout(): boolean {
     return true
 }
 
-function getAuthenticatedUser(): { username: string, roleName: string } | null {
+function getAuthenticatedUser(): User | null {
     if (!Auth.authenticatedUser)
         return null
-    return { username: Auth.authenticatedUser.username, roleName: Auth.authenticatedUser.roleName }
+    return Auth.authenticatedUser
 }
 
 function getAuthenticatedUserPrivileges(): string[] {

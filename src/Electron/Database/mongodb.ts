@@ -8,6 +8,7 @@ import { collectionName as filesCollectionName } from "./Models/File";
 import { ipcMain } from "electron";
 import type { MainProcessResponse } from "../types";
 import { Unauthorized } from "./Unauthorized";
+import { Unauthenticated } from "./Unauthenticated";
 
 export class MongoDB implements dbAPI {
     private static isInitialized = false
@@ -139,8 +140,12 @@ export class MongoDB implements dbAPI {
             }
         }
         catch (error) {
+            console.error('error in main process')
+            console.error(error)
             if (error instanceof Unauthorized)
                 return { code: 403 }
+            else if (error instanceof Unauthenticated)
+                return { code: 401 }
             else
                 return { code: 500 }
         }

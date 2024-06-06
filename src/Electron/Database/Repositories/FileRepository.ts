@@ -7,9 +7,13 @@ import type { IFileRepository } from "../dbAPI";
 import { Unauthorized } from "../Unauthorized";
 import { Auth } from "../../Auth/auth-types";
 import { collectionName, getPrivileges } from "../Models/File";
+import { Unauthenticated } from "../Unauthenticated";
 
 export class FileRepository extends MongoDB implements IFileRepository {
     async uploadFiles(patientId: string, files: { fileName: string; bytes: Buffer | Uint8Array; }[]): Promise<boolean> {
+        if (!Auth.authenticatedUser)
+            throw new Unauthenticated();
+
         if (!getPrivileges(Auth.authenticatedUser.roleName).includes(`create.${collectionName}`))
             throw new Unauthorized();
 
@@ -37,6 +41,9 @@ export class FileRepository extends MongoDB implements IFileRepository {
     }
 
     async retrieveFiles(patientId: string): Promise<GridFSFile[]> {
+        if (!Auth.authenticatedUser)
+            throw new Unauthenticated();
+
         if (!getPrivileges(Auth.authenticatedUser.roleName).includes(`read.${collectionName}`))
             throw new Unauthorized();
 
@@ -50,6 +57,9 @@ export class FileRepository extends MongoDB implements IFileRepository {
     }
 
     async downloadFile(patientId: string, fileName: string): Promise<string> {
+        if (!Auth.authenticatedUser)
+            throw new Unauthenticated();
+
         if (!getPrivileges(Auth.authenticatedUser.roleName).includes(`download.${collectionName}`))
             throw new Unauthorized();
 
@@ -71,6 +81,9 @@ export class FileRepository extends MongoDB implements IFileRepository {
     }
 
     async downloadFiles(patientId: string): Promise<string[]> {
+        if (!Auth.authenticatedUser)
+            throw new Unauthenticated();
+
         if (!getPrivileges(Auth.authenticatedUser.roleName).includes(`download.${collectionName}`))
             throw new Unauthorized();
 
@@ -98,6 +111,9 @@ export class FileRepository extends MongoDB implements IFileRepository {
     }
 
     async openFile(patientId: string, fileName: string): Promise<void> {
+        if (!Auth.authenticatedUser)
+            throw new Unauthenticated();
+
         if (!getPrivileges(Auth.authenticatedUser.roleName).includes(`open.${collectionName}`))
             throw new Unauthorized();
 
@@ -130,6 +146,9 @@ export class FileRepository extends MongoDB implements IFileRepository {
     }
 
     async deleteFiles(patientId: string): Promise<boolean> {
+        if (!Auth.authenticatedUser)
+            throw new Unauthenticated();
+
         if (!getPrivileges(Auth.authenticatedUser.roleName).includes(`delete.${collectionName}`))
             throw new Unauthorized();
 

@@ -46,14 +46,16 @@ export function PatientDataGrid() {
     const [showLongText, setShowLongText] = useState(false)
     const [longText, setLongText] = useState<string[]>([])
 
+    console.log(isLoading, (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI)
     if (isLoading)
         (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPatientsWithVisits(paginationModel.page, paginationModel.pageSize)
             .then((response) => {
+                console.log('PatientDataGrid', 'response', response)
                 if (response.code !== 200) {
                     return
                 }
 
-                const patients = response.data
+                const patients = response?.data
                 for (const patient of patients) {
                     (patient as (typeof patient & { id: string })).id = patient._id.toString()
                     delete patient._id

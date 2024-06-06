@@ -2,7 +2,7 @@ import { CssBaseline, Modal, PaletteMode, Paper, createTheme, useMediaQuery, App
 import { useRef, useState } from 'react'
 import { Home } from './routes/Home'
 import { MenuBar } from './components/MenuBar'
-import { LoginForm } from './LoginForm'
+import { LoginForm } from './components/LoginForm'
 import { AuthContext } from '../Electron/Auth/renderer/AuthContext'
 import type { authAPI } from '../Electron/Auth/renderer/authAPI'
 import type { Calendar, Locale, TimeZone } from './components/Localization/types'
@@ -16,6 +16,7 @@ import { collectionName as patientsCollectionName } from '../Electron/Database/M
 import { collectionName as visitsCollectionName } from '../Electron/Database/Models/Visit';
 import { Patients } from './routes/Patients'
 import { Visits } from './routes/Visits'
+import { User } from '../Electron/Auth/auth-types'
 
 import HomeIcon from '@mui/icons-material/HomeOutlined';
 import SettingsIcon from '@mui/icons-material/SettingsOutlined';
@@ -109,20 +110,25 @@ export function App() {
     // Authentication
     const [loggingOut, setLoggingOut] = useState(false)
     const isCalled = useRef(false)
-    const [user, setUser] = useState<{ username: string, roleName: string, privileges: string[] }>(null);
+    const [user, setUser] = useState<User>(null);
     const [authFetched, setAuthFetched] = useState(false);
     (window as typeof window & { authAPI: authAPI }).authAPI.getAuthenticatedUser().then(async (u) => {
-        if (!isCalled.current && u != null && user == null) {
-            isCalled.current = true
+        console.log('u', u)
+        if (isCalled.current)
+            return
 
-            setUser({
-                ...u,
-                privileges: await (window as typeof window & { authAPI: authAPI }).authAPI.getAuthenticatedUserPrivileges()
-            })
-        }
+        isCalled.current = true
+
+        if (u && !user)
+            setUser(u)
 
         setAuthFetched(true)
-    })
+    }).catch(() =>
+        setResult({
+            severity: 'error',
+            message: 'System failed to check for authentication.',
+        })
+    )
 
     const logout = async () => {
         setLoggingOut(true)
@@ -131,10 +137,15 @@ export function App() {
                 severity: 'success',
                 message: 'successful',
             })
+
+            setUser(null)
         }
         setLoggingOut(false)
 
-        setUser(null)
+        setResult({
+            severity: 'error',
+            message: 'Logout failed.',
+        })
     }
 
     // Navigation
@@ -143,6 +154,8 @@ export function App() {
     const [content, setContent] = useState(<Home />)
 
     const [result, setResult] = useState(null)
+
+    console.log('user', user)
 
     return (
         <>
@@ -233,7 +246,7 @@ export function App() {
 
                                 {content}
 
-                                <Modal open={user == null} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
+                                <Modal open={user === null} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
                                     <Slide direction={user == null ? 'up' : 'down'} in={user == null} timeout={250}>
                                         <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
                                             <LoginForm />

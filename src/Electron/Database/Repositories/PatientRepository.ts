@@ -9,9 +9,13 @@ import type { IPatientRepository } from "../dbAPI";
 import { extractKeys, extractKeysRecursive } from "../helpers";
 import { MongoDB } from "../mongodb";
 import { ipcMain } from "electron";
+import { Unauthenticated } from "../Unauthenticated";
 
 export class PatientRepository extends MongoDB implements IPatientRepository {
     async createPatient(patient: Patient): Promise<InsertOneResult> {
+        if (!Auth.authenticatedUser)
+            throw new Unauthenticated();
+
         if (!getPrivileges(Auth.authenticatedUser.roleName).includes(`create.${collectionName}`))
             throw new Unauthorized();
 
@@ -26,44 +30,44 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
     }
 
     async getPatientWithVisits(socialId: string): Promise<Patient & { visits: Visit[] }> {
-        const privileges = getPrivileges(Auth.authenticatedUser.roleName);
-        if (privileges.filter(p => p === `read.${collectionName}` || p === `read.${visitsCollectionName}`).length !== 2)
+        if (!Auth.authenticatedUser)
+            throw new Unauthenticated();
+
+        if (Auth.authenticatedUser.privileges.filter(p => p === `read.${collectionName}` || p === `read.${visitsCollectionName}`).length !== 2)
             throw new Unauthorized();
 
-        try {
-            const patients = await (await this.getPatientsCollection()).aggregate([
-                {
-                    $match: {
-                        socialId: socialId
-                    }
-                },
-                {
-                    $lookup: {
-                        from: visitsCollectionName,
-                        localField: '_id',
-                        foreignField: 'patientId',
-                        as: visitsCollectionName
-                    }
+        const patients = await (await this.getPatientsCollection()).aggregate([
+            {
+                $match: {
+                    socialId: socialId
                 }
-            ]).toArray();
+            },
+            {
+                $lookup: {
+                    from: visitsCollectionName,
+                    localField: '_id',
+                    foreignField: 'patientId',
+                    as: visitsCollectionName
+                }
+            }
+        ]).toArray();
 
-            if (patients.length !== 1)
-                return null;
-
-            const readablePatient = extractKeysRecursive(patients, getFieldsInPrivileges(privileges, 'read', collectionName))
-                .map(p => {
-                    p[visitsCollectionName] = extractKeysRecursive(p[visitsCollectionName], getFieldsInPrivileges(privileges, 'read', visitsCollectionName));
-                    return p;
-                })[0];
-
-            return readablePatient as Patient & { visits: Visit[] }
-        } catch (error) {
-            console.error(error);
+        if (patients.length !== 1)
             return null;
-        }
+
+        const readablePatient = extractKeysRecursive(patients, getFieldsInPrivileges(Auth.authenticatedUser.privileges, 'read', collectionName))
+            .map(p => {
+                p[visitsCollectionName] = extractKeysRecursive(p[visitsCollectionName], getFieldsInPrivileges(Auth.authenticatedUser.privileges, 'read', visitsCollectionName));
+                return p;
+            })[0];
+
+        return readablePatient as Patient & { visits: Visit[] }
     }
 
     async getPatient(socialId: string): Promise<Patient> {
+        if (!Auth.authenticatedUser)
+            throw new Unauthenticated();
+
         const privileges = getPrivileges(Auth.authenticatedUser.roleName);
         if (!privileges.includes(`read.${collectionName}`))
             throw new Unauthorized();
@@ -78,64 +82,65 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
     }
 
     async getPatients(offset: number, count: number): Promise<Patient[]> {
+        if (!Auth.authenticatedUser)
+            throw new Unauthenticated();
+
         const privileges = getPrivileges(Auth.authenticatedUser.roleName);
         if (!privileges.includes(`read.${collectionName}`))
             throw new Unauthorized();
 
-        try {
-            const patients: Patient[] = await (await this.getPatientsCollection()).find().limit(count).skip(offset * count).sort('createdAt', -1).toArray();
+        const patients: Patient[] = await (await this.getPatientsCollection()).find().limit(count).skip(offset * count).sort('createdAt', -1).toArray();
 
-            const readablePatients = extractKeysRecursive(patients, getFieldsInPrivileges(privileges, 'read', collectionName));
+        const readablePatients = extractKeysRecursive(patients, getFieldsInPrivileges(privileges, 'read', collectionName));
 
-            return readablePatients
-        } catch (error) {
-            console.error(error);
-            return null;
-        }
+        return readablePatients
     }
 
     async getPatientsWithVisits(offset: number, count: number): Promise<(Patient & { visits: Visit[] })[]> {
+        if (!Auth.authenticatedUser)
+            throw new Unauthenticated();
+
+        console.log('getPatientsWithVisits called')
         const privileges = getPrivileges(Auth.authenticatedUser.roleName);
+        console.log('getPatientsWithVisits', 'privileges', privileges)
         if (privileges.filter(p => p == `read.${collectionName}` || p == `read.${visitsCollectionName}`).length !== 2)
             throw new Unauthorized();
 
-        try {
-            const patients: Document[] = await (await this.getPatientsCollection()).aggregate([
-                {
-                    $lookup: {
-                        from: visitsCollectionName,
-                        localField: '_id',
-                        foreignField: 'patientId',
-                        as: visitsCollectionName
-                    }
-                },
-                {
-                    $sort: {
-                        'createdAt': -1
-                    }
-                },
-                {
-                    $skip: offset * count
-                },
-                {
-                    $limit: count
+        const patients: Document[] = await (await this.getPatientsCollection()).aggregate([
+            {
+                $lookup: {
+                    from: visitsCollectionName,
+                    localField: '_id',
+                    foreignField: 'patientId',
+                    as: visitsCollectionName
                 }
-            ]).toArray();
+            },
+            {
+                $sort: {
+                    'createdAt': -1
+                }
+            },
+            {
+                $skip: offset * count
+            },
+            {
+                $limit: count
+            }
+        ]).toArray();
 
-            const readablePatients = extractKeysRecursive(patients, getFieldsInPrivileges(privileges, 'read', collectionName))
-                .map(p => {
-                    p[visitsCollectionName] = extractKeysRecursive(p[visitsCollectionName], getFieldsInPrivileges(privileges, 'read', visitsCollectionName));
-                    return p;
-                });
+        const readablePatients = extractKeysRecursive(patients, getFieldsInPrivileges(privileges, 'read', collectionName))
+            .map(p => {
+                p[visitsCollectionName] = extractKeysRecursive(p[visitsCollectionName], getFieldsInPrivileges(privileges, 'read', visitsCollectionName));
+                return p;
+            });
 
-            return readablePatients as (Patient & { visits: Visit[] })[]
-        } catch (error) {
-            console.error(error);
-            return null;
-        }
+        return readablePatients as (Patient & { visits: Visit[] })[]
     }
 
     async updatePatient(patient: Patient): Promise<UpdateResult> {
+        if (!Auth.authenticatedUser)
+            throw new Unauthenticated();
+
         const privileges = getPrivileges(Auth.authenticatedUser.roleName);
         if (!privileges.includes(`update.${collectionName}`))
             throw new Unauthorized();
@@ -157,6 +162,9 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
     }
 
     async deletePatient(id: string): Promise<DeleteResult> {
+        if (!Auth.authenticatedUser)
+            throw new Unauthenticated();
+
         const privileges = getPrivileges(Auth.authenticatedUser.roleName);
         if (!privileges.includes(`delete.${collectionName}`))
             throw new Unauthorized();
