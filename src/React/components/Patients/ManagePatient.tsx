@@ -214,7 +214,7 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
                     </Grid>
                     {/* Manage Visits */}
                     <Grid item xs={12}>
-                        <ManageVisits onComplete={(visits: Visit[]) => setVisits(visits)} defaultVisits={visits} />
+                        <ManageVisits onChange={(visits: Visit[]) => setVisits(visits)} defaultVisits={visits} />
                     </Grid>
                     <Grid item xs={12}>
                         {/* Submit */}
@@ -225,6 +225,8 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
                         }}>
                             Complete
                         </Button>
+                    </Grid>
+                    <Grid item xs={12}>
                     </Grid>
                 </Grid>
             </Stack>

@@ -14,6 +14,8 @@ import { Database } from './routes/Settings/Database'
 import { General } from './routes/Settings/General'
 import { collectionName as patientsCollectionName } from '../Electron/Database/Models/Patient';
 import { collectionName as visitsCollectionName } from '../Electron/Database/Models/Visit';
+import { Patients } from './routes/Patients'
+import { Visits } from './routes/Visits'
 
 import HomeIcon from '@mui/icons-material/HomeOutlined';
 import SettingsIcon from '@mui/icons-material/SettingsOutlined';
@@ -184,11 +186,11 @@ export function App() {
                                                     <ListItemText primary={'Home'} />
                                                 </ListItemButton>
                                                 {user?.privileges?.includes(`read.${patientsCollectionName}`) && user?.privileges?.includes(`read.${visitsCollectionName}`) &&
-                                                    <ListItemButton onClick={() => { setContent(<Users />); setOpenDrawer(false) }}>
+                                                    <ListItemButton onClick={() => { setContent(<Patients />); setOpenDrawer(false) }}>
                                                         <ListItemIcon>
                                                             <PersonIcon />
                                                         </ListItemIcon>
-                                                        <ListItemText primary={'Users'} />
+                                                        <ListItemText primary={'Patients'} />
                                                     </ListItemButton>
                                                 }
                                                 {user?.privileges?.includes(`read.${visitsCollectionName}`) &&

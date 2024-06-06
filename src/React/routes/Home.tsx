@@ -5,11 +5,9 @@ import { AuthContext } from '../../Electron/Auth/renderer/AuthContext';
 import { useContext, useState } from 'react';
 import { ManagePatient } from '../components/Patients/ManagePatient';
 import { collectionName as patientsCollectionName, type Patient } from '../../Electron/Database/Models/Patient';
+import type { IPatientRepository } from '../../Electron/Database/dbAPI';
 
 import AddIcon from '@mui/icons-material/AddOutlined';
-import type { IPatientRepository } from '../../Electron/Database/dbAPI';
-import { PatientDataGrid } from '../components/Patients/PatientDataGrid';
-import { collectionName as visitsCollectionName } from '../../Electron/Database/Models/Visit';
 
 export function Home() {
     const { user } = useContext(AuthContext)
@@ -83,13 +81,6 @@ export function Home() {
                     <Grid item sx={{ border: '1px solid gray' }} xs={12} container justifyContent={'center'}>
                         <AnimatedCounter countTo={500} />
                     </Grid>
-                    {user?.privileges?.includes(`read.${patientsCollectionName}`) && user.privileges.includes(`read.${visitsCollectionName}`) &&
-                        <Grid item xs={12}>
-                            <Paper sx={{ m: 5, p: 5, pt: 2, pb: 2 }}>
-                                <PatientDataGrid />
-                            </Paper>
-                        </Grid>
-                    }
                 </Grid>
 
                 <Modal onClose={() => { setOpenPatientModal(false) }} open={openPatientModal} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>

@@ -262,7 +262,7 @@ export function PatientDataGrid() {
             <Modal onClose={() => { setShowVisits(false) }} open={showVisits} closeAfterTransition disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
                 <Slide direction={showVisits ? 'up' : 'down'} in={showVisits} timeout={250}>
                     <Paper sx={{ maxWidth: '80%', maxHeight: '75%', padding: '0.5rem 2rem', overflowY: 'auto' }}>
-                        <ManageVisits defaultVisits={focusedPatient?.visits} patientId={focusedPatient?.id} onComplete={(visits) => { updatePatientVisits(visits); setShowVisits(false) }} />
+                        <ManageVisits defaultVisits={focusedPatient?.visits} patientId={focusedPatient?.id} onChange={(visits) => { updatePatientVisits(visits); setShowVisits(false) }} />
                     </Paper>
                 </Slide>
             </Modal>

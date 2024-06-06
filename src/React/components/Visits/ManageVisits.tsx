@@ -8,12 +8,11 @@ import { Diagnosis } from './Diagnosis';
 import { DateTimeField } from '../DateTime/DateTimeField';
 
 import AddIcon from '@mui/icons-material/AddOutlined';
-import DoneIcon from '@mui/icons-material/DoneOutlined';
 import CloseIcon from '@mui/icons-material/Close';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 
-export function ManageVisits({ patientId, defaultVisits, onComplete }: { patientId?: string; defaultVisits?: Visit[]; onComplete?: (visits: Visit[]) => void; }) {
+export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId?: string; defaultVisits?: Visit[]; onChange?: (visits: Visit[]) => void; }) {
     const locale = useContext(ConfigurationContext).get.locale;
 
     const getDefaultVisit = (): Visit => {
@@ -51,7 +50,8 @@ export function ManageVisits({ patientId, defaultVisits, onComplete }: { patient
                             onChange={(dateTime) => {
                                 const convertedDate = fromDateTimeParts({ ...locale, calendar: 'Gregorian' }, locale, dateTime.date, dateTime.time);
                                 visits[i].due = DateTime.local(convertedDate.date.year, convertedDate.date.month, convertedDate.date.day, convertedDate.time.hour, convertedDate.time.minute, convertedDate.time.second, { zone: locale.zone }).toUnixInteger();
-                                setVisits([...visits]);
+                                onChange([...visits])
+                                setVisits([...visits])
                             }}
                             defaultDate={fromUnix(locale, visits[i].due).date}
                             defaultTime={fromUnix(locale, visits[i].due).time}
@@ -60,7 +60,8 @@ export function ManageVisits({ patientId, defaultVisits, onComplete }: { patient
                         <Box sx={{ p: 2 }}>
                             <Diagnosis onChange={(strings) => {
                                 visits[i].diagnosis = strings;
-                                setVisits([...visits]);
+                                onChange([...visits])
+                                setVisits([...visits])
                             }} defaultNotes={visits[i].diagnosis} />
                         </Box>
                     </AccordionDetails>
@@ -73,7 +74,8 @@ export function ManageVisits({ patientId, defaultVisits, onComplete }: { patient
                         color="error"
                         onClick={() => {
                             visits.pop();
-                            setVisits([...visits]);
+                            onChange([...visits])
+                            setVisits([...visits])
                         }}
                     >
                         <CloseIcon />
@@ -86,12 +88,6 @@ export function ManageVisits({ patientId, defaultVisits, onComplete }: { patient
                     }}
                 >
                     <AddIcon />
-                </IconButton>
-            </Stack>
-
-            <Stack direction='row' justifyContent={'flex-end'} sx={{ width: '100%' }}>
-                <IconButton color='primary' onClick={() => onComplete(visits)}>
-                    <DoneIcon />
                 </IconButton>
             </Stack>
         </Stack>
