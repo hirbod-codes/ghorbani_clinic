@@ -6,7 +6,7 @@ import { MongoDB } from "../mongodb";
 import type { IFileRepository } from "../dbAPI";
 import { Unauthorized } from "../Unauthorized";
 import { Auth } from "../../Auth/auth-types";
-import { collectionName, getPrivileges } from "../Models/File";
+import { collectionName } from "../Models/File";
 import { Unauthenticated } from "../Unauthenticated";
 
 export class FileRepository extends MongoDB implements IFileRepository {
@@ -14,7 +14,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
         if (!Auth.authenticatedUser)
             throw new Unauthenticated();
 
-        if (!getPrivileges(Auth.authenticatedUser.roleName).includes(`create.${collectionName}`))
+        if (!Auth.authenticatedUser.privileges.includes(`create.${collectionName}`))
             throw new Unauthorized();
 
         console.log('uploading...');
@@ -44,7 +44,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
         if (!Auth.authenticatedUser)
             throw new Unauthenticated();
 
-        if (!getPrivileges(Auth.authenticatedUser.roleName).includes(`read.${collectionName}`))
+        if (!Auth.authenticatedUser.privileges.includes(`read.${collectionName}`))
             throw new Unauthorized();
 
         console.log('retrieving...');
@@ -60,7 +60,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
         if (!Auth.authenticatedUser)
             throw new Unauthenticated();
 
-        if (!getPrivileges(Auth.authenticatedUser.roleName).includes(`download.${collectionName}`))
+        if (!Auth.authenticatedUser.privileges.includes(`download.${collectionName}`))
             throw new Unauthorized();
 
         console.log('downloading...');
@@ -84,7 +84,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
         if (!Auth.authenticatedUser)
             throw new Unauthenticated();
 
-        if (!getPrivileges(Auth.authenticatedUser.roleName).includes(`download.${collectionName}`))
+        if (!Auth.authenticatedUser.privileges.includes(`download.${collectionName}`))
             throw new Unauthorized();
 
         console.log('downloading...');
@@ -114,7 +114,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
         if (!Auth.authenticatedUser)
             throw new Unauthenticated();
 
-        if (!getPrivileges(Auth.authenticatedUser.roleName).includes(`open.${collectionName}`))
+        if (!Auth.authenticatedUser.privileges.includes(`open.${collectionName}`))
             throw new Unauthorized();
 
         console.log('opening...');
@@ -149,7 +149,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
         if (!Auth.authenticatedUser)
             throw new Unauthenticated();
 
-        if (!getPrivileges(Auth.authenticatedUser.roleName).includes(`delete.${collectionName}`))
+        if (!Auth.authenticatedUser.privileges.includes(`delete.${collectionName}`))
             throw new Unauthorized();
 
         const bucket = await this.getBucket();

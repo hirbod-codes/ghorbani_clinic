@@ -1,5 +1,5 @@
 import { DeleteResult, Document, InsertOneResult, UpdateResult } from "mongodb";
-import { patientSchema, type Patient, getPrivileges, collectionName, updatableFields } from "../Models/Patient";
+import { patientSchema, type Patient, collectionName, updatableFields } from "../Models/Patient";
 import { Visit, collectionName as visitsCollectionName } from "../Models/Visit";
 import { Auth } from "../../Auth/auth-types";
 import { Unauthorized } from "../Unauthorized";
@@ -16,7 +16,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!Auth.authenticatedUser)
             throw new Unauthenticated();
 
-        if (!getPrivileges(Auth.authenticatedUser.roleName).includes(`create.${collectionName}`))
+        if (!Auth.authenticatedUser.privileges.includes(`create.${collectionName}`))
             throw new Unauthorized();
 
         if (!patientSchema.isValidSync(patient))
@@ -68,7 +68,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!Auth.authenticatedUser)
             throw new Unauthenticated();
 
-        const privileges = getPrivileges(Auth.authenticatedUser.roleName);
+        const privileges = Auth.authenticatedUser.privileges;
         if (!privileges.includes(`read.${collectionName}`))
             throw new Unauthorized();
 
@@ -85,7 +85,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!Auth.authenticatedUser)
             throw new Unauthenticated();
 
-        const privileges = getPrivileges(Auth.authenticatedUser.roleName);
+        const privileges = Auth.authenticatedUser.privileges;
         if (!privileges.includes(`read.${collectionName}`))
             throw new Unauthorized();
 
@@ -101,9 +101,9 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
             throw new Unauthenticated();
 
         console.log('getPatientsWithVisits called')
-        const privileges = getPrivileges(Auth.authenticatedUser.roleName);
+        const privileges = Auth.authenticatedUser.privileges;
         console.log('getPatientsWithVisits', 'privileges', privileges)
-        if (privileges.filter(p => p == `read.${collectionName}` || p == `read.${visitsCollectionName}`).length !== 2)
+        if (privileges.includes(`read.${collectionName}`) && privileges.includes(`read.${visitsCollectionName}`))
             throw new Unauthorized();
 
         const patients: Document[] = await (await this.getPatientsCollection()).aggregate([
@@ -127,12 +127,14 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
                 $limit: count
             }
         ]).toArray();
+        console.log('getPatientsWithVisits', 'patients', patients)
 
         const readablePatients = extractKeysRecursive(patients, getFieldsInPrivileges(privileges, 'read', collectionName))
             .map(p => {
                 p[visitsCollectionName] = extractKeysRecursive(p[visitsCollectionName], getFieldsInPrivileges(privileges, 'read', visitsCollectionName));
                 return p;
             });
+        console.log('getPatientsWithVisits', 'readablePatients', readablePatients)
 
         return readablePatients as (Patient & { visits: Visit[] })[]
     }
@@ -141,7 +143,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!Auth.authenticatedUser)
             throw new Unauthenticated();
 
-        const privileges = getPrivileges(Auth.authenticatedUser.roleName);
+        const privileges = Auth.authenticatedUser.privileges;
         if (!privileges.includes(`update.${collectionName}`))
             throw new Unauthorized();
 
@@ -165,7 +167,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!Auth.authenticatedUser)
             throw new Unauthenticated();
 
-        const privileges = getPrivileges(Auth.authenticatedUser.roleName);
+        const privileges = Auth.authenticatedUser.privileges;
         if (!privileges.includes(`delete.${collectionName}`))
             throw new Unauthorized();
 

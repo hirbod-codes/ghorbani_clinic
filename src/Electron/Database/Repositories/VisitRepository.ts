@@ -1,4 +1,4 @@
-import { Visit, collectionName, getPrivileges, updatableFields, visitSchema } from "../Models/Visit";
+import { Visit, collectionName, updatableFields, visitSchema } from "../Models/Visit";
 import { MongoDB } from "../mongodb";
 import type { IVisitRepository } from "../dbAPI";
 import { Auth } from "../../Auth/auth-types";
@@ -15,7 +15,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         if (!Auth.authenticatedUser)
             throw new Unauthenticated();
 
-        if (!getPrivileges(Auth.authenticatedUser.roleName).includes(`create.${collectionName}`))
+        if (!Auth.authenticatedUser.privileges.includes(`create.${collectionName}`))
             throw new Unauthorized();
 
         if (!visitSchema.isValidSync(visit))
@@ -33,7 +33,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         if (!Auth.authenticatedUser)
             throw new Unauthenticated();
 
-        const privileges = getPrivileges(Auth.authenticatedUser.roleName);
+        const privileges = Auth.authenticatedUser.privileges;
         if (!privileges.includes(`read.${collectionName}`))
             throw new Unauthorized();
 
@@ -48,7 +48,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         if (!Auth.authenticatedUser)
             throw new Unauthenticated();
 
-        const privileges = getPrivileges(Auth.authenticatedUser.roleName);
+        const privileges = Auth.authenticatedUser.privileges;
         if (!privileges.includes(`update.${collectionName}`))
             throw new Unauthorized();
 
@@ -69,7 +69,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         if (!Auth.authenticatedUser)
             throw new Unauthenticated();
 
-        const privileges = getPrivileges(Auth.authenticatedUser.roleName);
+        const privileges = Auth.authenticatedUser.privileges;
         if (!privileges.includes(`delete.${collectionName}`))
             throw new Unauthorized();
 
