@@ -2,20 +2,7 @@ import { app } from 'electron'
 import fs from 'fs'
 import path from 'path'
 import { hashSync } from 'bcrypt'
-import { User } from '../Electron/Auth/auth-types'
-
-export type MongodbConfig = {
-    url: string,
-    databaseName: string,
-    auth: {
-        username: string,
-        password: string,
-    },
-}
-
-export type Config = {
-    mongodb: MongodbConfig,
-}
+import type { AuthConfig, Config } from './types'
 
 export function readConfig(): Config {
     const configFile = path.join(app.getAppPath(), 'src', 'Config', 'config.json')
@@ -44,8 +31,6 @@ export function writeConfig(config: Config = {
 
     return config
 }
-
-export type AuthConfig = { authenticatedUserIndex: number | null, users: User[] }
 
 export function writeAuth(auth: AuthConfig = {
     authenticatedUserIndex: null,

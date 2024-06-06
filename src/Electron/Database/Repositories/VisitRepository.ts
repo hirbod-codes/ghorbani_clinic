@@ -1,13 +1,12 @@
-import { Visit, collectionName, getPrivileges, updatableFields, visitSchema } from "./Models/Visit";
-import { MongoDB } from "./mongodb";
-import type { IVisitRepository } from "./dbAPI";
-import { Auth } from "../Auth/auth-types";
-import { Unauthorized } from "./Unauthorized";
+import { Visit, collectionName, getPrivileges, updatableFields, visitSchema } from "../Models/Visit";
+import { MongoDB } from "../mongodb";
+import type { IVisitRepository } from "../dbAPI";
+import { Auth } from "../../Auth/auth-types";
+import { Unauthorized } from "../Unauthorized";
 import { DateTime } from "luxon";
-import { extractKeysRecursive } from "./helpers";
-import { getFieldsInPrivileges } from "../Auth/roles";
-import { ipcMain, ipcRenderer } from "electron";
-import type { MainProcessResponse } from "../types";
+import { extractKeysRecursive } from "../helpers";
+import { getFieldsInPrivileges } from "../../Auth/roles";
+import { ipcMain } from "electron";
 import { DeleteResult, InsertOneResult, UpdateResult } from "mongodb";
 
 export class VisitRepository extends MongoDB implements IVisitRepository {
@@ -64,26 +63,10 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         return (await (await this.getVisitsCollection()).deleteOne({ _id: id }))
     }
 
-    static handleRendererEvents(): handleRendererEvents {
-        return {
-            createVisit: async (visit: Visit): Promise<MainProcessResponse<InsertOneResult>> => JSON.parse(await ipcRenderer.invoke('create-visit', { visit })),
-            getVisits: async (patientId: string): Promise<MainProcessResponse<Visit[]>> => JSON.parse(await ipcRenderer.invoke('get-visits', { patientId })),
-            updateVisit: async (visit: Visit): Promise<MainProcessResponse<UpdateResult>> => JSON.parse(await ipcRenderer.invoke('update-visit', { visit })),
-            deleteVisit: async (id: string): Promise<MainProcessResponse<DeleteResult>> => JSON.parse(await ipcRenderer.invoke('delete-visit', { id })),
-        }
-    }
-
     async handleEvents(): Promise<void> {
         ipcMain.handle('create-visit', async (_e, { visit }: { visit: Visit }) => this.handleErrors(async () => await this.createVisit(visit)))
         ipcMain.handle('get-visits', async (_e, { patientId }: { patientId: string }) => this.handleErrors(async () => await this.getVisits(patientId)))
         ipcMain.handle('update-visit', async (_e, { visit }: { visit: Visit }) => this.handleErrors(async () => await this.updateVisit(visit)))
         ipcMain.handle('delete-visit', async (_e, { id }: { id: string }) => this.handleErrors(async () => await this.deleteVisit(id)))
     }
-}
-
-export type handleRendererEvents = {
-    createVisit: (visit: Visit) => Promise<MainProcessResponse<InsertOneResult>>
-    getVisits: (patientId: string) => Promise<MainProcessResponse<Visit[]>>
-    updateVisit: (visit: Visit) => Promise<MainProcessResponse<UpdateResult>>
-    deleteVisit: (id: string) => Promise<MainProcessResponse<DeleteResult>>
 }

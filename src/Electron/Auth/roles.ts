@@ -21,8 +21,22 @@ export function getFieldsInPrivileges(privileges: string[], operation: Operation
 }
 
 export function getPrivileges(roleName: RoleName): string[] {
-    return [
+    const privileges = [
         ...getPatientsPrivileges(roleName),
         ...getVisitsPrivileges(roleName)
     ]
+
+    switch (roleName) {
+        case 'doctor':
+            privileges.push('read.DbConfig')
+            privileges.push('update.DbConfig')
+            break;
+        case 'secretary':
+            break;
+
+        default:
+            break;
+    }
+
+    return privileges
 }

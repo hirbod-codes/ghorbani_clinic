@@ -21,26 +21,10 @@ export type IVisitRepository = dbAPI & {
 }
 
 export type IFileRepository = dbAPI & {
-    uploadFiles(patientId: string, files: { fileName: string, bytes: Buffer | Uint8Array }[]): Promise<boolean>,
-    /**
-     * 
-     * @param patientId
-     * @returns json string of GridFSFile[]
-     */
-    retrieveFiles(patientId: string): Promise<string | null>,
-    /**
-     * 
-     * @param patientId
-     * @param fileName
-     * @returns The downloaded file's file path
-     */
-    downloadFile(patientId: string, fileName: string): Promise<string | null>,
-    /**
-     * 
-     * @param patientId
-     * @returns The downloaded files' paths
-     */
-    downloadFiles(patientId: string): Promise<string | null>,
+    uploadFiles(patientId: string, files: { fileName: string; bytes: Buffer | Uint8Array; }[]): Promise<boolean>,
+    retrieveFiles(patientId: string): Promise<GridFSFile[]>,
+    downloadFile(patientId: string, fileName: string): Promise<string>,
+    downloadFiles(patientId: string): Promise<string[]>,
     openFile(patientId: string, fileName: string): Promise<void>,
     deleteFiles(patientId: string): Promise<boolean>,
 }

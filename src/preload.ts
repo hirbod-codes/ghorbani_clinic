@@ -3,7 +3,7 @@ import * as menu from './Electron/Menu/renderer/menu'
 import type { menuAPI } from './Electron/Menu/renderer/menuAPI'
 import type { authAPI } from './Electron/Auth/renderer/authAPI'
 import { contextBridge } from 'electron'
-import { handleDbRendererEvents } from './Electron/Database/handleDbEvents'
+import { handleDbRendererEvents } from "./Electron/Database/handleDbRendererEvents"
 
 contextBridge.exposeInMainWorld('menuAPI', {
     openMenu: menu.openMenu,

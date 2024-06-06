@@ -1,4 +1,5 @@
-import { MongodbConfig, readConfig, writeConfig } from "../../Config/config";
+import { readConfig, writeConfig } from "../../Config/config";
+import type { MongodbConfig } from '../../Config/types';
 import { Collection, Db, GridFSBucket, MongoClient } from "mongodb";
 import { type Patient, collectionName as patientsCollectionName } from "./Models/Patient";
 import { Visit, collectionName as visitsCollectionName } from "./Models/Visit";

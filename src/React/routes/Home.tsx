@@ -1,8 +1,8 @@
-import { Box, Modal, Paper, Divider, Grid, IconButton, Stack, TextField, Slide, CircularProgress, Button } from '@mui/material';
+import { Box, Modal, Paper, Divider, Grid, IconButton, Stack, TextField, Slide, CircularProgress } from '@mui/material';
 
 import { AnimatedCounter } from '../components/AnimatedCounter';
 import { AuthContext } from '../../Electron/Auth/renderer/AuthContext';
-import { useContext, useRef, useState } from 'react';
+import { useContext, useState } from 'react';
 import { ManagePatient } from '../components/Patients/ManagePatient';
 import { collectionName as patientsCollectionName, type Patient } from '../../Electron/Database/Models/Patient';
 
@@ -83,7 +83,7 @@ export function Home() {
                     <Grid item sx={{ border: '1px solid gray' }} xs={12} container justifyContent={'center'}>
                         <AnimatedCounter countTo={500} />
                     </Grid>
-                    {user.privileges.includes(`read.${patientsCollectionName}`) && user.privileges.includes(`read.${visitsCollectionName}`) &&
+                    {user?.privileges?.includes(`read.${patientsCollectionName}`) && user.privileges.includes(`read.${visitsCollectionName}`) &&
                         <Grid item xs={12}>
                             <Paper sx={{ m: 5, p: 5, pt: 2, pb: 2 }}>
                                 <PatientDataGrid />

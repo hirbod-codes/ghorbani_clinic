@@ -30,7 +30,7 @@ const VisuallyHiddenInput = styled('input')({
 
 async function getVisits(patientId: string): Promise<Visit[]> {
     const result = await (window as typeof window & { dbAPI: IVisitRepository }).dbAPI.getVisits(patientId)
-    return JSON.parse(result)
+    return result
 }
 
 export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null | undefined }) {

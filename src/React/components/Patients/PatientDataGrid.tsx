@@ -21,7 +21,7 @@ import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import CheckIcon from '@mui/icons-material/CheckOutlined';
 import CloseIcon from '@mui/icons-material/CloseOutlined';
 import { ManagePatient } from './ManagePatient';
-import type { RendererDbAPI } from '../../../Electron/Database/handleDbEvents';
+import type { RendererDbAPI } from '../../../Electron/Database/handleDbRendererEvents';
 
 type Row = Patient & { visits: Visit[], id: string, actions: ReactNode[] }
 

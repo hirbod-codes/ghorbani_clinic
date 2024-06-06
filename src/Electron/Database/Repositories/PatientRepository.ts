@@ -1,22 +1,16 @@
 import { DeleteResult, Document, InsertOneResult, UpdateResult } from "mongodb";
-import { patientSchema, type Patient, getPrivileges, collectionName, updatableFields } from "./Models/Patient";
-import { Visit, collectionName as visitsCollectionName } from "./Models/Visit";
-import { Auth } from "../Auth/auth-types";
-import { Unauthorized } from "./Unauthorized";
+import { patientSchema, type Patient, getPrivileges, collectionName, updatableFields } from "../Models/Patient";
+import { Visit, collectionName as visitsCollectionName } from "../Models/Visit";
+import { Auth } from "../../Auth/auth-types";
+import { Unauthorized } from "../Unauthorized";
 import { DateTime } from "luxon";
-import { getFieldsInPrivileges } from "../Auth/roles";
-import type { IPatientRepository } from "./dbAPI";
-import { extractKeys, extractKeysRecursive } from "./helpers";
-import { MongoDB } from "./mongodb";
-import { ipcMain, ipcRenderer } from "electron";
-import type { MainProcessResponse } from "../types";
+import { getFieldsInPrivileges } from "../../Auth/roles";
+import type { IPatientRepository } from "../dbAPI";
+import { extractKeys, extractKeysRecursive } from "../helpers";
+import { MongoDB } from "../mongodb";
+import { ipcMain } from "electron";
 
 export class PatientRepository extends MongoDB implements IPatientRepository {
-    /**
-     *
-     * @param patient
-     * @returns The json string from InsertOneResult object
-     */
     async createPatient(patient: Patient): Promise<InsertOneResult> {
         if (!getPrivileges(Auth.authenticatedUser.roleName).includes(`create.${collectionName}`))
             throw new Unauthorized();
@@ -31,11 +25,6 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         return await (await this.getPatientsCollection()).insertOne(patient)
     }
 
-    /**
-     *
-     * @param socialId
-     * @returns json string of Patient
-     */
     async getPatientWithVisits(socialId: string): Promise<Patient & { visits: Visit[] }> {
         const privileges = getPrivileges(Auth.authenticatedUser.roleName);
         if (privileges.filter(p => p === `read.${collectionName}` || p === `read.${visitsCollectionName}`).length !== 2)
@@ -74,11 +63,6 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         }
     }
 
-    /**
-     *
-     * @param socialId
-     * @returns json string of Patient
-     */
     async getPatient(socialId: string): Promise<Patient> {
         const privileges = getPrivileges(Auth.authenticatedUser.roleName);
         if (!privileges.includes(`read.${collectionName}`))
@@ -183,18 +167,6 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         return (await (await this.getPatientsCollection()).deleteOne({ _id: id }))
     }
 
-    static handleRendererEvents(): handleRendererEvents {
-        return {
-            createPatient: async (patient: Patient): Promise<MainProcessResponse<InsertOneResult>> => JSON.parse(await ipcRenderer.invoke('create-patient', { patient })),
-            getPatientWithVisits: async (socialId: string): Promise<MainProcessResponse<Patient & { visits: Visit[] }>> => JSON.parse(await ipcRenderer.invoke('get-patient-with-visits', { socialId })),
-            getPatientsWithVisits: async (offset: number, count: number): Promise<MainProcessResponse<(Patient & { visits: Visit[] })[]>> => JSON.parse(await ipcRenderer.invoke('get-patients-with-visits', { offset, count })),
-            getPatients: async (offset: number, count: number): Promise<MainProcessResponse<Patient[]>> => JSON.parse(await ipcRenderer.invoke('get-patients', { offset, count })),
-            getPatient: async (socialId: string): Promise<MainProcessResponse<Patient>> => JSON.parse(await ipcRenderer.invoke('get-patient', { socialId })),
-            updatePatient: async (patient: Patient): Promise<MainProcessResponse<UpdateResult>> => JSON.parse(await ipcRenderer.invoke('update-patient', { patient })),
-            deletePatient: async (id: string): Promise<MainProcessResponse<DeleteResult>> => JSON.parse(await ipcRenderer.invoke('delete-patient', { id })),
-        }
-    }
-
     async handleEvents() {
         ipcMain.handle('create-patient', async (_e, { patient }: { patient: Patient; }) => this.handleErrors(async () => await this.createPatient(patient)))
         ipcMain.handle('get-patient-with-visits', async (_e, { socialId }: { socialId: string; }) => this.handleErrors(async () => await this.getPatientWithVisits(socialId)))
@@ -204,14 +176,4 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         ipcMain.handle('update-patient', async (_e, { patient }: { patient: Patient; }) => this.handleErrors(async () => await this.updatePatient(patient)))
         ipcMain.handle('delete-patient', async (_e, { id }: { id: string; }) => this.handleErrors(async () => await this.deletePatient(id)))
     }
-}
-
-export type handleRendererEvents = {
-    createPatient: (patient: Patient) => Promise<MainProcessResponse<InsertOneResult>>
-    getPatientWithVisits: (socialId: string) => Promise<MainProcessResponse<Patient & { visits: Visit[] }>>
-    getPatientsWithVisits: (offset: number, count: number) => Promise<MainProcessResponse<(Patient & { visits: Visit[] })[]>>
-    getPatients: (offset: number, count: number) => Promise<MainProcessResponse<Patient[]>>
-    getPatient: (socialId: string) => Promise<MainProcessResponse<Patient>>
-    updatePatient: (patient: Patient) => Promise<MainProcessResponse<UpdateResult>>
-    deletePatient: (id: string) => Promise<MainProcessResponse<DeleteResult>>
 }
