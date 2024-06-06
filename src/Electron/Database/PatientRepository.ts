@@ -183,7 +183,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         return (await (await this.getPatientsCollection()).deleteOne({ _id: id }))
     }
 
-    static handleRendererEvents() {
+    static handleRendererEvents(): handleRendererEvents {
         return {
             createPatient: async (patient: Patient): Promise<MainProcessResponse<InsertOneResult>> => JSON.parse(await ipcRenderer.invoke('create-patient', { patient })),
             getPatientWithVisits: async (socialId: string): Promise<MainProcessResponse<Patient & { visits: Visit[] }>> => JSON.parse(await ipcRenderer.invoke('get-patient-with-visits', { socialId })),
@@ -204,4 +204,14 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         ipcMain.handle('update-patient', async (_e, { patient }: { patient: Patient; }) => this.handleErrors(async () => await this.updatePatient(patient)))
         ipcMain.handle('delete-patient', async (_e, { id }: { id: string; }) => this.handleErrors(async () => await this.deletePatient(id)))
     }
+}
+
+export type handleRendererEvents = {
+    createPatient: (patient: Patient) => Promise<MainProcessResponse<InsertOneResult>>
+    getPatientWithVisits: (socialId: string) => Promise<MainProcessResponse<Patient & { visits: Visit[] }>>
+    getPatientsWithVisits: (offset: number, count: number) => Promise<MainProcessResponse<(Patient & { visits: Visit[] })[]>>
+    getPatients: (offset: number, count: number) => Promise<MainProcessResponse<Patient[]>>
+    getPatient: (socialId: string) => Promise<MainProcessResponse<Patient>>
+    updatePatient: (patient: Patient) => Promise<MainProcessResponse<UpdateResult>>
+    deletePatient: (id: string) => Promise<MainProcessResponse<DeleteResult>>
 }

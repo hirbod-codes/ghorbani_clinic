@@ -21,6 +21,7 @@ import DeleteIcon from '@mui/icons-material/DeleteOutlined';
 import CheckIcon from '@mui/icons-material/CheckOutlined';
 import CloseIcon from '@mui/icons-material/CloseOutlined';
 import { ManagePatient } from './ManagePatient';
+import type { RendererDbAPI } from '../../../Electron/Database/handleDbEvents';
 
 type Row = Patient & { visits: Visit[], id: string, actions: ReactNode[] }
 
@@ -46,16 +47,23 @@ export function PatientDataGrid() {
     const [longText, setLongText] = useState<string[]>([])
 
     if (isLoading)
-        (window as typeof window & { dbAPI: IPatientRepository }).dbAPI.getPatientsWithVisits(paginationModel.page, paginationModel.pageSize)
-            .then((patientsJson) => {
-                const patients = JSON.parse(patientsJson)
+        (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPatientsWithVisits(paginationModel.page, paginationModel.pageSize)
+            .then((response) => {
+                if (response.code !== 200) {
+                    return
+                }
+
+                const patients = response.data
                 for (const patient of patients) {
-                    patient.id = patient._id
+                    (patient as (typeof patient & { id: string })).id = patient._id.toString()
                     delete patient._id
                 }
+
                 setPatients(patients)
+
                 if (patients.length < paginationModel.pageSize)
                     setHasNextPage(false)
+
                 setIsLoading(false)
 
                 setTimeout(() => apiRef.current.autosizeColumns({

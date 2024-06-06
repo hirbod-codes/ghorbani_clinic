@@ -64,7 +64,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         return (await (await this.getVisitsCollection()).deleteOne({ _id: id }))
     }
 
-    static handleRendererEvents() {
+    static handleRendererEvents(): handleRendererEvents {
         return {
             createVisit: async (visit: Visit): Promise<MainProcessResponse<InsertOneResult>> => JSON.parse(await ipcRenderer.invoke('create-visit', { visit })),
             getVisits: async (patientId: string): Promise<MainProcessResponse<Visit[]>> => JSON.parse(await ipcRenderer.invoke('get-visits', { patientId })),
@@ -79,4 +79,11 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         ipcMain.handle('update-visit', async (_e, { visit }: { visit: Visit }) => this.handleErrors(async () => await this.updateVisit(visit)))
         ipcMain.handle('delete-visit', async (_e, { id }: { id: string }) => this.handleErrors(async () => await this.deleteVisit(id)))
     }
+}
+
+export type handleRendererEvents = {
+    createVisit: (visit: Visit) => Promise<MainProcessResponse<InsertOneResult>>
+    getVisits: (patientId: string) => Promise<MainProcessResponse<Visit[]>>
+    updateVisit: (visit: Visit) => Promise<MainProcessResponse<UpdateResult>>
+    deleteVisit: (id: string) => Promise<MainProcessResponse<DeleteResult>>
 }

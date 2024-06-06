@@ -1,9 +1,10 @@
-import { app } from "electron";
+import { app, ipcRenderer } from "electron";
 import { seed } from "./seed-patients";
-import { VisitRepository } from "./VisitRepository";
-import { PatientRepository } from "./PatientRepository";
+import { PatientRepository, handleRendererEvents as handlePatientRendererEvents } from "./PatientRepository";
+import { VisitRepository, handleRendererEvents as handleVisitRendererEvents } from "./VisitRepository";
+import { FileRepository, handleRendererEvents as handleFileRendererEvents } from "./FileRepository";
 import { MongoDB } from "./mongodb";
-import { FileRepository } from "./FileRepository";
+import { MongodbConfig } from "../../Config/config";
 
 export async function handleDbEvents() {
     const db = new MongoDB();
@@ -22,9 +23,24 @@ export async function handleDbEvents() {
         await seed(50, await db.getPatientsCollection(), await db.getVisitsCollection());
 }
 
-export function handleDbRendererEvents() {
+export type RendererDbAPI = handlePatientRendererEvents &
+    handleVisitRendererEvents &
+    handleFileRendererEvents &
+{
+    getConfig: () => Promise<MongodbConfig>,
+    updateConfig: (config: MongodbConfig) => Promise<boolean>,
+}
+
+export function handleDbRendererEvents(): RendererDbAPI {
     return {
-        ...MongoDB.handleRendererEvents(),
+        ...{
+            getConfig: async (): Promise<MongodbConfig> => {
+                return await ipcRenderer.invoke('get-config')
+            },
+            updateConfig: async (config: MongodbConfig): Promise<boolean> => {
+                return await ipcRenderer.invoke('update-config', { config })
+            },
+        },
         ...PatientRepository.handleRendererEvents(),
         ...VisitRepository.handleRendererEvents(),
         ...FileRepository.handleRendererEvents(),

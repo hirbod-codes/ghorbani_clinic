@@ -195,7 +195,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
         }
     }
 
-    static handleRendererEvents() {
+    static handleRendererEvents(): handleRendererEvents {
         return {
             uploadFiles: async (patientId: string, files: { fileName: string, bytes: Buffer | Uint8Array }[]): Promise<boolean> => JSON.parse(await ipcRenderer.invoke('upload-files', { patientId, files })),
             retrieveFiles: async (patientId: string): Promise<string | null> => JSON.parse(await ipcRenderer.invoke('retrieve-files', { patientId })),
@@ -214,4 +214,13 @@ export class FileRepository extends MongoDB implements IFileRepository {
         ipcMain.handle('open-file', async (_e, { patientId, fileName }: { patientId: string, fileName: string }) => this.handleErrors(async () => await this.openFile(patientId, fileName)))
         ipcMain.handle('delete-file', async (_e, { fileId }: { fileId: string }) => this.handleErrors(async () => await this.deleteFiles(fileId)))
     }
+}
+
+export type handleRendererEvents = {
+    uploadFiles: (patientId: string, files: { fileName: string, bytes: Buffer | Uint8Array }[]) => Promise<boolean>
+    retrieveFiles: (patientId: string) => Promise<string | null>
+    downloadFile: (patientId: string, fileName: string) => Promise<string | null>
+    downloadFiles: (patientId: string) => Promise<string | null>
+    openFile: (patientId: string, fileName: string) => Promise<void>
+    deleteFiles: (patientId: string) => Promise<boolean>
 }

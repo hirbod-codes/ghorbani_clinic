@@ -4,7 +4,7 @@ import { type Patient, collectionName as patientsCollectionName } from "./Models
 import { Visit, collectionName as visitsCollectionName } from "./Models/Visit";
 import type { dbAPI } from "./dbAPI";
 import { collectionName as filesCollectionName } from "./Models/File";
-import { ipcMain, ipcRenderer } from "electron";
+import { ipcMain } from "electron";
 import type { MainProcessResponse } from "../types";
 import { Unauthorized } from "./Unauthorized";
 
@@ -123,17 +123,6 @@ export class MongoDB implements dbAPI {
 
     async getBucket(): Promise<GridFSBucket> {
         return new GridFSBucket(await this.getDb(), { bucketName: filesCollectionName });
-    }
-
-    static handleRendererEvents() {
-        return {
-            getConfig: async (): Promise<MongodbConfig> => {
-                return await ipcRenderer.invoke('get-config')
-            },
-            updateConfig: async (config: MongodbConfig): Promise<boolean> => {
-                return await ipcRenderer.invoke('update-config', { config })
-            },
-        }
     }
 
     async handleEvents(): Promise<void> {
