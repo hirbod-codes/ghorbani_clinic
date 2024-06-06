@@ -77,9 +77,9 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
     }
 
     async handleEvents(): Promise<void> {
-        ipcMain.handle('create-visit', async (_e, { visit }: { visit: Visit }) => this.handleErrors(async () => await this.createVisit(visit)))
-        ipcMain.handle('get-visits', async (_e, { patientId }: { patientId: string }) => this.handleErrors(async () => await this.getVisits(patientId)))
-        ipcMain.handle('update-visit', async (_e, { visit }: { visit: Visit }) => this.handleErrors(async () => await this.updateVisit(visit)))
-        ipcMain.handle('delete-visit', async (_e, { id }: { id: string }) => this.handleErrors(async () => await this.deleteVisit(id)))
+        ipcMain.handle('create-visit', async (_e, { visit }: { visit: Visit }) => await this.handleErrors(async () => await this.createVisit(visit)))
+        ipcMain.handle('get-visits', async (_e, { patientId }: { patientId: string }) => await this.handleErrors(async () => await this.getVisits(patientId)))
+        ipcMain.handle('update-visit', async (_e, { visit }: { visit: Visit }) => await this.handleErrors(async () => await this.updateVisit(visit)))
+        ipcMain.handle('delete-visit', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.deleteVisit(id)))
     }
 }

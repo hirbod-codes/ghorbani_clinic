@@ -33,7 +33,8 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!Auth.authenticatedUser)
             throw new Unauthenticated();
 
-        if (Auth.authenticatedUser.privileges.filter(p => p === `read.${collectionName}` || p === `read.${visitsCollectionName}`).length !== 2)
+        const privileges = Auth.authenticatedUser.privileges;
+        if (!privileges.includes(`read.${collectionName}`) || !privileges.includes(`read.${visitsCollectionName}`))
             throw new Unauthorized();
 
         const patients = await (await this.getPatientsCollection()).aggregate([
@@ -102,8 +103,8 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
 
         console.log('getPatientsWithVisits called')
         const privileges = Auth.authenticatedUser.privileges;
-        console.log('getPatientsWithVisits', 'privileges', privileges)
-        if (privileges.includes(`read.${collectionName}`) && privileges.includes(`read.${visitsCollectionName}`))
+        console.log('getPatientsWithVisits', 'privileges', privileges, privileges.includes(`read.${collectionName}`), privileges.includes(`read.${visitsCollectionName}`))
+        if (!privileges.includes(`read.${collectionName}`) || !privileges.includes(`read.${visitsCollectionName}`))
             throw new Unauthorized();
 
         const patients: Document[] = await (await this.getPatientsCollection()).aggregate([
@@ -129,11 +130,12 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         ]).toArray();
         console.log('getPatientsWithVisits', 'patients', patients)
 
-        const readablePatients = extractKeysRecursive(patients, getFieldsInPrivileges(privileges, 'read', collectionName))
-            .map(p => {
-                p[visitsCollectionName] = extractKeysRecursive(p[visitsCollectionName], getFieldsInPrivileges(privileges, 'read', visitsCollectionName));
-                return p;
-            });
+        let readablePatients = extractKeysRecursive(patients, [...getFieldsInPrivileges(privileges, 'read', collectionName), visitsCollectionName])
+        console.log('getPatientsWithVisits', 'readablePatients', readablePatients)
+        readablePatients = readablePatients.map(p => {
+            p[visitsCollectionName] = extractKeysRecursive(p[visitsCollectionName], getFieldsInPrivileges(privileges, 'read', visitsCollectionName));
+            return p;
+        });
         console.log('getPatientsWithVisits', 'readablePatients', readablePatients)
 
         return readablePatients as (Patient & { visits: Visit[] })[]
@@ -157,9 +159,6 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
 
         patient.updatedAt = DateTime.utc().toUnixInteger();
 
-        const result = await (await this.getPatientsCollection()).updateOne({ _id: id }, patient, { upsert: false });
-        console.log(result);
-
         return (await (await this.getPatientsCollection()).updateOne({ _id: id }, patient, { upsert: false }))
     }
 
@@ -171,19 +170,16 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!privileges.includes(`delete.${collectionName}`))
             throw new Unauthorized();
 
-        const result = await (await this.getPatientsCollection()).deleteOne({ _id: id });
-        console.log(result);
-
         return (await (await this.getPatientsCollection()).deleteOne({ _id: id }))
     }
 
     async handleEvents() {
-        ipcMain.handle('create-patient', async (_e, { patient }: { patient: Patient; }) => this.handleErrors(async () => await this.createPatient(patient)))
-        ipcMain.handle('get-patient-with-visits', async (_e, { socialId }: { socialId: string; }) => this.handleErrors(async () => await this.getPatientWithVisits(socialId)))
-        ipcMain.handle('get-patients-with-visits', async (_e, { offset, count }: { offset: number; count: number; }) => this.handleErrors(async () => await this.getPatientsWithVisits(offset, count)))
-        ipcMain.handle('get-patient', async (_e, { socialId }: { socialId: string; }) => this.handleErrors(async () => await this.getPatient(socialId)))
-        ipcMain.handle('get-patients', async (_e, { offset, count }: { offset: number; count: number; }) => this.handleErrors(async () => await this.getPatients(offset, count)))
-        ipcMain.handle('update-patient', async (_e, { patient }: { patient: Patient; }) => this.handleErrors(async () => await this.updatePatient(patient)))
-        ipcMain.handle('delete-patient', async (_e, { id }: { id: string; }) => this.handleErrors(async () => await this.deletePatient(id)))
+        ipcMain.handle('create-patient', async (_e, { patient }: { patient: Patient; }) => await this.handleErrors(async () => await this.createPatient(patient)))
+        ipcMain.handle('get-patient-with-visits', async (_e, { socialId }: { socialId: string; }) => await this.handleErrors(async () => await this.getPatientWithVisits(socialId)))
+        ipcMain.handle('get-patients-with-visits', async (_e, { offset, count }: { offset: number; count: number; }) => await this.handleErrors(async () => await this.getPatientsWithVisits(offset, count)))
+        ipcMain.handle('get-patient', async (_e, { socialId }: { socialId: string; }) => await this.handleErrors(async () => await this.getPatient(socialId)))
+        ipcMain.handle('get-patients', async (_e, { offset, count }: { offset: number; count: number; }) => await this.handleErrors(async () => await this.getPatients(offset, count)))
+        ipcMain.handle('update-patient', async (_e, { patient }: { patient: Patient; }) => await this.handleErrors(async () => await this.updatePatient(patient)))
+        ipcMain.handle('delete-patient', async (_e, { id }: { id: string; }) => await this.handleErrors(async () => await this.deletePatient(id)))
     }
 }

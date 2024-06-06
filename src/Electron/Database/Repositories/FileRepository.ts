@@ -163,11 +163,11 @@ export class FileRepository extends MongoDB implements IFileRepository {
     }
 
     async handleEvents(): Promise<void> {
-        ipcMain.handle('upload-files', async (_e, { patientId, files }: { patientId: string, files: { fileName: string, bytes: Buffer | Uint8Array }[] }) => this.handleErrors(async () => await this.uploadFiles(patientId, files)))
-        ipcMain.handle('retrieve-files', async (_e, { patientId }: { patientId: string }) => this.handleErrors(async () => await this.retrieveFiles(patientId)))
-        ipcMain.handle('download-file', async (_e, { patientId, fileName }: { patientId: string, fileName: string }) => this.handleErrors(async () => await this.downloadFile(patientId, fileName)))
-        ipcMain.handle('download-files', async (_e, { patientId }: { patientId: string }) => this.handleErrors(async () => await this.downloadFiles(patientId)))
-        ipcMain.handle('open-file', async (_e, { patientId, fileName }: { patientId: string, fileName: string }) => this.handleErrors(async () => await this.openFile(patientId, fileName)))
-        ipcMain.handle('delete-file', async (_e, { fileId }: { fileId: string }) => this.handleErrors(async () => await this.deleteFiles(fileId)))
+        ipcMain.handle('upload-files', async (_e, { patientId, files }: { patientId: string, files: { fileName: string, bytes: Buffer | Uint8Array }[] }) => await this.handleErrors(async () => await this.uploadFiles(patientId, files)))
+        ipcMain.handle('retrieve-files', async (_e, { patientId }: { patientId: string }) => await this.handleErrors(async () => await this.retrieveFiles(patientId)))
+        ipcMain.handle('download-file', async (_e, { patientId, fileName }: { patientId: string, fileName: string }) => await this.handleErrors(async () => await this.downloadFile(patientId, fileName)))
+        ipcMain.handle('download-files', async (_e, { patientId }: { patientId: string }) => await this.handleErrors(async () => await this.downloadFiles(patientId)))
+        ipcMain.handle('open-file', async (_e, { patientId, fileName }: { patientId: string, fileName: string }) => await this.handleErrors(async () => await this.openFile(patientId, fileName)))
+        ipcMain.handle('delete-file', async (_e, { fileId }: { fileId: string }) => await this.handleErrors(async () => await this.deleteFiles(fileId)))
     }
 }

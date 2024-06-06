@@ -113,7 +113,6 @@ export function App() {
     const [user, setUser] = useState<User>(null);
     const [authFetched, setAuthFetched] = useState(false);
     (window as typeof window & { authAPI: authAPI }).authAPI.getAuthenticatedUser().then(async (u) => {
-        console.log('u', u)
         if (isCalled.current)
             return
 
@@ -140,12 +139,13 @@ export function App() {
 
             setUser(null)
         }
-        setLoggingOut(false)
+        else
+            setResult({
+                severity: 'error',
+                message: 'Logout failed.',
+            })
 
-        setResult({
-            severity: 'error',
-            message: 'Logout failed.',
-        })
+        setLoggingOut(false)
     }
 
     // Navigation
@@ -154,8 +154,6 @@ export function App() {
     const [content, setContent] = useState(<Home />)
 
     const [result, setResult] = useState(null)
-
-    console.log('user', user)
 
     return (
         <>

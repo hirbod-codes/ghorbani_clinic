@@ -6,7 +6,6 @@ import { Visit, collectionName as visitsCollectionName } from "./Models/Visit";
 import type { dbAPI } from "./dbAPI";
 import { collectionName as filesCollectionName } from "./Models/File";
 import { ipcMain } from "electron";
-import type { MainProcessResponse } from "../types";
 import { Unauthorized } from "./Unauthorized";
 import { Unauthenticated } from "./Unauthenticated";
 
@@ -132,22 +131,22 @@ export class MongoDB implements dbAPI {
         ipcMain.handle('update-config', async (_e, { config }: { config: MongodbConfig; }) => await this.updateConfig(config) != null)
     }
 
-    async handleErrors(callback: () => Promise<unknown>): Promise<MainProcessResponse<string>> {
+    async handleErrors(callback: () => Promise<unknown>): Promise<string> {
         try {
-            return {
+            return JSON.stringify({
                 code: 200,
-                data: JSON.stringify(await callback())
-            }
+                data: await callback()
+            })
         }
         catch (error) {
             console.error('error in main process')
             console.error(error)
             if (error instanceof Unauthorized)
-                return { code: 403 }
+                return JSON.stringify({ code: 403 })
             else if (error instanceof Unauthenticated)
-                return { code: 401 }
+                return JSON.stringify({ code: 401 })
             else
-                return { code: 500 }
+                return JSON.stringify({ code: 500 })
         }
     }
 }

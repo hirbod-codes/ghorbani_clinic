@@ -46,7 +46,6 @@ export function PatientDataGrid() {
     const [showLongText, setShowLongText] = useState(false)
     const [longText, setLongText] = useState<string[]>([])
 
-    console.log(isLoading, (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI)
     if (isLoading)
         (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPatientsWithVisits(paginationModel.page, paginationModel.pageSize)
             .then((response) => {
@@ -221,7 +220,7 @@ export function PatientDataGrid() {
 
     return (
         <>
-            <div style={{ height: 400, width: '100%' }}>
+            <div style={{ height: '80vh', width: '100%' }}>
                 <DataGrid
                     apiRef={apiRef}
                     slots={{
