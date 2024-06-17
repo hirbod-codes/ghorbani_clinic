@@ -37,8 +37,11 @@ const createWindow = async (): Promise<BrowserWindow> => {
 }
 
 app.on('ready', async () => {
-    fs.rmSync(path.join(app.getAppPath(), 'tmp'), { recursive: true })
-    fs.mkdirSync(path.join(app.getAppPath(), 'tmp', 'downloads'), { recursive: true })
+    try {
+        if (fs.existsSync(path.join(app.getAppPath(), 'tmp')))
+            fs.rmSync(path.join(app.getAppPath(), 'tmp'), { recursive: true })
+        fs.mkdirSync(path.join(app.getAppPath(), 'tmp', 'downloads'), { recursive: true })
+    } catch (err) { console.error(err) }
 
     await createWindow()
 

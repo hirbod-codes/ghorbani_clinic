@@ -151,7 +151,7 @@ export function App() {
     // Navigation
     const [openDrawer, setOpenDrawer] = useState(false)
     const [openSettingsList, setOpenSettingsList] = useState(false)
-    const [content, setContent] = useState(<Home />)
+    const [content, setContent] = useState(<Patients />)
 
     const [result, setResult] = useState(null)
 
@@ -161,7 +161,7 @@ export function App() {
                 <ThemeProvider theme={configuration.theme}>
                     <AuthContext.Provider value={{ user, setUser }}>
                         <CssBaseline />
-                        <MenuBar />
+                        <MenuBar backgroundColor={configuration.theme.palette.background.default} />
                         {authFetched &&
                             <>
                                 {

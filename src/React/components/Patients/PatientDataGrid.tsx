@@ -1,6 +1,6 @@
-import { useState, useRef, useMemo, useContext, ReactNode } from 'react';
+import { useState, useRef, useMemo, useContext, ReactNode, useEffect } from 'react';
 import { DataGrid, GridColDef, GridPaginationMeta, useGridApiRef, GridToolbar, GridActionsCellItem } from '@mui/x-data-grid';
-import { Patient } from '../../../Electron/Database/Models/Patient';
+import { Patient, readableFields } from '../../../Electron/Database/Models/Patient';
 import type { IPatientRepository, IVisitRepository } from '../../../Electron/Database/dbAPI';
 import { StringHumanizer } from '../string-helpers';
 
@@ -28,7 +28,6 @@ type Row = Patient & { visits: Visit[], id: string, actions: ReactNode[] }
 export function PatientDataGrid() {
     const locale = useContext(ConfigurationContext).get.locale
 
-    const apiRef = useGridApiRef();
     const [isLoading, setIsLoading] = useState(true)
     const [hasNextPage, setHasNextPage] = useState(true)
     const [paginationModel, setPaginationModel] = useState({
@@ -36,7 +35,8 @@ export function PatientDataGrid() {
         pageSize: 5,
     });
 
-    const [patients, setPatients] = useState<Patient[]>([]);
+    const [columns, setColumns] = useState<GridColDef[] | undefined>(undefined)
+    const [patients, setPatients] = useState<Patient[] | undefined>(undefined);
 
     const [showVisits, setShowVisits] = useState(false)
 
@@ -46,117 +46,109 @@ export function PatientDataGrid() {
     const [showLongText, setShowLongText] = useState(false)
     const [longText, setLongText] = useState<string[]>([])
 
-    if (isLoading)
+    console.log('PatientDataGrid', 'columns', columns)
+    console.log('PatientDataGrid', 'patients', patients)
+    console.log('PatientDataGrid', 'focusedPatient', focusedPatient)
+
+    if (patients === undefined)
         (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPatientsWithVisits(paginationModel.page, paginationModel.pageSize)
-            .then((response) => {
+            .then((response: any) => {
                 console.log('PatientDataGrid', 'response', response)
                 if (response.code !== 200) {
                     return
                 }
 
-                const patients = response?.data
-                for (const patient of patients) {
-                    (patient as (typeof patient & { id: string })).id = patient._id.toString()
-                    delete patient._id
-                }
+                const ps = (response?.data ?? []).map((p: Patient) => {
+                    const entries = Object.entries(p)
+                    entries.push(['id', p._id])
+                    return Object.fromEntries(entries.filter(arr => arr[0] !== '_id'))
+                })
 
-                setPatients(patients)
+                setPatients(ps)
 
-                if (patients.length < paginationModel.pageSize)
+                if (ps.length < paginationModel.pageSize)
                     setHasNextPage(false)
-
-                setIsLoading(false)
-
-                setTimeout(() => apiRef.current.autosizeColumns({
-                    outliersFactor: 1,
-                    includeOutliers: true,
-                    includeHeaders: true,
-                    expand: true,
-                }), 200)
             })
-            .catch(() => setIsLoading(false))
+            .catch(() => {
+                setPatients([])
+                setIsLoading(false);
+            })
 
-    const columns: GridColDef[] = patients.length > 0 ? Object.keys(patients[patients.length - 1]).filter(k => k !== '_id').map(k => {
-        const column: GridColDef = {
+    if (patients !== undefined && columns === undefined) {
+        const defaultColumn: (k: string) => GridColDef = (k) => ({
             field: k === '_id' ? 'id' : k,
             headerName: new StringHumanizer(k === '_id' ? 'id' : k).humanize(),
             editable: true,
-        }
+            headerAlign: 'center',
+            align: 'center',
+            width: 100
+        })
 
-        switch (k) {
-            case 'createdAt':
-                column.type = 'number'
-                column.renderCell = ({ row }) => fromUnixToFormat(locale, row[k]);
-                break;
+        const cs: GridColDef[] = []
+        cs.push({
+            field: 'actions',
+            type: 'actions',
+            getActions: ({ row }) => [
+                <GridActionsCellItem
+                    icon={<DeleteIcon />}
+                    label="Delete"
+                    onClick={() => deletePatient(row)}
+                />,
+                <GridActionsCellItem
+                    icon={<EditIcon />}
+                    label="Edit"
+                    onClick={() => { setFocusedPatient(row); setShowPatient(true) }}
+                />,
+            ]
+        })
 
-            case 'updatedAt':
-                column.type = 'number'
-                column.renderCell = ({ row }) => fromUnixToFormat(locale, row[k]);
-                break;
+        let keys
+        keys = ['id', 'socialId', 'firstName', 'lastName', 'age', 'gender']
+        keys.forEach(k => {
+            if (Object.keys(patients[0]).includes(k))
+                cs.push({
+                    ...defaultColumn(k),
+                    type: 'string',
+                })
+        })
 
-            case 'birthDate':
-                column.type = 'number'
-                column.renderCell = ({ row }) => fromUnixToFormat(locale, row[k]);
-                break;
+        if (Object.keys(patients[0]).includes('visits'))
+            cs.push({
+                ...defaultColumn('visits'),
+                type: 'string',
+                width: 180,
+                renderCell: ({ row }) => (<Button variant='text' onClick={() => { setFocusedPatient(row); setShowVisits(true); }}>visits</Button>)
+            })
 
-            case 'visits':
-                column.renderCell = ({ row }) => (<Button variant='text' onClick={() => { setFocusedPatient(row); setShowVisits(true); }}>visits</Button>);
-                break;
+        if (Object.keys(patients[0]).includes('medicalHistory'))
+            cs.push({
+                ...defaultColumn('medicalHistory'),
+                type: 'string',
+                width: 180,
+                renderCell: ({ row }) => row['medicalHistory'][0] ? (<Button variant='text' onClick={() => { setLongText(row['medicalHistory']); setShowLongText(true); }}>Show</Button>) : null
+            })
 
-            case 'medicalHistory':
-                column.renderCell = ({ row }) => row[k][0] ? (<Button variant='text' onClick={() => { setLongText(row[k]); setShowLongText(true); }}>{row[k][0].slice(0, 10)}</Button>) : null;
-                break;
+        if (Object.keys(patients[0]).includes('address'))
+            cs.push({
+                ...defaultColumn('address'),
+                type: 'string',
+                width: 180,
+                renderCell: ({ row }) => (<Button variant='text' onClick={() => { setLongText([row['address']]); setShowLongText(true); }}>Show</Button>)
+            })
 
-            case 'address':
-                column.renderCell = ({ row }) => (<Button variant='text' onClick={() => { setLongText([row[k]]); setShowLongText(true); }}>{row[k].slice(0, 10)}</Button>);
-                break;
+        keys = ['birthDate', 'updatedAt', 'createdAt']
+        keys.forEach(k => {
+            if (Object.keys(patients[0]).includes(k))
+                cs.push({
+                    ...defaultColumn(k),
+                    type: 'string',
+                    width: 100,
+                    renderCell: ({ row }) => fromUnixToFormat(locale, row[k], 'y/m/d')
+                })
+        })
 
-            case 'age':
-                column.type = 'number'
-                break;
-
-            case 'socialId':
-                column.type = 'string'
-                break;
-
-            case 'firstName':
-                column.type = 'string'
-                break;
-
-            case 'lastName':
-                column.type = 'string'
-                break;
-
-            case 'gender':
-                column.type = 'string'
-                break;
-
-            default:
-        }
-
-        return column
-    }) : []
-
-    columns.push({
-        field: 'actions',
-        type: 'actions',
-        getActions: ({ row }) => [
-            <GridActionsCellItem
-                icon={<DeleteIcon />}
-                label="Delete"
-                onClick={() => deletePatient(row)}
-            />,
-            <GridActionsCellItem
-                icon={<EditIcon />}
-                label="Edit"
-                onClick={() => { setFocusedPatient(row); setShowPatient(true) }}
-            />,
-        ]
-    })
-
-    console.log('PatientDataGrid', 'columns', columns)
-    console.log('PatientDataGrid', 'patients', patients)
-    console.log('PatientDataGrid', 'focusedPatient', focusedPatient)
+        setColumns(cs)
+    }
 
     const paginationMetaRef = useRef<GridPaginationMeta>();
     // Memoize to avoid flickering when the `hasNextPage` is `undefined` during refetch
@@ -218,11 +210,16 @@ export function PatientDataGrid() {
     const [snackbarMessage, setSnackbarMessage] = useState('')
     const [snackbarAction] = useState<ReactNode | null>(null)
 
+    if (isLoading && patients && columns)
+        setIsLoading(false)
+
+    if (columns === undefined)
+        return (<></>)
+
     return (
         <>
             <div style={{ height: '80vh', width: '100%' }}>
                 <DataGrid
-                    apiRef={apiRef}
                     slots={{
                         toolbar: GridToolbar,
                     }}
@@ -235,7 +232,7 @@ export function PatientDataGrid() {
                                 id: false,
                                 schemaVersion: false,
                             },
-                            orderedFields: ['createdAt', ...columns.map(c => c.field)]
+                            orderedFields: [...columns.map(c => c.field)]
                         },
                         pagination: {
                             rowCount: -1,

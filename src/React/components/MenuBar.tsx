@@ -7,8 +7,6 @@ import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined';
 import MinimizeOutlinedIcon from '@mui/icons-material/MinimizeOutlined';
 import SquareOutlinedIcon from '@mui/icons-material/SquareOutlined';
 import CloseOutlinedIcon from '@mui/icons-material/CloseOutlined';
-import React, { useContext } from 'react';
-import { ConfigurationContext } from '../ConfigurationContext';
 
 const CustomIconButtonStyle = {
     borderRadius: 0,
@@ -27,12 +25,10 @@ const CloseButton = ({ children, onClick }: { children: React.ReactNode, onClick
         {children}
     </IconButton>
 
-export function MenuBar() {
-    const theme = useContext(ConfigurationContext).get.theme
-
+export function MenuBar({ backgroundColor }: { backgroundColor: any }) {
     return (
         <>
-            <Box sx={{ width: '100%', position: 'fixed', top: '0', left: '0', height: '2rem', backgroundColor: theme.palette.background.default, zIndex: 10 }}>
+            <Box sx={{ width: '100%', position: 'fixed', top: '0', left: '0', height: '2rem', backgroundColor: backgroundColor, zIndex: 10 }}>
                 <Grid container direction="row" spacing={2} justifyContent="space-between" alignItems="flex-start" sx={{ 'WebkitAppRegion': 'drag' }}>
                     <Grid item xs={'auto'} sx={{ 'WebkitAppRegion': 'no-drag' }}>
                         <IconButton
