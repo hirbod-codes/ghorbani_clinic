@@ -1,17 +1,26 @@
-import { readConfig, writeConfig } from "../../Config/config";
-import type { MongodbConfig } from '../../Config/types';
 import { Collection, Db, GridFSBucket, MongoClient } from "mongodb";
 import { type Patient, collectionName as patientsCollectionName } from "./Models/Patient";
 import { Visit, collectionName as visitsCollectionName } from "./Models/Visit";
-import type { dbAPI } from "./dbAPI";
 import { collectionName as filesCollectionName } from "./Models/File";
+import { collectionName as privilegesCollectionName } from "./Models/Privilege";
+import { collectionName as usersCollectionName } from "./Models/User";
+import type { dbAPI } from "./dbAPI";
 import { ipcMain } from "electron";
 import { Unauthorized } from "./Unauthorized";
 import { Unauthenticated } from "./Unauthenticated";
+import { MongodbConfig } from "../Configuration/types";
+import { readConfig, writeConfigSync } from "../Configuration/configuration";
+import { Privilege } from "./Models/Privilege";
+import { User } from "./Models/User";
 
 export class MongoDB implements dbAPI {
     private static isInitialized = false
     private static db: Db | null = null
+
+    async handleEvents(): Promise<void> {
+        ipcMain.handle('get-config', async () => await this.getConfig())
+        ipcMain.handle('update-config', async (_e, { config }: { config: MongodbConfig; }) => await this.updateConfig(config) != null)
+    }
 
     async getConfig(): Promise<MongodbConfig> {
         return readConfig().mongodb
@@ -21,10 +30,9 @@ export class MongoDB implements dbAPI {
         try {
             const c = readConfig()
             c.mongodb = config
-            return writeConfig(c).mongodb != null
-        } catch (error) {
-            return false
-        }
+            writeConfigSync(c)
+            return readConfig()?.mongodb != null
+        } catch (error) { return false }
     }
 
     async getDb(): Promise<Db | null> {
@@ -70,6 +78,32 @@ export class MongoDB implements dbAPI {
     async addCollections() {
         await this.addPatientsCollection()
         await this.addVisitsCollection()
+        await this.addUsersCollection()
+        await this.addPrivilegesCollection()
+    }
+
+    private async addUsersCollection() {
+        const db = await this.getDb();
+
+        if (!(await db.listCollections().toArray()).map(e => e.name).includes(usersCollectionName))
+            await db.createCollection(usersCollectionName)
+
+        const indexes = await db.collection(usersCollectionName).indexes()
+
+        if (indexes.find(i => i.name === 'unique-username') === undefined)
+            await db.createIndex(usersCollectionName, { username: 1 }, { unique: true, name: 'unique-username' })
+    }
+
+    private async addPrivilegesCollection() {
+        const db = await this.getDb();
+
+        if (!(await db.listCollections().toArray()).map(e => e.name).includes(privilegesCollectionName))
+            await db.createCollection(privilegesCollectionName)
+
+        const indexes = await db.collection(privilegesCollectionName).indexes()
+
+        if (indexes.find(i => i.name === 'unique-privilege') === undefined)
+            await db.createIndex(privilegesCollectionName, { role: 1, resource: 1, action: 1 }, { unique: true, name: 'unique-privilege' })
     }
 
     private async addPatientsCollection() {
@@ -114,6 +148,14 @@ export class MongoDB implements dbAPI {
             await db.createIndex(visitsCollectionName, { updatedAt: 1 }, { name: 'updated-at' })
     }
 
+    async getUsersCollection(): Promise<Collection<User>> {
+        return (await this.getDb()).collection<User>(usersCollectionName)
+    }
+
+    async getPrivilegesCollection(): Promise<Collection<Privilege>> {
+        return (await this.getDb()).collection<Privilege>(privilegesCollectionName)
+    }
+
     async getPatientsCollection(): Promise<Collection<Patient>> {
         return (await this.getDb()).collection<Patient>(patientsCollectionName)
     }
@@ -124,11 +166,6 @@ export class MongoDB implements dbAPI {
 
     async getBucket(): Promise<GridFSBucket> {
         return new GridFSBucket(await this.getDb(), { bucketName: filesCollectionName });
-    }
-
-    async handleEvents(): Promise<void> {
-        ipcMain.handle('get-config', async () => await this.getConfig())
-        ipcMain.handle('update-config', async (_e, { config }: { config: MongodbConfig; }) => await this.updateConfig(config) != null)
     }
 
     async handleErrors(callback: () => Promise<unknown>): Promise<string> {

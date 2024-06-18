@@ -1,3 +1,5 @@
+import { User } from "../auth-types";
+
 export type authAPI = {
     getAuthenticatedUserPrivileges(): Promise<string[]>,
     getAuthenticatedUser: () => Promise<User>,

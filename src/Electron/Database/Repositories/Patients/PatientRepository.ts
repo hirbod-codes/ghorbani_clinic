@@ -1,0 +1,200 @@
+import { DeleteResult, Document, InsertOneResult, UpdateResult } from "mongodb";
+import { patientSchema, type Patient, collectionName, updatableFields, readableFields as patientReadableFields } from "../../Models/Patient";
+import { Visit, readableFields as visitReadableFields, collectionName as visitsCollectionName } from "../../Models/Visit";
+import { Unauthorized } from "../../Unauthorized";
+import { DateTime } from "luxon";
+import type { IPatientRepository } from "../../dbAPI";
+import { extractKeys, extractKeysRecursive } from "../../helpers";
+import { MongoDB } from "../../mongodb";
+import { ipcMain } from "electron";
+import { Unauthenticated } from "../../Unauthenticated";
+import { privilegesRepository } from "../../handleDbEvents";
+import { resources } from "../../../Auth/dev-permissions";
+import { Auth } from "../Auth/Auth";
+import { getFields } from "../../Models/helpers";
+
+export class PatientRepository extends MongoDB implements IPatientRepository {
+    async handleEvents() {
+        ipcMain.handle('create-patient', async (_e, { patient }: { patient: Patient; }) => await this.handleErrors(async () => await this.createPatient(patient)))
+        ipcMain.handle('get-patient-with-visits', async (_e, { socialId }: { socialId: string; }) => await this.handleErrors(async () => await this.getPatientWithVisits(socialId)))
+        ipcMain.handle('get-patients-with-visits', async (_e, { offset, count }: { offset: number; count: number; }) => await this.handleErrors(async () => await this.getPatientsWithVisits(offset, count)))
+        ipcMain.handle('get-patient', async (_e, { socialId }: { socialId: string; }) => await this.handleErrors(async () => await this.getPatient(socialId)))
+        ipcMain.handle('get-patients', async (_e, { offset, count }: { offset: number; count: number; }) => await this.handleErrors(async () => await this.getPatients(offset, count)))
+        ipcMain.handle('update-patient', async (_e, { patient }: { patient: Patient; }) => await this.handleErrors(async () => await this.updatePatient(patient)))
+        ipcMain.handle('delete-patient', async (_e, { id }: { id: string; }) => await this.handleErrors(async () => await this.deletePatient(id)))
+    }
+
+    async createPatient(patient: Patient): Promise<InsertOneResult> {
+        const user = Auth.getAuthenticated();
+        if (!user)
+            throw new Unauthenticated();
+
+        if (!(await privilegesRepository.getPrivileges()).can(user.roleName).create(resources.PATIENT).granted)
+            throw new Unauthorized()
+
+        if (!patientSchema.isValidSync(patient))
+            throw new Error('Invalid patient info provided.');
+
+        patient = patientSchema.cast(patient);
+        patient.schemaVersion = 'v0.0.1';
+        patient.createdAt = DateTime.utc().toUnixInteger();
+        patient.updatedAt = DateTime.utc().toUnixInteger();
+
+        return await (await this.getPatientsCollection()).insertOne(patient)
+    }
+
+    async getPatientWithVisits(socialId: string): Promise<Patient & { visits: Visit[] }> {
+        const user = Auth.getAuthenticated();
+        if (!user)
+            throw new Unauthenticated();
+
+        const privileges = await privilegesRepository.getPrivileges();
+        const patientPermission = privileges.can(user.roleName).read(resources.PATIENT);
+        const visitPermission = privileges.can(user.roleName).read(resources.VISIT);
+        if (!patientPermission.granted || !visitPermission.granted)
+            throw new Unauthorized()
+
+        const patients = await (await this.getPatientsCollection()).aggregate([
+            {
+                $match: {
+                    socialId: socialId
+                }
+            },
+            {
+                $lookup: {
+                    from: visitsCollectionName,
+                    localField: '_id',
+                    foreignField: 'patientId',
+                    as: visitsCollectionName
+                }
+            }
+        ]).toArray();
+
+        if (patients.length !== 1)
+            return null;
+
+        const readablePatient = extractKeysRecursive(patients, getFields(patientReadableFields, patientPermission.attributes))
+            .map(p => {
+                p[visitsCollectionName] = extractKeysRecursive(p[visitsCollectionName], getFields(visitReadableFields, visitPermission.attributes));
+                return p;
+            })[0];
+
+        return readablePatient as Patient & { visits: Visit[] }
+    }
+
+    async getPatient(socialId: string): Promise<Patient> {
+        const user = Auth.getAuthenticated();
+        if (!user)
+            throw new Unauthenticated();
+
+        const privileges = await privilegesRepository.getPrivileges();
+        const permission = privileges.can(user.roleName).read(resources.PATIENT);
+        if (!permission.granted)
+            throw new Unauthorized()
+
+        const patient: Patient = await (await this.getPatientsCollection()).findOne({ socialId: socialId });
+        if (!patientSchema.isValidSync(patient))
+            throw new Error('Invalid patient info provided.');
+
+        const readablePatient = extractKeys(patient, getFields(patientReadableFields, permission.attributes));
+
+        return readablePatient
+    }
+
+    async getPatients(offset: number, count: number): Promise<Patient[]> {
+        const user = Auth.getAuthenticated();
+        if (!user)
+            throw new Unauthenticated();
+
+        const privileges = await privilegesRepository.getPrivileges();
+        const permission = privileges.can(user.roleName).read(resources.PATIENT);
+        if (!permission.granted)
+            throw new Unauthorized()
+
+        const patients: Patient[] = await (await this.getPatientsCollection()).find().limit(count).skip(offset * count).sort('createdAt', -1).toArray();
+
+        const readablePatients = extractKeysRecursive(patients, getFields(patientReadableFields, permission.attributes));
+
+        return readablePatients
+    }
+
+    async getPatientsWithVisits(offset: number, count: number): Promise<(Patient & { visits: Visit[] })[]> {
+        const user = Auth.getAuthenticated();
+        if (!user)
+            throw new Unauthenticated();
+
+        const privileges = await privilegesRepository.getPrivileges();
+        const patientPermission = privileges.can(user.roleName).read(resources.PATIENT);
+        const visitPermission = privileges.can(user.roleName).read(resources.VISIT);
+        if (!patientPermission.granted || !visitPermission.granted)
+            throw new Unauthorized()
+
+        const patients: Document[] = await (await this.getPatientsCollection()).aggregate([
+            {
+                $lookup: {
+                    from: visitsCollectionName,
+                    localField: '_id',
+                    foreignField: 'patientId',
+                    as: visitsCollectionName
+                }
+            },
+            {
+                $sort: {
+                    'createdAt': -1
+                }
+            },
+            {
+                $skip: offset * count
+            },
+            {
+                $limit: count
+            }
+        ]).toArray();
+        console.log('getPatientsWithVisits', 'patients', patients)
+
+        let readablePatients = extractKeysRecursive(patients, [...getFields(patientReadableFields, patientPermission.attributes), visitsCollectionName])
+        console.log('getPatientsWithVisits', 'readablePatients', readablePatients)
+        readablePatients = readablePatients.map(p => {
+            p[visitsCollectionName] = extractKeysRecursive(p[visitsCollectionName], getFields(visitReadableFields, visitPermission.attributes));
+            return p;
+        });
+        console.log('getPatientsWithVisits', 'readablePatients', readablePatients)
+
+        return readablePatients as (Patient & { visits: Visit[] })[]
+    }
+
+    async updatePatient(patient: Patient): Promise<UpdateResult> {
+        const user = Auth.getAuthenticated();
+        if (!user)
+            throw new Unauthenticated();
+
+        const privileges = await privilegesRepository.getPrivileges();
+        const permission = privileges.can(user.roleName).update(resources.PATIENT)
+        if (!permission.granted)
+            throw new Unauthorized()
+
+        const id = patient._id;
+
+        patient = Object.fromEntries(Object.entries(patient).filter(arr => (updatableFields as string[]).includes(arr[0])));
+        Object.keys(patient).forEach(k => {
+            if (!getFields(updatableFields, permission.attributes).includes(k))
+                throw new Unauthorized();
+        });
+
+        patient.updatedAt = DateTime.utc().toUnixInteger();
+
+        return (await (await this.getPatientsCollection()).updateOne({ _id: id }, patient, { upsert: false }))
+    }
+
+    async deletePatient(id: string): Promise<DeleteResult> {
+        const user = Auth.getAuthenticated();
+        if (!user)
+            throw new Unauthenticated();
+
+        const privileges = await privilegesRepository.getPrivileges();
+        if (!privileges.can(user.roleName).delete(resources.PATIENT).granted)
+            throw new Unauthorized()
+
+        return (await (await this.getPatientsCollection()).deleteOne({ _id: id }))
+    }
+}

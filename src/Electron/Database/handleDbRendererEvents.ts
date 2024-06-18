@@ -1,8 +1,8 @@
 import { ipcRenderer } from "electron";
-import { handleRendererEvents as handlePatientRendererEvents } from './Repositories/PatientRenderer';
-import { handleRendererEvents as handleVisitRendererEvents } from './Repositories/VisitRenderer';
-import { handleRendererEvents as handleFileRendererEvents } from './Repositories/FileRenderer';
-import type { MongodbConfig } from "../../Config/types";
+import { handleRendererEvents as handlePatientRendererEvents } from './Repositories/Patients/PatientRenderer';
+import { handleRendererEvents as handleVisitRendererEvents } from './Repositories/Visits/VisitRenderer';
+import { handleRendererEvents as handleFileRendererEvents } from './Repositories/Files/FileRenderer';
+import { MongodbConfig } from "../Configuration/types";
 
 export type RendererDbAPI = handlePatientRendererEvents &
     handleVisitRendererEvents &

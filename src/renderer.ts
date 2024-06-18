@@ -22,9 +22,8 @@
  *    webPreferences: {
  *      nodeIntegration: true
  *    }
- *  })
+ *  });
  * ```
  */
 
-import './React/main'
-
+import './react/root';

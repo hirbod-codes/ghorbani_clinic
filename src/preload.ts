@@ -1,9 +1,9 @@
-import * as auth from './Electron/Auth/renderer/auth'
-import * as menu from './Electron/Menu/renderer/menu'
-import type { menuAPI } from './Electron/Menu/renderer/menuAPI'
-import type { authAPI } from './Electron/Auth/renderer/authAPI'
 import { contextBridge } from 'electron'
-import { handleDbRendererEvents } from "./Electron/Database/handleDbRendererEvents"
+import * as menu from './Electron/Menu/renderer/menu'
+import * as configs from './Electron/Configuration/renderer/configuration'
+import type { menuAPI } from './Electron/Menu/renderer/menuAPI'
+import { configAPI } from './Electron/Configuration/renderer/configAPI'
+
 
 contextBridge.exposeInMainWorld('menuAPI', {
     openMenu: menu.openMenu,
@@ -15,11 +15,7 @@ contextBridge.exposeInMainWorld('menuAPI', {
     isWindowMaximized: menu.isWindowMaximized,
 } as menuAPI)
 
-contextBridge.exposeInMainWorld('authAPI', {
-    getAuthenticatedUserPrivileges: auth.getAuthenticatedUserPrivileges,
-    getAuthenticatedUser: auth.getAuthenticatedUser,
-    login: auth.login,
-    logout: auth.logout,
-} as authAPI)
-
-contextBridge.exposeInMainWorld('dbAPI', handleDbRendererEvents())
+contextBridge.exposeInMainWorld('configAPI', {
+    readConfig: configs.readConfig,
+    writeConfig: configs.writeConfig,
+} as configAPI)

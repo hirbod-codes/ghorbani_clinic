@@ -2,10 +2,9 @@
     "version": "0.2",
     "ignorePaths": [
         "cspell.json",
-        "src/React/components/astro.ts",
-        "src/React/components/time-helpers.ts",
-        "src/React/components/DateTime/persian-calendar.ts",
-        "src/React/components/DateTime/gregorian-calendar.ts"
+        "src/react/Localization/Translations/",
+        "src/react/Lib/DateTime/astro.ts",
+        "src/react/Lib/DateTime/*-calendar.ts"
     ],
     "dictionaryDefinitions": [],
     "dictionaries": [],

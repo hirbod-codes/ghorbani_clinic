@@ -1,11 +1,13 @@
 import { ipcMain } from 'electron'
 import { compareSync } from 'bcrypt'
-import { Auth, User } from './auth-types'
-import { readAuth } from '../../Config/config'
-import { getPrivileges } from './roles'
+import { readConfig } from '../Configuration/configuration'
+import { User } from '../Database/Models/User'
 
 function login(username: string, password: string): boolean {
-    const auth = readAuth()
+    const auth = readConfig()?.auth
+
+    if (!auth)
+        return false
 
     for (let i = 0; i < auth.users.length; i++)
         if (auth.users[i].username === username && compareSync(password, auth.users[i].password)) {
@@ -28,8 +30,11 @@ function getAuthenticatedUser(): User | null {
     return Auth.authenticatedUser
 }
 
-function getAuthenticatedUserPrivileges(): string[] {
-    return getPrivileges(Auth.authenticatedUser.roleName)
+function getAuthenticatedUserPrivileges(): string[] | null {
+    if (Auth.authenticatedUser)
+        return getPrivileges(Auth.authenticatedUser.roleName)
+    else
+        return null
 }
 
 export function handleAuthEvents() {

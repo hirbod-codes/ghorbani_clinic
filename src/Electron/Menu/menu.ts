@@ -1,5 +1,5 @@
 import { BrowserWindow, ipcMain, Menu } from 'electron'
-import { template } from '../Menu/Templates/MainMenu'
+import { template } from './Templates/MainMenu'
 
 export function handleMenuEvents() {
     ipcMain.on('open-menu', (e) => {

@@ -1,0 +1,11 @@
+{
+    "general": "General",
+    "settings": "Settings",
+    "home": "Home",
+    "language": "Language",
+    "timeZone": "Time Zone",
+    "calendar": "Calendar",
+    "persianCalendarName": "Persian",
+    "gregorianCalendarName": "Gregorian",
+    "Asia/Tehran": "Asia/Tehran"
+}
