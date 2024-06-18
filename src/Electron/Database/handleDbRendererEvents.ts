@@ -1,4 +1,5 @@
 import { ipcRenderer } from "electron";
+import { handleRendererEvents as handleAuthRendererEvents } from './Repositories/Auth/AuthRenderer';
 import { handleRendererEvents as handleUserRendererEvents } from './Repositories/Users/UsersRenderer';
 import { handleRendererEvents as handlePrivilegeRendererEvents } from './Repositories/Privileges/PrivilegesRenderer';
 import { handleRendererEvents as handlePatientRendererEvents } from './Repositories/Patients/PatientRenderer';
@@ -26,6 +27,7 @@ export function handleDbRendererEvents(): RendererDbAPI {
                 return await ipcRenderer.invoke('update-config', { config });
             },
         },
+        ...handleAuthRendererEvents(),
         ...handleUserRendererEvents(),
         ...handlePrivilegeRendererEvents(),
         ...handlePatientRendererEvents(),

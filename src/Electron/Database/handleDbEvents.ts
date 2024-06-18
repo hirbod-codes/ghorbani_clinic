@@ -7,8 +7,10 @@ import { seedPatientsVisits, seedUsersRoles } from "./seed";
 import { UsersRepository } from "./Repositories/Users/UsersRepository";
 import { PrivilegesRepository } from "./Repositories/Privileges/PrivilegesRepository";
 import { readConfig, writeConfigSync } from "../Configuration/configuration";
+import { AuthRepository } from "./Repositories/Auth/AuthRepository";
 
 export const db = new MongoDB();
+export const authRepository = new AuthRepository();
 export const usersRepository = new UsersRepository();
 export const privilegesRepository = new PrivilegesRepository();
 export const patientRepository = new PatientRepository();
@@ -34,6 +36,7 @@ export async function handleDbEvents() {
     catch (err) { console.error(err) }
 
     await db.handleEvents()
+    await authRepository.handleEvents()
     await usersRepository.handleEvents()
     await privilegesRepository.handleEvents()
     await patientRepository.handleEvents()
