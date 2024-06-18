@@ -44,7 +44,7 @@ export async function handleDbEvents() {
     await fileRepository.handleEvents()
 
     if (!app.isPackaged) {
-        await seedUsersRoles(await db.getUsersCollection(), await db.getPatientsCollection())
+        await seedUsersRoles(await db.getUsersCollection(), await db.getPrivilegesCollection())
         await seedPatientsVisits(50, await db.getPatientsCollection(), await db.getVisitsCollection());
     }
 }
