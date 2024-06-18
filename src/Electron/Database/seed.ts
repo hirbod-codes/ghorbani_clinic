@@ -5,8 +5,8 @@ import { faker } from '@faker-js/faker'
 import { DateTime } from "luxon";
 import { User } from "./Models/User";
 import { Privilege } from "./Models/Privilege";
-import { privileges } from "../Auth/dev-permissions";
-import { users } from "../Auth/dev-users";
+import { privileges } from "./Repositories/Auth/dev-permissions";
+import { users } from "./Repositories/Auth/dev-users";
 
 export async function seedUsersRoles(usersCollection: Collection<User>, privilegesCollection: Collection<Privilege>): Promise<void> {
     try {

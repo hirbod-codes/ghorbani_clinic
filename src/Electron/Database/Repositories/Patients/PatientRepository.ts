@@ -9,7 +9,7 @@ import { MongoDB } from "../../mongodb";
 import { ipcMain } from "electron";
 import { Unauthenticated } from "../../Unauthenticated";
 import { privilegesRepository } from "../../handleDbEvents";
-import { resources } from "../../../Auth/dev-permissions";
+import { resources } from "../Auth/dev-permissions";
 import { Auth } from "../Auth/Auth";
 import { getFields } from "../../Models/helpers";
 
@@ -82,7 +82,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         return readablePatient as Patient & { visits: Visit[] }
     }
 
-    async getPatient(socialId: string): Promise<Patient> {
+    async getPatient(socialId: string): Promise<Patient | null> {
         const user = Auth.getAuthenticated();
         if (!user)
             throw new Unauthenticated();
@@ -93,6 +93,9 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
             throw new Unauthorized()
 
         const patient: Patient = await (await this.getPatientsCollection()).findOne({ socialId: socialId });
+        if (!patient)
+            return null
+
         if (!patientSchema.isValidSync(patient))
             throw new Error('Invalid patient info provided.');
 

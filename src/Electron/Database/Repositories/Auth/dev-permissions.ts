@@ -1,11 +1,12 @@
 import { DateTime } from "luxon";
-import { Privilege } from "../Database/Models/Privilege"
+import { Privilege } from "../../Models/Privilege"
 
 export const resources = {
     USER: 'user',
     PATIENT: 'patient',
     VISIT: 'visit',
     PRIVILEGE: 'privilege',
+    FILE: 'file',
 }
 
 export const roles = {
@@ -41,6 +42,18 @@ export const privileges: Privilege[] = [
 
     { schemaVersion: 'v0.0.1', role: roles.SECRETARY, action: 'create:any', resource: resources.VISIT, attributes: '*', updatedAt: ts, createdAt: ts },
 
+    { schemaVersion: 'v0.0.1', role: roles.ADMIN, action: 'create:any', resource: resources.FILE, attributes: '*', updatedAt: ts, createdAt: ts },
+    { schemaVersion: 'v0.0.1', role: roles.ADMIN, action: 'read:any', resource: resources.FILE, attributes: '*', updatedAt: ts, createdAt: ts },
+    { schemaVersion: 'v0.0.1', role: roles.ADMIN, action: 'update:any', resource: resources.FILE, attributes: '*', updatedAt: ts, createdAt: ts },
+    { schemaVersion: 'v0.0.1', role: roles.ADMIN, action: 'delete:any', resource: resources.FILE, attributes: '*', updatedAt: ts, createdAt: ts },
+
+    { schemaVersion: 'v0.0.1', role: roles.DOCTOR, action: 'create:any', resource: resources.FILE, attributes: '*', updatedAt: ts, createdAt: ts },
+    { schemaVersion: 'v0.0.1', role: roles.DOCTOR, action: 'read:any', resource: resources.FILE, attributes: '*', updatedAt: ts, createdAt: ts },
+    { schemaVersion: 'v0.0.1', role: roles.DOCTOR, action: 'update:any', resource: resources.FILE, attributes: '*', updatedAt: ts, createdAt: ts },
+    { schemaVersion: 'v0.0.1', role: roles.DOCTOR, action: 'delete:any', resource: resources.FILE, attributes: '*', updatedAt: ts, createdAt: ts },
+
+    { schemaVersion: 'v0.0.1', role: roles.SECRETARY, action: 'create:any', resource: resources.FILE, attributes: '*', updatedAt: ts, createdAt: ts },
+
     { schemaVersion: 'v0.0.1', role: roles.ADMIN, action: 'create:any', resource: resources.PRIVILEGE, attributes: '*', updatedAt: ts, createdAt: ts },
     { schemaVersion: 'v0.0.1', role: roles.ADMIN, action: 'read:any', resource: resources.PRIVILEGE, attributes: '*', updatedAt: ts, createdAt: ts },
     { schemaVersion: 'v0.0.1', role: roles.ADMIN, action: 'update:any', resource: resources.PRIVILEGE, attributes: '*', updatedAt: ts, createdAt: ts },
@@ -51,4 +64,13 @@ export const privileges: Privilege[] = [
     { schemaVersion: 'v0.0.1', role: roles.DOCTOR, action: 'update:any', resource: resources.PRIVILEGE, attributes: '*', updatedAt: ts, createdAt: ts },
     { schemaVersion: 'v0.0.1', role: roles.DOCTOR, action: 'delete:any', resource: resources.PRIVILEGE, attributes: '*', updatedAt: ts, createdAt: ts },
 
+    { schemaVersion: 'v0.0.1', role: roles.ADMIN, action: 'create:any', resource: resources.USER, attributes: '*', updatedAt: ts, createdAt: ts },
+    { schemaVersion: 'v0.0.1', role: roles.ADMIN, action: 'read:any', resource: resources.USER, attributes: '*', updatedAt: ts, createdAt: ts },
+    { schemaVersion: 'v0.0.1', role: roles.ADMIN, action: 'update:any', resource: resources.USER, attributes: '*', updatedAt: ts, createdAt: ts },
+    { schemaVersion: 'v0.0.1', role: roles.ADMIN, action: 'delete:any', resource: resources.USER, attributes: '*', updatedAt: ts, createdAt: ts },
+
+    { schemaVersion: 'v0.0.1', role: roles.DOCTOR, action: 'create:any', resource: resources.USER, attributes: '*', updatedAt: ts, createdAt: ts },
+    { schemaVersion: 'v0.0.1', role: roles.DOCTOR, action: 'read:any', resource: resources.USER, attributes: '*', updatedAt: ts, createdAt: ts },
+    { schemaVersion: 'v0.0.1', role: roles.DOCTOR, action: 'update:any', resource: resources.USER, attributes: '*', updatedAt: ts, createdAt: ts },
+    { schemaVersion: 'v0.0.1', role: roles.DOCTOR, action: 'delete:any', resource: resources.USER, attributes: '*', updatedAt: ts, createdAt: ts },
 ]

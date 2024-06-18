@@ -13,16 +13,15 @@ export type dbAPI = {
 
 export type IAuthRepository = dbAPI & {
     handleEvents(): Promise<void>,
-    login(username: string, password: string): boolean,
-    logout(): boolean,
-    getAuthenticatedUser(): User | null,
-    getAuthenticatedUserPrivileges(): string[] | null,
+    login(username: string, password: string): Promise<boolean>,
+    logout(): Promise<boolean>,
+    getAuthenticatedUser(): Promise<User | null>,
 }
 
 export type IUsersRepository = dbAPI & {
     handleEvents(): Promise<void>,
     createUser(user: User): Promise<InsertOneResult>,
-    getUser(userId: string): Promise<User>,
+    getUser(userId: string): Promise<User | null>,
     getUsers(): Promise<User[]>,
     updateUser(user: User): Promise<UpdateResult>,
     deleteUser(userId: string): Promise<DeleteResult>,
@@ -31,7 +30,7 @@ export type IUsersRepository = dbAPI & {
 export type IPrivilegesRepository = dbAPI & {
     handleEvents(): Promise<void>,
     createPrivilege(privilege: Privilege): Promise<InsertOneResult>,
-    getPrivilege(roleName: string, action: string): Promise<Privilege>,
+    getPrivilege(roleName: string, action: string): Promise<Privilege | null>,
     getPrivileges(roleName: string): Promise<Privilege[]>,
     getPrivileges(): Promise<AccessControl>,
     updatePrivilege(privilege: Privilege): Promise<UpdateResult | undefined>,
@@ -42,7 +41,7 @@ export type IPatientRepository = dbAPI & {
     handleEvents(): Promise<void>,
     createPatient(patient: Patient): Promise<InsertOneResult>,
     getPatientWithVisits(socialId: string): Promise<Patient & { visits: Visit[] }>,
-    getPatient(socialId: string): Promise<Patient>,
+    getPatient(socialId: string): Promise<Patient | null>,
     getPatients(offset: number, count: number): Promise<Patient[]>,
     getPatientsWithVisits(offset: number, count: number): Promise<(Patient & { visits: Visit[] })[]>,
     updatePatient(patient: Patient): Promise<UpdateResult>,

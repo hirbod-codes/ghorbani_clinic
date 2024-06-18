@@ -9,7 +9,7 @@ import { DeleteResult, InsertOneResult, UpdateResult } from "mongodb";
 import { Unauthenticated } from "../../Unauthenticated";
 import { Auth } from "../Auth/Auth";
 import { privilegesRepository } from "../../handleDbEvents";
-import { resources } from "../../../Auth/dev-permissions";
+import { resources } from "../Auth/dev-permissions";
 import { getFields } from "../../Models/helpers";
 
 export class VisitRepository extends MongoDB implements IVisitRepository {

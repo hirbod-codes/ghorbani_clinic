@@ -1,5 +1,5 @@
 import { hashSync } from 'bcrypt'
-import { User } from "../Database/Models/User";
+import { User } from "../../Models/User";
 import { roles } from "./dev-permissions";
 import { DateTime } from 'luxon';
 

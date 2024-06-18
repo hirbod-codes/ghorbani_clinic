@@ -1,24 +1,37 @@
 import { MongoDB } from "../../mongodb";
 import { User } from "../../Models/User";
 import { IAuthRepository } from "../../dbAPI";
+import { hashSync } from "bcrypt";
+import { Auth } from "./Auth";
+import { DateTime } from "luxon";
+import { ipcMain } from "electron";
 
 export class AuthRepository extends MongoDB implements IAuthRepository {
     async handleEvents(): Promise<void> {
+        ipcMain.handle('login', async (_e, { username, password }: { username: string, password: string }) => await this.handleErrors(async () => await this.login(username, password)))
+        ipcMain.handle('logout', async (_e) => await this.handleErrors(async () => await this.logout()))
+        ipcMain.handle('get-authenticated-user', async (_e) => await this.handleErrors(async () => await this.getAuthenticatedUser()))
     }
 
-    login(username: string, password: string): boolean {
-        throw new Error("Method not implemented.");
+    async login(username: string, password: string): Promise<boolean> {
+        const user = await (await this.getUsersCollection()).findOne({ username: username, password: hashSync(password, 10) });
+        if (user) {
+            Auth.authenticatedUser = user
+            Auth.authenticatedAt = DateTime.utc().toUnixInteger()
+            return true
+        }
+        else
+            return false
     }
 
-    logout(): boolean {
-        throw new Error("Method not implemented.");
+    async logout(): Promise<boolean> {
+        Auth.authenticatedUser = null
+        Auth.authenticatedAt = null
+
+        return true
     }
 
-    getAuthenticatedUser(): User {
-        throw new Error("Method not implemented.");
-    }
-
-    getAuthenticatedUserPrivileges(): string[] {
-        throw new Error("Method not implemented.");
+    async getAuthenticatedUser(): Promise<User | null> {
+        return Auth.authenticatedUser
     }
 }

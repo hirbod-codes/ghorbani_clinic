@@ -150,3 +150,4 @@ buck-out/
 # Bundle artifact
 *.jsbundle
 
+old_electron

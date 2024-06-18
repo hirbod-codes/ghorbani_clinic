@@ -4,7 +4,7 @@ import { IPrivilegesRepository } from "../../dbAPI";
 import { MongoDB } from "../../mongodb";
 import { Unauthenticated } from "../../Unauthenticated";
 import { AccessControl } from "accesscontrol";
-import { resources, roles } from "../../../Auth/dev-permissions";
+import { resources, roles } from "../Auth/dev-permissions";
 import { Unauthorized } from "../../Unauthorized";
 import { DateTime } from "luxon";
 import { Auth } from "../Auth/Auth";
@@ -38,7 +38,7 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         return await (await this.getPrivilegesCollection()).insertOne(privilege)
     }
 
-    async getPrivilege(roleName: string, action: string): Promise<Privilege> {
+    async getPrivilege(roleName: string, action: string): Promise<Privilege | null> {
         const user = Auth.getAuthenticated();
         if (user == null)
             throw new Unauthenticated();

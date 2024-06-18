@@ -14,12 +14,12 @@ import { Privilege } from "./Models/Privilege";
 import { User } from "./Models/User";
 
 export class MongoDB implements dbAPI {
-    private static isInitialized = false
     private static db: Db | null = null
 
     async handleEvents(): Promise<void> {
+        ipcMain.handle('initialize-db', async (_e, { config }: { config: MongodbConfig }) => await this.initializeDb(config))
         ipcMain.handle('get-config', async () => await this.getConfig())
-        ipcMain.handle('update-config', async (_e, { config }: { config: MongodbConfig; }) => await this.updateConfig(config) != null)
+        ipcMain.handle('update-config', async (_e, { config }: { config: MongodbConfig }) => await this.updateConfig(config) != null)
     }
 
     async getConfig(): Promise<MongodbConfig> {
@@ -40,6 +40,9 @@ export class MongoDB implements dbAPI {
             return MongoDB.db
 
         const c = readConfig()
+
+        if (!c || !c.mongodb)
+            throw new Error('Mongodb configuration not found.')
 
         const client = new MongoClient(c.mongodb.url, {
             directConnection: true,
@@ -62,12 +65,12 @@ export class MongoDB implements dbAPI {
         }
     }
 
-    async initializeDb() {
+    async initializeDb(config?: MongodbConfig) {
         try {
-            if (MongoDB.isInitialized)
-                return
-            else
-                MongoDB.isInitialized = true
+            if (config) {
+                const c = readConfig()
+                writeConfigSync({ ...c, mongodb: config })
+            }
 
             this.addCollections()
         } catch (error) {
@@ -76,10 +79,10 @@ export class MongoDB implements dbAPI {
     }
 
     async addCollections() {
-        await this.addPatientsCollection()
-        await this.addVisitsCollection()
         await this.addUsersCollection()
         await this.addPrivilegesCollection()
+        await this.addPatientsCollection()
+        await this.addVisitsCollection()
     }
 
     private async addUsersCollection() {

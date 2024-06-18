@@ -1,6 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import { handleMenuEvents } from './Electron/Menu/menu';
 import { handleConfigEvents } from './Electron/Configuration/configuration';
+import { handleDbEvents } from './Electron/Database/handleDbEvents';
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
 declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
@@ -25,11 +26,12 @@ const createWindow = (): void => {
         mainWindow.webContents.openDevTools();
 };
 
-app.on('ready', () => {
+app.on('ready', async () => {
     createWindow()
 
     handleMenuEvents()
     handleConfigEvents()
+    await handleDbEvents()
 })
 
 app.on('window-all-closed', () => {

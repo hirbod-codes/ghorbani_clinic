@@ -5,17 +5,30 @@ import fs from 'fs';
 import { MongoDB } from "../../mongodb";
 import type { IFileRepository } from "../../dbAPI";
 import { Unauthorized } from "../../Unauthorized";
-import { Auth } from "../../Auth/auth-types";
-import { collectionName } from "../../Models/File";
 import { Unauthenticated } from "../../Unauthenticated";
+import { Auth } from "../Auth/Auth";
+import { resources } from "../Auth/dev-permissions";
+import { privilegesRepository } from "../../handleDbEvents";
 
 export class FileRepository extends MongoDB implements IFileRepository {
+    async handleEvents(): Promise<void> {
+        ipcMain.handle('upload-files', async (_e, { patientId, files }: { patientId: string, files: { fileName: string, bytes: Buffer | Uint8Array }[] }) => await this.handleErrors(async () => await this.uploadFiles(patientId, files)))
+        ipcMain.handle('retrieve-files', async (_e, { patientId }: { patientId: string }) => await this.handleErrors(async () => await this.retrieveFiles(patientId)))
+        ipcMain.handle('download-file', async (_e, { patientId, fileName }: { patientId: string, fileName: string }) => await this.handleErrors(async () => await this.downloadFile(patientId, fileName)))
+        ipcMain.handle('download-files', async (_e, { patientId }: { patientId: string }) => await this.handleErrors(async () => await this.downloadFiles(patientId)))
+        ipcMain.handle('open-file', async (_e, { patientId, fileName }: { patientId: string, fileName: string }) => await this.handleErrors(async () => await this.openFile(patientId, fileName)))
+        ipcMain.handle('delete-file', async (_e, { fileId }: { fileId: string }) => await this.handleErrors(async () => await this.deleteFiles(fileId)))
+    }
+
     async uploadFiles(patientId: string, files: { fileName: string; bytes: Buffer | Uint8Array; }[]): Promise<boolean> {
-        if (!Auth.authenticatedUser)
+        const authenticated = Auth.getAuthenticated();
+        if (authenticated == null)
             throw new Unauthenticated();
 
-        if (!Auth.authenticatedUser.privileges.includes(`create.${collectionName}`))
-            throw new Unauthorized();
+        const privileges = await privilegesRepository.getPrivileges();
+        const permission = privileges.can(authenticated.roleName).create(resources.FILE);
+        if (!permission.granted)
+            throw new Unauthorized()
 
         console.log('uploading...');
         console.log(patientId, files);
@@ -41,11 +54,14 @@ export class FileRepository extends MongoDB implements IFileRepository {
     }
 
     async retrieveFiles(patientId: string): Promise<GridFSFile[]> {
-        if (!Auth.authenticatedUser)
+        const authenticated = Auth.getAuthenticated();
+        if (authenticated == null)
             throw new Unauthenticated();
 
-        if (!Auth.authenticatedUser.privileges.includes(`read.${collectionName}`))
-            throw new Unauthorized();
+        const privileges = await privilegesRepository.getPrivileges();
+        const permission = privileges.can(authenticated.roleName).read(resources.FILE);
+        if (!permission.granted)
+            throw new Unauthorized()
 
         console.log('retrieving...');
         const bucket = await this.getBucket();
@@ -57,11 +73,14 @@ export class FileRepository extends MongoDB implements IFileRepository {
     }
 
     async downloadFile(patientId: string, fileName: string): Promise<string> {
-        if (!Auth.authenticatedUser)
+        const authenticated = Auth.getAuthenticated();
+        if (authenticated == null)
             throw new Unauthenticated();
 
-        if (!Auth.authenticatedUser.privileges.includes(`download.${collectionName}`))
-            throw new Unauthorized();
+        const privileges = await privilegesRepository.getPrivileges();
+        const permission = privileges.can(authenticated.roleName).read(resources.FILE);
+        if (!permission.granted)
+            throw new Unauthorized()
 
         console.log('downloading...');
         const bucket = await this.getBucket();
@@ -81,11 +100,14 @@ export class FileRepository extends MongoDB implements IFileRepository {
     }
 
     async downloadFiles(patientId: string): Promise<string[]> {
-        if (!Auth.authenticatedUser)
+        const authenticated = Auth.getAuthenticated();
+        if (authenticated == null)
             throw new Unauthenticated();
 
-        if (!Auth.authenticatedUser.privileges.includes(`download.${collectionName}`))
-            throw new Unauthorized();
+        const privileges = await privilegesRepository.getPrivileges();
+        const permission = privileges.can(authenticated.roleName).read(resources.FILE);
+        if (!permission.granted)
+            throw new Unauthorized()
 
         console.log('downloading...');
         const bucket = await this.getBucket();
@@ -111,11 +133,14 @@ export class FileRepository extends MongoDB implements IFileRepository {
     }
 
     async openFile(patientId: string, fileName: string): Promise<void> {
-        if (!Auth.authenticatedUser)
+        const authenticated = Auth.getAuthenticated();
+        if (authenticated == null)
             throw new Unauthenticated();
 
-        if (!Auth.authenticatedUser.privileges.includes(`open.${collectionName}`))
-            throw new Unauthorized();
+        const privileges = await privilegesRepository.getPrivileges();
+        const permission = privileges.can(authenticated.roleName).read(resources.FILE);
+        if (!permission.granted)
+            throw new Unauthorized()
 
         console.log('opening...');
         const bucket = await this.getBucket();
@@ -146,11 +171,14 @@ export class FileRepository extends MongoDB implements IFileRepository {
     }
 
     async deleteFiles(patientId: string): Promise<boolean> {
-        if (!Auth.authenticatedUser)
+        const authenticated = Auth.getAuthenticated();
+        if (authenticated == null)
             throw new Unauthenticated();
 
-        if (!Auth.authenticatedUser.privileges.includes(`delete.${collectionName}`))
-            throw new Unauthorized();
+        const privileges = await privilegesRepository.getPrivileges();
+        const permission = privileges.can(authenticated.roleName).delete(resources.FILE);
+        if (!permission.granted)
+            throw new Unauthorized()
 
         const bucket = await this.getBucket();
 
@@ -160,14 +188,5 @@ export class FileRepository extends MongoDB implements IFileRepository {
             await bucket.delete(new ObjectId(doc._id));
 
         return true;
-    }
-
-    async handleEvents(): Promise<void> {
-        ipcMain.handle('upload-files', async (_e, { patientId, files }: { patientId: string, files: { fileName: string, bytes: Buffer | Uint8Array }[] }) => await this.handleErrors(async () => await this.uploadFiles(patientId, files)))
-        ipcMain.handle('retrieve-files', async (_e, { patientId }: { patientId: string }) => await this.handleErrors(async () => await this.retrieveFiles(patientId)))
-        ipcMain.handle('download-file', async (_e, { patientId, fileName }: { patientId: string, fileName: string }) => await this.handleErrors(async () => await this.downloadFile(patientId, fileName)))
-        ipcMain.handle('download-files', async (_e, { patientId }: { patientId: string }) => await this.handleErrors(async () => await this.downloadFiles(patientId)))
-        ipcMain.handle('open-file', async (_e, { patientId, fileName }: { patientId: string, fileName: string }) => await this.handleErrors(async () => await this.openFile(patientId, fileName)))
-        ipcMain.handle('delete-file', async (_e, { fileId }: { fileId: string }) => await this.handleErrors(async () => await this.deleteFiles(fileId)))
     }
 }

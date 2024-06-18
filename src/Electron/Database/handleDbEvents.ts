@@ -6,6 +6,7 @@ import { MongoDB } from "./mongodb";
 import { seedPatientsVisits, seedUsersRoles } from "./seed";
 import { UsersRepository } from "./Repositories/Users/UsersRepository";
 import { PrivilegesRepository } from "./Repositories/Privileges/PrivilegesRepository";
+import { readConfig, writeConfigSync } from "../Configuration/configuration";
 
 export const db = new MongoDB();
 export const usersRepository = new UsersRepository();
@@ -15,9 +16,26 @@ export const visitRepository = new VisitRepository();
 export const fileRepository = new FileRepository()
 
 export async function handleDbEvents() {
-    await db.initializeDb();
+    if (!app.isPackaged) {
+        const c = readConfig()
+        writeConfigSync({
+            ...c, mongodb: {
+                "url": "mongodb://localhost:8082",
+                "databaseName": "primaryDB",
+                "auth": {
+                    "username": "admin",
+                    "password": "password"
+                }
+            }
+        })
+    }
+
+    try { await db.initializeDb() }
+    catch (err) { console.error(err) }
 
     await db.handleEvents()
+    await usersRepository.handleEvents()
+    await privilegesRepository.handleEvents()
     await patientRepository.handleEvents()
     await visitRepository.handleEvents()
     await fileRepository.handleEvents()

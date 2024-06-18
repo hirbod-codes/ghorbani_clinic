@@ -1,5 +1,5 @@
 import { createContext } from 'react';
-import { User } from '../../Database/Models/User';
+import { User } from '../../Electron/Database/Models/User';
 
 export const AuthContext = createContext<{
     user: User,

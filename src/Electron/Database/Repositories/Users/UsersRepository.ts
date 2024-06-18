@@ -1,4 +1,4 @@
-import { DeleteResult, Document, InsertOneResult, ObjectId, UpdateResult } from "mongodb";
+import { DeleteResult, Document, InsertOneResult, UpdateResult } from "mongodb";
 import { MongoDB } from "../../mongodb";
 import { User, updatableFields, userSchema } from "../../Models/User";
 import { IUsersRepository } from "../../dbAPI";
@@ -6,7 +6,7 @@ import { Auth } from "../Auth/Auth";
 import { Unauthenticated } from "../../Unauthenticated";
 import { Unauthorized } from "../../Unauthorized";
 import { privilegesRepository } from "../../handleDbEvents";
-import { resources, roles } from "../../../Auth/dev-permissions";
+import { resources, roles } from "../Auth/dev-permissions";
 import { DateTime } from "luxon";
 import { extractKeys, extractKeysRecursive } from "../../helpers";
 import { getFields } from "../../Models/helpers";
@@ -43,7 +43,7 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
         return await (await this.getUsersCollection()).insertOne(user)
     }
 
-    async getUser(userId: string): Promise<User> {
+    async getUser(userId: string): Promise<User | null> {
         const authenticated = Auth.getAuthenticated();
         if (authenticated == null)
             throw new Unauthenticated();
@@ -54,6 +54,11 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
             throw new Unauthorized()
 
         const user = (await (await this.getUsersCollection()).findOne({ _id: userId }))
+        if (!user)
+            return null
+
+        if (!userSchema.isValidSync(user))
+            throw new Error('Invalid patient info provided.');
 
         const readableUser = extractKeys(user, permission.attributes)
         return readableUser
