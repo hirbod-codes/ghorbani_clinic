@@ -1,4 +1,5 @@
 import HomeIcon from '@mui/icons-material/HomeOutlined';
+import PersonIcon from '@mui/icons-material/PersonOutlined';
 import SettingsIcon from '@mui/icons-material/SettingsOutlined';
 import MenuIcon from '@mui/icons-material/MenuOutlined';
 import LightModeIcon from '@mui/icons-material/LightModeOutlined'
@@ -7,7 +8,7 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import DisplaySettingsIcon from '@mui/icons-material/DisplaySettingsOutlined';
 
-import { CssBaseline, PaletteMode, createTheme, useMediaQuery, AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, ThemeProvider, Collapse, CircularProgress, Stack } from '@mui/material'
+import { CssBaseline, PaletteMode, createTheme, useMediaQuery, AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, ThemeProvider, Collapse, CircularProgress, Stack, Box } from '@mui/material'
 import { useState, useRef } from 'react'
 import { Localization, enUS } from '@mui/material/locale';
 import { useTranslation } from "react-i18next";
@@ -24,7 +25,8 @@ import createCache from '@emotion/cache';
 import { prefixer } from 'stylis';
 import rtlPlugin from 'stylis-plugin-rtl';
 import type { configAPI } from '../Electron/Configuration/renderer/configAPI';
-import { AccessControl } from 'accesscontrol'
+import { RendererDbAPI } from '../Electron/Database/handleDbRendererEvents';
+import { Users } from './Pages/Users';
 
 // Create rtl cache
 const rtlCache = createCache({
@@ -37,17 +39,9 @@ const ltrCache = createCache({
 });
 
 export function App() {
-    const ac = new AccessControl();
-    ac.grant('user').read('visit', '*, !id')
 
-    console.log(ac.can('user').read('visit').granted, ac.can('user').read('visit').attributes)
-    console.log(JSON.stringify(ac.can('user').read('visit'), undefined, 4), ac.can('user').read('visit'))
 
-    console.log(ac.can('user').readAny('visit').granted, ac.can('user').readAny('visit').attributes)
-    console.log(JSON.stringify(ac.can('user').readAny('visit'), undefined, 4), ac.can('user').readAny('visit'))
 
-    console.log(ac.can('user').readOwn('visit').granted, ac.can('user').readOwn('visit').attributes)
-    console.log(JSON.stringify(ac.can('user').readOwn('visit'), undefined, 4), ac.can('user').readOwn('visit'))
 
 
     // Navigation
@@ -188,22 +182,7 @@ export function App() {
             <ConfigurationContext.Provider value={{ get: configuration, set: { updateTheme, updateLocale, updateTimeZone } }}>
                 <CacheProvider value={configuration.locale.direction === 'rtl' ? rtlCache : ltrCache}>
                     <ThemeProvider theme={configuration.theme}>
-                        <CssBaseline />
-                        <MenuBar backgroundColor={configuration.theme.palette.background.default} />
-
-                        <AppBar position='relative'>
-                            <Toolbar variant="dense">
-                                <IconButton size='large' color='inherit' onClick={() => setOpenDrawer(true)} sx={{ mr: 2 }}>
-                                    <MenuIcon fontSize='inherit' />
-                                </IconButton>
-                                <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
-                                    {/* Title */}
-                                </Typography>
-                                <IconButton size='medium' color='inherit' onClick={() => updateTheme(configuration.theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.locale.direction, getReactLocale(configuration.locale.code))}>
-                                    {configuration.theme.palette.mode == 'light' ? <LightModeIcon fontSize='inherit' /> : <DarkModeIcon fontSize='inherit' />}
-                                </IconButton>
-                            </Toolbar>
-                        </AppBar>
+                        <CssBaseline enableColorScheme />
 
                         <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)}>
                             <List>
@@ -212,6 +191,12 @@ export function App() {
                                         <HomeIcon />
                                     </ListItemIcon>
                                     <ListItemText primary={t('home')} />
+                                </ListItemButton>
+                                <ListItemButton onClick={() => { setContent(<Users />); setOpenDrawer(false) }}>
+                                    <ListItemIcon>
+                                        <PersonIcon />
+                                    </ListItemIcon>
+                                    <ListItemText primary={t('users')} />
                                 </ListItemButton>
                                 <ListItemButton onClick={() => setOpenSettingsList(!openSettingsList)}>
                                     <ListItemIcon>
@@ -233,7 +218,27 @@ export function App() {
                             </List>
                         </Drawer>
 
-                        {content}
+                        <Stack direction='column' height={'100%'} alignItems='stretch' justifyContent='flex-start'>
+                            <MenuBar backgroundColor={configuration.theme.palette.background.default} />
+
+                            <AppBar position='relative'>
+                                <Toolbar variant="dense">
+                                    <IconButton size='large' color='inherit' onClick={() => setOpenDrawer(true)} sx={{ mr: 2 }}>
+                                        <MenuIcon fontSize='inherit' />
+                                    </IconButton>
+                                    <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
+                                        {/* Title */}
+                                    </Typography>
+                                    <IconButton size='medium' color='inherit' onClick={() => updateTheme(configuration.theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.locale.direction, getReactLocale(configuration.locale.code))}>
+                                        {configuration.theme.palette.mode == 'light' ? <LightModeIcon fontSize='inherit' /> : <DarkModeIcon fontSize='inherit' />}
+                                    </IconButton>
+                                </Toolbar>
+                            </AppBar>
+
+                            <Box flexGrow={1}>
+                                {content}
+                            </Box>
+                        </Stack>
                     </ThemeProvider >
                 </CacheProvider>
             </ConfigurationContext.Provider>

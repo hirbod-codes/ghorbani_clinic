@@ -7,14 +7,18 @@ import { handleRendererEvents as handleVisitRendererEvents } from './Repositorie
 import { handleRendererEvents as handleFileRendererEvents } from './Repositories/Files/FileRenderer';
 import { MongodbConfig } from "../Configuration/types";
 
-export type RendererDbAPI = handlePatientRendererEvents &
+export type RendererDbAPI =
+    handleAuthRendererEvents &
+    handleUserRendererEvents &
+    handlePrivilegeRendererEvents &
+    handlePatientRendererEvents &
     handleVisitRendererEvents &
     handleFileRendererEvents &
-{
-    initializeDb: (config: MongodbConfig) => Promise<boolean>,
-    getConfig: () => Promise<MongodbConfig>,
-    updateConfig: (config: MongodbConfig) => Promise<boolean>,
-}
+    {
+        initializeDb: (config: MongodbConfig) => Promise<boolean>,
+        getConfig: () => Promise<MongodbConfig>,
+        updateConfig: (config: MongodbConfig) => Promise<boolean>,
+    }
 
 export function handleDbRendererEvents(): RendererDbAPI {
     return {
