@@ -3,7 +3,7 @@ import { Visit } from "../../Models/Visit"
 import type { MainProcessResponse } from "../../../types"
 import { DeleteResult, InsertOneResult, UpdateResult } from "mongodb"
 
-export function handleRendererEvents(): handleRendererEvents {
+export function handleRendererEvents(): RendererEvents {
     return {
         createVisit: async (visit: Visit): Promise<MainProcessResponse<InsertOneResult>> => JSON.parse(await ipcRenderer.invoke('create-visit', { visit })),
         getVisits: async (patientId: string): Promise<MainProcessResponse<Visit[]>> => JSON.parse(await ipcRenderer.invoke('get-visits', { patientId })),
@@ -12,7 +12,7 @@ export function handleRendererEvents(): handleRendererEvents {
     }
 }
 
-export type handleRendererEvents = {
+export type RendererEvents = {
     createVisit: (visit: Visit) => Promise<MainProcessResponse<InsertOneResult>>
     getVisits: (patientId: string) => Promise<MainProcessResponse<Visit[]>>
     updateVisit: (visit: Visit) => Promise<MainProcessResponse<UpdateResult>>

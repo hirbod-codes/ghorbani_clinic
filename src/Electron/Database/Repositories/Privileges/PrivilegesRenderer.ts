@@ -4,7 +4,7 @@ import { DeleteResult, InsertOneResult, UpdateResult } from "mongodb"
 import { Privilege } from "../../Models/Privilege"
 import { AccessControl } from "accesscontrol"
 
-export function handleRendererEvents(): handleRendererEvents {
+export function handleRendererEvents(): RendererEvents {
     return {
         createPrivilege: async (privilege: Privilege): Promise<MainProcessResponse<InsertOneResult>> => JSON.parse(await ipcRenderer.invoke('create-privilege', { privilege })),
         getPrivilege: async (roleName: string, action: string): Promise<MainProcessResponse<Privilege | null>> => JSON.parse(await ipcRenderer.invoke('get-privilege', { roleName, action })),
@@ -14,7 +14,7 @@ export function handleRendererEvents(): handleRendererEvents {
     }
 }
 
-export type handleRendererEvents = {
+export type RendererEvents = {
     createPrivilege: (privilege: Privilege) => Promise<MainProcessResponse<InsertOneResult>>,
     getPrivilege: (roleName: string, action: string) => Promise<MainProcessResponse<Privilege | null>>,
     getPrivileges: (roleName?: string) => Promise<MainProcessResponse<Privilege[] | AccessControl>>,

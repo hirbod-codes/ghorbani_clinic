@@ -4,7 +4,7 @@ import { DeleteResult, InsertOneResult, UpdateResult } from "mongodb"
 import { Patient } from "../../Models/Patient"
 import { Visit } from "../../Models/Visit"
 
-export function handleRendererEvents(): handleRendererEvents {
+export function handleRendererEvents(): RendererEvents {
     return {
         createPatient: async (patient: Patient): Promise<MainProcessResponse<InsertOneResult>> => JSON.parse(await ipcRenderer.invoke('create-patient', { patient })),
         getPatientWithVisits: async (socialId: string): Promise<MainProcessResponse<Patient & { visits: Visit[] }>> => JSON.parse(await ipcRenderer.invoke('get-patient-with-visits', { socialId })),
@@ -16,7 +16,7 @@ export function handleRendererEvents(): handleRendererEvents {
     }
 }
 
-export type handleRendererEvents = {
+export type RendererEvents = {
     createPatient: (patient: Patient) => Promise<MainProcessResponse<InsertOneResult>>
     getPatientWithVisits: (socialId: string) => Promise<MainProcessResponse<Patient & { visits: Visit[] }>>
     getPatientsWithVisits: (offset: number, count: number) => Promise<MainProcessResponse<(Patient & { visits: Visit[] })[]>>

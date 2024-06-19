@@ -3,7 +3,7 @@ import { DeleteResult, InsertOneResult, UpdateResult } from "mongodb"
 import { User } from "../../Models/User"
 import { MainProcessResponse } from "../../../../Electron/types"
 
-export function handleRendererEvents(): handleRendererEvents {
+export function handleRendererEvents(): RendererEvents {
     return {
         createUser: async (user: User): Promise<MainProcessResponse<InsertOneResult<Document>>> => JSON.parse(await ipcRenderer.invoke('create-user', { user })),
         getUser: async (userId: string): Promise<MainProcessResponse<User | null>> => JSON.parse(await ipcRenderer.invoke('get-user', { userId })),
@@ -13,7 +13,7 @@ export function handleRendererEvents(): handleRendererEvents {
     }
 }
 
-export type handleRendererEvents = {
+export type RendererEvents = {
     createUser: (user: User) => Promise<MainProcessResponse<InsertOneResult<Document>>>,
     getUser: (userId: string) => Promise<MainProcessResponse<User | null>>,
     getUsers: () => Promise<MainProcessResponse<User[]>>,

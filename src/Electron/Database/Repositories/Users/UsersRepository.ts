@@ -16,7 +16,7 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
     async handleEvents(): Promise<void> {
         ipcMain.handle('create-user', async (_e, { user }: { user: User }) => await this.handleErrors(async () => await this.createUser(user)))
         ipcMain.handle('get-user', async (_e, { userId }: { userId: string }) => await this.handleErrors(async () => await this.getUser(userId)))
-        ipcMain.handle('get-users', async (_e, { }) => await this.handleErrors(async () => await this.getUsers()))
+        ipcMain.handle('get-users', async (_e) => await this.handleErrors(async () => await this.getUsers()))
         ipcMain.handle('update-user', async (_e, { user }: { user: User }) => await this.handleErrors(async () => await this.updateUser(user)))
         ipcMain.handle('delete-user', async (_e, { userId }: { userId: string }) => await this.handleErrors(async () => await this.deleteUser(userId)))
     }
