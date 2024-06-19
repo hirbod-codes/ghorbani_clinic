@@ -57,7 +57,7 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         if (user == null)
             throw new Unauthenticated();
 
-        const privilege = await (await this.getPrivilegesCollection()).findOne({ role: roleName, action: 'read:any', attributes: '*' })
+        const privilege = await (await this.getPrivilegesCollection()).findOne({ role: user.roleName, action: 'read:any', resource: resources.PRIVILEGE, attributes: '*' })
         if (!privilege)
             throw new Unauthorized()
 

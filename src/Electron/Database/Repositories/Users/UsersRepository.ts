@@ -1,6 +1,6 @@
 import { DeleteResult, Document, InsertOneResult, UpdateResult } from "mongodb";
 import { MongoDB } from "../../mongodb";
-import { User, updatableFields, userSchema } from "../../Models/User";
+import { User, readableFields, updatableFields, userSchema } from "../../Models/User";
 import { IUsersRepository } from "../../dbAPI";
 import { Unauthenticated } from "../../Unauthenticated";
 import { Unauthorized } from "../../Unauthorized";
@@ -59,7 +59,7 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
         if (!userSchema.isValidSync(user))
             throw new Error('Invalid patient info provided.');
 
-        const readableUser = extractKeys(user, permission.attributes)
+        const readableUser = extractKeys(user, getFields(readableFields, permission.attributes))
         return readableUser
     }
 
@@ -75,7 +75,7 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
 
         const users = await (await this.getUsersCollection()).find().toArray()
 
-        const readableUser = extractKeysRecursive(users, permission.attributes)
+        const readableUser = extractKeysRecursive(users, getFields(readableFields, permission.attributes))
 
         return readableUser
     }

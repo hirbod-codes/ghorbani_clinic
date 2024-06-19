@@ -35,6 +35,8 @@ import { User } from '../Electron/Database/Models/User';
 import { OverridableStringUnion } from "@mui/types"
 import { AuthContext } from './Lib/AuthContext';
 import { t } from 'i18next';
+import { AccessControl } from 'accesscontrol';
+import { resources } from '../Electron/Database/Repositories/Auth/dev-permissions';
 
 // Create rtl cache
 const rtlCache = createCache({
@@ -47,15 +49,10 @@ const ltrCache = createCache({
 });
 
 export function App() {
-
-
-
-
-
     // Navigation
     const [openDrawer, setOpenDrawer] = useState(false)
     const [openSettingsList, setOpenSettingsList] = useState(false)
-    const [content, setContent] = useState(<Home />)
+    const [content, setContent] = useState(<Users />)
 
     // Localization
     const { t, i18n } = useTranslation();
@@ -171,16 +168,43 @@ export function App() {
     }
 
     // Authentication
-    const [loggingOut, setLoggingOut] = useState(false)
+    const [authLoading, setAuthLoading] = useState(false)
     const [user, setUser] = useState<User>(null);
-    const [authFetched, setAuthFetched] = useState(false)
-    const fetchUser = async () => {
+    const [ac, setAccessControl] = useState<AccessControl | null>(null);
+    const getPrivileges = async () => {
         try {
-            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getAuthenticatedUser()
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPrivileges()
             if (res.code !== 200) {
                 setResult({
                     severity: 'error',
-                    message: t('failedToAuthenticated'),
+                    message: t('failedToAuthenticate'),
+                })
+                return
+            }
+
+            setAccessControl(res.data as AccessControl)
+            setResult({
+                severity: 'success',
+                message: t('successfullyAuthenticated'),
+            })
+        } catch (error) {
+            console.error(error)
+
+            setResult({
+                severity: 'error',
+                message: t('failedToAuthenticate'),
+            })
+        }
+    }
+    const fetchUser = async () => {
+        try {
+            setAuthLoading(true)
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getAuthenticatedUser()
+            setAuthLoading(false)
+            if (res.code !== 200) {
+                setResult({
+                    severity: 'error',
+                    message: t('failedToAuthenticate'),
                 })
                 return
             }
@@ -195,7 +219,7 @@ export function App() {
 
             setResult({
                 severity: 'error',
-                message: t('failedToAuthenticated'),
+                message: t('failedToAuthenticate'),
             })
         }
     }
@@ -205,7 +229,7 @@ export function App() {
             if (res.code !== 200 || res.data !== true) {
                 setResult({
                     severity: 'error',
-                    message: t('failedToAuthenticated'),
+                    message: t('failedToAuthenticate'),
                 })
                 return
             }
@@ -221,15 +245,15 @@ export function App() {
 
             setResult({
                 severity: 'error',
-                message: t('failedToAuthenticated'),
+                message: t('failedToAuthenticate'),
             })
         }
     }
     const logout = async () => {
         try {
-            setLoggingOut(true)
+            setAuthLoading(true)
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.logout()
-            setLoggingOut(false)
+            setAuthLoading(false)
             if (res.code !== 200) {
                 setResult({
                     severity: 'error',
@@ -286,7 +310,7 @@ export function App() {
 
     return (
         <>
-            <AuthContext.Provider value={{ user: user, setUser: setUser }}>
+            <AuthContext.Provider value={{ user: user, setUser: setUser, accessControl: ac }}>
                 <ConfigurationContext.Provider value={{ get: configuration, set: { updateTheme, updateLocale, updateTimeZone } }}>
                     <CacheProvider value={configuration.locale.direction === 'rtl' ? rtlCache : ltrCache}>
                         <ThemeProvider theme={configuration.theme}>
@@ -300,12 +324,15 @@ export function App() {
                                         </ListItemIcon>
                                         <ListItemText primary={t('home')} />
                                     </ListItemButton>
-                                    <ListItemButton onClick={() => { setContent(<Users />); setOpenDrawer(false) }}>
-                                        <ListItemIcon>
-                                            <PersonIcon />
-                                        </ListItemIcon>
-                                        <ListItemText primary={t('users')} />
-                                    </ListItemButton>
+                                    {
+                                        ac && user && ac.can(user.roleName).read(resources.USER).granted &&
+                                        <ListItemButton onClick={() => { setContent(<Users />); setOpenDrawer(false) }}>
+                                            <ListItemIcon>
+                                                <PersonIcon />
+                                            </ListItemIcon>
+                                            <ListItemText primary={t('users')} />
+                                        </ListItemButton>
+                                    }
                                     <ListItemButton onClick={() => setOpenSettingsList(!openSettingsList)}>
                                         <ListItemIcon>
                                             <SettingsIcon />
@@ -341,7 +368,11 @@ export function App() {
                                         {
                                             user &&
                                             <IconButton size='medium' color='inherit' onClick={async () => { await logout(); }}>
-                                                <LogoutIcon />
+                                                {
+                                                    authLoading
+                                                        ? <CircularProgress size='small' />
+                                                        : <LogoutIcon />
+                                                }
                                             </IconButton>
                                         }
                                         <IconButton size='medium' color='inherit' onClick={() => updateTheme(configuration.theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.locale.direction, getReactLocale(configuration.locale.code))}>
@@ -355,7 +386,7 @@ export function App() {
                                 </Box>
                             </Stack>
 
-                            <Modal open={user === null} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
+                            <Modal open={!authLoading && user === null} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
                                 <Slide direction={user == null ? 'up' : 'down'} in={user == null} timeout={250}>
                                     <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
                                         <LoginForm onFinish={login} />
