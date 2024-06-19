@@ -6,9 +6,8 @@ import { MongoDB } from "../../mongodb";
 import type { IFileRepository } from "../../dbAPI";
 import { Unauthorized } from "../../Unauthorized";
 import { Unauthenticated } from "../../Unauthenticated";
-import { Auth } from "../Auth/Auth";
 import { resources } from "../Auth/dev-permissions";
-import { privilegesRepository } from "../../handleDbEvents";
+import { authRepository, privilegesRepository } from "../../handleDbEvents";
 
 export class FileRepository extends MongoDB implements IFileRepository {
     async handleEvents(): Promise<void> {
@@ -21,7 +20,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
     }
 
     async uploadFiles(patientId: string, files: { fileName: string; bytes: Buffer | Uint8Array; }[]): Promise<boolean> {
-        const authenticated = Auth.getAuthenticated();
+        const authenticated = await authRepository.getAuthenticatedUser()
         if (authenticated == null)
             throw new Unauthenticated();
 
@@ -54,7 +53,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
     }
 
     async retrieveFiles(patientId: string): Promise<GridFSFile[]> {
-        const authenticated = Auth.getAuthenticated();
+        const authenticated = await authRepository.getAuthenticatedUser()
         if (authenticated == null)
             throw new Unauthenticated();
 
@@ -73,7 +72,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
     }
 
     async downloadFile(patientId: string, fileName: string): Promise<string> {
-        const authenticated = Auth.getAuthenticated();
+        const authenticated = await authRepository.getAuthenticatedUser()
         if (authenticated == null)
             throw new Unauthenticated();
 
@@ -100,7 +99,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
     }
 
     async downloadFiles(patientId: string): Promise<string[]> {
-        const authenticated = Auth.getAuthenticated();
+        const authenticated = await authRepository.getAuthenticatedUser()
         if (authenticated == null)
             throw new Unauthenticated();
 
@@ -133,7 +132,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
     }
 
     async openFile(patientId: string, fileName: string): Promise<void> {
-        const authenticated = Auth.getAuthenticated();
+        const authenticated = await authRepository.getAuthenticatedUser()
         if (authenticated == null)
             throw new Unauthenticated();
 
@@ -171,7 +170,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
     }
 
     async deleteFiles(patientId: string): Promise<boolean> {
-        const authenticated = Auth.getAuthenticated();
+        const authenticated = await authRepository.getAuthenticatedUser()
         if (authenticated == null)
             throw new Unauthenticated();
 

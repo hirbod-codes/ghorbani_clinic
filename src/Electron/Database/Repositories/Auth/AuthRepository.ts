@@ -1,7 +1,7 @@
 import { MongoDB } from "../../mongodb";
 import { User } from "../../Models/User";
 import { IAuthRepository } from "../../dbAPI";
-import { hashSync } from "bcrypt";
+import { compareSync } from "bcrypt";
 import { Auth } from "./Auth";
 import { DateTime } from "luxon";
 import { ipcMain } from "electron";
@@ -14,8 +14,8 @@ export class AuthRepository extends MongoDB implements IAuthRepository {
     }
 
     async login(username: string, password: string): Promise<boolean> {
-        const user = await (await this.getUsersCollection()).findOne({ username: username, password: hashSync(password, 10) });
-        if (user) {
+        const user = await (await this.getUsersCollection()).findOne({ username: username });
+        if (user && compareSync(password, user.password)) {
             Auth.authenticatedUser = user
             Auth.authenticatedAt = DateTime.utc().toUnixInteger()
             return true

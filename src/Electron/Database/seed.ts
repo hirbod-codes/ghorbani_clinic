@@ -7,6 +7,7 @@ import { User } from "./Models/User";
 import { Privilege } from "./Models/Privilege";
 import { privileges } from "./Repositories/Auth/dev-permissions";
 import { users } from "./Repositories/Auth/dev-users";
+import { hashSync } from "bcrypt";
 
 export async function seedUsersRoles(usersCollection: Collection<User>, privilegesCollection: Collection<Privilege>): Promise<void> {
     try {

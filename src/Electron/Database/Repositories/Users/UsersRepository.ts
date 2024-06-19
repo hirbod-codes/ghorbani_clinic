@@ -2,10 +2,9 @@ import { DeleteResult, Document, InsertOneResult, UpdateResult } from "mongodb";
 import { MongoDB } from "../../mongodb";
 import { User, updatableFields, userSchema } from "../../Models/User";
 import { IUsersRepository } from "../../dbAPI";
-import { Auth } from "../Auth/Auth";
 import { Unauthenticated } from "../../Unauthenticated";
 import { Unauthorized } from "../../Unauthorized";
-import { privilegesRepository } from "../../handleDbEvents";
+import { authRepository, privilegesRepository } from "../../handleDbEvents";
 import { resources, roles } from "../Auth/dev-permissions";
 import { DateTime } from "luxon";
 import { extractKeys, extractKeysRecursive } from "../../helpers";
@@ -25,7 +24,7 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
         if (user.roleName === roles.ADMIN)
             throw new Unauthorized()
 
-        const authenticated = Auth.getAuthenticated();
+        const authenticated = await authRepository.getAuthenticatedUser()
         if (authenticated == null)
             throw new Unauthenticated();
 
@@ -44,7 +43,7 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
     }
 
     async getUser(userId: string): Promise<User | null> {
-        const authenticated = Auth.getAuthenticated();
+        const authenticated = await authRepository.getAuthenticatedUser()
         if (authenticated == null)
             throw new Unauthenticated();
 
@@ -65,7 +64,7 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
     }
 
     async getUsers(): Promise<User[]> {
-        const authenticated = Auth.getAuthenticated();
+        const authenticated = await authRepository.getAuthenticatedUser()
         if (authenticated == null)
             throw new Unauthenticated();
 
@@ -82,7 +81,7 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
     }
 
     async updateUser(user: User): Promise<UpdateResult> {
-        const authenticated = Auth.getAuthenticated();
+        const authenticated = await authRepository.getAuthenticatedUser()
         if (authenticated == null)
             throw new Unauthenticated();
 
@@ -106,12 +105,12 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
     }
 
     async deleteUser(userId: string): Promise<DeleteResult> {
-        const user = Auth.getAuthenticated();
-        if (!user)
+        const authenticated = await authRepository.getAuthenticatedUser()
+        if (!authenticated)
             throw new Unauthenticated();
 
         const privileges = await privilegesRepository.getPrivileges();
-        if (!privileges.can(user.roleName).delete(resources.USER).granted)
+        if (!privileges.can(authenticated.roleName).delete(resources.USER).granted)
             throw new Unauthorized()
 
         return (await (await this.getUsersCollection()).deleteOne({ _id: userId }))

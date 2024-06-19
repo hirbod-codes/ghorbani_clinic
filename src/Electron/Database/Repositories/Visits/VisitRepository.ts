@@ -7,8 +7,7 @@ import { extractKeysRecursive } from "../../helpers";
 import { ipcMain } from "electron";
 import { DeleteResult, InsertOneResult, UpdateResult } from "mongodb";
 import { Unauthenticated } from "../../Unauthenticated";
-import { Auth } from "../Auth/Auth";
-import { privilegesRepository } from "../../handleDbEvents";
+import { authRepository, privilegesRepository } from "../../handleDbEvents";
 import { resources } from "../Auth/dev-permissions";
 import { getFields } from "../../Models/helpers";
 
@@ -21,7 +20,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
     }
 
     async createVisit(visit: Visit): Promise<InsertOneResult> {
-        const user = Auth.getAuthenticated();
+        const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();
 
@@ -40,7 +39,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
     }
 
     async getVisits(patientId: string): Promise<Visit[]> {
-        const user = Auth.getAuthenticated();
+        const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();
 
@@ -56,7 +55,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
     }
 
     async updateVisit(visit: Visit): Promise<UpdateResult> {
-        const user = Auth.getAuthenticated();
+        const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();
 
@@ -80,7 +79,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
     }
 
     async deleteVisit(id: string): Promise<DeleteResult> {
-        const user = Auth.getAuthenticated();
+        const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();
 

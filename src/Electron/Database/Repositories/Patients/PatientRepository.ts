@@ -8,9 +8,8 @@ import { extractKeys, extractKeysRecursive } from "../../helpers";
 import { MongoDB } from "../../mongodb";
 import { ipcMain } from "electron";
 import { Unauthenticated } from "../../Unauthenticated";
-import { privilegesRepository } from "../../handleDbEvents";
+import { authRepository, privilegesRepository } from "../../handleDbEvents";
 import { resources } from "../Auth/dev-permissions";
-import { Auth } from "../Auth/Auth";
 import { getFields } from "../../Models/helpers";
 
 export class PatientRepository extends MongoDB implements IPatientRepository {
@@ -25,7 +24,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
     }
 
     async createPatient(patient: Patient): Promise<InsertOneResult> {
-        const user = Auth.getAuthenticated();
+        const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();
 
@@ -44,7 +43,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
     }
 
     async getPatientWithVisits(socialId: string): Promise<Patient & { visits: Visit[] }> {
-        const user = Auth.getAuthenticated();
+        const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();
 
@@ -83,7 +82,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
     }
 
     async getPatient(socialId: string): Promise<Patient | null> {
-        const user = Auth.getAuthenticated();
+        const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();
 
@@ -105,7 +104,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
     }
 
     async getPatients(offset: number, count: number): Promise<Patient[]> {
-        const user = Auth.getAuthenticated();
+        const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();
 
@@ -122,7 +121,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
     }
 
     async getPatientsWithVisits(offset: number, count: number): Promise<(Patient & { visits: Visit[] })[]> {
-        const user = Auth.getAuthenticated();
+        const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();
 
@@ -167,7 +166,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
     }
 
     async updatePatient(patient: Patient): Promise<UpdateResult> {
-        const user = Auth.getAuthenticated();
+        const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();
 
@@ -190,7 +189,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
     }
 
     async deletePatient(id: string): Promise<DeleteResult> {
-        const user = Auth.getAuthenticated();
+        const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();
 

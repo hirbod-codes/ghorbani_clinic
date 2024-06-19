@@ -2,14 +2,18 @@ import HomeIcon from '@mui/icons-material/HomeOutlined';
 import PersonIcon from '@mui/icons-material/PersonOutlined';
 import SettingsIcon from '@mui/icons-material/SettingsOutlined';
 import MenuIcon from '@mui/icons-material/MenuOutlined';
+import CheckIcon from '@mui/icons-material/CheckOutlined';
+import CloseIcon from '@mui/icons-material/CloseOutlined';
+import DangerousIcon from '@mui/icons-material/DangerousOutlined';
+import LogoutIcon from '@mui/icons-material/LogoutOutlined';
 import LightModeIcon from '@mui/icons-material/LightModeOutlined'
 import DarkModeIcon from '@mui/icons-material/DarkModeOutlined'
 import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import DisplaySettingsIcon from '@mui/icons-material/DisplaySettingsOutlined';
 
-import { CssBaseline, PaletteMode, createTheme, useMediaQuery, AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, ThemeProvider, Collapse, CircularProgress, Stack, Box } from '@mui/material'
-import { useState, useRef } from 'react'
+import { CssBaseline, PaletteMode, createTheme, useMediaQuery, AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, ThemeProvider, Collapse, CircularProgress, Stack, Box, Modal, Slide, Paper, Snackbar, Alert, AlertColor, AlertPropsColorOverrides, TextField, Button } from '@mui/material'
+import { useState, useRef, useEffect, ReactNode } from 'react'
 import { Localization, enUS } from '@mui/material/locale';
 import { useTranslation } from "react-i18next";
 
@@ -27,6 +31,10 @@ import rtlPlugin from 'stylis-plugin-rtl';
 import type { configAPI } from '../Electron/Configuration/renderer/configAPI';
 import { RendererDbAPI } from '../Electron/Database/handleDbRendererEvents';
 import { Users } from './Pages/Users';
+import { User } from '../Electron/Database/Models/User';
+import { OverridableStringUnion } from "@mui/types"
+import { AuthContext } from './Lib/AuthContext';
+import { t } from 'i18next';
 
 // Create rtl cache
 const rtlCache = createCache({
@@ -162,6 +170,105 @@ export function App() {
         persistConfigurationData({ locale: { ...configuration.locale, zone: configuration.locale.zone }, themeMode: configuration.themeMode })
     }
 
+    // Authentication
+    const [loggingOut, setLoggingOut] = useState(false)
+    const [user, setUser] = useState<User>(null);
+    const [authFetched, setAuthFetched] = useState(false)
+    const fetchUser = async () => {
+        try {
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getAuthenticatedUser()
+            if (res.code !== 200) {
+                setResult({
+                    severity: 'error',
+                    message: t('failedToAuthenticated'),
+                })
+                return
+            }
+
+            setUser(res.data)
+            setResult({
+                severity: 'success',
+                message: t('successfullyAuthenticated'),
+            })
+        } catch (error) {
+            console.error(error)
+
+            setResult({
+                severity: 'error',
+                message: t('failedToAuthenticated'),
+            })
+        }
+    }
+    const login = async (username: string, password: string) => {
+        try {
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.login(username, password)
+            if (res.code !== 200 || res.data !== true) {
+                setResult({
+                    severity: 'error',
+                    message: t('failedToAuthenticated'),
+                })
+                return
+            }
+
+            setResult({
+                severity: 'success',
+                message: t('successfullyAuthenticated'),
+            })
+
+            await fetchUser()
+        } catch (error) {
+            console.error(error)
+
+            setResult({
+                severity: 'error',
+                message: t('failedToAuthenticated'),
+            })
+        }
+    }
+    const logout = async () => {
+        try {
+            setLoggingOut(true)
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.logout()
+            setLoggingOut(false)
+            if (res.code !== 200) {
+                setResult({
+                    severity: 'error',
+                    message: t('failedToLogout'),
+                })
+                return
+            }
+
+
+            if (res.data !== true) {
+                setResult({
+                    severity: 'error',
+                    message: t('failedToLogout'),
+                })
+                return
+            }
+
+            setResult({
+                severity: 'success',
+                message: t('successfullyToLogout'),
+            })
+
+            setUser(null)
+
+            setContent(<Home />)
+        } catch (error) {
+            console.error(error)
+
+            setResult({
+                severity: 'error',
+                message: t('failedToLogout'),
+            })
+        }
+    }
+
+    const [result, setResult] = useState<{ message: string, severity: OverridableStringUnion<AlertColor, AlertPropsColorOverrides>, action?: ReactNode } | null>(null)
+
+    useEffect(() => { fetchUser() }, [])
+
     if (!configuration)
         return (
             <>
@@ -179,69 +286,116 @@ export function App() {
 
     return (
         <>
-            <ConfigurationContext.Provider value={{ get: configuration, set: { updateTheme, updateLocale, updateTimeZone } }}>
-                <CacheProvider value={configuration.locale.direction === 'rtl' ? rtlCache : ltrCache}>
-                    <ThemeProvider theme={configuration.theme}>
-                        <CssBaseline enableColorScheme />
+            <AuthContext.Provider value={{ user: user, setUser: setUser }}>
+                <ConfigurationContext.Provider value={{ get: configuration, set: { updateTheme, updateLocale, updateTimeZone } }}>
+                    <CacheProvider value={configuration.locale.direction === 'rtl' ? rtlCache : ltrCache}>
+                        <ThemeProvider theme={configuration.theme}>
+                            <CssBaseline enableColorScheme />
 
-                        <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)}>
-                            <List>
-                                <ListItemButton onClick={() => { setContent(<Home />); setOpenDrawer(false) }}>
-                                    <ListItemIcon>
-                                        <HomeIcon />
-                                    </ListItemIcon>
-                                    <ListItemText primary={t('home')} />
-                                </ListItemButton>
-                                <ListItemButton onClick={() => { setContent(<Users />); setOpenDrawer(false) }}>
-                                    <ListItemIcon>
-                                        <PersonIcon />
-                                    </ListItemIcon>
-                                    <ListItemText primary={t('users')} />
-                                </ListItemButton>
-                                <ListItemButton onClick={() => setOpenSettingsList(!openSettingsList)}>
-                                    <ListItemIcon>
-                                        <SettingsIcon />
-                                    </ListItemIcon>
-                                    <ListItemText primary={t('settings')} />
-                                    {openSettingsList ? <ExpandLess /> : <ExpandMore />}
-                                </ListItemButton>
-                                <Collapse in={openSettingsList} timeout="auto" unmountOnExit>
-                                    <List component="div" disablePadding>
-                                        <ListItemButton sx={{ pl: 4 }} onClick={() => { setContent(<General />); setOpenDrawer(false) }}>
-                                            <ListItemIcon>
-                                                <DisplaySettingsIcon />
-                                            </ListItemIcon>
-                                            <ListItemText primary={t("general")} />
-                                        </ListItemButton>
-                                    </List>
-                                </Collapse>
-                            </List>
-                        </Drawer>
+                            <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)}>
+                                <List>
+                                    <ListItemButton onClick={() => { setContent(<Home />); setOpenDrawer(false) }}>
+                                        <ListItemIcon>
+                                            <HomeIcon />
+                                        </ListItemIcon>
+                                        <ListItemText primary={t('home')} />
+                                    </ListItemButton>
+                                    <ListItemButton onClick={() => { setContent(<Users />); setOpenDrawer(false) }}>
+                                        <ListItemIcon>
+                                            <PersonIcon />
+                                        </ListItemIcon>
+                                        <ListItemText primary={t('users')} />
+                                    </ListItemButton>
+                                    <ListItemButton onClick={() => setOpenSettingsList(!openSettingsList)}>
+                                        <ListItemIcon>
+                                            <SettingsIcon />
+                                        </ListItemIcon>
+                                        <ListItemText primary={t('settings')} />
+                                        {openSettingsList ? <ExpandLess /> : <ExpandMore />}
+                                    </ListItemButton>
+                                    <Collapse in={openSettingsList} timeout="auto" unmountOnExit>
+                                        <List component="div" disablePadding>
+                                            <ListItemButton sx={{ pl: 4 }} onClick={() => { setContent(<General />); setOpenDrawer(false) }}>
+                                                <ListItemIcon>
+                                                    <DisplaySettingsIcon />
+                                                </ListItemIcon>
+                                                <ListItemText primary={t("general")} />
+                                            </ListItemButton>
+                                        </List>
+                                    </Collapse>
+                                </List>
+                            </Drawer>
 
-                        <Stack direction='column' height={'100%'} alignItems='stretch' justifyContent='flex-start'>
-                            <MenuBar backgroundColor={configuration.theme.palette.background.default} />
+                            <Stack direction='column' height={'100%'} alignItems='stretch' justifyContent='flex-start'>
+                                <MenuBar backgroundColor={configuration.theme.palette.background.default} />
 
-                            <AppBar position='relative'>
-                                <Toolbar variant="dense">
-                                    <IconButton size='large' color='inherit' onClick={() => setOpenDrawer(true)} sx={{ mr: 2 }}>
-                                        <MenuIcon fontSize='inherit' />
-                                    </IconButton>
-                                    <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
-                                        {/* Title */}
-                                    </Typography>
-                                    <IconButton size='medium' color='inherit' onClick={() => updateTheme(configuration.theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.locale.direction, getReactLocale(configuration.locale.code))}>
-                                        {configuration.theme.palette.mode == 'light' ? <LightModeIcon fontSize='inherit' /> : <DarkModeIcon fontSize='inherit' />}
-                                    </IconButton>
-                                </Toolbar>
-                            </AppBar>
+                                <AppBar position='relative'>
+                                    <Toolbar variant="dense">
+                                        <IconButton size='large' color='inherit' onClick={() => setOpenDrawer(true)} sx={{ mr: 2 }}>
+                                            <MenuIcon fontSize='inherit' />
+                                        </IconButton>
+                                        <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
+                                            {/* Title */}
+                                            {user && user?.username}
+                                        </Typography>
+                                        {
+                                            user &&
+                                            <IconButton size='medium' color='inherit' onClick={async () => { await logout(); }}>
+                                                <LogoutIcon />
+                                            </IconButton>
+                                        }
+                                        <IconButton size='medium' color='inherit' onClick={() => updateTheme(configuration.theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.locale.direction, getReactLocale(configuration.locale.code))}>
+                                            {configuration.theme.palette.mode == 'light' ? <LightModeIcon fontSize='inherit' /> : <DarkModeIcon fontSize='inherit' />}
+                                        </IconButton>
+                                    </Toolbar>
+                                </AppBar>
 
-                            <Box flexGrow={1}>
-                                {content}
-                            </Box>
-                        </Stack>
-                    </ThemeProvider >
-                </CacheProvider>
-            </ConfigurationContext.Provider>
+                                <Box flexGrow={1}>
+                                    {user && content}
+                                </Box>
+                            </Stack>
+
+                            <Modal open={user === null} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
+                                <Slide direction={user == null ? 'up' : 'down'} in={user == null} timeout={250}>
+                                    <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
+                                        <LoginForm onFinish={login} />
+                                    </Paper>
+                                </Slide>
+                            </Modal>
+
+                            <Snackbar
+                                open={result !== null}
+                                autoHideDuration={7000}
+                                onClose={() => setResult(null)}
+                                action={result?.action}
+                            >
+                                <Alert
+                                    icon={result?.severity === 'success' ? <CheckIcon fontSize="inherit" /> : (result?.severity === 'error' ? <CloseIcon fontSize="inherit" /> : (result?.severity === 'warning' ? <DangerousIcon fontSize="inherit" /> : null))}
+                                    severity={result?.severity}
+                                >
+                                    {result?.message}
+                                </Alert>
+                            </Snackbar>
+                        </ThemeProvider >
+                    </CacheProvider>
+                </ConfigurationContext.Provider>
+            </AuthContext.Provider>
+        </>
+    )
+}
+
+function LoginForm({ onFinish }: { onFinish: (username: string, password: string) => void | Promise<void> }) {
+    const [username, setUsername] = useState('')
+    const [password, setPassword] = useState('')
+    return (
+        <>
+            <Stack direction='column' spacing={2}>
+                <TextField variant='standard' type='text' value={username} onChange={(e) => setUsername(e.target.value)} label={t('username')} />
+                <TextField variant='standard' type='password' value={password} onChange={(e) => setPassword(e.target.value)} label={t('password')} />
+                <Button onClick={() => onFinish(username, password)}>
+                    {t('login')}
+                </Button>
+            </Stack>
         </>
     )
 }

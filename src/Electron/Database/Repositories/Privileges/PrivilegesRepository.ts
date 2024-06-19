@@ -9,6 +9,7 @@ import { Unauthorized } from "../../Unauthorized";
 import { DateTime } from "luxon";
 import { Auth } from "../Auth/Auth";
 import { ipcMain } from "electron";
+import { authRepository } from "../../handleDbEvents";
 
 export class PrivilegesRepository extends MongoDB implements IPrivilegesRepository {
     async handleEvents(): Promise<void> {
@@ -20,7 +21,7 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
     }
 
     async createPrivilege(privilege: Privilege): Promise<InsertOneResult> {
-        const user = Auth.getAuthenticated();
+        const user = await authRepository.getAuthenticatedUser()
         if (user == null)
             throw new Unauthenticated();
 
@@ -39,7 +40,7 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
     }
 
     async getPrivilege(roleName: string, action: string): Promise<Privilege | null> {
-        const user = Auth.getAuthenticated();
+        const user = await authRepository.getAuthenticatedUser()
         if (user == null)
             throw new Unauthenticated();
 
@@ -52,7 +53,7 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
     async getPrivileges(): Promise<AccessControl>
     async getPrivileges(roleName: string): Promise<Privilege[]>
     async getPrivileges(roleName?: string): Promise<Privilege[] | AccessControl> {
-        const user = Auth.getAuthenticated();
+        const user = await authRepository.getAuthenticatedUser()
         if (user == null)
             throw new Unauthenticated();
 
@@ -69,7 +70,7 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
     }
 
     async updatePrivilege(privilege: Privilege): Promise<UpdateResult | undefined> {
-        const user = Auth.getAuthenticated();
+        const user = await authRepository.getAuthenticatedUser()
         if (user == null)
             throw new Unauthenticated();
 
@@ -81,7 +82,7 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
     }
 
     async deletePrivilege(id: string): Promise<DeleteResult> {
-        const user = Auth.getAuthenticated();
+        const user = await authRepository.getAuthenticatedUser()
         if (user == null)
             throw new Unauthenticated();
 
