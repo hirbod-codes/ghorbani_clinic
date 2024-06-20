@@ -298,7 +298,7 @@ export function Users() {
             >
                 <Slide direction={Boolean(editingRole) || openCreateRoleModal ? 'up' : 'down'} in={Boolean(editingRole) || openCreateRoleModal} timeout={250}>
                     <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
-                        <ManageRole role={editingRole} onClose={() => {
+                        <ManageRole defaultRole={editingRole} onClose={() => {
                             if (openCreateRoleModal) setOpenCreateRoleModal(false);
                             else if (Boolean(editingRole))
                                 setEditingRole(undefined)

@@ -1,6 +1,6 @@
 import { useState, useEffect, useContext } from 'react'
 import { User } from "../../Electron/Database/Models/User";
-import { FormControl, InputLabel, Select, MenuItem, Stack, Grid, TextField, Button } from '@mui/material';
+import { FormControl, InputLabel, Select, MenuItem, Stack, Grid, TextField, Button, Typography } from '@mui/material';
 import { t } from 'i18next';
 import { RendererDbAPI } from '../../Electron/Database/handleDbRendererEvents';
 import { ResultContext } from '../ResultContext';
@@ -18,6 +18,7 @@ export default function ManageUser({ roles, defaultUser, onClose }: { roles: str
     return (
         <>
             <Stack justifyContent={'space-around'} sx={{ height: '100%', width: '100%' }}>
+                <Typography textAlign='center' variant='h6'>{defaultUser ? t('updateUser') : t('createUser')}</Typography>
                 <Grid container spacing={2} >
                     <Grid item>
                         {/* Role Name */}
@@ -74,7 +75,7 @@ export default function ManageUser({ roles, defaultUser, onClose }: { roles: str
                             if (onClose)
                                 onClose()
                         }}>
-                            {defaultUser ? t('updateUser') : t('createUser')}
+                            {t('done')}
                         </Button>
                     </Grid>
                 </Grid>
