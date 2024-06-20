@@ -13,8 +13,10 @@ import { AuthContext } from "../Lib/AuthContext";
 import ManageUser from "../Components/ManageUser";
 import ManageRole from "../Components/ManageRole";
 import LoadingScreen from '../Components/LoadingScreen';
+import { ResultContext } from "../ResultContext";
 
 export function Users() {
+    const setResult = useContext(ResultContext).setResult
     const configuration = useContext(ConfigurationContext)
     const auth = useContext(AuthContext)
 
@@ -136,8 +138,6 @@ export function Users() {
         }
     }
 
-    const [result, setResult] = useState<{ message: string, severity: OverridableStringUnion<AlertColor, AlertPropsColorOverrides>, action?: ReactNode } | null>(null)
-
     const columns: GridColDef<any>[] = [
         {
             field: 'username',
@@ -177,10 +177,10 @@ export function Users() {
             type: 'actions',
             getActions: (params) => [
                 updatesUser
-                    ? <GridActionsCellItem icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress />} onClick={() => setEditingUser(users.find(u => u._id === params.row.id))} label={t('editUser')} />
+                    ? <GridActionsCellItem icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />} onClick={() => setEditingUser(users.find(u => u._id === params.row.id))} label={t('editUser')} />
                     : null,
                 deletesUser
-                    ? <GridActionsCellItem icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress />} onClick={async () => await deleteUser(params.row.id)} label={t('deleteUser')} />
+                    ? <GridActionsCellItem icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />} onClick={async () => await deleteUser(params.row.id)} label={t('deleteUser')} />
                     : null,
             ].filter(a => a != null)
         })
@@ -209,7 +209,7 @@ export function Users() {
                                                 auth.accessControl?.can(auth.user.roleName).update(resources.PRIVILEGE).granted &&
                                                 <ListItemButton sx={{ pl: 4 }}>
                                                     <ListItemIcon onClick={() => setEditingRole(r)}>
-                                                        {editingRole ? <CircularProgress /> : <EditOutlined />}
+                                                        {editingRole ? <CircularProgress size={20} /> : <EditOutlined />}
                                                     </ListItemIcon>
                                                     <ListItemText primary={t("edit")} />
                                                 </ListItemButton>
@@ -218,7 +218,7 @@ export function Users() {
                                                 auth.accessControl?.can(auth.user.roleName).delete(resources.PRIVILEGE).granted &&
                                                 <ListItemButton sx={{ pl: 4 }}>
                                                     <ListItemIcon onClick={async () => await deleteRole(r)}>
-                                                        {deletingRole ? <CircularProgress /> : <DeleteOutlined />}
+                                                        {deletingRole ? <CircularProgress size={20} /> : <DeleteOutlined />}
                                                     </ListItemIcon>
                                                     <ListItemText primary={t("delete")} />
                                                 </ListItemButton>
@@ -274,7 +274,11 @@ export function Users() {
             >
                 <Slide direction={Boolean(editingUser) || openCreateUserModal ? 'up' : 'down'} in={Boolean(editingUser) || openCreateUserModal} timeout={250}>
                     <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
-                        <ManageUser user={editingUser} />
+                        <ManageUser roles={roles} defaultUser={editingUser} onClose={() => {
+                            if (openCreateUserModal) setOpenCreateUserModal(false);
+                            else if (Boolean(editingUser))
+                                setEditingUser(undefined)
+                        }} />
                     </Paper>
                 </Slide>
             </Modal>
@@ -294,24 +298,14 @@ export function Users() {
             >
                 <Slide direction={Boolean(editingRole) || openCreateRoleModal ? 'up' : 'down'} in={Boolean(editingRole) || openCreateRoleModal} timeout={250}>
                     <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
-                        <ManageRole role={editingRole} />
+                        <ManageRole role={editingRole} onClose={() => {
+                            if (openCreateRoleModal) setOpenCreateRoleModal(false);
+                            else if (Boolean(editingRole))
+                                setEditingRole(undefined)
+                        }} />
                     </Paper>
                 </Slide>
             </Modal>
-
-            <Snackbar
-                open={result !== null}
-                autoHideDuration={7000}
-                onClose={() => setResult(null)}
-                action={result?.action}
-            >
-                <Alert
-                    icon={result?.severity === 'success' ? <CheckOutlined fontSize="inherit" /> : (result?.severity === 'error' ? <CloseOutlined fontSize="inherit" /> : (result?.severity === 'warning' ? <DangerousOutlined fontSize="inherit" /> : null))}
-                    severity={result?.severity}
-                >
-                    {result?.message}
-                </Alert>
-            </Snackbar>
         </>
     )
 }

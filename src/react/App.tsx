@@ -38,6 +38,7 @@ import { AccessControl } from 'accesscontrol';
 import { resources } from '../Electron/Database/Repositories/Auth/dev-permissions';
 import LoadingScreen from './Components/LoadingScreen';
 import { LoginForm } from './LoginForm';
+import { Result, ResultContext } from './ResultContext';
 
 // Create rtl cache
 const rtlCache = createCache({
@@ -294,7 +295,7 @@ export function App() {
         }
     }
 
-    const [result, setResult] = useState<{ message: string, severity: OverridableStringUnion<AlertColor, AlertPropsColorOverrides>, action?: ReactNode } | null>(null)
+    const [result, setResult] = useState<Result | null>(null)
 
     useEffect(() => { fetchUser() }, [])
 
@@ -303,107 +304,109 @@ export function App() {
 
     return (
         <>
-            <AuthContext.Provider value={{ user: user, setUser: setUser, accessControl: ac }}>
-                <ConfigurationContext.Provider value={{ get: configuration, set: { updateTheme, updateLocale, updateTimeZone } }}>
-                    <CacheProvider value={configuration.locale.direction === 'rtl' ? rtlCache : ltrCache}>
-                        <ThemeProvider theme={configuration.theme}>
-                            <CssBaseline enableColorScheme />
+            <ResultContext.Provider value={result, setResult}>
+                <AuthContext.Provider value={{ user: user, setUser: setUser, accessControl: ac }}>
+                    <ConfigurationContext.Provider value={{ get: configuration, set: { updateTheme, updateLocale, updateTimeZone } }}>
+                        <CacheProvider value={configuration.locale.direction === 'rtl' ? rtlCache : ltrCache}>
+                            <ThemeProvider theme={configuration.theme}>
+                                <CssBaseline enableColorScheme />
 
-                            <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)}>
-                                <List>
-                                    <ListItemButton onClick={() => { setContent(<Home />); setOpenDrawer(false) }}>
-                                        <ListItemIcon>
-                                            <HomeIcon />
-                                        </ListItemIcon>
-                                        <ListItemText primary={t('home')} />
-                                    </ListItemButton>
-                                    {
-                                        ac && user && ac.can(user.roleName).read(resources.USER).granted &&
-                                        <ListItemButton onClick={() => { setContent(<Users />); setOpenDrawer(false) }}>
+                                <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)}>
+                                    <List>
+                                        <ListItemButton onClick={() => { setContent(<Home />); setOpenDrawer(false) }}>
                                             <ListItemIcon>
-                                                <PersonIcon />
+                                                <HomeIcon />
                                             </ListItemIcon>
-                                            <ListItemText primary={t('users')} />
+                                            <ListItemText primary={t('home')} />
                                         </ListItemButton>
-                                    }
-                                    <ListItemButton onClick={() => setOpenSettingsList(!openSettingsList)}>
-                                        <ListItemIcon>
-                                            <SettingsIcon />
-                                        </ListItemIcon>
-                                        <ListItemText primary={t('settings')} />
-                                        {openSettingsList ? <ExpandLess /> : <ExpandMore />}
-                                    </ListItemButton>
-                                    <Collapse in={openSettingsList} timeout="auto" unmountOnExit>
-                                        <List component="div" disablePadding>
-                                            <ListItemButton sx={{ pl: 4 }} onClick={() => { setContent(<General />); setOpenDrawer(false) }}>
-                                                <ListItemIcon>
-                                                    <DisplaySettingsIcon />
-                                                </ListItemIcon>
-                                                <ListItemText primary={t("general")} />
-                                            </ListItemButton>
-                                        </List>
-                                    </Collapse>
-                                </List>
-                            </Drawer>
-
-                            <Stack direction='column' height={'100%'} alignItems='stretch' justifyContent='flex-start'>
-                                <MenuBar backgroundColor={configuration.theme.palette.background.default} />
-
-                                <AppBar position='relative'>
-                                    <Toolbar variant="dense">
-                                        <IconButton size='large' color='inherit' onClick={() => setOpenDrawer(true)} sx={{ mr: 2 }}>
-                                            <MenuIcon fontSize='inherit' />
-                                        </IconButton>
-                                        <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
-                                            {/* Title */}
-                                            {user && user?.username}
-                                        </Typography>
                                         {
-                                            user &&
-                                            <IconButton size='medium' color='inherit' onClick={async () => { await logout(); }}>
-                                                {
-                                                    authLoading
-                                                        ? <CircularProgress size='small' />
-                                                        : <LogoutIcon />
-                                                }
-                                            </IconButton>
+                                            ac && user && ac.can(user.roleName).read(resources.USER).granted &&
+                                            <ListItemButton onClick={() => { setContent(<Users />); setOpenDrawer(false) }}>
+                                                <ListItemIcon>
+                                                    <PersonIcon />
+                                                </ListItemIcon>
+                                                <ListItemText primary={t('users')} />
+                                            </ListItemButton>
                                         }
-                                        <IconButton size='medium' color='inherit' onClick={() => updateTheme(configuration.theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.locale.direction, getReactLocale(configuration.locale.code))}>
-                                            {configuration.theme.palette.mode == 'light' ? <LightModeIcon fontSize='inherit' /> : <DarkModeIcon fontSize='inherit' />}
-                                        </IconButton>
-                                    </Toolbar>
-                                </AppBar>
+                                        <ListItemButton onClick={() => setOpenSettingsList(!openSettingsList)}>
+                                            <ListItemIcon>
+                                                <SettingsIcon />
+                                            </ListItemIcon>
+                                            <ListItemText primary={t('settings')} />
+                                            {openSettingsList ? <ExpandLess /> : <ExpandMore />}
+                                        </ListItemButton>
+                                        <Collapse in={openSettingsList} timeout="auto" unmountOnExit>
+                                            <List component="div" disablePadding>
+                                                <ListItemButton sx={{ pl: 4 }} onClick={() => { setContent(<General />); setOpenDrawer(false) }}>
+                                                    <ListItemIcon>
+                                                        <DisplaySettingsIcon />
+                                                    </ListItemIcon>
+                                                    <ListItemText primary={t("general")} />
+                                                </ListItemButton>
+                                            </List>
+                                        </Collapse>
+                                    </List>
+                                </Drawer>
 
-                                <Box flexGrow={1}>
-                                    {user && content}
-                                </Box>
-                            </Stack>
+                                <Stack direction='column' height={'100%'} alignItems='stretch' justifyContent='flex-start'>
+                                    <MenuBar backgroundColor={configuration.theme.palette.background.default} />
 
-                            <Modal open={loginModal} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
-                                <Slide direction={loginModal ? 'up' : 'down'} in={loginModal} timeout={250}>
-                                    <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
-                                        <LoginForm onFinish={login} />
-                                    </Paper>
-                                </Slide>
-                            </Modal>
+                                    <AppBar position='relative'>
+                                        <Toolbar variant="dense">
+                                            <IconButton size='large' color='inherit' onClick={() => setOpenDrawer(true)} sx={{ mr: 2 }}>
+                                                <MenuIcon fontSize='inherit' />
+                                            </IconButton>
+                                            <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
+                                                {/* Title */}
+                                                {user && user?.username}
+                                            </Typography>
+                                            {
+                                                user &&
+                                                <IconButton size='medium' color='inherit' onClick={async () => { await logout(); }}>
+                                                    {
+                                                        authLoading
+                                                            ? <CircularProgress size='small' />
+                                                            : <LogoutIcon />
+                                                    }
+                                                </IconButton>
+                                            }
+                                            <IconButton size='medium' color='inherit' onClick={() => updateTheme(configuration.theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.locale.direction, getReactLocale(configuration.locale.code))}>
+                                                {configuration.theme.palette.mode == 'light' ? <LightModeIcon fontSize='inherit' /> : <DarkModeIcon fontSize='inherit' />}
+                                            </IconButton>
+                                        </Toolbar>
+                                    </AppBar>
 
-                            <Snackbar
-                                open={result !== null}
-                                autoHideDuration={7000}
-                                onClose={() => setResult(null)}
-                                action={result?.action}
-                            >
-                                <Alert
-                                    icon={result?.severity === 'success' ? <CheckIcon fontSize="inherit" /> : (result?.severity === 'error' ? <CloseIcon fontSize="inherit" /> : (result?.severity === 'warning' ? <DangerousIcon fontSize="inherit" /> : null))}
-                                    severity={result?.severity}
+                                    <Box flexGrow={1}>
+                                        {user && content}
+                                    </Box>
+                                </Stack>
+
+                                <Modal open={loginModal} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
+                                    <Slide direction={loginModal ? 'up' : 'down'} in={loginModal} timeout={250}>
+                                        <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
+                                            <LoginForm onFinish={login} />
+                                        </Paper>
+                                    </Slide>
+                                </Modal>
+
+                                <Snackbar
+                                    open={result !== null}
+                                    autoHideDuration={7000}
+                                    onClose={() => setResult(null)}
+                                    action={result?.action}
                                 >
-                                    {result?.message}
-                                </Alert>
-                            </Snackbar>
-                        </ThemeProvider >
-                    </CacheProvider>
-                </ConfigurationContext.Provider>
-            </AuthContext.Provider>
+                                    <Alert
+                                        icon={result?.severity === 'success' ? <CheckIcon fontSize="inherit" /> : (result?.severity === 'error' ? <CloseIcon fontSize="inherit" /> : (result?.severity === 'warning' ? <DangerousIcon fontSize="inherit" /> : null))}
+                                        severity={result?.severity}
+                                    >
+                                        {result?.message}
+                                    </Alert>
+                                </Snackbar>
+                            </ThemeProvider >
+                        </CacheProvider>
+                    </ConfigurationContext.Provider>
+                </AuthContext.Provider>
+            </ResultContext.Provider>
         </>
     )
 }
