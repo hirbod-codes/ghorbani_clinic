@@ -1,5 +1,5 @@
 import { DeleteResult, Document, InsertOneResult, UpdateResult } from "mongodb";
-import { patientSchema, type Patient, collectionName, updatableFields, readableFields as patientReadableFields } from "../../Models/Patient";
+import { patientSchema, type Patient, updatableFields, readableFields as patientReadableFields } from "../../Models/Patient";
 import { Visit, readableFields as visitReadableFields, collectionName as visitsCollectionName } from "../../Models/Visit";
 import { Unauthorized } from "../../Unauthorized";
 import { DateTime } from "luxon";
@@ -28,7 +28,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!user)
             throw new Unauthenticated();
 
-        if (!(await privilegesRepository.getPrivileges()).can(user.roleName).create(resources.PATIENT).granted)
+        if (!(await privilegesRepository.getAccessControl()).can(user.roleName).create(resources.PATIENT).granted)
             throw new Unauthorized()
 
         if (!patientSchema.isValidSync(patient))
@@ -47,7 +47,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!user)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         const patientPermission = privileges.can(user.roleName).read(resources.PATIENT);
         const visitPermission = privileges.can(user.roleName).read(resources.VISIT);
         if (!patientPermission.granted || !visitPermission.granted)
@@ -86,7 +86,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!user)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         const permission = privileges.can(user.roleName).read(resources.PATIENT);
         if (!permission.granted)
             throw new Unauthorized()
@@ -108,7 +108,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!user)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         const permission = privileges.can(user.roleName).read(resources.PATIENT);
         if (!permission.granted)
             throw new Unauthorized()
@@ -125,7 +125,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!user)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         const patientPermission = privileges.can(user.roleName).read(resources.PATIENT);
         const visitPermission = privileges.can(user.roleName).read(resources.VISIT);
         if (!patientPermission.granted || !visitPermission.granted)
@@ -170,7 +170,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!user)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         const permission = privileges.can(user.roleName).update(resources.PATIENT)
         if (!permission.granted)
             throw new Unauthorized()
@@ -193,7 +193,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!user)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         if (!privileges.can(user.roleName).delete(resources.PATIENT).granted)
             throw new Unauthorized()
 

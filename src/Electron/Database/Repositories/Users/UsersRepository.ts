@@ -28,7 +28,7 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
         if (authenticated == null)
             throw new Unauthenticated();
 
-        if (!(await privilegesRepository.getPrivileges()).can(authenticated.roleName).create(resources.USER).granted)
+        if (!(await privilegesRepository.getAccessControl()).can(authenticated.roleName).create(resources.USER).granted)
             throw new Unauthorized()
 
         if (!userSchema.isValidSync(user))
@@ -47,7 +47,7 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
         if (authenticated == null)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         const permission = privileges.can(authenticated.roleName).read(resources.USER);
         if (!permission.granted)
             throw new Unauthorized()
@@ -68,7 +68,7 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
         if (authenticated == null)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         const permission = privileges.can(authenticated.roleName).read(resources.USER);
         if (!permission.granted)
             throw new Unauthorized()
@@ -85,7 +85,7 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
         if (authenticated == null)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         const permission = privileges.can(authenticated.roleName).update(resources.USER);
         if (!permission.granted)
             throw new Unauthorized()
@@ -109,10 +109,10 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
         if (!authenticated)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         if (!privileges.can(authenticated.roleName).delete(resources.USER).granted)
             throw new Unauthorized()
 
-        return (await (await this.getUsersCollection()).deleteOne({ _id: userId }))
+        return (await (await this.getUsersCollection()).deleteOne({ _id: userId, roleName: { $ne: roles.ADMIN } }))
     }
 }

@@ -24,7 +24,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
         if (authenticated == null)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         const permission = privileges.can(authenticated.roleName).create(resources.FILE);
         if (!permission.granted)
             throw new Unauthorized()
@@ -57,7 +57,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
         if (authenticated == null)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         const permission = privileges.can(authenticated.roleName).read(resources.FILE);
         if (!permission.granted)
             throw new Unauthorized()
@@ -76,7 +76,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
         if (authenticated == null)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         const permission = privileges.can(authenticated.roleName).read(resources.FILE);
         if (!permission.granted)
             throw new Unauthorized()
@@ -103,7 +103,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
         if (authenticated == null)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         const permission = privileges.can(authenticated.roleName).read(resources.FILE);
         if (!permission.granted)
             throw new Unauthorized()
@@ -136,7 +136,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
         if (authenticated == null)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         const permission = privileges.can(authenticated.roleName).read(resources.FILE);
         if (!permission.granted)
             throw new Unauthorized()
@@ -174,7 +174,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
         if (authenticated == null)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         const permission = privileges.can(authenticated.roleName).delete(resources.FILE);
         if (!permission.granted)
             throw new Unauthorized()

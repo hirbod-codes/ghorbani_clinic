@@ -171,7 +171,7 @@ export function App() {
     const [authLoading, setAuthLoading] = useState(false)
     const [user, setUser] = useState<User>(null);
     const [ac, setAccessControl] = useState<AccessControl | null>(null);
-    const getPrivileges = async () => {
+    const getAccessControl = async () => {
         try {
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPrivileges()
             if (res.code !== 200) {
@@ -182,7 +182,7 @@ export function App() {
                 return
             }
 
-            setAccessControl(res.data as AccessControl)
+            setAccessControl(new AccessControl(res.data))
             setResult({
                 severity: 'success',
                 message: t('successfullyAuthenticated'),
@@ -210,6 +210,7 @@ export function App() {
             }
 
             setUser(res.data)
+            await getAccessControl()
             setResult({
                 severity: 'success',
                 message: t('successfullyAuthenticated'),

@@ -1,36 +1,130 @@
-import DeleteIcon from '@mui/icons-material/DeleteOutlined';
-import EditIcon from '@mui/icons-material/EditOutlined';
-import RefreshIcon from '@mui/icons-material/RefreshOutlined';
-
-import { useState, useEffect, useContext, ReactNode } from "react";
-import { AlertColor, AlertPropsColorOverrides, Grid, List, ListItemButton, ListItemText, ListItemIcon, Paper, Typography, Button, Divider, Box, Stack, IconButton } from "@mui/material";
+import { useState, useEffect, useContext, ReactNode, ReactElement, JSXElementConstructor } from "react";
 import { t } from "i18next";
-import { roles } from "../../Electron/Database/Repositories/Auth/dev-permissions";
-import { DataGrid, GridActionsCellItem, GridColDef, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarExport } from "@mui/x-data-grid";
+import { resources, roles as staticRoles } from "../../Electron/Database/Repositories/Auth/dev-permissions";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
 import { User } from '../../Electron/Database/Models/User';
 import { OverridableStringUnion } from "@mui/types"
 import { DATE, fromUnixToFormat } from '../Lib/DateTime/date-time-helpers';
 import { ConfigurationContext } from '../ConfigurationContext';
+import { AddOutlined, DeleteOutlined, EditOutlined, RefreshOutlined } from '@mui/icons-material';
+import { Modal, Slide, AlertColor, AlertPropsColorOverrides, Grid, List, ListItemButton, ListItemText, ListItemIcon, Paper, Typography, Button, Divider, Box, Stack, IconButton, ListItem, Collapse, CircularProgress } from "@mui/material";
+import { DataGrid, GridActionsCellItem, GridColDef, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarExport, GridActionsCellItemProps } from "@mui/x-data-grid";
+import { AuthContext } from "../Lib/AuthContext";
+import ManageUser from "../Components/ManageUser";
+import ManageRole from "../Components/ManageRole";
 
 export function Users() {
     const configuration = useContext(ConfigurationContext)
+    const auth = useContext(AuthContext)
 
-    const filteredRoles = Object.entries(roles).filter(arr => arr[1] !== roles.ADMIN).map(arr => arr[1])
+    const [roles, setRoles] = useState<string[] | undefined>(undefined)
+    const [role, setRole] = useState<string | undefined>(undefined)
+    const [roleActionsCollapse, setRoleActionsCollapse] = useState<string | null>()
+    const [openCreateRoleModal, setOpenCreateRoleModal] = useState<boolean>(false)
+    const [editingRole, setEditingRole] = useState<string | undefined>(undefined)
+    const [deletingRole, setDeletingRole] = useState<string | undefined>(undefined)
 
-    const [role, setRole] = useState<string>(filteredRoles[0])
+    const [openCreateUserModal, setOpenCreateUserModal] = useState<boolean>(false)
+    const [editingUser, setEditingUser] = useState<User | undefined>(undefined)
+    const [deletingUser, setDeletingUser] = useState<string | undefined>(undefined)
+    const [users, setUsers] = useState<User[]>([])
 
-    const [columns, setColumns] = useState<GridColDef<any>[]>([
-        {
-            field: 'actions',
-            headerName: '',
-            headerAlign: 'center',
-            align: 'center',
-            type: 'actions',
-            getActions: () => [
-                <GridActionsCellItem icon={<DeleteIcon />} onClick={() => { }} label={t('manageRole')} />,
-            ]
-        },
+    const [rows, setRows] = useState([])
+    const [loading, setLoading] = useState(true)
+
+    const fetchRoles = async (): Promise<string[]> => {
+        setLoading(true)
+        const response = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getRoles()
+        setLoading(false)
+        if (response.code !== 200)
+            return
+
+        setRoles(response.data.filter(r => r !== staticRoles.ADMIN))
+    }
+
+    const fetchUsers = async () => {
+        setLoading(true)
+        const response = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getUsers()
+        setLoading(false)
+        if (response.code !== 200)
+            return
+
+        setUsers(response.data)
+    }
+
+    const updateDataGrid = async (role: string) => {
+        setRole(role)
+
+        if (!users || users.length === 0)
+            await fetchUsers()
+
+        setRows(users.filter(u => u.roleName === role).map((u, i) => ({
+            id: u._id,
+            username: u.username,
+            createdAt: u.createdAt,
+            updatedAt: u.updatedAt,
+        })))
+    }
+
+    useEffect(() => { fetchRoles().then((r) => { updateDataGrid(r[0]) }) }, [])
+
+    const deleteUser = async (id: string) => {
+        try {
+            setDeletingUser(id)
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteUser(id)
+            setDeletingUser(undefined)
+            if (res.code !== 200) {
+                setResult({
+                    severity: 'error',
+                    message: t('failedToDelete'),
+                })
+                return
+            }
+
+            setResult({
+                severity: 'success',
+                message: t('successfullyDeleted'),
+            })
+        } catch (error) {
+            console.error(error)
+
+            setResult({
+                severity: 'error',
+                message: t('failedToDelete'),
+            })
+        }
+    }
+
+    const deleteRole = async (roleName: string) => {
+        try {
+            setDeletingRole(roleName)
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deletePrivileges(roleName)
+            setDeletingRole(undefined)
+            if (res.code !== 200) {
+                setResult({
+                    severity: 'error',
+                    message: t('failedToDelete'),
+                })
+                return
+            }
+
+            setResult({
+                severity: 'success',
+                message: t('successfullyDeleted'),
+            })
+        } catch (error) {
+            console.error(error)
+
+            setResult({
+                severity: 'error',
+                message: t('failedToDelete'),
+            })
+        }
+    }
+
+    const [result, setResult] = useState<{ message: string, severity: OverridableStringUnion<AlertColor, AlertPropsColorOverrides>, action?: ReactNode } | null>(null)
+
+    const columns: GridColDef<any>[] = [
         {
             field: 'username',
             headerName: t('username'),
@@ -56,40 +150,32 @@ export function Users() {
             valueFormatter: (updatedAt: number) => fromUnixToFormat(configuration.get.locale, updatedAt, DATE),
             width: 200,
         },
-    ])
-    const [rows, setRows] = useState([])
-    const [users, setUsers] = useState<User[]>([])
-    const [loading, setLoading] = useState(true)
+    ]
 
-    const fetchUsers = async () => {
-        setLoading(true)
-        const response = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getUsers()
-        setLoading(false)
-        if (response.code !== 200)
-            return
+    const updatesUser = auth.accessControl?.can(auth.user.roleName).update(resources.USER).granted
+    const deletesUser = auth.accessControl?.can(auth.user.roleName).delete(resources.USER).granted
+    if (deletesUser || updatesUser)
+        columns.unshift({
+            field: 'actions',
+            headerName: '',
+            headerAlign: 'center',
+            align: 'center',
+            type: 'actions',
+            getActions: (params) => {
+                console.log(params)
+                return [
+                    updatesUser
+                        ? <GridActionsCellItem icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress />} onClick={() => setEditingUser(users.find(u => u._id === params.row.id))} label={t('editUser')} />
+                        : null,
+                    deletesUser
+                        ? <GridActionsCellItem icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress />} onClick={async () => await deleteUser(params.row.id)} label={t('deleteUser')} />
+                        : null,
+                ].filter(a => a != null);
+            }
+        })
 
-        setUsers(response.data)
-    }
-
-    const updateDataGrid = async (role: string) => {
-        setRole(role)
-
-        if (!users || users.length === 0)
-            await fetchUsers()
-
-        setRows(users.filter(u => u.roleName === role).map((u, i) => ({
-            id: i,
-            username: u.username,
-            createdAt: u.createdAt,
-            updatedAt: u.updatedAt,
-        })))
-    }
-
-    useEffect(() => {
-        updateDataGrid(filteredRoles[0])
-    }, [])
-
-    const [result, setResult] = useState<{ message: string, severity: OverridableStringUnion<AlertColor, AlertPropsColorOverrides>, action?: ReactNode } | null>(null)
+    if (!roles || roles.length === 0)
+        return (<CircularProgress />)
 
     return (
         <>
@@ -97,46 +183,107 @@ export function Users() {
                 <Grid item xs={4} md={2}>
                     <Paper sx={{ p: 1, height: '100%' }}>
                         <Typography textAlign='center' variant='h4'>{t('roles')}</Typography>
-                        <List>
-                            {filteredRoles.map((r, i) =>
-                                <ListItemButton key={i} selected={role === r} onClick={() => { updateDataGrid(r) }}>
-                                    <ListItemIcon>
-                                        <EditIcon />
-                                    </ListItemIcon>
-                                    <ListItemText primary={t(r)} />
-                                </ListItemButton>
+                        <List dense>
+                            {roles.map((r, i) =>
+                                <div key={i} onMouseEnter={() => setRoleActionsCollapse(r)} onMouseLeave={() => setRoleActionsCollapse(null)}>
+                                    <ListItemButton selected={role === r} onClick={() => { updateDataGrid(r) }}>
+                                        <ListItemText primary={t(r)} />
+                                    </ListItemButton>
+
+                                    <Collapse in={roleActionsCollapse === r} unmountOnExit>
+                                        <List component="div" disablePadding>
+                                            {
+                                                auth.accessControl?.can(auth.user.roleName).update(resources.PRIVILEGE).granted &&
+                                                <ListItemButton sx={{ pl: 4 }}>
+                                                    <ListItemIcon onClick={() => setEditingRole(r)}>
+                                                        {editingRole ? <CircularProgress /> : <EditOutlined />}
+                                                    </ListItemIcon>
+                                                    <ListItemText primary={t("edit")} />
+                                                </ListItemButton>
+                                            }
+                                            {
+                                                auth.accessControl?.can(auth.user.roleName).delete(resources.PRIVILEGE).granted &&
+                                                <ListItemButton sx={{ pl: 4 }}>
+                                                    <ListItemIcon onClick={async () => await deleteRole(r)}>
+                                                        {deletingRole ? <CircularProgress /> : <DeleteOutlined />}
+                                                    </ListItemIcon>
+                                                    <ListItemText primary={t("delete")} />
+                                                </ListItemButton>
+                                            }
+                                        </List>
+                                    </Collapse>
+                                </div>
                             )}
+                            <Divider />
+                            <Stack direction='row' justifyContent='center' mt={1}>
+                                <IconButton><AddOutlined /></IconButton>
+                            </Stack>
                         </List>
                     </Paper>
                 </Grid>
                 <Grid item xs={8} md={10}>
                     <Paper sx={{ p: 1, height: '100%' }}>
-                        <Stack direction='column' height={'100%'} alignItems='stretch' justifyContent='flex-start'>
-                            <Button variant='outlined' fullWidth onClick={() => { }}>{t('edit')}</Button>
-                            <Divider sx={{ m: 1 }} />
-                            <Box flexGrow={1} height='100%'>
-                                <DataGrid
-                                    slots={{
-                                        toolbar: () => (
-                                            <GridToolbarContainer>
-                                                <GridToolbarColumnsButton />
-                                                <GridToolbarFilterButton />
-                                                <GridToolbarDensitySelector />
-                                                <GridToolbarExport />
-                                                <Button onClick={async () => await fetchUsers()} startIcon={<RefreshIcon />}>{t('Refresh')}</Button>
-                                            </GridToolbarContainer>
-                                        )
-                                    }}
-                                    columns={columns}
-                                    rows={rows}
-                                    loading={loading}
-                                    hideFooter
-                                />
-                            </Box>
-                        </Stack>
+                        <DataGrid
+                            slots={{
+                                toolbar: () => (
+                                    <GridToolbarContainer>
+                                        <GridToolbarColumnsButton />
+                                        <GridToolbarFilterButton />
+                                        <GridToolbarDensitySelector />
+                                        <GridToolbarExport />
+                                        <Button onClick={async () => await fetchUsers()} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>
+                                        <Button onClick={() => setOpenCreateUserModal(true)} startIcon={<AddOutlined />}>{t('Create')}</Button>
+                                    </GridToolbarContainer>
+                                )
+                            }}
+                            columns={columns}
+                            rows={rows}
+                            loading={loading}
+                            hideFooter
+                        />
                     </Paper>
                 </Grid>
             </Grid>
+
+            <Modal
+                onClose={() => {
+                    if (openCreateUserModal) setOpenCreateUserModal(false);
+                    else if (Boolean(editingUser))
+                        setEditingUser(undefined)
+                }}
+                open={Boolean(editingUser) || openCreateUserModal}
+                closeAfterTransition
+                disableEscapeKeyDown
+                disableAutoFocus
+                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
+                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
+            >
+                <Slide direction={Boolean(editingUser) || openCreateUserModal ? 'up' : 'down'} in={Boolean(editingUser) || openCreateUserModal} timeout={250}>
+                    <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
+                        <ManageUser user={editingUser} />
+                    </Paper>
+                </Slide>
+            </Modal>
+
+            <Modal
+                onClose={() => {
+                    if (openCreateRoleModal) setOpenCreateRoleModal(false);
+                    else if (Boolean(editingRole))
+                        setEditingRole(undefined)
+                }}
+                open={Boolean(editingRole) || openCreateRoleModal}
+                closeAfterTransition
+                disableEscapeKeyDown
+                disableAutoFocus
+                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
+                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
+            >
+                <Slide direction={Boolean(editingRole) || openCreateRoleModal ? 'up' : 'down'} in={Boolean(editingRole) || openCreateRoleModal} timeout={250}>
+                    <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
+                        <ManageRole role={editingRole} />
+                    </Paper>
+                </Slide>
+            </Modal>
         </>
     )
 }

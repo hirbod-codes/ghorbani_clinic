@@ -7,17 +7,25 @@ import { AccessControl } from "accesscontrol"
 export function handleRendererEvents(): RendererEvents {
     return {
         createPrivilege: async (privilege: Privilege): Promise<MainProcessResponse<InsertOneResult>> => JSON.parse(await ipcRenderer.invoke('create-privilege', { privilege })),
+        getAccessControl: async (): Promise<MainProcessResponse<AccessControl>> => JSON.parse(await ipcRenderer.invoke('get-access-control')),
         getPrivilege: async (roleName: string, action: string): Promise<MainProcessResponse<Privilege | null>> => JSON.parse(await ipcRenderer.invoke('get-privilege', { roleName, action })),
-        getPrivileges: async (roleName?: string): Promise<MainProcessResponse<Privilege[] | AccessControl>> => JSON.parse(await ipcRenderer.invoke('get-privileges', { roleName })),
+        getRoles: async (): Promise<MainProcessResponse<string[]>> => JSON.parse(await ipcRenderer.invoke('get-roles')),
+        getPrivileges: async (roleName?: string): Promise<MainProcessResponse<Privilege[]>> => JSON.parse(await ipcRenderer.invoke('get-privileges', { roleName })),
         updatePrivilege: async (privilege: Privilege): Promise<MainProcessResponse<UpdateResult> | undefined> => JSON.parse(await ipcRenderer.invoke('update-privilege', { privilege })),
+        updatePrivileges: async (privileges: Privilege[]): Promise<MainProcessResponse<UpdateResult> | undefined> => JSON.parse(await ipcRenderer.invoke('update-privileges', { privileges })),
         deletePrivilege: async (id: string): Promise<MainProcessResponse<DeleteResult>> => JSON.parse(await ipcRenderer.invoke('delete-privilege', { id })),
+        deletePrivileges: async (arg: string | string[]): Promise<MainProcessResponse<DeleteResult>> => JSON.parse(await ipcRenderer.invoke('delete-privileges', { arg })),
     }
 }
 
 export type RendererEvents = {
     createPrivilege: (privilege: Privilege) => Promise<MainProcessResponse<InsertOneResult>>,
+    getAccessControl: (roleName?: string) => Promise<MainProcessResponse<AccessControl>>,
     getPrivilege: (roleName: string, action: string) => Promise<MainProcessResponse<Privilege | null>>,
-    getPrivileges: (roleName?: string) => Promise<MainProcessResponse<Privilege[] | AccessControl>>,
+    getRoles: () => Promise<MainProcessResponse<string[]>>,
+    getPrivileges: (roleName?: string) => Promise<MainProcessResponse<Privilege[]>>,
     updatePrivilege: (privilege: Privilege) => Promise<MainProcessResponse<UpdateResult> | undefined>,
+    updatePrivileges: (privileges: Privilege[]) => Promise<MainProcessResponse<UpdateResult> | undefined>,
     deletePrivilege: (id: string) => Promise<MainProcessResponse<DeleteResult>>,
+    deletePrivileges: (arg: string | string[]) => Promise<MainProcessResponse<DeleteResult>>,
 }

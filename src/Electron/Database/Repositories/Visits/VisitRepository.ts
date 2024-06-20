@@ -24,7 +24,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         if (!user)
             throw new Unauthenticated();
 
-        if (!(await privilegesRepository.getPrivileges()).can(user.roleName).create(resources.VISIT).granted)
+        if (!(await privilegesRepository.getAccessControl()).can(user.roleName).create(resources.VISIT).granted)
             throw new Unauthorized()
 
         if (!visitSchema.isValidSync(visit))
@@ -43,7 +43,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         if (!user)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         if (!privileges.can(user.roleName).read(resources.VISIT).granted)
             throw new Unauthorized()
 
@@ -59,7 +59,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         if (!user)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         if (!privileges.can(user.roleName).update(resources.VISIT).granted)
             throw new Unauthorized()
 
@@ -83,7 +83,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         if (!user)
             throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getPrivileges();
+        const privileges = await privilegesRepository.getAccessControl();
         if (!privileges.can(user.roleName).delete(resources.VISIT).granted)
             throw new Unauthorized()
 

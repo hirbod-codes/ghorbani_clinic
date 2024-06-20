@@ -30,11 +30,13 @@ export type IUsersRepository = dbAPI & {
 export type IPrivilegesRepository = dbAPI & {
     handleEvents(): Promise<void>,
     createPrivilege(privilege: Privilege): Promise<InsertOneResult>,
-    getPrivilege(roleName: string, action: string): Promise<Privilege | null>,
-    getPrivileges(roleName: string): Promise<Privilege[]>,
-    getPrivileges(): Promise<AccessControl>,
+    getRoles(): Promise<string[]>,
+    getAccessControl(): Promise<AccessControl>,
+    getPrivileges(roleName?: string): Promise<Privilege[]>,
     updatePrivilege(privilege: Privilege): Promise<UpdateResult | undefined>,
+    updatePrivileges(privileges: Privilege[]): Promise<UpdateResult | undefined>,
     deletePrivilege(id: string): Promise<DeleteResult>,
+    deletePrivileges(roleName: string | string[]): Promise<DeleteResult>,
 }
 
 export type IPatientRepository = dbAPI & {
