@@ -12,7 +12,7 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import DisplaySettingsIcon from '@mui/icons-material/DisplaySettingsOutlined';
 
-import { CssBaseline, PaletteMode, createTheme, useMediaQuery, AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, ThemeProvider, Collapse, CircularProgress, Stack, Box, Modal, Slide, Paper, Snackbar, Alert, AlertColor, AlertPropsColorOverrides, TextField, Button } from '@mui/material'
+import { CssBaseline, PaletteMode, createTheme, useMediaQuery, AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, ThemeProvider, Collapse, CircularProgress, Stack, Box, Modal, Slide, Paper, Snackbar, Alert, AlertColor, AlertPropsColorOverrides } from '@mui/material'
 import { useState, useRef, useEffect, ReactNode } from 'react'
 import { Localization, enUS } from '@mui/material/locale';
 import { useTranslation } from "react-i18next";
@@ -34,9 +34,10 @@ import { Users } from './Pages/Users';
 import { User } from '../Electron/Database/Models/User';
 import { OverridableStringUnion } from "@mui/types"
 import { AuthContext } from './Lib/AuthContext';
-import { t } from 'i18next';
 import { AccessControl } from 'accesscontrol';
 import { resources } from '../Electron/Database/Repositories/Auth/dev-permissions';
+import LoadingScreen from './Components/LoadingScreen';
+import { LoginForm } from './LoginForm';
 
 // Create rtl cache
 const rtlCache = createCache({
@@ -168,7 +169,8 @@ export function App() {
     }
 
     // Authentication
-    const [authLoading, setAuthLoading] = useState(false)
+    const [loginModal, setLoginModal] = useState<boolean>(false)
+    const [authLoading, setAuthLoading] = useState<boolean>(false)
     const [user, setUser] = useState<User>(null);
     const [ac, setAccessControl] = useState<AccessControl | null>(null);
     const getAccessControl = async () => {
@@ -179,6 +181,7 @@ export function App() {
                     severity: 'error',
                     message: t('failedToAuthenticate'),
                 })
+                setLoginModal(true)
                 return
             }
 
@@ -206,6 +209,7 @@ export function App() {
                     severity: 'error',
                     message: t('failedToAuthenticate'),
                 })
+                setLoginModal(true)
                 return
             }
 
@@ -295,19 +299,7 @@ export function App() {
     useEffect(() => { fetchUser() }, [])
 
     if (!configuration)
-        return (
-            <>
-                <Stack
-                    spacing={0}
-                    direction="column"
-                    alignItems="center"
-                    justifyContent="center"
-                    sx={{ border: '1px solid black', minHeight: '100vh' }}
-                >
-                    <CircularProgress />
-                </Stack>
-            </>
-        )
+        return (<LoadingScreen />)
 
     return (
         <>
@@ -387,8 +379,8 @@ export function App() {
                                 </Box>
                             </Stack>
 
-                            <Modal open={!authLoading && user === null} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
-                                <Slide direction={user == null ? 'up' : 'down'} in={user == null} timeout={250}>
+                            <Modal open={loginModal} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
+                                <Slide direction={loginModal ? 'up' : 'down'} in={loginModal} timeout={250}>
                                     <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
                                         <LoginForm onFinish={login} />
                                     </Paper>
@@ -416,18 +408,3 @@ export function App() {
     )
 }
 
-function LoginForm({ onFinish }: { onFinish: (username: string, password: string) => void | Promise<void> }) {
-    const [username, setUsername] = useState('')
-    const [password, setPassword] = useState('')
-    return (
-        <>
-            <Stack direction='column' spacing={2}>
-                <TextField variant='standard' type='text' value={username} onChange={(e) => setUsername(e.target.value)} label={t('username')} />
-                <TextField variant='standard' type='password' value={password} onChange={(e) => setPassword(e.target.value)} label={t('password')} />
-                <Button onClick={() => onFinish(username, password)}>
-                    {t('login')}
-                </Button>
-            </Stack>
-        </>
-    )
-}

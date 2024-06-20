@@ -1,4 +1,7 @@
-import { useState, useEffect, useContext, ReactNode, ReactElement, JSXElementConstructor } from "react";
+import { useState, useEffect, useContext, ReactNode } from "react";
+import { AddOutlined, CheckOutlined, CloseOutlined, DangerousOutlined, DeleteOutlined, EditOutlined, RefreshOutlined } from '@mui/icons-material';
+import { Snackbar, Alert, Modal, Slide, AlertColor, AlertPropsColorOverrides, Grid, List, ListItemButton, ListItemText, ListItemIcon, Paper, Typography, Button, Divider, Box, Stack, IconButton, ListItem, Collapse, CircularProgress } from "@mui/material";
+import { DataGrid, GridActionsCellItem, GridColDef, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarExport, GridActionsCellItemProps } from "@mui/x-data-grid";
 import { t } from "i18next";
 import { resources, roles as staticRoles } from "../../Electron/Database/Repositories/Auth/dev-permissions";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
@@ -6,12 +9,10 @@ import { User } from '../../Electron/Database/Models/User';
 import { OverridableStringUnion } from "@mui/types"
 import { DATE, fromUnixToFormat } from '../Lib/DateTime/date-time-helpers';
 import { ConfigurationContext } from '../ConfigurationContext';
-import { AddOutlined, DeleteOutlined, EditOutlined, RefreshOutlined } from '@mui/icons-material';
-import { Modal, Slide, AlertColor, AlertPropsColorOverrides, Grid, List, ListItemButton, ListItemText, ListItemIcon, Paper, Typography, Button, Divider, Box, Stack, IconButton, ListItem, Collapse, CircularProgress } from "@mui/material";
-import { DataGrid, GridActionsCellItem, GridColDef, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarExport, GridActionsCellItemProps } from "@mui/x-data-grid";
 import { AuthContext } from "../Lib/AuthContext";
 import ManageUser from "../Components/ManageUser";
 import ManageRole from "../Components/ManageRole";
+import LoadingScreen from '../Components/LoadingScreen';
 
 export function Users() {
     const configuration = useContext(ConfigurationContext)
@@ -39,10 +40,12 @@ export function Users() {
         if (response.code !== 200)
             return
 
-        setRoles(response.data.filter(r => r !== staticRoles.ADMIN))
+        const filteredRoles = response.data.filter(r => r !== staticRoles.ADMIN)
+        setRoles(filteredRoles)
+        return filteredRoles
     }
 
-    const fetchUsers = async () => {
+    const fetchUsers = async (): Promise<User[]> => {
         setLoading(true)
         const response = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getUsers()
         setLoading(false)
@@ -50,13 +53,24 @@ export function Users() {
             return
 
         setUsers(response.data)
+
+        return response.data
     }
 
     const updateDataGrid = async (role: string) => {
         setRole(role)
 
-        if (!users || users.length === 0)
-            await fetchUsers()
+        if (!users || users.length === 0) {
+            const users = await fetchUsers()
+            setRows(users.filter(u => u.roleName === role).map((u, i) => ({
+                id: u._id,
+                username: u.username,
+                createdAt: u.createdAt,
+                updatedAt: u.updatedAt,
+            })))
+
+            return
+        }
 
         setRows(users.filter(u => u.roleName === role).map((u, i) => ({
             id: u._id,
@@ -66,7 +80,7 @@ export function Users() {
         })))
     }
 
-    useEffect(() => { fetchRoles().then((r) => { updateDataGrid(r[0]) }) }, [])
+    useEffect(() => { fetchRoles().then((r) => updateDataGrid(r[0])) }, [])
 
     const deleteUser = async (id: string) => {
         try {
@@ -152,8 +166,8 @@ export function Users() {
         },
     ]
 
-    const updatesUser = auth.accessControl?.can(auth.user.roleName).update(resources.USER).granted
-    const deletesUser = auth.accessControl?.can(auth.user.roleName).delete(resources.USER).granted
+    const updatesUser = auth.accessControl?.can(auth.user.roleName).update(resources.USER).granted ?? false
+    const deletesUser = auth.accessControl?.can(auth.user.roleName).delete(resources.USER).granted ?? false
     if (deletesUser || updatesUser)
         columns.unshift({
             field: 'actions',
@@ -161,21 +175,18 @@ export function Users() {
             headerAlign: 'center',
             align: 'center',
             type: 'actions',
-            getActions: (params) => {
-                console.log(params)
-                return [
-                    updatesUser
-                        ? <GridActionsCellItem icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress />} onClick={() => setEditingUser(users.find(u => u._id === params.row.id))} label={t('editUser')} />
-                        : null,
-                    deletesUser
-                        ? <GridActionsCellItem icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress />} onClick={async () => await deleteUser(params.row.id)} label={t('deleteUser')} />
-                        : null,
-                ].filter(a => a != null);
-            }
+            getActions: (params) => [
+                updatesUser
+                    ? <GridActionsCellItem icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress />} onClick={() => setEditingUser(users.find(u => u._id === params.row.id))} label={t('editUser')} />
+                    : null,
+                deletesUser
+                    ? <GridActionsCellItem icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress />} onClick={async () => await deleteUser(params.row.id)} label={t('deleteUser')} />
+                    : null,
+            ].filter(a => a != null)
         })
 
     if (!roles || roles.length === 0)
-        return (<CircularProgress />)
+        return (<LoadingScreen />)
 
     return (
         <>
@@ -287,6 +298,20 @@ export function Users() {
                     </Paper>
                 </Slide>
             </Modal>
+
+            <Snackbar
+                open={result !== null}
+                autoHideDuration={7000}
+                onClose={() => setResult(null)}
+                action={result?.action}
+            >
+                <Alert
+                    icon={result?.severity === 'success' ? <CheckOutlined fontSize="inherit" /> : (result?.severity === 'error' ? <CloseOutlined fontSize="inherit" /> : (result?.severity === 'warning' ? <DangerousOutlined fontSize="inherit" /> : null))}
+                    severity={result?.severity}
+                >
+                    {result?.message}
+                </Alert>
+            </Snackbar>
         </>
     )
 }
