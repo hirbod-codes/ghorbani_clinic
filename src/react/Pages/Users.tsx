@@ -186,6 +186,8 @@ export function Users() {
                         <List dense>
                             {roles.map((r, i) =>
                                 <div key={i} onMouseEnter={() => setRoleActionsCollapse(r)} onMouseLeave={() => setRoleActionsCollapse(null)}>
+                                    <Box sx={{ mt: 1 }}></Box>
+
                                     <ListItemButton selected={role === r} onClick={() => { updateDataGrid(r) }}>
                                         <ListItemText primary={t(r)} />
                                     </ListItemButton>
@@ -214,8 +216,9 @@ export function Users() {
                                     </Collapse>
                                 </div>
                             )}
+                            <Box sx={{ mt: 1 }}></Box>
                             <Divider />
-                            <Stack direction='row' justifyContent='center' mt={1}>
+                            <Stack direction='row' justifyContent='center' mt={1} onClick={() => setOpenCreateRoleModal(true)}>
                                 <IconButton><AddOutlined /></IconButton>
                             </Stack>
                         </List>
