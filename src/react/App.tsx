@@ -221,6 +221,7 @@ export function App() {
                 message: t('successfullyAuthenticated'),
             })
         } catch (error) {
+            setLoginModal(true)
             console.error(error)
 
             setResult({
@@ -246,6 +247,8 @@ export function App() {
             })
 
             await fetchUser()
+
+            setLoginModal(false)
         } catch (error) {
             console.error(error)
 
@@ -285,6 +288,7 @@ export function App() {
             setUser(null)
 
             setContent(<Home />)
+            setLoginModal(true)
         } catch (error) {
             console.error(error)
 
@@ -304,7 +308,7 @@ export function App() {
 
     return (
         <>
-            <ResultContext.Provider value={result, setResult}>
+            <ResultContext.Provider value={{ result, setResult }}>
                 <AuthContext.Provider value={{ user: user, setUser: setUser, accessControl: ac }}>
                     <ConfigurationContext.Provider value={{ get: configuration, set: { updateTheme, updateLocale, updateTimeZone } }}>
                         <CacheProvider value={configuration.locale.direction === 'rtl' ? rtlCache : ltrCache}>

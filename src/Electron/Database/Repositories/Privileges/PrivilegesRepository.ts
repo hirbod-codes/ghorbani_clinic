@@ -108,10 +108,10 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         privilege = Object.fromEntries(Object.entries(privilege).filter(arr => updatableFields.includes(arr[0] as any)))
         privilege.updatedAt = DateTime.utc().toUnixInteger()
 
-        return await (await this.getPrivilegesCollection()).updateOne({ _id: id, role: { $ne: roles.ADMIN } }, privilege)
+        return await (await this.getPrivilegesCollection()).updateOne({ _id: new ObjectId(id), role: { $ne: roles.ADMIN } }, { $set: { ...privilege } })
     }
 
-    async updatePrivileges(privileges: Privilege[]): Promise<UpdateResult<Document>> {
+    async updatePrivileges(privileges: Privilege[]): Promise<boolean> {
         const user = await authRepository.getAuthenticatedUser()
         if (user == null)
             throw new Unauthenticated();
@@ -119,19 +119,26 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         if (!(await this.getAccessControl()).can(user.roleName).update(resources.PRIVILEGE).granted)
             throw new Unauthorized()
 
-        const ids = privileges.map(p => p._id)
-        for (let i = 0; i < privileges.length; i++) {
-            if (privileges[i].role === roles.ADMIN)
-                return undefined
+        const client = this.getClient()
+        const session = client.startSession()
+        try {
+            for (let i = 0; i < privileges.length; i++) {
+                const id = privileges[i]._id
+                privileges[i] = Object.fromEntries(Object.entries(privileges[i]).filter(arr => updatableFields.includes(arr[0] as any)))
+                privileges[i].updatedAt = DateTime.utc().toUnixInteger()
 
-            if (!privileges[i]._id)
-                throw new Error('id field is not provided, to update the privilege')
+                await (await this.getPrivilegesCollection(client)).updateOne({ _id: new ObjectId(id), role: { $ne: roles.ADMIN } }, { $set: { ...privileges[i] } }, { session })
+            }
 
-            privileges[i] = Object.fromEntries(Object.entries(privileges[i]).filter(arr => updatableFields.includes(arr[0] as any)))
-            privileges[i].updatedAt = DateTime.utc().toUnixInteger()
+            await session.commitTransaction()
+            return true
         }
-
-        return await (await this.getPrivilegesCollection()).updateMany({ role: { $ne: roles.ADMIN }, _id: { $in: ids } }, privileges)
+        catch (err) {
+            await session.abortTransaction()
+            console.error(err);
+            return false
+        }
+        finally { await session.endSession() }
     }
 
     async deletePrivilege(id: string): Promise<DeleteResult> {
@@ -142,7 +149,7 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         if (!(await this.getAccessControl()).can(user.roleName).delete(resources.PRIVILEGE).granted)
             throw new Unauthorized()
 
-        return await (await this.getPrivilegesCollection()).deleteOne({ _id: id, role: { $ne: roles.ADMIN } })
+        return await (await this.getPrivilegesCollection()).deleteOne({ _id: new ObjectId(id), role: { $ne: roles.ADMIN } })
     }
 
     deletePrivileges(ids: string[]): Promise<DeleteResult>
@@ -155,8 +162,8 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         if (!(await this.getAccessControl()).can(user.roleName).delete(resources.PRIVILEGE).granted)
             throw new Unauthorized()
 
-        if (array().required().of(string().required()))
-            return await (await this.getPrivilegesCollection()).deleteMany({ $and: [{ _id: { $in: arg as string[] } }, { role: { $ne: roles.ADMIN } }] })
+        if (array().required().of(string().required()).isValidSync(arg))
+            return await (await this.getPrivilegesCollection()).deleteMany({ $and: [{ _id: { $in: (arg as string[]).map(arg => new ObjectId(arg)) } }, { role: { $ne: roles.ADMIN } }] })
         else
             return await (await this.getPrivilegesCollection()).deleteMany({ $and: [{ role: arg }, { role: { $ne: roles.ADMIN } }] })
     }

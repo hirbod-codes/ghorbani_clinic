@@ -1,4 +1,4 @@
-import { DeleteResult, Document, InsertOneResult, UpdateResult } from "mongodb";
+import { DeleteResult, Document, InsertOneResult, ObjectId, UpdateResult } from "mongodb";
 import { patientSchema, type Patient, updatableFields, readableFields as patientReadableFields } from "../../Models/Patient";
 import { Visit, readableFields as visitReadableFields, collectionName as visitsCollectionName } from "../../Models/Visit";
 import { Unauthorized } from "../../Unauthorized";
@@ -185,7 +185,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
 
         patient.updatedAt = DateTime.utc().toUnixInteger();
 
-        return (await (await this.getPatientsCollection()).updateOne({ _id: id }, patient, { upsert: false }))
+        return (await (await this.getPatientsCollection()).updateOne({ _id: new ObjectId(id) }, { $set: { ...patient } }, { upsert: false }))
     }
 
     async deletePatient(id: string): Promise<DeleteResult> {
@@ -197,6 +197,6 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!privileges.can(user.roleName).delete(resources.PATIENT).granted)
             throw new Unauthorized()
 
-        return (await (await this.getPatientsCollection()).deleteOne({ _id: id }))
+        return (await (await this.getPatientsCollection()).deleteOne({ _id: new ObjectId(id) }))
     }
 }

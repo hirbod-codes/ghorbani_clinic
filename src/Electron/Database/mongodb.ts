@@ -35,7 +35,23 @@ export class MongoDB implements dbAPI {
         } catch (error) { return false }
     }
 
-    async getDb(): Promise<Db | null> {
+    getClient(): MongoClient {
+        const c = readConfig()
+
+        if (!c || !c.mongodb)
+            throw new Error('Mongodb configuration not found.')
+
+        return new MongoClient(c.mongodb.url, {
+            directConnection: true,
+            authMechanism: "SCRAM-SHA-256",
+            auth: {
+                username: c.mongodb.auth.username,
+                password: c.mongodb.auth.password,
+            }
+        });
+    }
+
+    async getDb(client?: MongoClient): Promise<Db | null> {
         if (MongoDB.db != null)
             return MongoDB.db
 
@@ -44,14 +60,8 @@ export class MongoDB implements dbAPI {
         if (!c || !c.mongodb)
             throw new Error('Mongodb configuration not found.')
 
-        const client = new MongoClient(c.mongodb.url, {
-            directConnection: true,
-            authMechanism: "SCRAM-SHA-256",
-            auth: {
-                username: c.mongodb.auth.username,
-                password: c.mongodb.auth.password,
-            }
-        });
+        if (!client)
+            client = this.getClient()
 
         try {
             MongoDB.db = client.db(c.mongodb.databaseName)
@@ -151,20 +161,20 @@ export class MongoDB implements dbAPI {
             await db.createIndex(visitsCollectionName, { updatedAt: 1 }, { name: 'updated-at' })
     }
 
-    async getUsersCollection(): Promise<Collection<User>> {
-        return (await this.getDb()).collection<User>(usersCollectionName)
+    async getUsersCollection(client?: MongoClient): Promise<Collection<User>> {
+        return (await this.getDb(client)).collection<User>(usersCollectionName)
     }
 
-    async getPrivilegesCollection(): Promise<Collection<Privilege>> {
-        return (await this.getDb()).collection<Privilege>(privilegesCollectionName)
+    async getPrivilegesCollection(client?: MongoClient): Promise<Collection<Privilege>> {
+        return (await this.getDb(client)).collection<Privilege>(privilegesCollectionName)
     }
 
-    async getPatientsCollection(): Promise<Collection<Patient>> {
-        return (await this.getDb()).collection<Patient>(patientsCollectionName)
+    async getPatientsCollection(client?: MongoClient): Promise<Collection<Patient>> {
+        return (await this.getDb(client)).collection<Patient>(patientsCollectionName)
     }
 
-    async getVisitsCollection(): Promise<Collection<Visit>> {
-        return (await this.getDb()).collection<Visit>(visitsCollectionName)
+    async getVisitsCollection(client?: MongoClient): Promise<Collection<Visit>> {
+        return (await this.getDb(client)).collection<Visit>(visitsCollectionName)
     }
 
     async getBucket(): Promise<GridFSBucket> {

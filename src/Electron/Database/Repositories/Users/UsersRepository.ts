@@ -1,4 +1,4 @@
-import { DeleteResult, Document, InsertOneResult, UpdateResult } from "mongodb";
+import { DeleteResult, Document, InsertOneResult, ObjectId, UpdateResult } from "mongodb";
 import { MongoDB } from "../../mongodb";
 import { User, readableFields, updatableFields, userSchema } from "../../Models/User";
 import { IUsersRepository } from "../../dbAPI";
@@ -34,8 +34,8 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
         if (!userSchema.isValidSync(user))
             throw new Error('Invalid user info provided.');
 
-        user = userSchema.cast(user);
         user.schemaVersion = 'v0.0.1';
+        user = userSchema.cast(user);
         user.createdAt = DateTime.utc().toUnixInteger();
         user.updatedAt = DateTime.utc().toUnixInteger();
 
@@ -52,7 +52,7 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
         if (!permission.granted)
             throw new Unauthorized()
 
-        const user = (await (await this.getUsersCollection()).findOne({ _id: userId }))
+        const user = (await (await this.getUsersCollection()).findOne({ _id: new ObjectId(userId) }))
         if (!user)
             return null
 
@@ -100,7 +100,7 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
 
         user.updatedAt = DateTime.utc().toUnixInteger();
 
-        return (await (await this.getUsersCollection()).updateOne({ _id: id }, user, { upsert: false }))
+        return (await (await this.getUsersCollection()).updateOne({ _id: new ObjectId(id) }, { $set: { ...user } }, { upsert: false }))
 
     }
 
@@ -113,6 +113,6 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
         if (!privileges.can(authenticated.roleName).delete(resources.USER).granted)
             throw new Unauthorized()
 
-        return (await (await this.getUsersCollection()).deleteOne({ _id: userId, roleName: { $ne: roles.ADMIN } }))
+        return (await (await this.getUsersCollection()).deleteOne({ _id: new ObjectId(userId), roleName: { $ne: roles.ADMIN } }))
     }
 }

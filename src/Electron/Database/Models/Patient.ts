@@ -5,7 +5,7 @@ export const collectionName = 'patients'
 
 // after updates, don't forget to also update privileges
 export const patientSchema = object().required().shape({
-    schemaVersion: string().required().min(6).max(10),
+    schemaVersion: string().optional().min(6).max(10),
     _id: mixed<string | ObjectId>().optional(),
     socialId: string().required().length(10),
     firstName: string().optional(),

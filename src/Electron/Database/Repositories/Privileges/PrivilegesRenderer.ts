@@ -11,8 +11,8 @@ export function handleRendererEvents(): RendererEvents {
         getPrivilege: async (roleName: string, action: string): Promise<MainProcessResponse<Privilege | null>> => JSON.parse(await ipcRenderer.invoke('get-privilege', { roleName, action })),
         getRoles: async (): Promise<MainProcessResponse<string[]>> => JSON.parse(await ipcRenderer.invoke('get-roles')),
         getPrivileges: async (roleName?: string): Promise<MainProcessResponse<Privilege[]>> => JSON.parse(await ipcRenderer.invoke('get-privileges', { roleName })),
-        updatePrivilege: async (privilege: Privilege): Promise<MainProcessResponse<UpdateResult> | undefined> => JSON.parse(await ipcRenderer.invoke('update-privilege', { privilege })),
-        updatePrivileges: async (privileges: Privilege[]): Promise<MainProcessResponse<UpdateResult> | undefined> => JSON.parse(await ipcRenderer.invoke('update-privileges', { privileges })),
+        updatePrivilege: async (privilege: Privilege): Promise<MainProcessResponse<UpdateResult | undefined>> => JSON.parse(await ipcRenderer.invoke('update-privilege', { privilege })),
+        updatePrivileges: async (privileges: Privilege[]): Promise<MainProcessResponse<boolean>> => JSON.parse(await ipcRenderer.invoke('update-privileges', { privileges })),
         deletePrivilege: async (id: string): Promise<MainProcessResponse<DeleteResult>> => JSON.parse(await ipcRenderer.invoke('delete-privilege', { id })),
         deletePrivileges: async (arg: string | string[]): Promise<MainProcessResponse<DeleteResult>> => JSON.parse(await ipcRenderer.invoke('delete-privileges', { arg })),
     }
@@ -24,8 +24,8 @@ export type RendererEvents = {
     getPrivilege: (roleName: string, action: string) => Promise<MainProcessResponse<Privilege | null>>,
     getRoles: () => Promise<MainProcessResponse<string[]>>,
     getPrivileges: (roleName?: string) => Promise<MainProcessResponse<Privilege[]>>,
-    updatePrivilege: (privilege: Privilege) => Promise<MainProcessResponse<UpdateResult> | undefined>,
-    updatePrivileges: (privileges: Privilege[]) => Promise<MainProcessResponse<UpdateResult> | undefined>,
+    updatePrivilege: (privilege: Privilege) => Promise<MainProcessResponse<UpdateResult | undefined>>,
+    updatePrivileges: (privileges: Privilege[]) => Promise<MainProcessResponse<boolean>>,
     deletePrivilege: (id: string) => Promise<MainProcessResponse<DeleteResult>>,
     deletePrivileges: (arg: string | string[]) => Promise<MainProcessResponse<DeleteResult>>,
 }

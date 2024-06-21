@@ -5,7 +5,7 @@ import { Unauthorized } from "../../Unauthorized";
 import { DateTime } from "luxon";
 import { extractKeysRecursive } from "../../helpers";
 import { ipcMain } from "electron";
-import { DeleteResult, InsertOneResult, UpdateResult } from "mongodb";
+import { DeleteResult, InsertOneResult, ObjectId, UpdateResult } from "mongodb";
 import { Unauthenticated } from "../../Unauthenticated";
 import { authRepository, privilegesRepository } from "../../handleDbEvents";
 import { resources } from "../Auth/dev-permissions";
@@ -75,7 +75,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
 
         visit.updatedAt = DateTime.utc().toUnixInteger();
 
-        return (await (await this.getVisitsCollection()).updateOne({ _id: id }, visit, { upsert: false }))
+        return (await (await this.getVisitsCollection()).updateOne({ _id: new ObjectId(id) }, { $set: { ...visit } }, { upsert: false }))
     }
 
     async deleteVisit(id: string): Promise<DeleteResult> {
@@ -87,6 +87,6 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         if (!privileges.can(user.roleName).delete(resources.VISIT).granted)
             throw new Unauthorized()
 
-        return (await (await this.getVisitsCollection()).deleteOne({ _id: id }))
+        return (await (await this.getVisitsCollection()).deleteOne({ _id: new ObjectId(id) }))
     }
 }

@@ -34,7 +34,7 @@ export type IPrivilegesRepository = dbAPI & {
     getAccessControl(): Promise<AccessControl>,
     getPrivileges(roleName?: string): Promise<Privilege[]>,
     updatePrivilege(privilege: Privilege): Promise<UpdateResult | undefined>,
-    updatePrivileges(privileges: Privilege[]): Promise<UpdateResult | undefined>,
+    updatePrivileges(privileges: Privilege[]): Promise<boolean>,
     deletePrivilege(id: string): Promise<DeleteResult>,
     deletePrivileges(roleName: string | string[]): Promise<DeleteResult>,
 }

@@ -1,12 +1,11 @@
-import { useState, useEffect, useContext, ReactNode } from "react";
-import { AddOutlined, CheckOutlined, CloseOutlined, DangerousOutlined, DeleteOutlined, EditOutlined, RefreshOutlined } from '@mui/icons-material';
-import { Snackbar, Alert, Modal, Slide, AlertColor, AlertPropsColorOverrides, Grid, List, ListItemButton, ListItemText, ListItemIcon, Paper, Typography, Button, Divider, Box, Stack, IconButton, ListItem, Collapse, CircularProgress } from "@mui/material";
-import { DataGrid, GridActionsCellItem, GridColDef, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarExport, GridActionsCellItemProps } from "@mui/x-data-grid";
+import { useState, useEffect, useContext } from "react";
+import { AddOutlined, DeleteOutlined, EditOutlined, RefreshOutlined } from '@mui/icons-material';
+import { Modal, Slide, Grid, List, ListItemButton, ListItemText, ListItemIcon, Paper, Typography, Button, Divider, Box, Stack, IconButton, Collapse, CircularProgress } from "@mui/material";
+import { DataGrid, GridActionsCellItem, GridColDef, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarExport } from "@mui/x-data-grid";
 import { t } from "i18next";
 import { resources, roles as staticRoles } from "../../Electron/Database/Repositories/Auth/dev-permissions";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
 import { User } from '../../Electron/Database/Models/User';
-import { OverridableStringUnion } from "@mui/types"
 import { DATE, fromUnixToFormat } from '../Lib/DateTime/date-time-helpers';
 import { ConfigurationContext } from '../ConfigurationContext';
 import { AuthContext } from "../Lib/AuthContext";
@@ -59,22 +58,16 @@ export function Users() {
         return response.data
     }
 
-    const updateDataGrid = async (role: string) => {
+    const updateDataGrid = async (role: string, fetchUser = true) => {
         setRole(role)
 
-        if (!users || users.length === 0) {
-            const users = await fetchUsers()
-            setRows(users.filter(u => u.roleName === role).map((u, i) => ({
-                id: u._id,
-                username: u.username,
-                createdAt: u.createdAt,
-                updatedAt: u.updatedAt,
-            })))
+        let fetchedUsers
+        if (fetchUser)
+            fetchedUsers = await fetchUsers()
+        else
+            fetchedUsers = users
 
-            return
-        }
-
-        setRows(users.filter(u => u.roleName === role).map((u, i) => ({
+        setRows(fetchedUsers.filter(u => u.roleName === role).map((u, i) => ({
             id: u._id,
             username: u.username,
             createdAt: u.createdAt,
@@ -180,7 +173,7 @@ export function Users() {
                     ? <GridActionsCellItem icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />} onClick={() => setEditingUser(users.find(u => u._id === params.row.id))} label={t('editUser')} />
                     : null,
                 deletesUser
-                    ? <GridActionsCellItem icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />} onClick={async () => await deleteUser(params.row.id)} label={t('deleteUser')} />
+                    ? <GridActionsCellItem icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />} onClick={async () => { await deleteUser(params.row.id); await updateDataGrid(role) }} label={t('deleteUser')} />
                     : null,
             ].filter(a => a != null)
         })
@@ -274,10 +267,12 @@ export function Users() {
             >
                 <Slide direction={Boolean(editingUser) || openCreateUserModal ? 'up' : 'down'} in={Boolean(editingUser) || openCreateUserModal} timeout={250}>
                     <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
-                        <ManageUser roles={roles} defaultUser={editingUser} onClose={() => {
-                            if (openCreateUserModal) setOpenCreateUserModal(false);
+                        <ManageUser roles={roles} defaultUser={editingUser} onFinish={async () => {
+                            if (openCreateUserModal)
+                                setOpenCreateUserModal(false);
                             else if (Boolean(editingUser))
                                 setEditingUser(undefined)
+                            await updateDataGrid(role)
                         }} />
                     </Paper>
                 </Slide>
@@ -285,7 +280,8 @@ export function Users() {
 
             <Modal
                 onClose={() => {
-                    if (openCreateRoleModal) setOpenCreateRoleModal(false);
+                    if (openCreateRoleModal)
+                        setOpenCreateRoleModal(false);
                     else if (Boolean(editingRole))
                         setEditingRole(undefined)
                 }}
@@ -298,7 +294,7 @@ export function Users() {
             >
                 <Slide direction={Boolean(editingRole) || openCreateRoleModal ? 'up' : 'down'} in={Boolean(editingRole) || openCreateRoleModal} timeout={250}>
                     <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
-                        <ManageRole defaultRole={editingRole} onClose={() => {
+                        <ManageRole defaultRole={editingRole} onFinish={async () => {
                             if (openCreateRoleModal) setOpenCreateRoleModal(false);
                             else if (Boolean(editingRole))
                                 setEditingRole(undefined)

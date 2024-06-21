@@ -4,7 +4,7 @@ import { InferType, array, mixed, number, object, string } from "yup";
 export const collectionName = 'visits'
 
 export const visitSchema = object().required().shape({
-    schemaVersion: string().required().min(6).max(10),
+    schemaVersion: string().optional().min(6).max(10),
     _id: mixed<string | ObjectId>().optional(),
     patientId: mixed<string | ObjectId>().optional().required(),
     due: number().required(),
