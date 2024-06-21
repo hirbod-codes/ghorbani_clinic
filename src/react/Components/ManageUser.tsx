@@ -5,8 +5,10 @@ import { t } from 'i18next';
 import { RendererDbAPI } from '../../Electron/Database/handleDbRendererEvents';
 import { ResultContext } from '../ResultContext';
 import { CheckOutlined } from '@mui/icons-material';
+import { AuthContext } from '../Lib/AuthContext';
 
 export default function ManageUser({ roles, defaultUser, onFinish }: { roles: string[], defaultUser?: User, onFinish?: () => Promise<void> | void }) {
+    const auth = useContext(AuthContext)
     const setResult = useContext(ResultContext).setResult
 
     const [user, setUser] = useState<User | undefined>(undefined)
@@ -52,6 +54,9 @@ export default function ManageUser({ roles, defaultUser, onFinish }: { roles: st
                             severity: 'success',
                             message: t('successfullyUpdatedUser'),
                         })
+
+                        if (auth.user._id === user._id)
+                            await auth.fetchUser()
                     }
                     else {
                         const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createUser(user)

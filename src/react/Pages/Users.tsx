@@ -13,11 +13,16 @@ import ManageUser from "../Components/ManageUser";
 import ManageRole from "../Components/ManageRole";
 import LoadingScreen from '../Components/LoadingScreen';
 import { ResultContext } from "../ResultContext";
+import { NavigationContext } from "../Lib/NavigationContext";
 
 export function Users() {
     const setResult = useContext(ResultContext).setResult
     const configuration = useContext(ConfigurationContext)
     const auth = useContext(AuthContext)
+    const nav = useContext(NavigationContext)
+
+    if (!auth.accessControl?.can(auth.user.roleName).read(resources.USER).granted)
+        nav.goHome()
 
     const [roles, setRoles] = useState<string[] | undefined>(undefined)
     const [role, setRole] = useState<string | undefined>(undefined)
@@ -34,7 +39,7 @@ export function Users() {
     const [rows, setRows] = useState([])
     const [loading, setLoading] = useState(true)
 
-    const fetchRoles = async (): Promise<string[]> => {
+    const fetchRoles = async (): Promise<string[] | undefined | null> => {
         setLoading(true)
         const response = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getRoles()
         setLoading(false)
@@ -46,7 +51,7 @@ export function Users() {
         return filteredRoles
     }
 
-    const fetchUsers = async (): Promise<User[]> => {
+    const fetchUsers = async (): Promise<User[] | undefined | null> => {
         setLoading(true)
         const response = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getUsers()
         setLoading(false)
@@ -58,12 +63,12 @@ export function Users() {
         return response.data
     }
 
-    const updateDataGrid = async (role: string, fetchUser = true) => {
+    const updateRows = async (role: string, fetchUser = true) => {
         setRole(role)
 
         let fetchedUsers
         if (fetchUser)
-            fetchedUsers = await fetchUsers()
+            fetchedUsers = await fetchUsers() ?? []
         else
             fetchedUsers = users
 
@@ -75,7 +80,13 @@ export function Users() {
         })))
     }
 
-    useEffect(() => { fetchRoles().then((r) => updateDataGrid(r[0])) }, [])
+    useEffect(() => {
+        fetchRoles()
+            .then((r) => {
+                if (r)
+                    updateRows(r[0])
+            })
+    }, [])
 
     const deleteUser = async (id: string) => {
         try {
@@ -170,10 +181,23 @@ export function Users() {
             type: 'actions',
             getActions: (params) => [
                 updatesUser
-                    ? <GridActionsCellItem icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />} onClick={() => setEditingUser(users.find(u => u._id === params.row.id))} label={t('editUser')} />
+                    ? <GridActionsCellItem
+                        label={t('editUser')}
+                        icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
+                        onClick={() => setEditingUser(users.find(u => u._id === params.row.id))}
+                    />
                     : null,
                 deletesUser
-                    ? <GridActionsCellItem icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />} onClick={async () => { await deleteUser(params.row.id); await updateDataGrid(role) }} label={t('deleteUser')} />
+                    ? <GridActionsCellItem
+                        label={t('deleteUser')}
+                        icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
+                        onClick={async () => {
+                            await deleteUser(params.row.id);
+                            await updateRows(role)
+                            if (auth.user._id === params.row.id)
+                                await auth.logout()
+                        }}
+                    />
                     : null,
             ].filter(a => a != null)
         })
@@ -184,7 +208,7 @@ export function Users() {
     return (
         <>
             <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
-                <Grid item xs={4} md={2}>
+                <Grid item xs={4} sm={2}>
                     <Paper sx={{ p: 1, height: '100%' }}>
                         <Typography textAlign='center' variant='h4'>{t('roles')}</Typography>
                         <List dense>
@@ -192,7 +216,7 @@ export function Users() {
                                 <div key={i} onMouseEnter={() => setRoleActionsCollapse(r)} onMouseLeave={() => setRoleActionsCollapse(null)}>
                                     <Box sx={{ mt: 1 }}></Box>
 
-                                    <ListItemButton selected={role === r} onClick={() => { updateDataGrid(r) }}>
+                                    <ListItemButton selected={role === r} onClick={() => { updateRows(r) }}>
                                         <ListItemText primary={t(r)} />
                                     </ListItemButton>
 
@@ -228,7 +252,7 @@ export function Users() {
                         </List>
                     </Paper>
                 </Grid>
-                <Grid item xs={8} md={10}>
+                <Grid item xs={8} sm={10}>
                     <Paper sx={{ p: 1, height: '100%' }}>
                         <DataGrid
                             slots={{
@@ -272,7 +296,7 @@ export function Users() {
                                 setOpenCreateUserModal(false);
                             else if (Boolean(editingUser))
                                 setEditingUser(undefined)
-                            await updateDataGrid(role)
+                            await updateRows(role)
                         }} />
                     </Paper>
                 </Slide>

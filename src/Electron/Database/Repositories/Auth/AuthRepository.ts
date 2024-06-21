@@ -5,6 +5,7 @@ import { compareSync } from "bcrypt";
 import { Auth } from "./Auth";
 import { DateTime } from "luxon";
 import { ipcMain } from "electron";
+import { ObjectId } from "mongodb";
 
 export class AuthRepository extends MongoDB implements IAuthRepository {
     async handleEvents(): Promise<void> {
@@ -33,5 +34,9 @@ export class AuthRepository extends MongoDB implements IAuthRepository {
 
     async getAuthenticatedUser(): Promise<User | null> {
         return Auth.authenticatedUser
+    }
+
+    async updateAuthenticatedUser(id: string): Promise<void> {
+        Auth.authenticatedUser = await (await this.getUsersCollection()).findOne({ _id: new ObjectId(id) })
     }
 }

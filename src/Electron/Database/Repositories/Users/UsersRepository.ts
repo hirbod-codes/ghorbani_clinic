@@ -10,6 +10,7 @@ import { DateTime } from "luxon";
 import { extractKeys, extractKeysRecursive } from "../../helpers";
 import { getFields } from "../../Models/helpers";
 import { ipcMain } from "electron";
+import { hashSync } from "bcrypt";
 
 export class UsersRepository extends MongoDB implements IUsersRepository {
     async handleEvents(): Promise<void> {
@@ -36,6 +37,7 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
 
         user.schemaVersion = 'v0.0.1';
         user = userSchema.cast(user);
+        user.password = hashSync(user.password, 10);
         user.createdAt = DateTime.utc().toUnixInteger();
         user.updatedAt = DateTime.utc().toUnixInteger();
 
@@ -90,7 +92,7 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
         if (!permission.granted)
             throw new Unauthorized()
 
-        const id = user._id;
+        const id = user._id.toString();
 
         user = Object.fromEntries(Object.entries(user).filter(arr => (updatableFields as string[]).includes(arr[0])));
         Object.keys(user).forEach(k => {
@@ -100,8 +102,13 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
 
         user.updatedAt = DateTime.utc().toUnixInteger();
 
-        return (await (await this.getUsersCollection()).updateOne({ _id: new ObjectId(id) }, { $set: { ...user } }, { upsert: false }))
+        const result = (await (await this.getUsersCollection()).updateOne({ _id: new ObjectId(id) }, { $set: { ...user } }, { upsert: false }))
 
+        if (result.acknowledged && result.matchedCount === 1)
+            if ((await authRepository.getAuthenticatedUser())?._id.toString() === id)
+                await authRepository.updateAuthenticatedUser(id)
+
+        return result
     }
 
     async deleteUser(userId: string): Promise<DeleteResult> {

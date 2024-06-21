@@ -4,6 +4,8 @@ import { AccessControl } from 'accesscontrol';
 
 export const AuthContext = createContext<{
     user: User,
+    accessControl?: AccessControl,
     setUser: (user: User) => void,
-    accessControl?: AccessControl
+    fetchUser: () => void | Promise<void>,
+    logout: () => void | Promise<void>,
 } | undefined>(undefined);
