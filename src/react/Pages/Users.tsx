@@ -119,7 +119,7 @@ export function Users() {
     const deleteRole = async (roleName: string) => {
         try {
             setDeletingRole(roleName)
-            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deletePrivileges(roleName)
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteRole(roleName)
             setDeletingRole(undefined)
             if (res.code !== 200) {
                 setResult({

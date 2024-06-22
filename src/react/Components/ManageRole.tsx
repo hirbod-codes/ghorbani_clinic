@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Typography, Accordion, AccordionSummary, AccordionDetails, Divider, TextField, Button, List, ListItem, ListItemText, Collapse, Checkbox } from "@mui/material";
+import { useState, useEffect, useContext } from "react";
+import { Typography, Accordion, AccordionSummary, AccordionDetails, Divider, TextField, Button, List, ListItem, ListItemText, Collapse, Checkbox, CircularProgress } from "@mui/material";
 import { ExpandMoreOutlined } from "@mui/icons-material";
 import { resources as staticResources } from "../../Electron/Database/Repositories/Auth/resources";
 import { t } from "i18next";
@@ -7,16 +7,20 @@ import { Privilege } from "../../Electron/Database/Models/Privilege";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
 import LoadingScreen from "./LoadingScreen";
 import { getAttributes } from "../../Electron/Database/Repositories/Auth/resources";
+import { ResultContext } from "../ResultContext";
 
 export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, onFinish?: () => Promise<void> | void }) {
+    const setResult = useContext(ResultContext).setResult
+
     const [fetchRoleFailed, setFetchRoleFailed] = useState<boolean>(false)
+    const [finishing, setFinishing] = useState<boolean>(false)
     const [loading, setLoading] = useState<boolean>(true)
     const [resources, setResources] = useState<{ name: string, index: number, create?: boolean, read?: string[] | undefined, update?: string[] | undefined, delete?: boolean }[] | undefined>(undefined)
-    const [role, setRole] = useState<{ name: string, privileges: Privilege[] } | undefined>(undefined)
+    const [roleName, setRoleName] = useState<string | undefined>(undefined)
 
     const fetchRole = async () => {
         setFetchRoleFailed(false)
-        if (!role && defaultRole) {
+        if (!roleName && defaultRole) {
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPrivileges(defaultRole)
             if (res.code !== 200) {
                 setFetchRoleFailed(true)
@@ -24,17 +28,11 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
             }
             setFetchRoleFailed(false)
 
-            setRole({
-                name: defaultRole,
-                privileges: res.data
-            })
+            setRoleName(defaultRole)
             setLoading(false)
         }
         else {
-            setRole({
-                name: '',
-                privileges: []
-            })
+            setRoleName('')
 
             setLoading(false)
         }
@@ -44,6 +42,59 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
         setResources(Object.entries(staticResources).map(r => ({ name: r[1], index: 0 })))
         fetchRole()
     }, [])
+
+    const done = async () => {
+        setFinishing(true)
+
+        const privileges: Privilege[] = []
+        for (let i = 0; i < resources.length; i++) {
+            const r = resources[i]
+            if (r.create)
+                privileges.push({ action: 'create:any', role: roleName, resource: r.name })
+            if (r.read)
+                privileges.push({ action: 'read:any', role: roleName, resource: r.name, attributes: r.read.join(', ') })
+            if (r.update)
+                privileges.push({ action: 'update:any', role: roleName, resource: r.name, attributes: r.update.join(', ') })
+            if (r.delete)
+                privileges.push({ action: 'delete:any', role: roleName, resource: r.name })
+        }
+
+        try {
+            if (defaultRole) {
+                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updateRole(privileges)
+                if (res.code !== 200) {
+                    setResult({
+                        severity: 'error',
+                        message: t('roleUpdateFailure')
+                    })
+                    return
+                }
+
+                setResult({
+                    severity: 'success',
+                    message: t('roleUpdateSuccessful')
+                })
+            }
+            else {
+                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createRole(privileges)
+                if (res.code !== 200) {
+                    setResult({
+                        severity: 'error',
+                        message: t('roleCreateFailure')
+                    })
+                    return
+                }
+
+                setResult({
+                    severity: 'success',
+                    message: t('roleCreateSuccessful')
+                })
+            }
+
+            if (onFinish)
+                onFinish()
+        } finally { setFinishing(false) }
+    }
 
     if (loading)
         return (
@@ -63,7 +114,7 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
             {defaultRole && <Typography variant='h6' textAlign='center'>{defaultRole}</Typography>}
             <Divider sx={{ mt: 1, mb: 2 }} />
             {/* Role name */}
-            <TextField fullWidth variant='standard' value={role?.name ?? ''} label={t('roleName')} onChange={(e) => setRole({ ...role, name: e.target.value })} />
+            <TextField fullWidth variant='standard' value={roleName ?? ''} label={t('roleName')} onChange={(e) => setRoleName(e.target.value)} />
             {resources.map((r, i) =>
                 <Accordion key={i}>
                     <AccordionSummary expandIcon={<ExpandMoreOutlined />}>
@@ -173,8 +224,9 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
                         </List>
                     </AccordionDetails>
                 </Accordion >
-            )
-            }
+            )}
+            <Divider sx={{ mt: 1, mb: 2 }} />
+            <Button fullWidth disabled={finishing} onClick={done}>{finishing ? <CircularProgress size={20} /> : t('done')}</Button>
         </>
     )
 }

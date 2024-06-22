@@ -14,8 +14,10 @@ export function handleRendererEvents(): RendererEvents {
         getPrivileges: async (roleName?: string): Promise<MainProcessResponse<Privilege[]>> => JSON.parse(await ipcRenderer.invoke('get-privileges', { roleName })),
         updatePrivilege: async (privilege: Privilege): Promise<MainProcessResponse<UpdateResult | undefined>> => JSON.parse(await ipcRenderer.invoke('update-privilege', { privilege })),
         updatePrivileges: async (privileges: Privilege[]): Promise<MainProcessResponse<boolean>> => JSON.parse(await ipcRenderer.invoke('update-privileges', { privileges })),
+        updateRole: async (privileges: Privilege[]): Promise<MainProcessResponse<boolean>> => JSON.parse(await ipcRenderer.invoke('update-role', { privileges })),
         deletePrivilege: async (id: string): Promise<MainProcessResponse<DeleteResult>> => JSON.parse(await ipcRenderer.invoke('delete-privilege', { id })),
-        deletePrivileges: async (arg: string | string[]): Promise<MainProcessResponse<DeleteResult>> => JSON.parse(await ipcRenderer.invoke('delete-privileges', { arg })),
+        deletePrivileges: async (ids: string[]): Promise<MainProcessResponse<DeleteResult>> => JSON.parse(await ipcRenderer.invoke('delete-privileges', { ids })),
+        deleteRole: async (roleName: string): Promise<MainProcessResponse<DeleteResult>> => JSON.parse(await ipcRenderer.invoke('delete-role', { roleName })),
     }
 }
 
@@ -28,6 +30,8 @@ export type RendererEvents = {
     getPrivileges: (roleName?: string) => Promise<MainProcessResponse<Privilege[]>>,
     updatePrivilege: (privilege: Privilege) => Promise<MainProcessResponse<UpdateResult | undefined>>,
     updatePrivileges: (privileges: Privilege[]) => Promise<MainProcessResponse<boolean>>,
+    updateRole: (privileges: Privilege[]) => Promise<MainProcessResponse<boolean>>,
     deletePrivilege: (id: string) => Promise<MainProcessResponse<DeleteResult>>,
-    deletePrivileges: (arg: string | string[]) => Promise<MainProcessResponse<DeleteResult>>,
+    deletePrivileges: (ids: string[]) => Promise<MainProcessResponse<DeleteResult>>,
+    deleteRole: (roleName: string) => Promise<MainProcessResponse<DeleteResult>>,
 }

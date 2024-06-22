@@ -1,4 +1,4 @@
-import { DeleteResult, Document, InsertManyResult, InsertOneResult, ObjectId, UpdateResult } from "mongodb";
+import { DeleteResult, InsertManyResult, InsertOneResult, ObjectId, UpdateResult } from "mongodb";
 import { Privilege, privilegeSchema, updatableFields } from "../../Models/Privilege";
 import { IPrivilegesRepository } from "../../dbAPI";
 import { MongoDB } from "../../mongodb";
@@ -10,7 +10,6 @@ import { Unauthorized } from "../../Unauthorized";
 import { DateTime } from "luxon";
 import { ipcMain } from "electron";
 import { authRepository } from "../../handleDbEvents";
-import { array, string } from "yup";
 
 export class PrivilegesRepository extends MongoDB implements IPrivilegesRepository {
     async handleEvents(): Promise<void> {
@@ -22,8 +21,27 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         ipcMain.handle('get-privileges', async (_e, { roleName }: { roleName?: string }) => await this.handleErrors(async () => await this.getPrivileges(roleName)))
         ipcMain.handle('update-privilege', async (_e, { privilege }: { privilege: Privilege }) => await this.handleErrors(async () => await this.updatePrivilege(privilege)))
         ipcMain.handle('update-privileges', async (_e, { privileges }: { privileges: Privilege[] }) => await this.handleErrors(async () => await this.updatePrivileges(privileges)))
+        ipcMain.handle('update-role', async (_e, { privileges }: { privileges: Privilege[] }) => await this.handleErrors(async () => await this.updateRole(privileges)))
         ipcMain.handle('delete-privilege', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.deletePrivilege(id)))
-        ipcMain.handle('delete-privileges', async (_e, { arg }: { arg: string | string[] }) => await this.handleErrors(async () => await this.deletePrivileges(arg as any)))
+        ipcMain.handle('delete-privileges', async (_e, { ids }: { ids: string[] }) => await this.handleErrors(async () => await this.deletePrivileges(ids)))
+        ipcMain.handle('delete-role', async (_e, { roleName }: { roleName: string }) => await this.handleErrors(async () => await this.deleteRole(roleName)))
+    }
+
+    private formatRolePrivileges(privileges: Privilege[]): Privilege[] {
+        const ts = DateTime.utc().toUnixInteger()
+        for (let i = 0; i < privileges.length; i++) {
+            if (i !== 0 && privileges[i].role !== privileges[i - 1].role)
+                throw new Error('Invalid privilege role name provided.');
+
+            if (!privilegeSchema.isValidSync(privileges[i]))
+                throw new Error('Invalid privilege info provided.');
+
+            privileges[i] = privilegeSchema.cast(privileges[i]);
+            privileges[i].schemaVersion = 'v0.0.1';
+            privileges[i].createdAt = ts;
+            privileges[i].updatedAt = ts;
+        }
+        return privileges
     }
 
     async createRole(privileges: Privilege[]): Promise<InsertManyResult> {
@@ -34,18 +52,7 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         if (!(await this.getAccessControl()).can(user.roleName).create(resources.PRIVILEGE).granted)
             throw new Unauthorized()
 
-        const ts = DateTime.utc().toUnixInteger()
-        for (let i = 0; i < privileges.length; i++) {
-            if (!privilegeSchema.isValidSync(privileges[i]))
-                throw new Error('Invalid privilege info provided.');
-
-            privileges[i] = privilegeSchema.cast(privileges[i]);
-            privileges[i].schemaVersion = 'v0.0.1';
-            privileges[i].createdAt = ts;
-            privileges[i].updatedAt = ts;
-        }
-
-        return await (await this.getPrivilegesCollection()).insertMany(privileges)
+        return await (await this.getPrivilegesCollection()).insertMany(this.formatRolePrivileges(privileges))
     }
 
     async createPrivilege(privilege: Privilege): Promise<InsertOneResult> {
@@ -137,6 +144,40 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         return await (await this.getPrivilegesCollection()).updateOne({ _id: new ObjectId(id), role: { $ne: roles.ADMIN } }, { $set: { ...privilege } })
     }
 
+    async updateRole(privileges: Privilege[]): Promise<boolean> {
+        const user = await authRepository.getAuthenticatedUser()
+        if (user == null)
+            throw new Unauthenticated();
+
+        if (!(await this.getAccessControl()).can(user.roleName).update(resources.PRIVILEGE).granted)
+            throw new Unauthorized()
+
+        const client = this.getClient()
+        const session = client.startSession()
+        try {
+            const deleteResult = await (await this.getPrivilegesCollection(client)).deleteMany({ $and: [{ role: { $ne: roles.ADMIN } }, { role: privileges[0].role }] }, { session })
+            if (!deleteResult.acknowledged) {
+                await session.abortTransaction()
+                return false
+            }
+
+            const createResult = await (await this.getPrivilegesCollection(client)).insertMany(this.formatRolePrivileges(privileges), { session })
+            if (!createResult.acknowledged && createResult.insertedCount <= 0) {
+                await session.abortTransaction()
+                return false
+            }
+
+            await session.commitTransaction()
+            return true
+        }
+        catch (err) {
+            await session.abortTransaction()
+            console.error(err);
+            return false
+        }
+        finally { await session.endSession() }
+    }
+
     async updatePrivileges(privileges: Privilege[]): Promise<boolean> {
         const user = await authRepository.getAuthenticatedUser()
         if (user == null)
@@ -178,9 +219,7 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         return await (await this.getPrivilegesCollection()).deleteOne({ _id: new ObjectId(id), role: { $ne: roles.ADMIN } })
     }
 
-    deletePrivileges(ids: string[]): Promise<DeleteResult>
-    deletePrivileges(roleName: string): Promise<DeleteResult>
-    async deletePrivileges(arg: string | string[]): Promise<DeleteResult> {
+    async deleteRole(roleName: string): Promise<DeleteResult> {
         const user = await authRepository.getAuthenticatedUser()
         if (user == null)
             throw new Unauthenticated();
@@ -188,9 +227,17 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         if (!(await this.getAccessControl()).can(user.roleName).delete(resources.PRIVILEGE).granted)
             throw new Unauthorized()
 
-        if (array().required().of(string().required()).isValidSync(arg))
-            return await (await this.getPrivilegesCollection()).deleteMany({ $and: [{ _id: { $in: (arg as string[]).map(arg => new ObjectId(arg)) } }, { role: { $ne: roles.ADMIN } }] })
-        else
-            return await (await this.getPrivilegesCollection()).deleteMany({ $and: [{ role: arg }, { role: { $ne: roles.ADMIN } }] })
+        return await (await this.getPrivilegesCollection()).deleteMany({ $and: [{ role: { $ne: roles.ADMIN } }, { role: roleName }] })
+    }
+
+    async deletePrivileges(ids: string[]): Promise<DeleteResult> {
+        const user = await authRepository.getAuthenticatedUser()
+        if (user == null)
+            throw new Unauthenticated();
+
+        if (!(await this.getAccessControl()).can(user.roleName).delete(resources.PRIVILEGE).granted)
+            throw new Unauthorized()
+
+        return await (await this.getPrivilegesCollection()).deleteMany({ $and: [{ _id: { $in: ids.map(id => new ObjectId(id)) } }, { role: { $ne: roles.ADMIN } }] })
     }
 }
