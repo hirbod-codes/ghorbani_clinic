@@ -1,6 +1,6 @@
 import { AccessControl } from "accesscontrol"
 import { Privilege } from "./Models/Privilege"
-import { DeleteResult, GridFSFile, InsertOneResult, UpdateResult } from "mongodb"
+import { DeleteResult, GridFSFile, InsertManyResult, InsertOneResult, UpdateResult } from "mongodb"
 import { Patient } from "./Models/Patient"
 import { Visit } from "./Models/Visit"
 import { MongodbConfig } from "../Configuration/types"
@@ -29,6 +29,7 @@ export type IUsersRepository = dbAPI & {
 
 export type IPrivilegesRepository = dbAPI & {
     handleEvents(): Promise<void>,
+    createRole(privileges: Privilege[]): Promise<InsertManyResult>,
     createPrivilege(privilege: Privilege): Promise<InsertOneResult>,
     getRoles(): Promise<string[]>,
     getAccessControl(): Promise<AccessControl>,

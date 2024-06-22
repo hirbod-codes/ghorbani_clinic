@@ -13,7 +13,7 @@ const createWindow = (): void => {
         height: 600,
         width: 800,
         center: true,
-        fullscreen: false,
+        fullscreen: true,
         frame: false,
         webPreferences: {
             preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
@@ -23,7 +23,7 @@ const createWindow = (): void => {
     mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
     if (!app.isPackaged)
-        mainWindow.webContents.openDevTools();
+        mainWindow.webContents.openDevTools({ mode: 'bottom' });
 };
 
 app.on('ready', async () => {

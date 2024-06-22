@@ -1,6 +1,5 @@
-import * as React from "react";
 import { useState, useEffect } from "react";
-import { Typography, Accordion, AccordionSummary, AccordionDetails, Divider, TextField, Button, List, ListItem, ListItemText, Switch, Collapse, Slide, Paper, Box } from "@mui/material";
+import { Typography, Accordion, AccordionSummary, AccordionDetails, Divider, TextField, Button, List, ListItem, ListItemText, Collapse, Checkbox } from "@mui/material";
 import { ExpandMoreOutlined } from "@mui/icons-material";
 import { resources as staticResources } from "../../Electron/Database/Repositories/Auth/resources";
 import { t } from "i18next";
@@ -14,7 +13,6 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
     const [loading, setLoading] = useState<boolean>(true)
     const [resources, setResources] = useState<{ name: string, index: number, create?: boolean, read?: string[] | undefined, update?: string[] | undefined, delete?: boolean }[] | undefined>(undefined)
     const [role, setRole] = useState<{ name: string, privileges: Privilege[] } | undefined>(undefined)
-    const containerRef = React.useRef<HTMLElement>(null);
 
     const fetchRole = async () => {
         setFetchRoleFailed(false)
@@ -75,7 +73,7 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
                         <List>
                             <ListItem>
                                 <ListItemText primary={t('create')} />
-                                <Switch
+                                <Checkbox
                                     edge="end"
                                     onChange={() => {
                                         resources[i].create = !(r.create ?? false)
@@ -84,54 +82,48 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
                                     checked={r.create ?? false}
                                 />
                             </ListItem>
-                            <Box ref={containerRef}>
-                                <ListItem >
-                                    <ListItemText primary={t('read')} />
-                                    <Switch
-                                        edge="end"
-                                        onChange={() => {
-                                            if (r.read !== undefined)
-                                                resources[i].read = undefined
-                                            else
-                                                resources[i].read = []
-                                            setResources([...resources])
-                                        }}
-                                        checked={r.read !== undefined}
-                                    />
-                                </ListItem>
-                                {
-                                    (r.read !== undefined) && getAttributes(r.name, 'read').length > 0 &&
-                                    <Slide direction={r.read !== undefined ? 'down' : 'up'} timeout={500} in={r.read !== undefined} container={containerRef.current} >
-                                        <Paper elevation={2}>
-                                            {/* <Collapse in={r.read !== undefined} timeout={800}> */}
-                                            <List>
-                                                {
-                                                    getAttributes(r.name, 'read').map((a, ai) =>
-                                                        <ListItem key={ai}>
-                                                            <ListItemText primary={a} />
-                                                            <Switch
-                                                                edge="end"
-                                                                onChange={() => {
-                                                                    if (r.read.includes(a))
-                                                                        resources[i].read = resources[i].read.filter(elm => elm !== a)
-                                                                    else
-                                                                        resources[i].read.push(a)
-                                                                    setResources([...resources])
-                                                                }}
-                                                                checked={r.read.includes(a)}
-                                                            />
-                                                        </ListItem>
-                                                    )
-                                                }
-                                            </List>
-                                            {/* </Collapse> */}
-                                        </Paper>
-                                    </Slide>
-                                }
-                            </Box>
+                            <ListItem>
+                                <ListItemText primary={t('read')} />
+                                <Checkbox
+                                    edge='end'
+                                    checked={r?.read !== undefined}
+                                    onChange={() => {
+                                        if (r.read !== undefined)
+                                            resources[i].read = undefined
+                                        else
+                                            resources[i].read = []
+                                        setResources([...resources])
+                                        console.log(resources)
+                                        console.log(r?.read !== undefined)
+                                    }}
+                                />
+                            </ListItem>
+                            <Collapse in={r?.read !== undefined} timeout="auto" unmountOnExit >
+                                <List component="div" disablePadding>
+                                    {
+                                        getAttributes(r.name, 'read').map((a, ai) =>
+                                            <ListItem key={ai} sx={{ pl: 5, pr: 5 }}>
+                                                <ListItemText primary={a} />
+                                                <Checkbox
+                                                    edge="end"
+                                                    disabled={a === '_id'}
+                                                    onChange={() => {
+                                                        if (r.read?.includes(a))
+                                                            resources[i].read = resources[i].read?.filter(elm => elm !== a) ?? undefined
+                                                        else
+                                                            resources[i].read.push(a)
+                                                        setResources([...resources])
+                                                    }}
+                                                    checked={r.read?.includes(a) ?? false}
+                                                />
+                                            </ListItem>
+                                        )
+                                    }
+                                </List>
+                            </Collapse>
                             <ListItem>
                                 <ListItemText primary={t('update')} />
-                                <Switch
+                                <Checkbox
                                     edge="end"
                                     onChange={() => {
                                         if (r.update !== undefined)
@@ -139,40 +131,37 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
                                         else
                                             resources[i].update = []
                                         setResources([...resources])
+                                        console.log(resources)
+                                        console.log(r?.update !== undefined)
                                     }}
-                                    checked={r.update !== undefined}
+                                    checked={r?.update !== undefined}
                                 />
                             </ListItem>
-                            <Accordion elevation={2} expanded={r.update !== undefined}>
-                                <AccordionSummary expandIcon={<ExpandMoreOutlined />}>
-                                    Attributes
-                                </AccordionSummary>
-                                <AccordionDetails>
-                                    <List>
-                                        {
-                                            getAttributes(r.name, 'update').map((a, ai) =>
-                                                <ListItem key={ai}>
-                                                    <ListItemText primary={a} />
-                                                    <Switch
-                                                        edge="end"
-                                                        onChange={() => {
-                                                            if (r.update?.includes(a))
-                                                                resources[i].update = resources[i].update?.filter(elm => elm !== a) ?? undefined
-                                                            else
-                                                                resources[i].update?.push(a)
-                                                            setResources([...resources])
-                                                        }}
-                                                        checked={r.update?.includes(a)}
-                                                    />
-                                                </ListItem>
-                                            )
-                                        }
-                                    </List>
-                                </AccordionDetails>
-                            </Accordion>
+                            <Collapse in={r?.update !== undefined} timeout="auto" unmountOnExit >
+                                <List component="div" disablePadding>
+                                    {
+                                        getAttributes(r.name, 'update').map((a, ai) =>
+                                            <ListItem key={ai} sx={{ pl: 5, pr: 5 }}>
+                                                <ListItemText primary={a} />
+                                                <Checkbox
+                                                    edge="end"
+                                                    onChange={() => {
+                                                        if (r.update?.includes(a))
+                                                            resources[i].update = resources[i].update?.filter(elm => elm !== a) ?? undefined
+                                                        else
+                                                            resources[i].update.push(a)
+                                                        setResources([...resources])
+                                                    }}
+                                                    checked={r.update?.includes(a) ?? false}
+                                                />
+                                            </ListItem>
+                                        )
+                                    }
+                                </List>
+                            </Collapse>
                             <ListItem>
                                 <ListItemText primary={t('delete')} />
-                                <Switch
+                                <Checkbox
                                     edge="end"
                                     onChange={() => {
                                         resources[i].delete = !(r.delete ?? false)

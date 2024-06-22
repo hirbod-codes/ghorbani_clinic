@@ -1,11 +1,12 @@
 import { ipcRenderer } from "electron"
 import { MainProcessResponse } from "../../../types"
-import { DeleteResult, InsertOneResult, UpdateResult } from "mongodb"
+import { DeleteResult, InsertManyResult, InsertOneResult, UpdateResult } from "mongodb"
 import { Privilege } from "../../Models/Privilege"
 import { AccessControl } from "accesscontrol"
 
 export function handleRendererEvents(): RendererEvents {
     return {
+        createRole: async (privileges: Privilege[]): Promise<MainProcessResponse<InsertManyResult>> => JSON.parse(await ipcRenderer.invoke('create-role', { privileges })),
         createPrivilege: async (privilege: Privilege): Promise<MainProcessResponse<InsertOneResult>> => JSON.parse(await ipcRenderer.invoke('create-privilege', { privilege })),
         getAccessControl: async (): Promise<MainProcessResponse<AccessControl>> => JSON.parse(await ipcRenderer.invoke('get-access-control')),
         getPrivilege: async (roleName: string, action: string): Promise<MainProcessResponse<Privilege | null>> => JSON.parse(await ipcRenderer.invoke('get-privilege', { roleName, action })),
@@ -19,6 +20,7 @@ export function handleRendererEvents(): RendererEvents {
 }
 
 export type RendererEvents = {
+    createRole: (privileges: Privilege[]) => Promise<MainProcessResponse<InsertManyResult>>,
     createPrivilege: (privilege: Privilege) => Promise<MainProcessResponse<InsertOneResult>>,
     getAccessControl: (roleName?: string) => Promise<MainProcessResponse<AccessControl>>,
     getPrivilege: (roleName: string, action: string) => Promise<MainProcessResponse<Privilege | null>>,

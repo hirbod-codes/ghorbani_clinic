@@ -1,4 +1,4 @@
-import { DeleteResult, Document, InsertOneResult, ObjectId, UpdateResult } from "mongodb";
+import { DeleteResult, Document, InsertManyResult, InsertOneResult, ObjectId, UpdateResult } from "mongodb";
 import { Privilege, privilegeSchema, updatableFields } from "../../Models/Privilege";
 import { IPrivilegesRepository } from "../../dbAPI";
 import { MongoDB } from "../../mongodb";
@@ -14,6 +14,7 @@ import { array, string } from "yup";
 
 export class PrivilegesRepository extends MongoDB implements IPrivilegesRepository {
     async handleEvents(): Promise<void> {
+        ipcMain.handle('create-role', async (_e, { privileges }: { privileges: Privilege[] }) => await this.handleErrors(async () => await this.createRole(privileges)))
         ipcMain.handle('create-privilege', async (_e, { privilege }: { privilege: Privilege }) => await this.handleErrors(async () => await this.createPrivilege(privilege)))
         ipcMain.handle('get-privilege', async (_e, { roleName, action }: { roleName: string, action: string }) => await this.handleErrors(async () => await this.getPrivilege(roleName, action)))
         ipcMain.handle('get-roles', async () => await this.handleErrors(async () => await this.getRoles()))
@@ -23,6 +24,28 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         ipcMain.handle('update-privileges', async (_e, { privileges }: { privileges: Privilege[] }) => await this.handleErrors(async () => await this.updatePrivileges(privileges)))
         ipcMain.handle('delete-privilege', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.deletePrivilege(id)))
         ipcMain.handle('delete-privileges', async (_e, { arg }: { arg: string | string[] }) => await this.handleErrors(async () => await this.deletePrivileges(arg as any)))
+    }
+
+    async createRole(privileges: Privilege[]): Promise<InsertManyResult> {
+        const user = await authRepository.getAuthenticatedUser()
+        if (user == null)
+            throw new Unauthenticated();
+
+        if (!(await this.getAccessControl()).can(user.roleName).create(resources.PRIVILEGE).granted)
+            throw new Unauthorized()
+
+        const ts = DateTime.utc().toUnixInteger()
+        for (let i = 0; i < privileges.length; i++) {
+            if (!privilegeSchema.isValidSync(privileges[i]))
+                throw new Error('Invalid privilege info provided.');
+
+            privileges[i] = privilegeSchema.cast(privileges[i]);
+            privileges[i].schemaVersion = 'v0.0.1';
+            privileges[i].createdAt = ts;
+            privileges[i].updatedAt = ts;
+        }
+
+        return await (await this.getPrivilegesCollection()).insertMany(privileges)
     }
 
     async createPrivilege(privilege: Privilege): Promise<InsertOneResult> {
