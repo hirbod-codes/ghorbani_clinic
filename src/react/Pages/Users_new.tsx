@@ -29,11 +29,11 @@ export function Users() {
     const [roles, setRoles] = useState<string[] | undefined>(undefined)
     const [role, setRole] = useState<string | undefined>(undefined)
     const [roleActionsCollapse, setRoleActionsCollapse] = useState<string | null>()
-    const [openCreateRoleModal, setOpenCreateRoleModal] = useState<boolean>(false)
+    const [openManageRoleModal, setOpenManageRoleModal] = useState<boolean>(false)
     const [editingRole, setEditingRole] = useState<string | undefined>(undefined)
     const [deletingRole, setDeletingRole] = useState<string | undefined>(undefined)
 
-    const [openCreateUserModal, setOpenCreateUserModal] = useState<boolean>(false)
+    const [openManageUserModal, setOpenManageUserModal] = useState<boolean>(false)
     const [editingUser, setEditingUser] = useState<User | undefined>(undefined)
     const [deletingUser, setDeletingUser] = useState<string | undefined>(undefined)
     const [users, setUsers] = useState<User[]>([])
@@ -180,7 +180,7 @@ export function Users() {
                                             {
                                                 auth.accessControl?.can(auth.user.roleName).update(resources.PRIVILEGE).granted &&
                                                 <ListItemButton sx={{ pl: 4 }}>
-                                                    <ListItemIcon onClick={() => setEditingRole(r)}>
+                                                    <ListItemIcon onClick={() => { setOpenManageRoleModal(true); setEditingRole(r) }}>
                                                         {editingRole ? <CircularProgress size={20} /> : <EditOutlined />}
                                                     </ListItemIcon>
                                                     <ListItemText primary={t("edit")} />
@@ -201,7 +201,7 @@ export function Users() {
                             )}
                             <Box sx={{ mt: 1 }}></Box>
                             <Divider />
-                            <Stack direction='row' justifyContent='center' mt={1} onClick={() => setOpenCreateRoleModal(true)}>
+                            <Stack direction='row' justifyContent='center' mt={1} onClick={() => setOpenManageRoleModal(true)}>
                                 <IconButton><AddOutlined /></IconButton>
                             </Stack>
                         </List>
@@ -226,7 +226,7 @@ export function Users() {
                                         ? <GridActionsCellItem
                                             label={t('editUser')}
                                             icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
-                                            onClick={() => setEditingUser(users.find(u => u._id === params.row.id))}
+                                            onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === params.row.id)) }}
                                         />
                                         : null,
                                     deletesUser
@@ -245,7 +245,7 @@ export function Users() {
                             }] : undefined}
                             customToolbar={[
                                 <Button onClick={async () => await fetchUsers()} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
-                                <Button onClick={() => setOpenCreateUserModal(true)} startIcon={<AddOutlined />}>{t('Create')}</Button>,
+                                <Button onClick={() => setOpenManageUserModal(true)} startIcon={<AddOutlined />}>{t('Create')}</Button>,
                             ]}
                         />
                     </Paper>
@@ -253,25 +253,18 @@ export function Users() {
             </Grid>
 
             <Modal
-                onClose={() => {
-                    if (openCreateUserModal) setOpenCreateUserModal(false);
-                    else if (Boolean(editingUser))
-                        setEditingUser(undefined)
-                }}
-                open={Boolean(editingUser) || openCreateUserModal}
+                onClose={() => setOpenManageUserModal(false)}
+                open={openManageUserModal}
                 closeAfterTransition
                 disableEscapeKeyDown
                 disableAutoFocus
                 sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
                 slotProps={{ backdrop: { sx: { top: '2rem' } } }}
             >
-                <Slide direction={Boolean(editingUser) || openCreateUserModal ? 'up' : 'down'} in={Boolean(editingUser) || openCreateUserModal} timeout={250}>
+                <Slide direction={openManageUserModal ? 'up' : 'down'} in={openManageUserModal} timeout={250}>
                     <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
                         <ManageUser roles={roles} defaultUser={editingUser} onFinish={async () => {
-                            if (openCreateUserModal)
-                                setOpenCreateUserModal(false);
-                            else if (Boolean(editingUser))
-                                setEditingUser(undefined)
+                            setOpenManageUserModal(false)
                             await updateRows(role)
                         }} />
                     </Paper>
@@ -279,26 +272,17 @@ export function Users() {
             </Modal>
 
             <Modal
-                onClose={() => {
-                    if (openCreateRoleModal)
-                        setOpenCreateRoleModal(false);
-                    else if (Boolean(editingRole))
-                        setEditingRole(undefined)
-                }}
-                open={Boolean(editingRole) || openCreateRoleModal}
+                onClose={() => setOpenManageRoleModal(false)}
+                open={openManageRoleModal}
                 closeAfterTransition
                 disableEscapeKeyDown
                 disableAutoFocus
                 sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
                 slotProps={{ backdrop: { sx: { top: '2rem' } } }}
             >
-                <Slide direction={Boolean(editingRole) || openCreateRoleModal ? 'up' : 'down'} in={Boolean(editingRole) || openCreateRoleModal} timeout={250}>
+                <Slide direction={openManageRoleModal ? 'up' : 'down'} in={openManageRoleModal} timeout={250}>
                     <Paper sx={{ width: '60%', overflowY: 'auto', maxHeight: '80%', padding: '0.5rem 2rem' }}>
-                        <ManageRole defaultRole={editingRole} onFinish={async () => {
-                            if (openCreateRoleModal) setOpenCreateRoleModal(false);
-                            else if (Boolean(editingRole))
-                                setEditingRole(undefined)
-                        }} />
+                        <ManageRole defaultRole={editingRole} onFinish={async () => setOpenManageRoleModal(false)} />
                     </Paper>
                 </Slide>
             </Modal>
