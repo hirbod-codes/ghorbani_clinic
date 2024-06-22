@@ -30,7 +30,6 @@ import { prefixer } from 'stylis';
 import rtlPlugin from 'stylis-plugin-rtl';
 import type { configAPI } from '../Electron/Configuration/renderer/configAPI';
 import { RendererDbAPI } from '../Electron/Database/handleDbRendererEvents';
-import { Users } from './Pages/Users';
 import { User } from '../Electron/Database/Models/User';
 import { AuthContext } from './Lib/AuthContext';
 import { NavigationContext } from './Lib/NavigationContext';
@@ -39,6 +38,7 @@ import { resources } from "../Electron/Database/Repositories/Auth/resources";
 import LoadingScreen from './Components/LoadingScreen';
 import { LoginForm } from './LoginForm';
 import { Result, ResultContext } from './ResultContext';
+import { Users } from './Pages/Users';
 
 // Create rtl cache
 const rtlCache = createCache({
@@ -54,7 +54,7 @@ export function App() {
     // Navigation
     const [openDrawer, setOpenDrawer] = useState(false)
     const [openSettingsList, setOpenSettingsList] = useState(false)
-    const [content, setContent] = useState(<Users />)
+    const [content, setContent] = useState(<Home />)
 
     // Localization
     const { t, i18n } = useTranslation();

@@ -12,10 +12,14 @@ export const resources = {
 }
 
 export function getAttributes(resource: string, action: string) {
+    if (action.toLowerCase().includes('create'))
+        return []
     if (action.toLowerCase().includes('update'))
         return getUpdateAttributes(resource)
     if (action.toLowerCase().includes('read'))
         return getReadAttributes(resource)
+    if (action.toLowerCase().includes('delete'))
+        return []
 
     throw new Error('Invalid action value provided.')
 }

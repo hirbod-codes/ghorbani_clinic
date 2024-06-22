@@ -9,13 +9,15 @@ import LoadingScreen from "./LoadingScreen";
 import { getAttributes } from "../../Electron/Database/Repositories/Auth/resources";
 import { ResultContext } from "../ResultContext";
 
+type Resource = { name: string, index: number, create?: boolean, read?: string[] | undefined, update?: string[] | undefined, delete?: boolean }
+
 export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, onFinish?: () => Promise<void> | void }) {
     const setResult = useContext(ResultContext).setResult
 
     const [fetchRoleFailed, setFetchRoleFailed] = useState<boolean>(false)
     const [finishing, setFinishing] = useState<boolean>(false)
     const [loading, setLoading] = useState<boolean>(true)
-    const [resources, setResources] = useState<{ name: string, index: number, create?: boolean, read?: string[] | undefined, update?: string[] | undefined, delete?: boolean }[] | undefined>(undefined)
+    const [resources, setResources] = useState<Resource[] | undefined>(undefined)
     const [roleName, setRoleName] = useState<string | undefined>(undefined)
 
     const fetchRole = async () => {
@@ -29,6 +31,45 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
             setFetchRoleFailed(false)
 
             setRoleName(defaultRole)
+
+            const newResources: Resource[] = Object.entries(staticResources).map(r => ({ name: r[1], index: 0 }))
+            for (let i = 0; i < res.data.length; i++) {
+                if (newResources.find(r => r.name === res.data[i].resource) === undefined) {
+                    let resource: Resource = { name: res.data[i].resource, index: 0 }
+                    newResources.push(resource)
+                }
+
+                const index = newResources.findIndex(r => r.name === res.data[i].resource)
+                if (index < 0)
+                    continue
+
+                let attributes = res.data[i].attributes.split(', ')
+                if (attributes.includes('*'))
+                    attributes = attributes.filter(f => f !== '*').concat(getAttributes(res.data[i].resource, res.data[i].action))
+                const excludedAttributes: string[] = []
+                attributes = attributes.filter((v, i, arr) => {
+                    if (v.includes('!')) {
+                        excludedAttributes.push(v.replace('!', ''))
+                        return false
+                    }
+                    return true
+                })
+                attributes = attributes.filter((v, i, arr) => {
+                    if (excludedAttributes.includes(v))
+                        return false
+                    return true
+                })
+
+                if (res.data[i].action.includes('create'))
+                    newResources[index].create = true
+                else if (res.data[i].action.includes('read'))
+                    newResources[index].read = attributes
+                else if (res.data[i].action.includes('update'))
+                    newResources[index].update = attributes
+                else if (res.data[i].action.includes('delete'))
+                    newResources[index].delete = true
+            }
+            setResources(newResources)
             setLoading(false)
         }
         else {
@@ -39,7 +80,6 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
     }
 
     useEffect(() => {
-        setResources(Object.entries(staticResources).map(r => ({ name: r[1], index: 0 })))
         fetchRole()
     }, [])
 
@@ -114,7 +154,6 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
     return (
         <>
             <Typography variant='h5' textAlign='center'>{defaultRole ? t('ManageRole') : t('createRole')}</Typography>
-            {defaultRole && <Typography variant='h6' textAlign='center'>{defaultRole}</Typography>}
             <Divider sx={{ mt: 1, mb: 2 }} />
             {/* Role name */}
             <TextField fullWidth variant='standard' value={roleName ?? ''} label={t('roleName')} onChange={(e) => setRoleName(e.target.value)} />
@@ -145,7 +184,7 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
                                         if (r.read !== undefined)
                                             resources[i].read = undefined
                                         else
-                                            resources[i].read = []
+                                            resources[i].read = getAttributes(r.name, 'read')
                                         setResources([...resources])
                                         console.log(resources)
                                         console.log(r?.read !== undefined)
@@ -158,18 +197,26 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
                                         getAttributes(r.name, 'read').map((a, ai) =>
                                             <ListItem key={ai} sx={{ pl: 5, pr: 5 }}>
                                                 <ListItemText primary={a} />
-                                                <Checkbox
-                                                    edge="end"
-                                                    disabled={a === '_id'}
-                                                    onChange={() => {
-                                                        if (r.read?.includes(a))
-                                                            resources[i].read = resources[i].read?.filter(elm => elm !== a) ?? undefined
-                                                        else
-                                                            resources[i].read.push(a)
-                                                        setResources([...resources])
-                                                    }}
-                                                    checked={r.read?.includes(a) ?? false}
-                                                />
+                                                {
+                                                    a === '_id'
+                                                        ? <Checkbox
+                                                            edge="end"
+                                                            disabled
+                                                            checked
+                                                        />
+                                                        : <Checkbox
+                                                            edge="end"
+                                                            disabled={a === '_id'}
+                                                            onChange={() => {
+                                                                if (r.read?.includes(a))
+                                                                    resources[i].read = resources[i].read?.filter(elm => elm !== a) ?? undefined
+                                                                else
+                                                                    resources[i].read.push(a)
+                                                                setResources([...resources])
+                                                            }}
+                                                            checked={r.read?.includes(a) ?? false}
+                                                        />
+                                                }
                                             </ListItem>
                                         )
                                     }
@@ -183,7 +230,7 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
                                         if (r.update !== undefined)
                                             resources[i].update = undefined
                                         else
-                                            resources[i].update = []
+                                            resources[i].update = getAttributes(r.name, 'update')
                                         setResources([...resources])
                                         console.log(resources)
                                         console.log(r?.update !== undefined)
