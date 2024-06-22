@@ -8,7 +8,7 @@ import { ipcMain } from "electron";
 import { DeleteResult, InsertOneResult, ObjectId, UpdateResult } from "mongodb";
 import { Unauthenticated } from "../../Unauthenticated";
 import { authRepository, privilegesRepository } from "../../handleDbEvents";
-import { resources } from "../Auth/dev-permissions";
+import { resources } from "../Auth/resources";
 import { getFields } from "../../Models/helpers";
 
 export class VisitRepository extends MongoDB implements IVisitRepository {

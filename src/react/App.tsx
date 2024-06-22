@@ -32,11 +32,10 @@ import type { configAPI } from '../Electron/Configuration/renderer/configAPI';
 import { RendererDbAPI } from '../Electron/Database/handleDbRendererEvents';
 import { Users } from './Pages/Users';
 import { User } from '../Electron/Database/Models/User';
-import { OverridableStringUnion } from "@mui/types";
 import { AuthContext } from './Lib/AuthContext';
 import { NavigationContext } from './Lib/NavigationContext';
 import { AccessControl } from 'accesscontrol';
-import { resources } from '../Electron/Database/Repositories/Auth/dev-permissions';
+import { resources } from "../Electron/Database/Repositories/Auth/resources";
 import LoadingScreen from './Components/LoadingScreen';
 import { LoginForm } from './LoginForm';
 import { Result, ResultContext } from './ResultContext';
@@ -55,7 +54,7 @@ export function App() {
     // Navigation
     const [openDrawer, setOpenDrawer] = useState(false)
     const [openSettingsList, setOpenSettingsList] = useState(false)
-    const [content, setContent] = useState(<Home />)
+    const [content, setContent] = useState(<Users />)
 
     // Localization
     const { t, i18n } = useTranslation();

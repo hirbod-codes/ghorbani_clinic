@@ -1,6 +1,7 @@
-import { CircularProgress, Stack } from '@mui/material'
+import { ReactNode } from "react";
+import { CircularProgress, Stack } from "@mui/material";
 
-export default function LoadingScreen() {
+export default function LoadingScreen({ children }: { children?: ReactNode }) {
     return (
         <>
             <Stack
@@ -11,6 +12,7 @@ export default function LoadingScreen() {
                 sx={{ border: '1px solid black', minHeight: '100vh' }}
             >
                 <CircularProgress />
+                {children}
             </Stack>
         </>
     )

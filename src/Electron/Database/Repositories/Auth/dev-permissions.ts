@@ -1,13 +1,6 @@
 import { DateTime } from "luxon";
 import { Privilege } from "../../Models/Privilege"
-
-export const resources = {
-    USER: 'user',
-    PATIENT: 'patient',
-    VISIT: 'visit',
-    PRIVILEGE: 'privilege',
-    FILE: 'file',
-}
+import { resources } from "./resources";
 
 export const roles = {
     ADMIN: 'admin',

@@ -3,7 +3,8 @@ import { AddOutlined, DeleteOutlined, EditOutlined, RefreshOutlined } from '@mui
 import { Modal, Slide, Grid, List, ListItemButton, ListItemText, ListItemIcon, Paper, Typography, Button, Divider, Box, Stack, IconButton, Collapse, CircularProgress } from "@mui/material";
 import { DataGrid, GridActionsCellItem, GridColDef, GridToolbarContainer, GridToolbarColumnsButton, GridToolbarFilterButton, GridToolbarDensitySelector, GridToolbarExport } from "@mui/x-data-grid";
 import { t } from "i18next";
-import { resources, roles as staticRoles } from "../../Electron/Database/Repositories/Auth/dev-permissions";
+import { roles as staticRoles } from "../../Electron/Database/Repositories/Auth/dev-permissions";
+import { resources } from "../../Electron/Database/Repositories/Auth/resources";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
 import { User } from '../../Electron/Database/Models/User';
 import { DATE, fromUnixToFormat } from '../Lib/DateTime/date-time-helpers';
@@ -220,7 +221,7 @@ export function Users() {
                                         <ListItemText primary={t(r)} />
                                     </ListItemButton>
 
-                                    <Collapse in={roleActionsCollapse === r} unmountOnExit>
+                                    <Collapse in={roleActionsCollapse === r} unmountOnExit timeout={500}>
                                         <List component="div" disablePadding>
                                             {
                                                 auth.accessControl?.can(auth.user.roleName).update(resources.PRIVILEGE).granted &&
@@ -317,7 +318,7 @@ export function Users() {
                 slotProps={{ backdrop: { sx: { top: '2rem' } } }}
             >
                 <Slide direction={Boolean(editingRole) || openCreateRoleModal ? 'up' : 'down'} in={Boolean(editingRole) || openCreateRoleModal} timeout={250}>
-                    <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
+                    <Paper sx={{ width: '60%', overflowY: 'auto', maxHeight: '80%', padding: '0.5rem 2rem' }}>
                         <ManageRole defaultRole={editingRole} onFinish={async () => {
                             if (openCreateRoleModal) setOpenCreateRoleModal(false);
                             else if (Boolean(editingRole))

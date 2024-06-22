@@ -6,7 +6,7 @@ import { MongoDB } from "../../mongodb";
 import type { IFileRepository } from "../../dbAPI";
 import { Unauthorized } from "../../Unauthorized";
 import { Unauthenticated } from "../../Unauthenticated";
-import { resources } from "../Auth/dev-permissions";
+import { resources } from "../Auth/resources";
 import { authRepository, privilegesRepository } from "../../handleDbEvents";
 
 export class FileRepository extends MongoDB implements IFileRepository {
