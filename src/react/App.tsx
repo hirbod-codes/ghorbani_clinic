@@ -30,7 +30,7 @@ import { prefixer } from 'stylis';
 import rtlPlugin from 'stylis-plugin-rtl';
 import type { configAPI } from '../Electron/Configuration/renderer/configAPI';
 import { RendererDbAPI } from '../Electron/Database/handleDbRendererEvents';
-import { Users } from './Pages/Users';
+import { Users } from './Pages/Users_new';
 import { User } from '../Electron/Database/Models/User';
 import { AuthContext } from './Lib/AuthContext';
 import { NavigationContext } from './Lib/NavigationContext';
