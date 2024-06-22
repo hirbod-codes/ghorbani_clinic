@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
 import { AddOutlined, DeleteOutlined, EditOutlined, RefreshOutlined } from '@mui/icons-material';
 import { Modal, Slide, Grid, List, ListItemButton, ListItemText, ListItemIcon, Paper, Typography, Button, Divider, Box, Stack, IconButton, Collapse, CircularProgress } from "@mui/material";
 import { t } from "i18next";
@@ -29,6 +29,7 @@ export function Users() {
     const [roles, setRoles] = useState<string[] | undefined>(undefined)
     const [role, setRole] = useState<string | undefined>(undefined)
     const [roleActionsCollapse, setRoleActionsCollapse] = useState<string | null>()
+    const timeout = useRef<NodeJS.Timeout>(undefined)
     const [openManageRoleModal, setOpenManageRoleModal] = useState<boolean>(false)
     const [editingRole, setEditingRole] = useState<string | undefined>(undefined)
     const [deletingRole, setDeletingRole] = useState<string | undefined>(undefined)
@@ -65,7 +66,7 @@ export function Users() {
         return response.data
     }
 
-    const updateRows = async (role: string, fetchUser = true) => {
+    const updateRows = async (role?: string, fetchUser = true) => {
         setRole(role)
 
         let fetchedUsers
@@ -74,14 +75,16 @@ export function Users() {
         else
             fetchedUsers = users
 
-        setRows(fetchedUsers.filter(u => u.roleName === role))
+        if (role)
+            setRows(fetchedUsers.filter(u => u.roleName === role))
+        else
+            setRows(fetchedUsers)
     }
 
     useEffect(() => {
         fetchRoles()
             .then((r) => {
-                if (r)
-                    updateRows(r[0])
+                updateRows(r ? r[0] : undefined)
             })
     }, [])
 
@@ -154,102 +157,129 @@ export function Users() {
         },
     ]
 
-    const updatesUser = auth.accessControl?.can(auth.user.roleName).update(resources.USER).granted ?? false
-    const deletesUser = auth.accessControl?.can(auth.user.roleName).delete(resources.USER).granted ?? false
-
     if (!roles || roles.length === 0)
         return (<LoadingScreen />)
+
+    const createsUser = auth.accessControl?.can(auth.user.roleName).create(resources.USER).granted ?? false
+    const createsRole = auth.accessControl?.can(auth.user.roleName).create(resources.PRIVILEGE).granted ?? false
+    const readsUser = auth.accessControl?.can(auth.user.roleName).read(resources.USER).granted ?? false
+    const readsRole = auth.accessControl?.can(auth.user.roleName).read(resources.PRIVILEGE).granted ?? false
+    const updatesUser = auth.accessControl?.can(auth.user.roleName).update(resources.USER).granted ?? false
+    const updatesRole = auth.accessControl?.can(auth.user.roleName).update(resources.PRIVILEGE).granted ?? false
+    const deletesUser = auth.accessControl?.can(auth.user.roleName).delete(resources.USER).granted ?? false
+    const deletesRole = auth.accessControl?.can(auth.user.roleName).delete(resources.PRIVILEGE).granted ?? false
 
     return (
         <>
             <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
-                <Grid item xs={4} sm={2}>
-                    <Paper sx={{ p: 1, height: '100%' }}>
-                        <Typography textAlign='center' variant='h4'>{t('roles')}</Typography>
-                        <List dense>
-                            {roles.map((r, i) =>
-                                <div key={i} onMouseEnter={() => setRoleActionsCollapse(r)} onMouseLeave={() => setRoleActionsCollapse(null)}>
-                                    <Box sx={{ mt: 1 }}></Box>
+                {/* Roles */}
+                {
+                    readsRole &&
+                    <Grid item xs={4} sm={2}>
+                        <Paper sx={{ p: 1, height: '100%' }}>
+                            <Typography textAlign='center' variant='h4'>{t('roles')}</Typography>
+                            <List dense>
+                                {roles.map((r, i) =>
+                                    <div
+                                        key={i}
+                                        onMouseEnter={() => {
+                                            timeout.current = setInterval(() => {
+                                                setRoleActionsCollapse(r);
+                                            }, 500);
+                                        }}
+                                        onMouseLeave={() => { clearInterval(timeout.current); setRoleActionsCollapse(null) }}
+                                    >
+                                        <Box sx={{ mt: 1 }}></Box>
 
-                                    <ListItemButton selected={role === r} onClick={() => { updateRows(r) }}>
-                                        <ListItemText primary={t(r)} />
-                                    </ListItemButton>
+                                        <ListItemButton selected={role === r} onClick={() => { updateRows(r) }}>
+                                            <ListItemText primary={t(r)} />
+                                        </ListItemButton>
 
-                                    <Collapse in={roleActionsCollapse === r} unmountOnExit timeout={500}>
-                                        <List component="div" disablePadding>
-                                            {
-                                                auth.accessControl?.can(auth.user.roleName).update(resources.PRIVILEGE).granted &&
-                                                <ListItemButton onClick={() => { setOpenManageRoleModal(true); setEditingRole(r) }} sx={{ pl: 4 }}>
-                                                    <ListItemIcon>
-                                                        {editingRole ? <CircularProgress size={20} /> : <EditOutlined />}
-                                                    </ListItemIcon>
-                                                    <ListItemText primary={t("edit")} />
-                                                </ListItemButton>
-                                            }
-                                            {
-                                                auth.accessControl?.can(auth.user.roleName).delete(resources.PRIVILEGE).granted &&
-                                                <ListItemButton onClick={async () => await deleteRole(r)} sx={{ pl: 4 }}>
-                                                    <ListItemIcon>
-                                                        {deletingRole ? <CircularProgress size={20} /> : <DeleteOutlined />}
-                                                    </ListItemIcon>
-                                                    <ListItemText primary={t("delete")} />
-                                                </ListItemButton>
-                                            }
-                                        </List>
-                                    </Collapse>
-                                </div>
-                            )}
-                            <Box sx={{ mt: 1 }}></Box>
-                            <Divider />
-                            <Stack direction='row' justifyContent='center' mt={1} onClick={() => setOpenManageRoleModal(true)}>
-                                <IconButton><AddOutlined /></IconButton>
-                            </Stack>
-                        </List>
-                    </Paper>
-                </Grid>
-                <Grid item xs={8} sm={10}>
-                    <Paper sx={{ p: 1, height: '100%' }}>
-                        <DataGrid
-                            data={rows}
-                            overWriteColumns={columns}
-                            orderedColumnsFields={['actions']}
-                            loading={loading}
-                            hiddenColumns={['_id']}
-                            additionalColumns={(deletesUser || updatesUser) ? [{
-                                field: 'actions',
-                                headerName: '',
-                                headerAlign: 'center',
-                                align: 'center',
-                                type: 'actions',
-                                getActions: (params) => [
-                                    updatesUser
-                                        ? <GridActionsCellItem
-                                            label={t('editUser')}
-                                            icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
-                                            onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === params.row.id)) }}
-                                        />
-                                        : null,
-                                    deletesUser
-                                        ? <GridActionsCellItem
-                                            label={t('deleteUser')}
-                                            icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
-                                            onClick={async () => {
-                                                await deleteUser(params.row.id);
-                                                await updateRows(role)
-                                                if (auth.user._id === params.row.id)
-                                                    await auth.logout()
-                                            }}
-                                        />
-                                        : null,
-                                ].filter(a => a != null)
-                            }] : undefined}
-                            customToolbar={[
-                                <Button onClick={async () => await fetchUsers()} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
-                                <Button onClick={() => setOpenManageUserModal(true)} startIcon={<AddOutlined />}>{t('Create')}</Button>,
-                            ]}
-                        />
-                    </Paper>
-                </Grid>
+                                        <Collapse in={roleActionsCollapse === r} unmountOnExit timeout={500}>
+                                            <List component="div" disablePadding>
+                                                {
+                                                    updatesRole &&
+                                                    <ListItemButton onClick={() => { setOpenManageRoleModal(true); setEditingRole(r) }} sx={{ pl: 4 }}>
+                                                        <ListItemIcon>
+                                                            {editingRole ? <CircularProgress size={20} /> : <EditOutlined />}
+                                                        </ListItemIcon>
+                                                        <ListItemText primary={t("edit")} />
+                                                    </ListItemButton>
+                                                }
+                                                {
+                                                    deletesRole &&
+                                                    <ListItemButton onClick={async () => await deleteRole(r)} sx={{ pl: 4 }}>
+                                                        <ListItemIcon>
+                                                            {deletingRole ? <CircularProgress size={20} /> : <DeleteOutlined />}
+                                                        </ListItemIcon>
+                                                        <ListItemText primary={t("delete")} />
+                                                    </ListItemButton>
+                                                }
+                                            </List>
+                                        </Collapse>
+                                    </div>
+                                )}
+                                {
+                                    createsRole &&
+                                    <>
+                                        <Box sx={{ mt: 1 }}></Box>
+                                        <Divider />
+                                        <Stack direction='row' justifyContent='center' mt={1} onClick={() => setOpenManageRoleModal(true)}>
+                                            <IconButton><AddOutlined /></IconButton>
+                                        </Stack>
+                                    </>
+                                }
+                            </List>
+                        </Paper>
+                    </Grid>
+                }
+                {/* Users */}
+                {
+                    readsUser &&
+                    <Grid item xs={readsRole ? 8 : 12} sm={readsRole ? 10 : 12}>
+                        <Paper sx={{ p: 1, height: '100%' }}>
+                            <DataGrid
+                                data={rows}
+                                overWriteColumns={columns}
+                                orderedColumnsFields={['actions']}
+                                loading={loading}
+                                hiddenColumns={['_id']}
+                                additionalColumns={(deletesUser || updatesUser) ? [{
+                                    field: 'actions',
+                                    headerName: '',
+                                    headerAlign: 'center',
+                                    align: 'center',
+                                    type: 'actions',
+                                    getActions: (params) => [
+                                        updatesUser
+                                            ? <GridActionsCellItem
+                                                label={t('editUser')}
+                                                icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
+                                                onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === params.row._id)) }}
+                                            />
+                                            : null,
+                                        deletesUser
+                                            ? <GridActionsCellItem
+                                                label={t('deleteUser')}
+                                                icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
+                                                onClick={async () => {
+                                                    await deleteUser(params.row.id);
+                                                    await updateRows(role)
+                                                    if (auth.user._id === params.row.id)
+                                                        await auth.logout()
+                                                }}
+                                            />
+                                            : null,
+                                    ].filter(a => a != null)
+                                }] : undefined}
+                                customToolbar={[
+                                    <Button onClick={async () => await fetchUsers()} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
+                                    createsUser && <Button onClick={() => setOpenManageUserModal(true)} startIcon={<AddOutlined />}>{t('Create')}</Button>,
+                                ]}
+                            />
+                        </Paper>
+                    </Grid>
+                }
             </Grid>
 
             <Modal
@@ -283,7 +313,11 @@ export function Users() {
             >
                 <Slide direction={openManageRoleModal ? 'up' : 'down'} in={openManageRoleModal} timeout={250}>
                     <Paper sx={{ width: '60%', overflowY: 'auto', maxHeight: '80%', padding: '0.5rem 2rem' }}>
-                        <ManageRole defaultRole={editingRole} onFinish={async () => { setOpenManageRoleModal(false); setEditingRole(undefined) }} />
+                        <ManageRole defaultRole={editingRole} onFinish={async () => {
+                            setOpenManageRoleModal(false);
+                            setEditingRole(undefined)
+                            await fetchRoles()
+                        }} />
                     </Paper>
                 </Slide>
             </Modal>

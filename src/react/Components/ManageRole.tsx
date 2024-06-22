@@ -73,8 +73,7 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
             setLoading(false)
         }
         else {
-            setRoleName('')
-
+            setResources(Object.entries(staticResources).map(r => ({ name: r[1], index: 0 })))
             setLoading(false)
         }
     }
@@ -139,7 +138,7 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
         } finally { setFinishing(false) }
     }
 
-    if (loading)
+    if (loading || !resources)
         return (
             <LoadingScreen>
                 {
