@@ -44,19 +44,22 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
     }, [])
 
     const done = async () => {
+        if (!roleName || roleName.trim() === '')
+            return
+
         setFinishing(true)
 
         const privileges: Privilege[] = []
         for (let i = 0; i < resources.length; i++) {
             const r = resources[i]
             if (r.create)
-                privileges.push({ action: 'create:any', role: roleName, resource: r.name })
+                privileges.push({ action: 'create:any', role: roleName, resource: r.name, attributes: '*' })
             if (r.read)
                 privileges.push({ action: 'read:any', role: roleName, resource: r.name, attributes: r.read.join(', ') })
             if (r.update)
                 privileges.push({ action: 'update:any', role: roleName, resource: r.name, attributes: r.update.join(', ') })
             if (r.delete)
-                privileges.push({ action: 'delete:any', role: roleName, resource: r.name })
+                privileges.push({ action: 'delete:any', role: roleName, resource: r.name, attributes: '*' })
         }
 
         try {
@@ -226,7 +229,7 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
                 </Accordion >
             )}
             <Divider sx={{ mt: 1, mb: 2 }} />
-            <Button fullWidth disabled={finishing} onClick={done}>{finishing ? <CircularProgress size={20} /> : t('done')}</Button>
+            <Button fullWidth disabled={finishing || !roleName || roleName.trim() === ''} onClick={done}>{finishing ? <CircularProgress size={20} /> : t('done')}</Button>
         </>
     )
 }
