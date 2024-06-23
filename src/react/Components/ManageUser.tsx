@@ -6,6 +6,7 @@ import { RendererDbAPI } from '../../Electron/Database/handleDbRendererEvents';
 import { ResultContext } from '../ResultContext';
 import { CheckOutlined } from '@mui/icons-material';
 import { AuthContext } from '../Lib/AuthContext';
+import { resources } from '../../Electron/Database/Repositories/Auth/resources';
 
 export default function ManageUser({ roles, defaultUser, onFinish }: { roles: string[], defaultUser?: User, onFinish?: () => Promise<void> | void }) {
     const auth = useContext(AuthContext)
@@ -18,24 +19,46 @@ export default function ManageUser({ roles, defaultUser, onFinish }: { roles: st
             setUser(defaultUser)
     }, [])
 
+    const userReadPermission = auth.accessControl?.can(auth.user.roleName).read(resources.USER)
+    const userUpdatePermission = auth.accessControl?.can(auth.user.roleName).update(resources.USER)
+
+    const readsUser = userReadPermission.granted
+    const readsUserRoleName = readsUser && (userReadPermission.attributes.includes('*') || userReadPermission.attributes.includes('roleName')) && !userReadPermission.attributes.includes('!roleName')
+    const readsUserUsername = readsUser && (userReadPermission.attributes.includes('*') || userReadPermission.attributes.includes('username')) && !userReadPermission.attributes.includes('!username')
+    const readsUserPassword = readsUser && (userReadPermission.attributes.includes('*') || userReadPermission.attributes.includes('password')) && !userReadPermission.attributes.includes('!password')
+
+    const updatesUser = userUpdatePermission.granted
+    const updatesUserRoleName = updatesUser && (userUpdatePermission.attributes.includes('*') || userUpdatePermission.attributes.includes('roleName')) && !userUpdatePermission.attributes.includes('!roleName')
+    const updatesUserUsername = updatesUser && (userUpdatePermission.attributes.includes('*') || userUpdatePermission.attributes.includes('username')) && !userUpdatePermission.attributes.includes('!username')
+    const updatesUserPassword = updatesUser && (userUpdatePermission.attributes.includes('*') || userUpdatePermission.attributes.includes('password')) && !userUpdatePermission.attributes.includes('!password')
+
     return (
         <>
             <Stack justifyContent={'space-around'} sx={{ height: '100%', width: '100%' }} direction='column'>
                 <Typography textAlign='center' variant='h6'>{defaultUser ? t('updateUser') : t('createUser')}</Typography>
                 <Divider sx={{ mt: 1, mb: 2 }} />
                 {/* Role Name */}
-                <FormControl variant='standard' >
-                    <InputLabel id="role-name-label">{t('roleName')}</InputLabel>
-                    <Select onChange={(e) => setUser({ ...user, roleName: e.target.value })} labelId="role-name-label" value={user?.roleName ?? ''} fullWidth >
-                        {roles.map((r, i) =>
-                            <MenuItem key={i} value={r}>{r}</MenuItem>
-                        )}
-                    </Select>
-                </FormControl>
+                {
+                    readsUserRoleName &&
+                    <FormControl variant='standard' >
+                        <InputLabel id="role-name-label">{t('roleName')}</InputLabel>
+                        <Select disabled={!updatesUserRoleName} onChange={(e) => setUser({ ...user, roleName: e.target.value })} labelId="role-name-label" value={user?.roleName ?? ''} fullWidth >
+                            {roles.map((r, i) =>
+                                <MenuItem key={i} value={r}>{r}</MenuItem>
+                            )}
+                        </Select>
+                    </FormControl>
+                }
                 {/* Username */}
-                <TextField variant='standard' type='text' onChange={(e) => setUser({ ...user, username: e.target.value })} value={user?.username ?? ''} label={t('username')} fullWidth />
+                {
+                    readsUserUsername &&
+                    <TextField variant='standard' type='text' disabled={!updatesUserUsername} onChange={(e) => setUser({ ...user, username: e.target.value })} value={user?.username ?? ''} label={t('username')} fullWidth />
+                }
                 {/* Password */}
-                <TextField variant='standard' type='password' onChange={(e) => setUser({ ...user, password: e.target.value })} value={user?.password ?? ''} label={t('updatePassword')} fullWidth />
+                {
+                    readsUserPassword &&
+                    <TextField variant='standard' type='password' disabled={!updatesUserPassword} onChange={(e) => setUser({ ...user, password: e.target.value })} value={user?.password ?? ''} label={t('updatePassword')} fullWidth />
+                }
                 <Divider sx={{ mt: 2, mb: 2 }} />
                 <Button fullWidth disabled={!user?.roleName || !user?.username} startIcon={<CheckOutlined />} onClick={async () => {
                     if (defaultUser) {

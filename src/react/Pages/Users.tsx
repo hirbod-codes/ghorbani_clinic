@@ -157,9 +157,6 @@ export function Users() {
         },
     ]
 
-    if (!roles || roles.length === 0)
-        return (<LoadingScreen />)
-
     const createsUser = auth.accessControl?.can(auth.user.roleName).create(resources.USER).granted ?? false
     const createsRole = auth.accessControl?.can(auth.user.roleName).create(resources.PRIVILEGE).granted ?? false
     const readsUser = auth.accessControl?.can(auth.user.roleName).read(resources.USER).granted ?? false
@@ -179,7 +176,7 @@ export function Users() {
                         <Paper sx={{ p: 1, height: '100%' }}>
                             <Typography textAlign='center' variant='h4'>{t('roles')}</Typography>
                             <List dense>
-                                {roles.map((r, i) =>
+                                {roles?.map((r, i) =>
                                     <div
                                         key={i}
                                         onMouseEnter={() => {
@@ -293,7 +290,7 @@ export function Users() {
             >
                 <Slide direction={openManageUserModal ? 'up' : 'down'} in={openManageUserModal} timeout={250}>
                     <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
-                        <ManageUser roles={roles} defaultUser={editingUser} onFinish={async () => {
+                        <ManageUser roles={roles ?? []} defaultUser={editingUser} onFinish={async () => {
                             setOpenManageUserModal(false)
                             setEditingUser(undefined)
                             await updateRows(role)
@@ -312,7 +309,7 @@ export function Users() {
                 slotProps={{ backdrop: { sx: { top: '2rem' } } }}
             >
                 <Slide direction={openManageRoleModal ? 'up' : 'down'} in={openManageRoleModal} timeout={250}>
-                    <Paper sx={{ width: '60%', overflowY: 'auto', maxHeight: '80%', padding: '0.5rem 2rem' }}>
+                    <Paper sx={{ width: '60%', overflowY: 'auto', height: '80%', padding: '0.5rem 2rem' }}>
                         <ManageRole defaultRole={editingRole} onFinish={async () => {
                             setOpenManageRoleModal(false);
                             setEditingRole(undefined)

@@ -76,7 +76,7 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
         if (!permission.granted)
             throw new Unauthorized()
 
-        const users = await (await this.getUsersCollection()).find().toArray()
+        const users = await (await this.getUsersCollection()).find({ roleName: { $ne: roles.ADMIN } }).toArray()
 
         const readableUser = extractKeysRecursive(users, getFields(readableFields, permission.attributes))
 

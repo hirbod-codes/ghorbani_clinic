@@ -11,7 +11,7 @@ export function handleRendererEvents(): RendererEvents {
         getAccessControl: async (): Promise<MainProcessResponse<AccessControl>> => JSON.parse(await ipcRenderer.invoke('get-access-control')),
         getPrivilege: async (roleName: string, action: string): Promise<MainProcessResponse<Privilege | null>> => JSON.parse(await ipcRenderer.invoke('get-privilege', { roleName, action })),
         getRoles: async (): Promise<MainProcessResponse<string[]>> => JSON.parse(await ipcRenderer.invoke('get-roles')),
-        getPrivileges: async (roleName?: string): Promise<MainProcessResponse<Privilege[]>> => JSON.parse(await ipcRenderer.invoke('get-privileges', { roleName })),
+        getPrivileges: async (): Promise<MainProcessResponse<Privilege[]>> => JSON.parse(await ipcRenderer.invoke('get-privileges')),
         updatePrivilege: async (privilege: Privilege): Promise<MainProcessResponse<UpdateResult | undefined>> => JSON.parse(await ipcRenderer.invoke('update-privilege', { privilege })),
         updatePrivileges: async (privileges: Privilege[]): Promise<MainProcessResponse<boolean>> => JSON.parse(await ipcRenderer.invoke('update-privileges', { privileges })),
         updateRole: async (privileges: Privilege[]): Promise<MainProcessResponse<boolean>> => JSON.parse(await ipcRenderer.invoke('update-role', { privileges })),
@@ -24,7 +24,7 @@ export function handleRendererEvents(): RendererEvents {
 export type RendererEvents = {
     createRole: (privileges: Privilege[]) => Promise<MainProcessResponse<InsertManyResult>>,
     createPrivilege: (privilege: Privilege) => Promise<MainProcessResponse<InsertOneResult>>,
-    getAccessControl: (roleName?: string) => Promise<MainProcessResponse<AccessControl>>,
+    getAccessControl: () => Promise<MainProcessResponse<AccessControl>>,
     getPrivilege: (roleName: string, action: string) => Promise<MainProcessResponse<Privilege | null>>,
     getRoles: () => Promise<MainProcessResponse<string[]>>,
     getPrivileges: (roleName?: string) => Promise<MainProcessResponse<Privilege[]>>,

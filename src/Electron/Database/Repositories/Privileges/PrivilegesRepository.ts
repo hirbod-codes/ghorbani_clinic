@@ -18,7 +18,7 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         ipcMain.handle('get-privilege', async (_e, { roleName, action }: { roleName: string, action: string }) => await this.handleErrors(async () => await this.getPrivilege(roleName, action)))
         ipcMain.handle('get-roles', async () => await this.handleErrors(async () => await this.getRoles()))
         ipcMain.handle('get-access-control', async () => await this.handleErrors(async () => await this.getAccessControl()))
-        ipcMain.handle('get-privileges', async (_e, { roleName }: { roleName?: string }) => await this.handleErrors(async () => await this.getPrivileges(roleName)))
+        ipcMain.handle('get-privileges', async () => await this.handleErrors(async () => await this.getPrivileges()))
         ipcMain.handle('update-privilege', async (_e, { privilege }: { privilege: Privilege }) => await this.handleErrors(async () => await this.updatePrivilege(privilege)))
         ipcMain.handle('update-privileges', async (_e, { privileges }: { privileges: Privilege[] }) => await this.handleErrors(async () => await this.updatePrivileges(privileges)))
         ipcMain.handle('update-role', async (_e, { privileges }: { privileges: Privilege[] }) => await this.handleErrors(async () => await this.updateRole(privileges)))
@@ -106,21 +106,12 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         return new AccessControl((await this.getPrivileges()))
     }
 
-    async getPrivileges(roleName?: string): Promise<Privilege[]> {
+    async getPrivileges(): Promise<Privilege[]> {
         const user = await authRepository.getAuthenticatedUser()
         if (user == null)
             throw new Unauthenticated();
 
-        const privilege = await (await this.getPrivilegesCollection()).findOne({ role: user.roleName, action: 'read:any', resource: resources.PRIVILEGE, attributes: '*' })
-        if (!privilege && roleName !== undefined && roleName !== user.roleName)
-            throw new Unauthorized()
-        if (!privilege && (roleName !== undefined || roleName === user.roleName))
-            return await (await this.getPrivilegesCollection()).find({ role: roleName }).toArray()
-
-        if (!roleName)
-            return await (await this.getPrivilegesCollection()).find().toArray()
-
-        return await (await this.getPrivilegesCollection()).find({ role: roleName }).toArray()
+        return await (await this.getPrivilegesCollection()).find().toArray()
     }
 
     async updatePrivilege(privilege: Privilege): Promise<UpdateResult | undefined> {
@@ -154,6 +145,7 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
 
         const client = this.getClient()
         const session = client.startSession()
+        session.startTransaction()
         try {
             const deleteResult = await (await this.getPrivilegesCollection(client)).deleteMany({ $and: [{ role: { $ne: roles.ADMIN } }, { role: privileges[0].role }] }, { session })
             if (!deleteResult.acknowledged) {
@@ -188,6 +180,7 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
 
         const client = this.getClient()
         const session = client.startSession()
+        session.startTransaction()
         try {
             for (let i = 0; i < privileges.length; i++) {
                 const id = privileges[i]._id
