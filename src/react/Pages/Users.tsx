@@ -194,7 +194,8 @@ export function Users() {
 
                                         <Collapse in={roleActionsCollapse === r} unmountOnExit timeout={500}>
                                             <List component="div" disablePadding>
-                                                {
+                                                {/* Not recommended for small projects(needs transaction support.) */}
+                                                {/* {
                                                     updatesRole &&
                                                     <ListItemButton onClick={() => { setOpenManageRoleModal(true); setEditingRole(r) }} sx={{ pl: 4 }}>
                                                         <ListItemIcon>
@@ -202,7 +203,7 @@ export function Users() {
                                                         </ListItemIcon>
                                                         <ListItemText primary={t("edit")} />
                                                     </ListItemButton>
-                                                }
+                                                } */}
                                                 {
                                                     deletesRole &&
                                                     <ListItemButton onClick={async () => await deleteRole(r)} sx={{ pl: 4 }}>

@@ -9,7 +9,7 @@ export const privilegeSchema = object().required().shape({
     role: string().required(),
     resource: string().required(),
     action: string().required(),
-    attributes: string().required(),
+    attributes: string().optional(),
     createdAt: number().optional(),
     updatedAt: number().optional(),
 })

@@ -101,6 +101,8 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
                 privileges.push({ action: 'delete:any', role: roleName, resource: r.name, attributes: '*' })
         }
 
+        console.log(privileges)
+
         try {
             if (defaultRole) {
                 const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updateRole(privileges)

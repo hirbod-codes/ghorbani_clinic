@@ -33,8 +33,8 @@ export async function handleDbEvents() {
         })
     }
 
-    // try { await db.initializeDb() }
-    // catch (err) { console.error(err) }
+    try { await db.initializeDb() }
+    catch (err) { console.error(err) }
 
     await db.handleEvents()
     await authRepository.handleEvents()
@@ -44,8 +44,8 @@ export async function handleDbEvents() {
     await visitRepository.handleEvents()
     await fileRepository.handleEvents()
 
-    // if (!app.isPackaged) {
-    //     await seedUsersRoles(await db.getUsersCollection(), await db.getPrivilegesCollection())
-    //     await seedPatientsVisits(50, await db.getPatientsCollection(), await db.getVisitsCollection());
-    // }
+    if (!app.isPackaged) {
+        await seedUsersRoles(await db.getUsersCollection(), await db.getPrivilegesCollection())
+        await seedPatientsVisits(50, await db.getPatientsCollection(), await db.getVisitsCollection());
+    }
 }

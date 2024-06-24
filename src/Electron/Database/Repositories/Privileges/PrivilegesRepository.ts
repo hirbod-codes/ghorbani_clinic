@@ -237,6 +237,9 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
 
         this.startTransaction()
         try {
+            privileges = this.formatRolePrivileges(privileges)
+            console.log(funcName, 'formatted privileges', JSON.stringify(privileges, undefined, 4))
+
             const privilegesCollection = await this.getPrivilegesCollection(this.transactionClient)
 
             const deleteResult = await privilegesCollection.deleteMany({ $and: [{ role: { $ne: roles.ADMIN } }, { role: privileges[0].role }] }, { session: this.session })
@@ -247,7 +250,7 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
                 return false
             }
 
-            const createResult = await privilegesCollection.insertMany(this.formatRolePrivileges(privileges), { session: this.session })
+            const createResult = await privilegesCollection.insertMany(privileges, { session: this.session })
             console.log(funcName, 'createResult', JSON.stringify(createResult, undefined, 4))
             if (!createResult.acknowledged && createResult.insertedCount <= 0) {
                 console.log(funcName, 'aborting...')
