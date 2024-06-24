@@ -14,7 +14,7 @@ import { getFields } from "../../Models/helpers";
 export class VisitRepository extends MongoDB implements IVisitRepository {
     async handleEvents(): Promise<void> {
         ipcMain.handle('create-visit', async (_e, { visit }: { visit: Visit }) => await this.handleErrors(async () => await this.createVisit(visit)))
-        ipcMain.handle('get-visits', async (_e, { patientId }: { patientId: string }) => await this.handleErrors(async () => await this.getVisits(patientId)))
+        ipcMain.handle('get-visits', async (_e, { patientId }: { patientId?: string | undefined }) => await this.handleErrors(async () => await this.getVisits(patientId)))
         ipcMain.handle('update-visit', async (_e, { visit }: { visit: Visit }) => await this.handleErrors(async () => await this.updateVisit(visit)))
         ipcMain.handle('delete-visit', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.deleteVisit(id)))
     }
@@ -38,7 +38,9 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         return await (await this.getVisitsCollection()).insertOne(visit)
     }
 
-    async getVisits(patientId: string): Promise<Visit[]> {
+    async getVisits(): Promise<Visit[]>
+    async getVisits(patientId: string): Promise<Visit[]>
+    async getVisits(patientId?: string | undefined): Promise<Visit[]> {
         const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();
@@ -47,7 +49,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         if (!privileges.can(user.roleName).read(resources.VISIT).granted)
             throw new Unauthorized()
 
-        const visits: Visit[] = await (await this.getVisitsCollection()).find({ patientId: patientId }).toArray();
+        const visits: Visit[] = await (await this.getVisitsCollection()).find(patientId ? { patientId: patientId } : undefined).toArray();
 
         const readableVisits = extractKeysRecursive(visits, getFields(readableFields, privileges.can(user.roleName).read(resources.VISIT).attributes));
 

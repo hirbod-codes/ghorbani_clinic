@@ -39,6 +39,9 @@ import LoadingScreen from './Components/LoadingScreen';
 import { LoginForm } from './LoginForm';
 import { Result, ResultContext } from './ResultContext';
 import { Users } from './Pages/Users';
+import Patients from './Pages/Patients';
+import Visits from './Pages/Visits';
+import { AccessTimeOutlined, MasksOutlined } from '@mui/icons-material';
 
 // Create rtl cache
 const rtlCache = createCache({
@@ -319,6 +322,9 @@ export function App() {
     if (!configuration)
         return (<LoadingScreen />)
 
+    const readsUsers = ac && user && ac.can(user.roleName).read(resources.USER).granted
+    const readsPatients = ac && user && ac.can(user.roleName).read(resources.PATIENT).granted
+    const readsVisits = ac && user && ac.can(user.roleName).read(resources.VISIT).granted
 
     return (
         <>
@@ -339,12 +345,30 @@ export function App() {
                                                 <ListItemText primary={t('home')} />
                                             </ListItemButton>
                                             {
-                                                ac && user && ac.can(user.roleName).read(resources.USER).granted &&
+                                                readsUsers &&
                                                 <ListItemButton onClick={() => { setContent(<Users />); setOpenDrawer(false) }}>
                                                     <ListItemIcon>
                                                         <PersonIcon />
                                                     </ListItemIcon>
                                                     <ListItemText primary={t('users')} />
+                                                </ListItemButton>
+                                            }
+                                            {
+                                                readsPatients &&
+                                                <ListItemButton onClick={() => { setContent(<Patients />); setOpenDrawer(false) }}>
+                                                    <ListItemIcon>
+                                                        <MasksOutlined />
+                                                    </ListItemIcon>
+                                                    <ListItemText primary={t('patients')} />
+                                                </ListItemButton>
+                                            }
+                                            {
+                                                readsVisits &&
+                                                <ListItemButton onClick={() => { setContent(<Visits />); setOpenDrawer(false) }}>
+                                                    <ListItemIcon>
+                                                        <AccessTimeOutlined />
+                                                    </ListItemIcon>
+                                                    <ListItemText primary={t('visits')} />
                                                 </ListItemButton>
                                             }
                                             <ListItemButton onClick={() => setOpenSettingsList(!openSettingsList)}>

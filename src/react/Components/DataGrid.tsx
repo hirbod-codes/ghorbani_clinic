@@ -76,7 +76,7 @@ export default function DataGrid({ data, idField = '_id', orderedColumnsFields =
             initialState={{
                 columns: {
                     orderedFields: orderedColumnsFields,
-                    columnVisibilityModel: Object.fromEntries(hiddenColumns.map(hc => [hc, false]))
+                    columnVisibilityModel: Object.fromEntries(hiddenColumns?.map(hc => [hc, false]) ?? [])
                 }
             }}
             slots={{
@@ -86,7 +86,7 @@ export default function DataGrid({ data, idField = '_id', orderedColumnsFields =
                         <GridToolbarFilterButton />
                         <GridToolbarDensitySelector />
                         <GridToolbarExport />
-                        {...customToolbar}
+                        {...(customToolbar ?? [])}
                     </GridToolbarContainer>
                 )
             }}

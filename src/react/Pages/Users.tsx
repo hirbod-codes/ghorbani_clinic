@@ -11,7 +11,6 @@ import { ConfigurationContext } from '../ConfigurationContext';
 import { AuthContext } from "../Lib/AuthContext";
 import ManageUser from "../Components/ManageUser";
 import ManageRole from "../Components/ManageRole";
-import LoadingScreen from '../Components/LoadingScreen';
 import { ResultContext } from "../ResultContext";
 import { NavigationContext } from "../Lib/NavigationContext";
 import DataGrid from "../Components/DataGrid";
