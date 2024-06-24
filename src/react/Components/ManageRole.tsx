@@ -80,7 +80,7 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
 
     useEffect(() => {
         fetchRole()
-    }, [])
+    }, [defaultRole])
 
     const done = async () => {
         if (!roleName || roleName.trim() === '')
@@ -105,19 +105,22 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
 
         try {
             if (defaultRole) {
-                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updateRole(privileges)
-                if (res.code !== 200 || res.data !== true) {
-                    setResult({
-                        severity: 'error',
-                        message: t('roleUpdateFailure')
-                    })
-                    return
-                }
+                return
+                // Not recommended for small projects(needs transaction support.)
 
-                setResult({
-                    severity: 'success',
-                    message: t('roleUpdateSuccessful')
-                })
+                // const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updateRole(privileges)
+                // if (res.code !== 200 || res.data !== true) {
+                //     setResult({
+                //         severity: 'error',
+                //         message: t('roleUpdateFailure')
+                //     })
+                //     return
+                // }
+
+                // setResult({
+                //     severity: 'success',
+                //     message: t('roleUpdateSuccessful')
+                // })
             }
             else {
                 const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createRole(privileges)
@@ -151,6 +154,8 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
                 }
             </LoadingScreen>
         )
+
+    console.log('ManageRole', 'resources', resources)
 
     return (
         <>

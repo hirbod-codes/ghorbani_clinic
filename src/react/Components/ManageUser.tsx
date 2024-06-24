@@ -42,7 +42,7 @@ export default function ManageUser({ roles, defaultUser, onFinish }: { roles: st
                     readsUserRoleName &&
                     <FormControl variant='standard' >
                         <InputLabel id="role-name-label">{t('roleName')}</InputLabel>
-                        <Select disabled={!updatesUserRoleName} onChange={(e) => setUser({ ...user, roleName: e.target.value })} labelId="role-name-label" value={user?.roleName ?? ''} fullWidth >
+                        <Select disabled={!updatesUserRoleName} onChange={(e) => setUser({ ...user, roleName: e.target.value })} labelId="role-name-label" value={user?.roleName ?? ''} error={(user?.roleName ?? '') === ''} fullWidth >
                             {roles.map((r, i) =>
                                 <MenuItem key={i} value={r}>{r}</MenuItem>
                             )}
@@ -52,7 +52,7 @@ export default function ManageUser({ roles, defaultUser, onFinish }: { roles: st
                 {/* Username */}
                 {
                     readsUserUsername &&
-                    <TextField variant='standard' type='text' disabled={!updatesUserUsername} onChange={(e) => setUser({ ...user, username: e.target.value })} value={user?.username ?? ''} label={t('username')} fullWidth />
+                    <TextField variant='standard' type='text' disabled={!updatesUserUsername} onChange={(e) => setUser({ ...user, username: e.target.value })} value={user?.username ?? ''} label={t('username')} error={(user?.username ?? '') === ''} fullWidth />
                 }
                 {/* Password */}
                 {
@@ -60,7 +60,10 @@ export default function ManageUser({ roles, defaultUser, onFinish }: { roles: st
                     <TextField variant='standard' type='password' disabled={!updatesUserPassword} onChange={(e) => setUser({ ...user, password: e.target.value })} value={user?.password ?? ''} label={t('updatePassword')} fullWidth />
                 }
                 <Divider sx={{ mt: 2, mb: 2 }} />
-                <Button fullWidth disabled={!user?.roleName || !user?.username} startIcon={<CheckOutlined />} onClick={async () => {
+                <Button fullWidth startIcon={<CheckOutlined />} onClick={async () => {
+                    if ((updatesUserRoleName && !user?.roleName) || (updatesUserUsername && !user?.username))
+                        return
+
                     if (defaultUser) {
                         console.log(Object.fromEntries(Object.entries(user).filter(arr => arr[1] !== '')))
                         const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updateUser(Object.fromEntries(Object.entries(user).filter(arr => arr[1] !== '')))

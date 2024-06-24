@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useContext } from "react";
-import { AddOutlined, DeleteOutlined, EditOutlined, RefreshOutlined } from '@mui/icons-material';
+import { AddOutlined, DeleteOutlined, EditOutlined, RefreshOutlined, RemoveRedEyeOutlined } from '@mui/icons-material';
 import { Modal, Slide, Grid, List, ListItemButton, ListItemText, ListItemIcon, Paper, Typography, Button, Divider, Box, Stack, IconButton, Collapse, CircularProgress } from "@mui/material";
 import { t } from "i18next";
 import { roles as staticRoles } from "../../Electron/Database/Repositories/Auth/dev-permissions";
@@ -28,10 +28,11 @@ export function Users() {
 
     const [roles, setRoles] = useState<string[] | undefined>(undefined)
     const [role, setRole] = useState<string | undefined>(undefined)
-    const [roleActionsCollapse, setRoleActionsCollapse] = useState<string | null>()
-    const timeout = useRef<NodeJS.Timeout>(undefined)
+    const [roleActionsCollapse, setRoleActionsCollapse] = useState<string[]>([])
+    const timeout = useRef<{ [k: string]: NodeJS.Timeout | undefined }>({})
     const [openManageRoleModal, setOpenManageRoleModal] = useState<boolean>(false)
     const [editingRole, setEditingRole] = useState<string | undefined>(undefined)
+    const [readingRole, setReadingRole] = useState<string | undefined>(undefined)
     const [deletingRole, setDeletingRole] = useState<string | undefined>(undefined)
 
     const [openManageUserModal, setOpenManageUserModal] = useState<boolean>(false)
@@ -172,7 +173,7 @@ export function Users() {
                 {/* Roles */}
                 {
                     readsRole &&
-                    <Grid item xs={4} sm={2}>
+                    <Grid item xs={4} sm={2} onMouseLeave={() => setRoleActionsCollapse([])}>
                         <Paper sx={{ p: 1, height: '100%' }}>
                             <Typography textAlign='center' variant='h4'>{t('roles')}</Typography>
                             <List dense>
@@ -180,11 +181,11 @@ export function Users() {
                                     <div
                                         key={i}
                                         onMouseEnter={() => {
-                                            timeout.current = setInterval(() => {
-                                                setRoleActionsCollapse(r);
+                                            timeout.current.r = setTimeout(() => {
+                                                setRoleActionsCollapse([...roleActionsCollapse, r]);
                                             }, 500);
                                         }}
-                                        onMouseLeave={() => { clearInterval(timeout.current); setRoleActionsCollapse(null) }}
+                                        onMouseLeave={() => { if (!roleActionsCollapse.includes(r)) clearTimeout(timeout.current.r) }}
                                     >
                                         <Box sx={{ mt: 1 }}></Box>
 
@@ -192,8 +193,14 @@ export function Users() {
                                             <ListItemText primary={t(r)} />
                                         </ListItemButton>
 
-                                        <Collapse in={roleActionsCollapse === r} unmountOnExit timeout={500}>
+                                        <Collapse in={roleActionsCollapse.includes(r)} unmountOnExit timeout={500}>
                                             <List component="div" disablePadding>
+                                                <ListItemButton onClick={() => { setOpenManageRoleModal(true); setReadingRole(r) }} sx={{ pl: 4 }}>
+                                                    <ListItemIcon>
+                                                        <RemoveRedEyeOutlined />
+                                                    </ListItemIcon>
+                                                    <ListItemText primary={t("show")} />
+                                                </ListItemButton>
                                                 {/* Not recommended for small projects(needs transaction support.) */}
                                                 {/* {
                                                     updatesRole &&
@@ -311,9 +318,10 @@ export function Users() {
             >
                 <Slide direction={openManageRoleModal ? 'up' : 'down'} in={openManageRoleModal} timeout={250}>
                     <Paper sx={{ width: '60%', overflowY: 'auto', height: '80%', padding: '0.5rem 2rem' }}>
-                        <ManageRole defaultRole={editingRole} onFinish={async () => {
-                            setOpenManageRoleModal(false);
+                        <ManageRole defaultRole={editingRole ?? readingRole} onFinish={async () => {
+                            setOpenManageRoleModal(false)
                             setEditingRole(undefined)
+                            setReadingRole(undefined)
                             await fetchRoles()
                         }} />
                     </Paper>
