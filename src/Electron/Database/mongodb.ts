@@ -1,4 +1,4 @@
-import { Collection, Db, GridFSBucket, MongoClient } from "mongodb";
+import { ClientSession, Collection, Db, GridFSBucket, MongoClient } from "mongodb";
 import { type Patient, collectionName as patientsCollectionName } from "./Models/Patient";
 import { Visit, collectionName as visitsCollectionName } from "./Models/Visit";
 import { collectionName as filesCollectionName } from "./Models/File";
@@ -26,6 +26,68 @@ export class MongoDB implements dbAPI {
         return readConfig().mongodb
     }
 
+    protected transactionClient: MongoClient | undefined = undefined
+    protected session: ClientSession | undefined = undefined
+
+    startTransaction(): void {
+        const funcName = 'startTransaction'
+
+        console.log(funcName, 'called')
+
+        const supportsTransaction = readConfig().mongodb.supportsTransaction
+        if (!supportsTransaction) {
+            console.log(funcName, 'Transactions are not supported.')
+            return
+        }
+
+        this.transactionClient = this.getClient()
+        this.session = this.transactionClient.startSession()
+
+        this.session.startTransaction()
+    }
+
+    async abortTransaction(): Promise<void> {
+        const funcName = 'abortTransaction'
+
+        console.log(funcName, 'called')
+
+        const supportsTransaction = readConfig().mongodb.supportsTransaction
+        if (!supportsTransaction) {
+            console.log(funcName, 'Transactions are not supported.')
+            return
+        }
+
+        await this.session.abortTransaction()
+    }
+
+    async commitTransaction(): Promise<void> {
+        const funcName = 'commitTransaction'
+
+        console.log(funcName, 'called')
+
+        const supportsTransaction = readConfig().mongodb.supportsTransaction
+        if (!supportsTransaction) {
+            console.log(funcName, 'Transactions are not supported.')
+            return
+        }
+
+        await this.session.commitTransaction()
+    }
+
+    async endSession(): Promise<void> {
+        const funcName = 'endSession'
+
+        console.log(funcName, 'called')
+
+        const supportsTransaction = readConfig().mongodb.supportsTransaction
+        if (!supportsTransaction) {
+            console.log(funcName, 'Transactions are not supported.')
+            return
+        }
+
+        await this.session.endSession()
+    }
+
     async updateConfig(config: MongodbConfig): Promise<boolean> {
         try {
             const c = readConfig()
@@ -51,28 +113,36 @@ export class MongoDB implements dbAPI {
         });
     }
 
-    async getDb(client?: MongoClient): Promise<Db | null> {
-        if (MongoDB.db != null)
-            return MongoDB.db
-
+    async getDb(client?: MongoClient, persist = true): Promise<Db | null> {
         const c = readConfig()
 
         if (!c || !c.mongodb)
             throw new Error('Mongodb configuration not found.')
 
-        if (!client)
+        let db
+        if (!client) {
+            if (MongoDB.db)
+                return MongoDB.db
+
             client = this.getClient()
+            db = client.db(c.mongodb.databaseName)
+        }
+        else
+            db = client.db(c.mongodb.databaseName)
+
+
+        if (persist)
+            MongoDB.db = db
 
         try {
-            MongoDB.db = client.db(c.mongodb.databaseName)
-            MongoDB.db.command({ ping: 1 })
-            return MongoDB.db
+            db.command({ ping: 1 })
         } catch (error) {
             console.error(error);
-
             await client.close()
-            return null
+            throw error
         }
+
+        return db
     }
 
     async initializeDb(config?: MongodbConfig) {
@@ -161,24 +231,24 @@ export class MongoDB implements dbAPI {
             await db.createIndex(visitsCollectionName, { updatedAt: 1 }, { name: 'updated-at' })
     }
 
-    async getUsersCollection(client?: MongoClient): Promise<Collection<User>> {
-        return (await this.getDb(client)).collection<User>(usersCollectionName)
+    async getUsersCollection(client?: MongoClient, db?: Db): Promise<Collection<User>> {
+        return (db ?? (await this.getDb(client))).collection<User>(usersCollectionName)
     }
 
-    async getPrivilegesCollection(client?: MongoClient): Promise<Collection<Privilege>> {
-        return (await this.getDb(client)).collection<Privilege>(privilegesCollectionName)
+    async getPrivilegesCollection(client?: MongoClient, db?: Db): Promise<Collection<Privilege>> {
+        return (db ?? (await this.getDb(client))).collection<Privilege>(privilegesCollectionName)
     }
 
-    async getPatientsCollection(client?: MongoClient): Promise<Collection<Patient>> {
-        return (await this.getDb(client)).collection<Patient>(patientsCollectionName)
+    async getPatientsCollection(client?: MongoClient, db?: Db): Promise<Collection<Patient>> {
+        return (db ?? (await this.getDb(client))).collection<Patient>(patientsCollectionName)
     }
 
-    async getVisitsCollection(client?: MongoClient): Promise<Collection<Visit>> {
-        return (await this.getDb(client)).collection<Visit>(visitsCollectionName)
+    async getVisitsCollection(client?: MongoClient, db?: Db): Promise<Collection<Visit>> {
+        return (db ?? (await this.getDb(client))).collection<Visit>(visitsCollectionName)
     }
 
-    async getBucket(): Promise<GridFSBucket> {
-        return new GridFSBucket(await this.getDb(), { bucketName: filesCollectionName });
+    async getBucket(client?: MongoClient, db?: Db): Promise<GridFSBucket> {
+        return new GridFSBucket(db ?? (await this.getDb(client)), { bucketName: filesCollectionName });
     }
 
     async handleErrors(callback: () => Promise<unknown>): Promise<string> {

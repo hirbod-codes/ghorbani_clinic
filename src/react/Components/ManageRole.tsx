@@ -104,7 +104,7 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
         try {
             if (defaultRole) {
                 const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updateRole(privileges)
-                if (res.code !== 200) {
+                if (res.code !== 200 || res.data !== true) {
                     setResult({
                         severity: 'error',
                         message: t('roleUpdateFailure')
@@ -119,7 +119,7 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
             }
             else {
                 const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createRole(privileges)
-                if (res.code !== 200) {
+                if (res.code !== 200 || !res.data.acknowledged || res.data.insertedCount <= 0) {
                     setResult({
                         severity: 'error',
                         message: t('roleCreateFailure')

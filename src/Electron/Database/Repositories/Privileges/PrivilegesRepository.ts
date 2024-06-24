@@ -45,82 +45,160 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
     }
 
     async createRole(privileges: Privilege[]): Promise<InsertManyResult> {
+        const funcName = 'createRole'
+
+        console.log(funcName, 'called')
+
+        console.log(funcName, 'privileges', JSON.stringify(privileges, undefined, 4))
+
         const user = await authRepository.getAuthenticatedUser()
         if (user == null)
             throw new Unauthenticated();
+        console.log(funcName, 'authenticated')
 
+        console.log(funcName, 'user.roleName', user.roleName)
         if (!(await this.getAccessControl()).can(user.roleName).create(resources.PRIVILEGE).granted)
             throw new Unauthorized()
+        console.log(funcName, 'authorized')
 
-        return await (await this.getPrivilegesCollection()).insertMany(this.formatRolePrivileges(privileges))
+        const result = await (await this.getPrivilegesCollection()).insertMany(this.formatRolePrivileges(privileges));
+        console.log(funcName, 'result', JSON.stringify(result, undefined, 4))
+
+        return result
     }
 
     async createPrivilege(privilege: Privilege): Promise<InsertOneResult> {
+        const funcName = 'createPrivilege'
+
+        console.log(funcName, 'called')
+
+        console.log(funcName, 'privilege', JSON.stringify(privilege, undefined, 4))
+
         const user = await authRepository.getAuthenticatedUser()
         if (user == null)
             throw new Unauthenticated();
+        console.log(funcName, 'authenticated')
 
+        console.log(funcName, 'user.roleName', user.roleName)
         if (!(await this.getAccessControl()).can(user.roleName).create(resources.PRIVILEGE).granted)
             throw new Unauthorized()
+        console.log(funcName, 'authorized')
 
         if (!privilegeSchema.isValidSync(privilege))
             throw new Error('Invalid privilege info provided.');
+        console.log(funcName, 'arguments validated')
 
         privilege = privilegeSchema.cast(privilege);
         privilege.schemaVersion = 'v0.0.1';
         privilege.createdAt = DateTime.utc().toUnixInteger();
         privilege.updatedAt = DateTime.utc().toUnixInteger();
 
-        return await (await this.getPrivilegesCollection()).insertOne(privilege)
+        console.log(funcName, 'casted privilege', JSON.stringify(privilege, undefined, 4))
+
+        const result = await (await this.getPrivilegesCollection()).insertOne(privilege);
+        console.log(funcName, 'result', JSON.stringify(result, undefined, 4))
+
+        return result
     }
 
     async getPrivilege(roleName: string, action: string): Promise<Privilege | null> {
+        const funcName = 'getPrivilege'
+
+        console.log(funcName, 'called')
+
         const user = await authRepository.getAuthenticatedUser()
         if (user == null)
             throw new Unauthenticated();
+        console.log(funcName, 'authenticated')
 
+        console.log(funcName, 'user.roleName', user.roleName)
         if (!(await this.getAccessControl()).can(user.roleName).read(resources.PRIVILEGE).granted)
             throw new Unauthorized()
+        console.log(funcName, 'authorized')
 
-        return await (await this.getPrivilegesCollection()).findOne({ role: roleName, action: action })
+        const result = await (await this.getPrivilegesCollection()).findOne({ role: roleName, action: action });
+        console.log(funcName, 'result', JSON.stringify(result, undefined, 4))
+
+        return result
     }
 
     async getRoles(): Promise<string[]> {
+        const funcName = 'getRoles'
+
+        console.log(funcName, 'called')
+
         const user = await authRepository.getAuthenticatedUser()
         if (user == null)
             throw new Unauthenticated();
+        console.log(funcName, 'authenticated')
 
+        console.log(funcName, 'user.roleName', user.roleName)
         if (!(await this.getAccessControl()).can(user.roleName).read(resources.PRIVILEGE).granted)
             throw new Unauthorized()
+        console.log(funcName, 'authorized')
+
+        const privileges = await (await this.getPrivilegesCollection()).find().toArray();
+        console.log(funcName, 'privileges', JSON.stringify(privileges))
 
         const roles: string[] = [];
-        (await (await this.getPrivilegesCollection()).find().toArray())
+        privileges
             .forEach(p => {
                 if (roles.find(r => r === p.role) === undefined)
                     roles.push(p.role)
             })
+
+        console.log(funcName, 'roles', roles)
         return roles
     }
 
     async getAccessControl(): Promise<AccessControl> {
-        return new AccessControl((await this.getPrivileges()))
+        const funcName = 'getAccessControl'
+
+        console.log(funcName, 'called')
+
+        const user = await authRepository.getAuthenticatedUser()
+        if (user == null)
+            throw new Unauthenticated();
+        console.log(funcName, 'authenticated')
+
+        const privileges = await this.getPrivileges();
+        console.log(funcName, 'privileges', JSON.stringify(privileges))
+
+        return new AccessControl((privileges))
     }
 
     async getPrivileges(): Promise<Privilege[]> {
+        const funcName = 'getPrivileges'
+
+        console.log(funcName, 'called')
+
         const user = await authRepository.getAuthenticatedUser()
         if (user == null)
             throw new Unauthenticated();
+        console.log(funcName, 'authenticated')
 
-        return await (await this.getPrivilegesCollection()).find().toArray()
+        const privileges = await (await this.getPrivilegesCollection()).find().toArray();
+        console.log(funcName, 'privileges', JSON.stringify(privileges))
+
+        return privileges
     }
 
     async updatePrivilege(privilege: Privilege): Promise<UpdateResult | undefined> {
+        const funcName = 'updatePrivilege'
+
+        console.log('updatePrivilege', 'called')
+
+        console.log(funcName, 'privilege', JSON.stringify(privilege, undefined, 4))
+
         const user = await authRepository.getAuthenticatedUser()
         if (user == null)
             throw new Unauthenticated();
+        console.log(funcName, 'authenticated')
 
+        console.log(funcName, 'user.roleName', user.roleName)
         if (!(await this.getAccessControl()).can(user.roleName).update(resources.PRIVILEGE).granted)
             throw new Unauthorized()
+        console.log(funcName, 'authorized')
 
         if (privilege.role === roles.ADMIN)
             return undefined
@@ -132,105 +210,170 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         privilege = Object.fromEntries(Object.entries(privilege).filter(arr => updatableFields.includes(arr[0] as any)))
         privilege.updatedAt = DateTime.utc().toUnixInteger()
 
-        return await (await this.getPrivilegesCollection()).updateOne({ _id: new ObjectId(id), role: { $ne: roles.ADMIN } }, { $set: { ...privilege } })
+        console.log(funcName, 'casted privilege', JSON.stringify(privilege, undefined, 4))
+
+        const result = await (await this.getPrivilegesCollection()).updateOne({ _id: new ObjectId(id), role: { $ne: roles.ADMIN } }, { $set: { ...privilege } });
+        console.log(funcName, 'result', JSON.stringify(result, undefined, 4))
+
+        return result
     }
 
     async updateRole(privileges: Privilege[]): Promise<boolean> {
+        const funcName = 'updateRole'
+
+        console.log('updateRole', 'called')
+
+        console.log(funcName, 'privileges', JSON.stringify(privileges, undefined, 4))
+
         const user = await authRepository.getAuthenticatedUser()
         if (user == null)
             throw new Unauthenticated();
+        console.log(funcName, 'authenticated')
 
+        console.log(funcName, 'user.roleName', user.roleName)
         if (!(await this.getAccessControl()).can(user.roleName).update(resources.PRIVILEGE).granted)
             throw new Unauthorized()
+        console.log(funcName, 'authorized')
 
-        const client = this.getClient()
-        const session = client.startSession()
-        session.startTransaction()
+        this.startTransaction()
         try {
-            const deleteResult = await (await this.getPrivilegesCollection(client)).deleteMany({ $and: [{ role: { $ne: roles.ADMIN } }, { role: privileges[0].role }] }, { session })
+            const privilegesCollection = await this.getPrivilegesCollection(this.transactionClient)
+
+            const deleteResult = await privilegesCollection.deleteMany({ $and: [{ role: { $ne: roles.ADMIN } }, { role: privileges[0].role }] }, { session: this.session })
+            console.log(funcName, 'deleteResult', JSON.stringify(deleteResult, undefined, 4))
             if (!deleteResult.acknowledged) {
-                await session.abortTransaction()
+                console.log(funcName, 'aborting...')
+                await this.abortTransaction()
                 return false
             }
 
-            const createResult = await (await this.getPrivilegesCollection(client)).insertMany(this.formatRolePrivileges(privileges), { session })
+            const createResult = await privilegesCollection.insertMany(this.formatRolePrivileges(privileges), { session: this.session })
+            console.log(funcName, 'createResult', JSON.stringify(createResult, undefined, 4))
             if (!createResult.acknowledged && createResult.insertedCount <= 0) {
-                await session.abortTransaction()
+                console.log(funcName, 'aborting...')
+                await this.abortTransaction()
                 return false
             }
 
-            await session.commitTransaction()
+            console.log(funcName, 'committing...')
+            await this.commitTransaction()
             return true
         }
         catch (err) {
-            await session.abortTransaction()
-            console.error(err);
-            return false
+            console.log(funcName, 'aborting...')
+            await this.abortTransaction()
+            throw err
         }
-        finally { await session.endSession() }
+        finally { await this.endSession() }
     }
 
     async updatePrivileges(privileges: Privilege[]): Promise<boolean> {
+        const funcName = 'updatePrivileges'
+
+        console.log(funcName, 'called')
+
+        console.log(funcName, 'privileges', JSON.stringify(privileges, undefined, 4))
+
         const user = await authRepository.getAuthenticatedUser()
         if (user == null)
             throw new Unauthenticated();
+        console.log(funcName, 'authenticated')
 
+        console.log(funcName, 'user.roleName', user.roleName)
         if (!(await this.getAccessControl()).can(user.roleName).update(resources.PRIVILEGE).granted)
             throw new Unauthorized()
+        console.log(funcName, 'authorized')
 
-        const client = this.getClient()
-        const session = client.startSession()
-        session.startTransaction()
+        this.startTransaction()
         try {
             for (let i = 0; i < privileges.length; i++) {
                 const id = privileges[i]._id
                 privileges[i] = Object.fromEntries(Object.entries(privileges[i]).filter(arr => updatableFields.includes(arr[0] as any)))
                 privileges[i].updatedAt = DateTime.utc().toUnixInteger()
+                console.log(funcName, 'casted privileges[i]', JSON.stringify(privileges[i], undefined, 4))
 
-                await (await this.getPrivilegesCollection(client)).updateOne({ _id: new ObjectId(id), role: { $ne: roles.ADMIN } }, { $set: { ...privileges[i] } }, { session })
+                const result = await (await this.getPrivilegesCollection(this.transactionClient)).updateOne({ _id: new ObjectId(id), role: { $ne: roles.ADMIN } }, { $set: { ...privileges[i] } }, { session: this.session })
+                console.log(funcName, 'result', JSON.stringify(result, undefined, 4))
             }
 
-            await session.commitTransaction()
+            console.log(funcName, 'committing...')
+            await this.commitTransaction()
             return true
         }
         catch (err) {
-            await session.abortTransaction()
-            console.error(err);
+            console.log(funcName, 'aborting...')
+            await this.abortTransaction()
             return false
         }
-        finally { await session.endSession() }
+        finally { await this.endSession() }
     }
 
     async deletePrivilege(id: string): Promise<DeleteResult> {
+        const funcName = 'deletePrivilege'
+
+        console.log(funcName, 'called')
+
+        console.log(funcName, 'id', JSON.stringify(id, undefined, 4))
+
         const user = await authRepository.getAuthenticatedUser()
         if (user == null)
-            throw new Unauthenticated();
+            throw new Unauthenticated()
+        console.log(funcName, 'authenticated')
 
+        console.log(funcName, 'user.roleName', user.roleName)
         if (!(await this.getAccessControl()).can(user.roleName).delete(resources.PRIVILEGE).granted)
             throw new Unauthorized()
+        console.log(funcName, 'authorized')
 
-        return await (await this.getPrivilegesCollection()).deleteOne({ _id: new ObjectId(id), role: { $ne: roles.ADMIN } })
+        const result = await (await this.getPrivilegesCollection()).deleteOne({ _id: new ObjectId(id), role: { $ne: roles.ADMIN } })
+        console.log(funcName, 'result', JSON.stringify(result, undefined, 4))
+
+        return result
     }
 
     async deleteRole(roleName: string): Promise<DeleteResult> {
+        const funcName = 'deleteRole'
+
+        console.log(funcName, 'called')
+
+        console.log(funcName, 'roleName', JSON.stringify(roleName, undefined, 4))
+
         const user = await authRepository.getAuthenticatedUser()
         if (user == null)
-            throw new Unauthenticated();
+            throw new Unauthenticated()
+        console.log(funcName, 'authenticated')
 
+        console.log(funcName, 'user.roleName', user.roleName)
         if (!(await this.getAccessControl()).can(user.roleName).delete(resources.PRIVILEGE).granted)
             throw new Unauthorized()
+        console.log(funcName, 'authorized')
 
-        return await (await this.getPrivilegesCollection()).deleteMany({ $and: [{ role: { $ne: roles.ADMIN } }, { role: roleName }] })
+        const result = await (await this.getPrivilegesCollection()).deleteMany({ $and: [{ role: { $ne: roles.ADMIN } }, { role: roleName }] })
+        console.log(funcName, 'result', JSON.stringify(result, undefined, 4))
+
+        return result
     }
 
     async deletePrivileges(ids: string[]): Promise<DeleteResult> {
+        const funcName = 'deletePrivileges'
+
+        console.log(funcName, 'called')
+
+        console.log(funcName, 'ids', JSON.stringify(ids, undefined, 4))
+
         const user = await authRepository.getAuthenticatedUser()
         if (user == null)
-            throw new Unauthenticated();
+            throw new Unauthenticated()
+        console.log(funcName, 'authenticated')
 
+        console.log(funcName, 'user.roleName', user.roleName)
         if (!(await this.getAccessControl()).can(user.roleName).delete(resources.PRIVILEGE).granted)
             throw new Unauthorized()
+        console.log(funcName, 'authorized')
 
-        return await (await this.getPrivilegesCollection()).deleteMany({ $and: [{ _id: { $in: ids.map(id => new ObjectId(id)) } }, { role: { $ne: roles.ADMIN } }] })
+        const result = await (await this.getPrivilegesCollection()).deleteMany({ $and: [{ _id: { $in: ids.map(id => new ObjectId(id)) } }, { role: { $ne: roles.ADMIN } }] })
+        console.log(funcName, 'result', JSON.stringify(result, undefined, 4))
+
+        return result
     }
 }

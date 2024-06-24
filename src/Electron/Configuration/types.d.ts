@@ -1,6 +1,7 @@
 import type { ConfigurationStorableData } from "../../react/ConfigurationContext"
 
 export type MongodbConfig = {
+    supportsTransaction: boolean;
     url: string;
     databaseName: string;
     auth: {

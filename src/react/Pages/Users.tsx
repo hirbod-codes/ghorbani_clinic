@@ -93,7 +93,7 @@ export function Users() {
             setDeletingUser(id)
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteUser(id)
             setDeletingUser(undefined)
-            if (res.code !== 200) {
+            if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1) {
                 setResult({
                     severity: 'error',
                     message: t('failedToDelete'),
@@ -260,7 +260,7 @@ export function Users() {
                                                 label={t('deleteUser')}
                                                 icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
                                                 onClick={async () => {
-                                                    await deleteUser(params.row.id);
+                                                    await deleteUser(params.row._id);
                                                     await updateRows(role)
                                                     if (auth.user._id === params.row.id)
                                                         await auth.logout()
