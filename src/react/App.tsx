@@ -110,8 +110,9 @@ export function App() {
                     setConfiguration(defaultConfiguration)
                     persistConfigurationData({ locale: defaultConfiguration.locale, themeMode: defaultConfiguration.themeMode })
                 })
+                .finally(() => console.log('hasFetchedConfig-readConfig', 'end'))
         }
-        finally { hasFetchedConfig.current = true }
+        finally { hasFetchedConfig.current = true; console.log('hasFetchedConfig', 'end') }
     }
 
     const persistConfigurationData = async (data: ConfigurationStorableData) => {
@@ -173,10 +174,12 @@ export function App() {
     }
 
     // Authentication
+    const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true)
     const [loginModal, setLoginModal] = useState<boolean>(false)
     const [authLoading, setAuthLoading] = useState<boolean>(false)
     const [user, setUser] = useState<User>(null);
     const [ac, setAccessControl] = useState<AccessControl | null>(null);
+
     const getAccessControl = async () => {
         try {
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPrivileges()
@@ -201,6 +204,8 @@ export function App() {
                 severity: 'error',
                 message: t('failedToAuthenticate'),
             })
+        } finally {
+            console.log('getAccessControl', 'end')
         }
     }
     const fetchUser = async (): Promise<User | null | undefined> => {
@@ -231,6 +236,8 @@ export function App() {
                 severity: 'error',
                 message: t('failedToAuthenticate'),
             })
+        } finally {
+            console.log('fetchUser', 'end')
         }
     }
     const login = async (username: string, password: string) => {
@@ -262,6 +269,8 @@ export function App() {
                 severity: 'error',
                 message: t('failedToAuthenticate'),
             })
+        } finally {
+            console.log('login', 'end')
         }
     }
     const logout = async () => {
@@ -303,6 +312,8 @@ export function App() {
                 severity: 'error',
                 message: t('failedToLogout'),
             })
+        } finally {
+            console.log('logout', 'end')
         }
     }
 
@@ -312,15 +323,18 @@ export function App() {
         fetchUser().then((u) => {
             if (!u)
                 setLoginModal(true)
+            setIsAuthLoading(false)
+        }).finally(() => {
+            console.log('useEffect', 'end')
         })
     }, [])
+
+    if (isAuthLoading || !configuration)
+        return (<LoadingScreen />)
 
     console.log('App', 'configuration', configuration)
     console.log('App', 'user', user)
     console.log('App', 'ac', ac)
-
-    if (!configuration)
-        return (<LoadingScreen />)
 
     const readsUsers = ac && user && ac.can(user.roleName).read(resources.USER).granted
     const readsPatients = ac && user && ac.can(user.roleName).read(resources.PATIENT).granted

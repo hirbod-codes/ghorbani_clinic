@@ -3,6 +3,7 @@ import DataGrid from "../Components/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
 import { ResultContext } from "../ResultContext";
 import { t } from "i18next";
+import { Grid, Paper } from "@mui/material";
 
 export default function Visits() {
     const setResult = useContext(ResultContext).setResult
@@ -33,9 +34,20 @@ export default function Visits() {
 
     useEffect(() => { fetchVisits() }, [])
 
+    // if (!visits || visits.length === 0)
+    //     return (<></>)
+
+    console.log('Visits', 'visits', visits)
+
     return (
         <>
-            <DataGrid data={visits} hideFooter={false} />
+            <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
+                <Grid item xs={12} height={'100%'}>
+                    <Paper sx={{ p: 1, height: '100%' }}>
+                        <DataGrid data={visits} hideFooter={false} />
+                    </Paper>
+                </Grid>
+            </Grid>
         </>
     )
 }

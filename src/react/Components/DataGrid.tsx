@@ -2,18 +2,8 @@ import { GridActionsCellItemProps, GridColDef, GridRowParams, GridToolbarColumns
 import { t } from 'i18next'
 import React from 'react'
 import LoadingScreen from './LoadingScreen'
-
-type DataGrid = {
-    data: any[],
-    idField?: string,
-    orderedColumnsFields?: string[],
-    customToolbar?: React.ReactNode[],
-    overWriteColumns?: GridColDef<any>[],
-    additionalColumns?: GridColDef<any>[],
-    hiddenColumns?: string[],
-    loading?: boolean,
-    hideFooter?: boolean,
-}
+import { number } from 'yup'
+import { Box } from '@mui/material'
 
 const getColumns = (data: any[], overWriteColumns?: GridColDef<any>[], additionalColumns?: GridColDef<any>[], orderedColumnsFields?: string[]): GridColDef<any>[] => {
     if (!data || data.length === 0)
@@ -60,11 +50,80 @@ const getColumns = (data: any[], overWriteColumns?: GridColDef<any>[], additiona
     return columns
 }
 
-export default function DataGrid({ data, idField = '_id', orderedColumnsFields = undefined, overWriteColumns, additionalColumns, hiddenColumns, customToolbar, hideFooter = true, loading = false }: DataGrid) {
-    const columns = getColumns(data, overWriteColumns, additionalColumns, orderedColumnsFields)
+type DataGrid = {
+    data: any[],
+    idField?: string,
+    orderedColumnsFields?: string[],
+    customToolbar?: React.ReactNode[],
+    overWriteColumns?: GridColDef<any>[],
+    additionalColumns?: GridColDef<any>[],
+    hiddenColumns?: string[],
+    loading?: boolean,
+    hideFooter?: boolean,
+}
 
-    if (!columns)
+export default function DataGrid({ data, idField = '_id', orderedColumnsFields = undefined, overWriteColumns, additionalColumns, hiddenColumns, customToolbar, hideFooter = true, loading = false }: DataGrid) {
+    let columns = getColumns(data, overWriteColumns, additionalColumns, orderedColumnsFields)
+    const dimensionsRef = React.useRef<{ [k: string]: any }>(Object.fromEntries(columns.map(c => ([c.field, null]))))
+    const hasMeasured = React.useRef<boolean>(false)
+
+    console.log('DataGrid', 'data', data)
+    console.log('DataGrid', 'columns', columns)
+    console.log('DataGrid', 'dimensionsRef.current', dimensionsRef.current)
+
+    React.useEffect(() => {
+        console.log('DataGrid', 'useEffect')
+        dimensionsRef.current = Object.fromEntries(columns.map(c => ([c.field, null])))
+        hasMeasured.current = false
+    }, [])
+
+    if (!columns || columns.length === 0)
         return (<LoadingScreen />)
+
+    if (!hasMeasured.current && Object.entries(dimensionsRef.current).length > 0 && Object.entries(dimensionsRef.current).find(d => d[1] === null) === undefined) {
+        console.log('DataGrid', 'final dimensionsRef.current', dimensionsRef.current)
+        columns = columns.map(c => {
+            console.log('DataGrid', 'dimensionsRef.current[c.field].offsetWidth', dimensionsRef.current[c.field]?.offsetWidth ?? undefined)
+            return ({ ...c, width: (dimensionsRef.current[c.field]?.offsetWidth + 25) ?? undefined })
+        })
+        console.log('DataGrid', 'casted columns', columns)
+        hasMeasured.current = true
+    }
+
+    if (!hasMeasured.current)
+        return (
+            <>
+                {columns.map((c, i) => {
+                    console.log('DataGrid', 'columns', 'map', 'column', i, c)
+                    return <Box key={i} ref={ref => dimensionsRef.current[c.field] = ref} style={{ display: 'inline', position: 'absolute', bottom: '0', left: '0', border: '1px solid red' }}>
+                        {
+                            data.reduce((pv, cv, ci, arr) => {
+                                if (!cv[c.field])
+                                    return undefined
+
+                                let cvLength
+
+                                if (number().required().isValidSync(cv[c.field]))
+                                    cvLength = cv[c.field]
+                                else
+                                    cvLength = cv[c.field].length
+
+                                if (!pv)
+                                    return { max: cvLength, v: cv }
+
+                                if (cvLength > pv.max)
+                                    return { max: cvLength, v: cv }
+
+                                else
+                                    return pv
+                            }, null)?.v[c.field].toString()
+                        }
+                    </Box>
+                }
+                )}
+                <LoadingScreen />
+            </>
+        )
 
     return (
         <XDataGrid
@@ -73,6 +132,7 @@ export default function DataGrid({ data, idField = '_id', orderedColumnsFields =
             rows={data}
             hideFooter={hideFooter}
             loading={loading}
+            density='compact'
             initialState={{
                 columns: {
                     orderedFields: orderedColumnsFields,
