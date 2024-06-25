@@ -95,7 +95,7 @@ export default function DataGrid({ data, idField = '_id', orderedColumnsFields =
             <>
                 {columns.map((c, i) => {
                     console.log('DataGrid', 'columns', 'map', 'column', i, c)
-                    return <Box key={i} ref={ref => dimensionsRef.current[c.field] = ref} style={{ display: 'inline', position: 'absolute', bottom: '0', left: '0', border: '1px solid red' }}>
+                    return <Box key={i} ref={ref => dimensionsRef.current[c.field] = ref} style={{ display: 'inline', color: '#00000000', position: 'absolute', bottom: '0', left: '0', border: '1px solid red' }}>
                         {
                             data.reduce((pv, cv, ci, arr) => {
                                 if (!cv[c.field])
@@ -126,30 +126,32 @@ export default function DataGrid({ data, idField = '_id', orderedColumnsFields =
         )
 
     return (
-        <XDataGrid
-            getRowId={(r) => r[idField]}
-            columns={columns}
-            rows={data}
-            hideFooter={hideFooter}
-            loading={loading}
-            density='compact'
-            initialState={{
-                columns: {
-                    orderedFields: orderedColumnsFields,
-                    columnVisibilityModel: Object.fromEntries(hiddenColumns?.map(hc => [hc, false]) ?? [])
-                }
-            }}
-            slots={{
-                toolbar: () => (
-                    <GridToolbarContainer>
-                        <GridToolbarColumnsButton />
-                        <GridToolbarFilterButton />
-                        <GridToolbarDensitySelector />
-                        <GridToolbarExport />
-                        {...(customToolbar ?? [])}
-                    </GridToolbarContainer>
-                )
-            }}
-        />
+        <div style={{ height: '100%' }}>
+            <XDataGrid
+                getRowId={(r) => r[idField]}
+                columns={columns}
+                rows={data}
+                hideFooter={hideFooter}
+                loading={loading}
+                density='compact'
+                initialState={{
+                    columns: {
+                        orderedFields: orderedColumnsFields,
+                        columnVisibilityModel: Object.fromEntries(hiddenColumns?.map(hc => [hc, false]) ?? [])
+                    }
+                }}
+                slots={{
+                    toolbar: () => (
+                        <GridToolbarContainer>
+                            <GridToolbarColumnsButton />
+                            <GridToolbarFilterButton />
+                            <GridToolbarDensitySelector />
+                            <GridToolbarExport />
+                            {...(customToolbar ?? [])}
+                        </GridToolbarContainer>
+                    )
+                }}
+            />
+        </div>
     )
 }
