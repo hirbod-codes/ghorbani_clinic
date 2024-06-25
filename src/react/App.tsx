@@ -12,7 +12,7 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import DisplaySettingsIcon from '@mui/icons-material/DisplaySettingsOutlined';
 
-import { CssBaseline, PaletteMode, createTheme, useMediaQuery, AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, ThemeProvider, Collapse, CircularProgress, Stack, Box, Modal, Slide, Paper, Snackbar, Alert, AlertColor, AlertPropsColorOverrides } from '@mui/material'
+import { CssBaseline, PaletteMode, createTheme, useMediaQuery, AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, ThemeProvider, Collapse, CircularProgress, Stack, Box, Modal, Slide, Paper, Snackbar, Alert, AlertColor, AlertPropsColorOverrides, Grid } from '@mui/material'
 import { useState, useRef, useEffect, ReactNode } from 'react'
 import { Localization, enUS } from '@mui/material/locale';
 import { useTranslation } from "react-i18next";
@@ -405,38 +405,42 @@ export function App() {
                                         </List>
                                     </Drawer>
 
-                                    <Stack direction='column' height={'100%'} alignItems='stretch' justifyContent='flex-start'>
-                                        <MenuBar backgroundColor={configuration.theme.palette.background.default} />
+                                    <Grid container sx={{ height: '100%' }}>
+                                        <Grid item xs={12}>
+                                            <MenuBar backgroundColor={configuration.theme.palette.background.default} />
+                                        </Grid>
 
-                                        <AppBar position='relative'>
-                                            <Toolbar variant="dense">
-                                                <IconButton size='large' color='inherit' onClick={() => setOpenDrawer(true)} sx={{ mr: 2 }}>
-                                                    <MenuIcon fontSize='inherit' />
-                                                </IconButton>
-                                                <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
-                                                    {/* Title */}
-                                                    {user && user?.username}
-                                                </Typography>
-                                                {
-                                                    user &&
-                                                    <IconButton size='medium' color='inherit' onClick={async () => { await logout(); }}>
-                                                        {
-                                                            authLoading
-                                                                ? <CircularProgress size='small' />
-                                                                : <LogoutIcon />
-                                                        }
+                                        <Grid item xs={12} height={'3rem'}>
+                                            <AppBar position='relative'>
+                                                <Toolbar variant="dense">
+                                                    <IconButton size='large' color='inherit' onClick={() => setOpenDrawer(true)} sx={{ mr: 2 }}>
+                                                        <MenuIcon fontSize='inherit' />
                                                     </IconButton>
-                                                }
-                                                <IconButton size='medium' color='inherit' onClick={() => updateTheme(configuration.theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.locale.direction, getReactLocale(configuration.locale.code))}>
-                                                    {configuration.theme.palette.mode == 'light' ? <LightModeIcon fontSize='inherit' /> : <DarkModeIcon fontSize='inherit' />}
-                                                </IconButton>
-                                            </Toolbar>
-                                        </AppBar>
+                                                    <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
+                                                        {/* Title */}
+                                                        {user && user?.username}
+                                                    </Typography>
+                                                    {
+                                                        user &&
+                                                        <IconButton size='medium' color='inherit' onClick={async () => { await logout(); }}>
+                                                            {
+                                                                authLoading
+                                                                    ? <CircularProgress size='small' />
+                                                                    : <LogoutIcon />
+                                                            }
+                                                        </IconButton>
+                                                    }
+                                                    <IconButton size='medium' color='inherit' onClick={() => updateTheme(configuration.theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.locale.direction, getReactLocale(configuration.locale.code))}>
+                                                        {configuration.theme.palette.mode == 'light' ? <LightModeIcon fontSize='inherit' /> : <DarkModeIcon fontSize='inherit' />}
+                                                    </IconButton>
+                                                </Toolbar>
+                                            </AppBar>
+                                        </Grid>
 
-                                        <Box flexGrow={1}>
+                                        <Grid item xs={12} sx={{ height: 'calc(100% - 5rem)', overflowY: 'auto' }}>
                                             {user && content}
-                                        </Box>
-                                    </Stack>
+                                        </Grid>
+                                    </Grid>
 
                                     <Modal open={loginModal} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
                                         <Slide direction={loginModal ? 'up' : 'down'} in={loginModal} timeout={250}>
