@@ -71,11 +71,11 @@ export default function DataGrid({ data, idField = '_id', orderedColumnsFields =
     console.log('DataGrid', 'columns', columns)
     console.log('DataGrid', 'dimensionsRef.current', dimensionsRef.current)
 
-    React.useEffect(() => {
-        console.log('DataGrid', 'useEffect')
-        dimensionsRef.current = Object.fromEntries(columns.map(c => ([c.field, null])))
-        hasMeasured.current = false
-    }, [])
+    // React.useEffect(() => {
+    //     console.log('DataGrid', 'useEffect')
+    //     dimensionsRef.current = Object.fromEntries(columns.map(c => ([c.field, null])))
+    //     hasMeasured.current = false
+    // }, [])
 
     if (!columns || columns.length === 0)
         return (<LoadingScreen />)
@@ -121,7 +121,6 @@ export default function DataGrid({ data, idField = '_id', orderedColumnsFields =
                     </Box>
                 }
                 )}
-                <LoadingScreen />
             </>
         )
 
