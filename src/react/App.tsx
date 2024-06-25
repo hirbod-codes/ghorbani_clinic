@@ -41,7 +41,7 @@ import { Result, ResultContext } from './ResultContext';
 import { Users } from './Pages/Users';
 import Patients from './Pages/Patients';
 import Visits from './Pages/Visits';
-import { AccessTimeOutlined, MasksOutlined } from '@mui/icons-material';
+import { AccessTimeOutlined, MasksOutlined, TuneRounded } from '@mui/icons-material';
 
 // Create rtl cache
 const rtlCache = createCache({
@@ -83,9 +83,12 @@ export function App() {
     const hasFetchedConfig = useRef(false)
     if (!hasFetchedConfig.current) {
         try {
+            console.log('hasFetchedConfig-readConfig', 'start');
             (window as typeof window & { configAPI: configAPI }).configAPI.readConfig()
                 .then((c) => {
                     if (c && c.configuration) {
+                        i18n.changeLanguage(c.configuration.locale.code)
+                        document.dir = c.configuration.locale.direction
                         setConfiguration({
                             ...c.configuration,
                             theme: createTheme(
@@ -98,8 +101,6 @@ export function App() {
                                 getReactLocale(c.configuration.locale.code)
                             )
                         })
-                        i18n.changeLanguage(c.configuration.locale.code)
-                        document.dir = c.configuration.locale.direction
                     }
                     else {
                         setConfiguration(defaultConfiguration)
@@ -110,9 +111,8 @@ export function App() {
                     setConfiguration(defaultConfiguration)
                     persistConfigurationData({ locale: defaultConfiguration.locale, themeMode: defaultConfiguration.themeMode })
                 })
-                .finally(() => console.log('hasFetchedConfig-readConfig', 'end'))
         }
-        finally { hasFetchedConfig.current = true; console.log('hasFetchedConfig', 'end') }
+        finally { hasFetchedConfig.current = true; console.log('hasFetchedConfig-readConfig', 'end') }
     }
 
     const persistConfigurationData = async (data: ConfigurationStorableData) => {
@@ -175,67 +175,37 @@ export function App() {
 
     // Authentication
     const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true)
-    const [loginModal, setLoginModal] = useState<boolean>(false)
     const [authLoading, setAuthLoading] = useState<boolean>(false)
-    const [user, setUser] = useState<User>(null);
-    const [ac, setAccessControl] = useState<AccessControl | null>(null);
+    const [auth, setAuth] = useState<{ user: User | undefined, ac: AccessControl | undefined }>({ user: undefined, ac: undefined })
 
-    const getAccessControl = async () => {
+    const getAccessControl = async (): Promise<AccessControl | undefined> => {
         try {
+            console.log('getAccessControl', 'start')
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPrivileges()
             console.log('getAccessControl', 'res', res)
-            if (res.code !== 200) {
-                setResult({
-                    severity: 'error',
-                    message: t('failedToAuthenticate'),
-                })
-                return
-            }
+            if (res.code !== 200)
+                return undefined
 
-            setAccessControl(new AccessControl(res.data))
-            setResult({
-                severity: 'success',
-                message: t('successfullyAuthenticated'),
-            })
+            return new AccessControl(res.data)
         } catch (error) {
             console.error(error)
-
-            setResult({
-                severity: 'error',
-                message: t('failedToAuthenticate'),
-            })
+            throw error
         } finally {
             console.log('getAccessControl', 'end')
         }
     }
-    const fetchUser = async (): Promise<User | null | undefined> => {
+    const fetchUser = async (): Promise<User | undefined> => {
         try {
-            setAuthLoading(true)
+            console.log('fetchUser', 'start')
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getAuthenticatedUser()
             console.log('fetchUser', 'res', res)
-            setAuthLoading(false)
-            if (res.code !== 200) {
-                setResult({
-                    severity: 'error',
-                    message: t('failedToAuthenticate'),
-                })
-                return
-            }
+            if (res.code !== 200)
+                return undefined
 
-            setUser(res.data)
-            await getAccessControl()
-            setResult({
-                severity: 'success',
-                message: t('successfullyAuthenticated'),
-            })
             return res.data
         } catch (error) {
             console.error(error)
-
-            setResult({
-                severity: 'error',
-                message: t('failedToAuthenticate'),
-            })
+            throw error
         } finally {
             console.log('fetchUser', 'end')
         }
@@ -259,9 +229,7 @@ export function App() {
                 message: t('successfullyAuthenticated'),
             })
 
-            await fetchUser()
-
-            setLoginModal(false)
+            await init()
         } catch (error) {
             console.error(error)
 
@@ -275,10 +243,8 @@ export function App() {
     }
     const logout = async () => {
         try {
-            setAuthLoading(true)
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.logout()
             console.log('logout', 'res', res)
-            setAuthLoading(false)
             if (res.code !== 200) {
                 setResult({
                     severity: 'error',
@@ -286,7 +252,6 @@ export function App() {
                 })
                 return
             }
-
 
             if (res.data !== true) {
                 setResult({
@@ -296,15 +261,12 @@ export function App() {
                 return
             }
 
+            setAuth({ user: undefined, ac: undefined })
+            setContent(<Home />)
             setResult({
                 severity: 'success',
                 message: t('successfullyToLogout'),
             })
-
-            setUser(null)
-
-            setContent(<Home />)
-            setLoginModal(true)
         } catch (error) {
             console.error(error)
 
@@ -319,156 +281,193 @@ export function App() {
 
     const [result, setResult] = useState<Result | null>(null)
 
-    useEffect(() => {
-        fetchUser().then((u) => {
-            if (!u)
-                setLoginModal(true)
-            setIsAuthLoading(false)
-        }).finally(() => {
-            console.log('useEffect', 'end')
-        })
-    }, [])
+    const init = async () => {
+        try {
+            console.log('init', 'start')
+            const u = await fetchUser()
+            if (!u) {
+                if (isAuthLoading)
+                    setIsAuthLoading(false)
+                setResult({
+                    severity: 'error',
+                    message: t('failedToAuthenticate')
+                })
+            }
 
-    if (isAuthLoading || !configuration)
-        return (<LoadingScreen />)
+            const accessControl = await getAccessControl()
+            if (!accessControl) {
+                if (isAuthLoading)
+                    setIsAuthLoading(false)
+                setResult({
+                    severity: 'error',
+                    message: t('failedToAuthenticate')
+                })
+            }
 
-    console.log('App', 'configuration', configuration)
-    console.log('App', 'user', user)
-    console.log('App', 'ac', ac)
+            if (isAuthLoading)
+                setIsAuthLoading(false)
+            setAuth({ user: u, ac: accessControl })
+        } catch (error) {
+            console.error('error', error)
 
-    const readsUsers = ac && user && ac.can(user.roleName).read(resources.USER).granted
-    const readsPatients = ac && user && ac.can(user.roleName).read(resources.PATIENT).granted
-    const readsVisits = ac && user && ac.can(user.roleName).read(resources.VISIT).granted
+            if (isAuthLoading)
+                setIsAuthLoading(false)
+            setResult({
+                severity: 'error',
+                message: t('failedToAuthenticate')
+            })
+        } finally { console.log('init', 'end') }
+    }
+
+    const hasInit = useRef<boolean>(false)
+
+    if (!hasInit.current) {
+        hasInit.current = true
+        init()
+    }
+
+    console.log('App', { configuration, auth, isAuthLoading })
+
+    const readsUsers = auth.ac && auth.user && auth.ac.can(auth.user.roleName).read(resources.USER).granted
+    const readsPatients = auth.ac && auth.user && auth.ac.can(auth.user.roleName).read(resources.PATIENT).granted
+    const readsVisits = auth.ac && auth.user && auth.ac.can(auth.user.roleName).read(resources.VISIT).granted
 
     return (
         <>
             <ResultContext.Provider value={{ result, setResult }}>
                 <NavigationContext.Provider value={{ goHome: () => setContent(<Home />) }}>
-                    <AuthContext.Provider value={{ user: user, setUser, logout, fetchUser: async () => { await fetchUser() }, accessControl: ac }}>
-                        <ConfigurationContext.Provider value={{ get: configuration, set: { updateTheme, updateLocale, updateTimeZone } }}>
-                            <CacheProvider value={configuration.locale.direction === 'rtl' ? rtlCache : ltrCache}>
-                                <ThemeProvider theme={configuration.theme}>
-                                    <CssBaseline enableColorScheme />
+                    <ConfigurationContext.Provider value={{ get: configuration, set: { updateTheme, updateLocale, updateTimeZone } }}>
+                        <CacheProvider value={configuration.locale.direction === 'rtl' ? rtlCache : ltrCache}>
+                            <ThemeProvider theme={configuration.theme}>
+                                {isAuthLoading
+                                    ? <LoadingScreen />
+                                    : <AuthContext.Provider value={{ user: auth.user, logout, fetchUser: async () => { await fetchUser() }, accessControl: auth.ac }}>
+                                        <CssBaseline enableColorScheme />
 
-                                    <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)}>
-                                        <List>
-                                            <ListItemButton onClick={() => { setContent(<Home />); setOpenDrawer(false) }}>
-                                                <ListItemIcon>
-                                                    <HomeIcon />
-                                                </ListItemIcon>
-                                                <ListItemText primary={t('home')} />
-                                            </ListItemButton>
-                                            {
-                                                readsUsers &&
-                                                <ListItemButton onClick={() => { setContent(<Users />); setOpenDrawer(false) }}>
-                                                    <ListItemIcon>
-                                                        <PersonIcon />
-                                                    </ListItemIcon>
-                                                    <ListItemText primary={t('users')} />
-                                                </ListItemButton>
-                                            }
-                                            {
-                                                readsPatients &&
-                                                <ListItemButton onClick={() => { setContent(<Patients />); setOpenDrawer(false) }}>
-                                                    <ListItemIcon>
-                                                        <MasksOutlined />
-                                                    </ListItemIcon>
-                                                    <ListItemText primary={t('patients')} />
-                                                </ListItemButton>
-                                            }
-                                            {
-                                                readsVisits &&
-                                                <ListItemButton onClick={() => { setContent(<Visits />); setOpenDrawer(false) }}>
-                                                    <ListItemIcon>
-                                                        <AccessTimeOutlined />
-                                                    </ListItemIcon>
-                                                    <ListItemText primary={t('visits')} />
-                                                </ListItemButton>
-                                            }
-                                            <ListItemButton onClick={() => setOpenSettingsList(!openSettingsList)}>
-                                                <ListItemIcon>
-                                                    <SettingsIcon />
-                                                </ListItemIcon>
-                                                <ListItemText primary={t('settings')} />
-                                                {openSettingsList ? <ExpandLess /> : <ExpandMore />}
-                                            </ListItemButton>
-                                            <Collapse in={openSettingsList} timeout="auto" unmountOnExit>
-                                                <List component="div" disablePadding>
-                                                    <ListItemButton sx={{ pl: 4 }} onClick={() => { setContent(<General />); setOpenDrawer(false) }}>
-                                                        <ListItemIcon>
-                                                            <DisplaySettingsIcon />
-                                                        </ListItemIcon>
-                                                        <ListItemText primary={t("general")} />
-                                                    </ListItemButton>
-                                                </List>
-                                            </Collapse>
-                                        </List>
-                                    </Drawer>
+                                        {auth.user && auth.ac &&
+                                            <>
+                                                <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)}>
+                                                    <List>
+                                                        <ListItemButton onClick={() => { setContent(<Home />); setOpenDrawer(false) }}>
+                                                            <ListItemIcon>
+                                                                <HomeIcon />
+                                                            </ListItemIcon>
+                                                            <ListItemText primary={t('home')} />
+                                                        </ListItemButton>
+                                                        {
+                                                            readsUsers &&
+                                                            <ListItemButton onClick={() => { setContent(<Users />); setOpenDrawer(false) }}>
+                                                                <ListItemIcon>
+                                                                    <PersonIcon />
+                                                                </ListItemIcon>
+                                                                <ListItemText primary={t('users')} />
+                                                            </ListItemButton>
+                                                        }
+                                                        {
+                                                            readsPatients &&
+                                                            <ListItemButton onClick={() => { setContent(<Patients />); setOpenDrawer(false) }}>
+                                                                <ListItemIcon>
+                                                                    <MasksOutlined />
+                                                                </ListItemIcon>
+                                                                <ListItemText primary={t('patients')} />
+                                                            </ListItemButton>
+                                                        }
+                                                        {
+                                                            readsVisits &&
+                                                            <ListItemButton onClick={() => { setContent(<Visits />); setOpenDrawer(false) }}>
+                                                                <ListItemIcon>
+                                                                    <AccessTimeOutlined />
+                                                                </ListItemIcon>
+                                                                <ListItemText primary={t('visits')} />
+                                                            </ListItemButton>
+                                                        }
+                                                        <ListItemButton onClick={() => setOpenSettingsList(!openSettingsList)}>
+                                                            <ListItemIcon>
+                                                                <SettingsIcon />
+                                                            </ListItemIcon>
+                                                            <ListItemText primary={t('settings')} />
+                                                            {openSettingsList ? <ExpandLess /> : <ExpandMore />}
+                                                        </ListItemButton>
+                                                        <Collapse in={openSettingsList} timeout="auto" unmountOnExit>
+                                                            <List component="div" disablePadding>
+                                                                <ListItemButton sx={{ pl: 4 }} onClick={() => { setContent(<General />); setOpenDrawer(false) }}>
+                                                                    <ListItemIcon>
+                                                                        <DisplaySettingsIcon />
+                                                                    </ListItemIcon>
+                                                                    <ListItemText primary={t("general")} />
+                                                                </ListItemButton>
+                                                            </List>
+                                                        </Collapse>
+                                                    </List>
+                                                </Drawer>
 
-                                    <Grid container sx={{ height: '100%' }}>
-                                        <Grid item xs={12}>
-                                            <MenuBar backgroundColor={configuration.theme.palette.background.default} />
-                                        </Grid>
+                                                <Grid container sx={{ height: '100%' }}>
+                                                    <Grid item xs={12}>
+                                                        <MenuBar backgroundColor={configuration.theme.palette.background.default} />
+                                                    </Grid>
 
-                                        <Grid item xs={12} height={'3rem'}>
-                                            <AppBar position='relative'>
-                                                <Toolbar variant="dense">
-                                                    <IconButton size='large' color='inherit' onClick={() => setOpenDrawer(true)} sx={{ mr: 2 }}>
-                                                        <MenuIcon fontSize='inherit' />
-                                                    </IconButton>
-                                                    <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
-                                                        {/* Title */}
-                                                        {user && user?.username}
-                                                    </Typography>
-                                                    {
-                                                        user &&
-                                                        <IconButton size='medium' color='inherit' onClick={async () => { await logout(); }}>
-                                                            {
-                                                                authLoading
-                                                                    ? <CircularProgress size='small' />
-                                                                    : <LogoutIcon />
-                                                            }
-                                                        </IconButton>
-                                                    }
-                                                    <IconButton size='medium' color='inherit' onClick={() => updateTheme(configuration.theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.locale.direction, getReactLocale(configuration.locale.code))}>
-                                                        {configuration.theme.palette.mode == 'light' ? <LightModeIcon fontSize='inherit' /> : <DarkModeIcon fontSize='inherit' />}
-                                                    </IconButton>
-                                                </Toolbar>
-                                            </AppBar>
-                                        </Grid>
+                                                    <Grid item xs={12} height={'3rem'}>
+                                                        <AppBar position='relative'>
+                                                            <Toolbar variant="dense">
+                                                                <IconButton size='large' color='inherit' onClick={() => setOpenDrawer(true)} sx={{ mr: 2 }}>
+                                                                    <MenuIcon fontSize='inherit' />
+                                                                </IconButton>
+                                                                <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
+                                                                    {/* Title */}
+                                                                    {auth.user && auth.user?.username}
+                                                                </Typography>
+                                                                {
+                                                                    auth.user &&
+                                                                    <IconButton size='medium' color='inherit' onClick={async () => { await logout(); }}>
+                                                                        {
+                                                                            authLoading
+                                                                                ? <CircularProgress size='small' />
+                                                                                : <LogoutIcon />
+                                                                        }
+                                                                    </IconButton>
+                                                                }
+                                                                <IconButton size='medium' color='inherit' onClick={() => updateTheme(configuration.theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.locale.direction, getReactLocale(configuration.locale.code))}>
+                                                                    {configuration.theme.palette.mode == 'light' ? <LightModeIcon fontSize='inherit' /> : <DarkModeIcon fontSize='inherit' />}
+                                                                </IconButton>
+                                                            </Toolbar>
+                                                        </AppBar>
+                                                    </Grid>
 
-                                        <Grid item xs={12} sx={{ height: 'calc(100% - 5rem)', overflowY: 'auto' }}>
-                                            {user && content}
-                                        </Grid>
-                                    </Grid>
+                                                    <Grid item xs={12} sx={{ height: 'calc(100% - 5rem)', overflowY: 'auto' }}>
+                                                        {auth.user && content}
+                                                    </Grid>
+                                                </Grid>
+                                            </>
+                                        }
 
-                                    <Modal open={loginModal} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
-                                        <Slide direction={loginModal ? 'up' : 'down'} in={loginModal} timeout={250}>
-                                            <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
-                                                <LoginForm onFinish={login} />
-                                            </Paper>
-                                        </Slide>
-                                    </Modal>
+                                        <Modal open={!isAuthLoading && (!auth.user || !auth.ac)} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
+                                            <Slide direction={!isAuthLoading && (!auth.user || !auth.ac) ? 'up' : 'down'} in={!isAuthLoading && (!auth.user || !auth.ac)} timeout={250}>
+                                                <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
+                                                    <LoginForm onFinish={login} />
+                                                </Paper>
+                                            </Slide>
+                                        </Modal>
 
-                                    <Snackbar
-                                        open={result !== null}
-                                        autoHideDuration={7000}
-                                        onClose={() => setResult(null)}
-                                        action={result?.action}
-                                    >
-                                        <Alert
-                                            icon={result?.severity === 'success' ? <CheckIcon fontSize="inherit" /> : (result?.severity === 'error' ? <CloseIcon fontSize="inherit" /> : (result?.severity === 'warning' ? <DangerousIcon fontSize="inherit" /> : null))}
-                                            severity={result?.severity}
+                                        <Snackbar
+                                            open={result !== null}
+                                            autoHideDuration={7000}
+                                            onClose={() => setResult(null)}
+                                            action={result?.action}
                                         >
-                                            {result?.message}
-                                        </Alert>
-                                    </Snackbar>
-                                </ThemeProvider >
-                            </CacheProvider>
-                        </ConfigurationContext.Provider>
-                    </AuthContext.Provider>
+                                            <Alert
+                                                icon={result?.severity === 'success' ? <CheckIcon fontSize="inherit" /> : (result?.severity === 'error' ? <CloseIcon fontSize="inherit" /> : (result?.severity === 'warning' ? <DangerousIcon fontSize="inherit" /> : null))}
+                                                severity={result?.severity}
+                                            >
+                                                {result?.message}
+                                            </Alert>
+                                        </Snackbar>
+                                    </AuthContext.Provider>
+                                }
+                            </ThemeProvider >
+                        </CacheProvider>
+                    </ConfigurationContext.Provider>
                 </NavigationContext.Provider>
-            </ResultContext.Provider>
+            </ResultContext.Provider >
         </>
     )
 }

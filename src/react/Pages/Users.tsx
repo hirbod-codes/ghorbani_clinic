@@ -13,7 +13,7 @@ import ManageUser from "../Components/ManageUser";
 import ManageRole from "../Components/ManageRole";
 import { ResultContext } from "../ResultContext";
 import { NavigationContext } from "../Lib/NavigationContext";
-import DataGrid from "../Components/DataGrid";
+import { DataGrid } from "../Components/DataGrid";
 import { GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
 
 export function Users() {
@@ -147,13 +147,13 @@ export function Users() {
             field: 'createdAt',
             type: 'number',
             valueFormatter: (createdAt: number) => fromUnixToFormat(configuration.get.locale, createdAt, DATE),
-            width: 200,
+            // width: 200,
         },
         {
             field: 'updatedAt',
             type: 'number',
             valueFormatter: (updatedAt: number) => fromUnixToFormat(configuration.get.locale, updatedAt, DATE),
-            width: 200,
+            // width: 200,
         },
     ]
 
