@@ -147,13 +147,13 @@ export function Users() {
             field: 'createdAt',
             type: 'number',
             valueFormatter: (createdAt: number) => fromUnixToFormat(configuration.get.locale, createdAt, DATE),
-            // width: 200,
+            width: 200,
         },
         {
             field: 'updatedAt',
             type: 'number',
             valueFormatter: (updatedAt: number) => fromUnixToFormat(configuration.get.locale, updatedAt, DATE),
-            // width: 200,
+            width: 200,
         },
     ]
 
@@ -254,6 +254,7 @@ export function Users() {
                                     headerAlign: 'center',
                                     align: 'center',
                                     type: 'actions',
+                                    width: 120,
                                     getActions: (params) => [
                                         updatesUser
                                             ? <GridActionsCellItem

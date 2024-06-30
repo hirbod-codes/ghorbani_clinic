@@ -76,7 +76,7 @@ export function DataGrid({ data, idField = '_id', orderedColumnsFields, overWrit
     return (
         <>
             {columns.map((c, i) =>
-                <Box key={i} ref={ref => dimensions[c.field] = ref} style={{ display: 'inline', color: '#00000000', position: 'absolute', bottom: '0', left: '0', border: '1px solid red' }}>
+                <Box key={i} ref={ref => dimensions[c.field] = ref} style={{ display: 'inline', color: '#00000000', position: 'absolute', bottom: '0', left: '0' }}>
                     {data.reduce((pv, cv, ci, arr) => {
                         if (!cv[c.field])
                             return undefined
@@ -88,14 +88,20 @@ export function DataGrid({ data, idField = '_id', orderedColumnsFields, overWrit
                         else
                             cvLength = cv[c.field].length
 
+                        let presentableValue = cv[c.field]
+                        if (c.valueGetter)
+                            presentableValue = c.valueGetter(cv[c.field] as never, cv, c, {} as any)
+                        if (c.valueFormatter)
+                            presentableValue = c.valueFormatter(cv[c.field] as never, cv, c, {} as any)
+
                         if (!pv)
-                            return { max: cvLength, v: cv }
+                            return { max: cvLength, v: presentableValue }
 
                         if (cvLength > pv.max)
-                            return { max: cvLength, v: cv }
+                            return { max: cvLength, v: presentableValue }
                         else
                             return pv
-                    }, null)?.v[c.field].toString()}
+                    }, null)?.v.toString()}
                 </Box>
             )}
             < DataGridCore
@@ -134,7 +140,7 @@ export function DataGridCore({ data, columns, idField = '_id', orderedColumnsFie
 
     React.useEffect(() => {
         if (autoSizing === true && Object.entries(dimensions).find(f => f[1] !== null && f[1] !== undefined) !== undefined)
-            setPreparedColumns(columns.map(c => dimensions[c.field] ? ({ ...c, width: (dimensions[c.field]?.offsetWidth + 25) ?? undefined }) : c))
+            setPreparedColumns(columns.map(c => c.width ? c : (dimensions[c.field] ? ({ ...c, width: (dimensions[c.field]?.offsetWidth + 25) ?? undefined }) : c)))
     }, [dimensions])
 
     return (
