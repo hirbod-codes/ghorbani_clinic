@@ -12,8 +12,22 @@ export type MongodbConfig = {
 
 export type AuthConfig = { users: User[] }
 
+export type Peer = {
+    isMaster: boolean,
+    hostName: string,
+    port: number,
+    ip: string
+}
+
 export type Config = {
     configuration?: ConfigurationStorableData,
     mongodb?: MongodbConfig,
     auth?: AuthConfig,
+    peers?: Peer[],
+    appIdentifier: string,
+    appName: string,
+    isMaster: boolean,
+    hostName: string,
+    port: number,
+    ip: string
 }

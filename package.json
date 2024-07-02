@@ -28,6 +28,7 @@
         "@electron/fuses": "^1.8.0",
         "@faker-js/faker": "^8.4.1",
         "@types/bcrypt": "^5.0.2",
+        "@types/express": "^4.17.21",
         "@types/luxon": "^3.4.2",
         "@types/react-dom": "^18.3.0",
         "@types/stylis": "^4.2.6",
@@ -56,12 +57,15 @@
         "accesscontrol": "^2.2.1",
         "bcrypt": "^5.0.1",
         "electron-squirrel-startup": "^1.0.1",
+        "express": "^4.19.2",
         "i18next": "^23.11.5",
         "luxon": "^3.4.4",
         "mongodb": "^6.7.0",
+        "multicast-dns": "^7.2.5",
         "react-i18next": "^14.1.2",
         "stylis": "^4.3.2",
         "stylis-plugin-rtl": "^2.1.1",
+        "uuid": "^10.0.0",
         "yup": "^1.4.0"
     }
 }

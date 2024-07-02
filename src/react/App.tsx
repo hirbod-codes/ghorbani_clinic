@@ -13,7 +13,7 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import DisplaySettingsIcon from '@mui/icons-material/DisplaySettingsOutlined';
 
 import { CssBaseline, PaletteMode, createTheme, useMediaQuery, AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, ThemeProvider, Collapse, CircularProgress, Stack, Box, Modal, Slide, Paper, Snackbar, Alert, AlertColor, AlertPropsColorOverrides, Grid } from '@mui/material'
-import { useState, useRef, useEffect, ReactNode } from 'react'
+import { useState, useRef } from 'react'
 import { Localization, enUS } from '@mui/material/locale';
 import { useTranslation } from "react-i18next";
 
@@ -41,7 +41,7 @@ import { Result, ResultContext } from './ResultContext';
 import { Users } from './Pages/Users';
 import Patients from './Pages/Patients';
 import Visits from './Pages/Visits';
-import { AccessTimeOutlined, MasksOutlined, TuneRounded } from '@mui/icons-material';
+import { AccessTimeOutlined, MasksOutlined } from '@mui/icons-material';
 
 // Create rtl cache
 const rtlCache = createCache({
