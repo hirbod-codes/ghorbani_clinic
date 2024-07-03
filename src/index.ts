@@ -56,10 +56,11 @@ const createWindow = (): void => {
 app.on('ready', async () => {
     ipcMain.on('relaunch-app', () => {
         app.relaunch()
-        app.exit()
+        app.quit()
     })
 
-    writeConfigSync({})
+    if (!app.isPackaged)
+        writeConfigSync({})
 
     handleConfigEvents()
 
