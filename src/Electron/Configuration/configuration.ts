@@ -43,11 +43,27 @@ export function writeConfigSync(config: Config): void {
 }
 
 export function handleConfigEvents() {
+    if (!app.isPackaged) {
+        const c = readConfig()
+        // writeConfigSync({
+        //     ...c,
+        //     mongodb: {
+        //         supportsTransaction: false,
+        //         url: "mongodb://localhost:8082",
+        //         databaseName: "primaryDB",
+        //         auth: {
+        //             username: "admin",
+        //             password: "password"
+        //         }
+        //     }
+        // })
+    }
+
     ipcMain.handle('read-config', () => {
         return readConfig()
     })
 
     ipcMain.on('write-config', (_e, { config }: { config: Config }) => {
-        writeConfig(config)
+        writeConfigSync(config)
     })
 }

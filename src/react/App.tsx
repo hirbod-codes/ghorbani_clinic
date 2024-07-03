@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 
 import type { Locale } from './Lib/Localization';
 import type { Calendar, TimeZone } from './Lib/DateTime';
-import { ConfigurationContext, ConfigurationData, ConfigurationStorableData } from './ConfigurationContext';
+import { ConfigurationContext, ConfigurationData, ConfigurationStorableData } from './Contexts/ConfigurationContext';
 import { Home } from './Pages/Home';
 import { getLocale, getReactLocale } from './Lib/helpers';
 import { CacheProvider } from '@emotion/react';
@@ -17,12 +17,15 @@ import rtlPlugin from 'stylis-plugin-rtl';
 import type { configAPI } from '../Electron/Configuration/renderer/configAPI';
 import { RendererDbAPI } from '../Electron/Database/handleDbRendererEvents';
 import { User } from '../Electron/Database/Models/User';
-import { AuthContext } from './Lib/AuthContext';
+import { AuthContext } from './Contexts/AuthContext';
 import { NavigationContext } from './Lib/NavigationContext';
 import { AccessControl } from 'accesscontrol';
-import { LoginForm } from './LoginForm';
-import { Result, ResultContext } from './ResultContext';
+import { LoginForm } from './Components/Auth/LoginForm';
+import { Result, ResultContext } from './Contexts/ResultContext';
 import AppControls from './AppControls';
+import { appAPI } from '../Electron/handleAppRendererEvents';
+import { MongodbConfig } from '../Electron/Configuration/types';
+import DbSettingsForm from './Components/Settings/DbSettingsForm';
 
 // Create rtl cache
 const rtlCache = createCache({
@@ -57,40 +60,46 @@ export function App() {
     }
 
     const [configuration, setConfiguration] = useState<ConfigurationData>(defaultConfiguration)
+    const [showDbConfigurationModal, setShowDbConfigurationModal] = useState<boolean>(false)
 
     const hasFetchedConfig = useRef(false)
     if (!hasFetchedConfig.current) {
-        try {
-            console.log('hasFetchedConfig-readConfig', 'start');
-            (window as typeof window & { configAPI: configAPI }).configAPI.readConfig()
-                .then((c) => {
-                    if (c && c.configuration) {
-                        i18n.changeLanguage(c.configuration.locale.code)
-                        document.dir = c.configuration.locale.direction
-                        setConfiguration({
-                            ...c.configuration,
-                            theme: createTheme(
-                                {
-                                    palette: {
-                                        mode: c.configuration.themeMode,
-                                    },
-                                    direction: c.configuration.locale.direction
+        console.log('hasFetchedConfig-readConfig', 'start');
+        (window as typeof window & { configAPI: configAPI }).configAPI.readConfig()
+            .then((c) => {
+                console.log('hasFetchedConfig-readConfig', 'c', c)
+
+                if (c && !c.mongodb) {
+                    setShowDbConfigurationModal(true)
+                } else if (c && c.configuration) {
+                    i18n.changeLanguage(c.configuration.locale.code)
+                    document.dir = c.configuration.locale.direction
+                    setConfiguration({
+                        ...c.configuration,
+                        theme: createTheme(
+                            {
+                                palette: {
+                                    mode: c.configuration.themeMode,
                                 },
-                                getReactLocale(c.configuration.locale.code)
-                            )
-                        })
-                    }
-                    else {
-                        setConfiguration(defaultConfiguration)
-                        persistConfigurationData({ locale: defaultConfiguration.locale, themeMode: defaultConfiguration.themeMode })
-                    }
-                })
-                .catch((err) => {
+                                direction: c.configuration.locale.direction
+                            },
+                            getReactLocale(c.configuration.locale.code)
+                        )
+                    })
+                } else {
                     setConfiguration(defaultConfiguration)
                     persistConfigurationData({ locale: defaultConfiguration.locale, themeMode: defaultConfiguration.themeMode })
-                })
-        }
-        finally { hasFetchedConfig.current = true; console.log('hasFetchedConfig-readConfig', 'end') }
+                }
+
+                hasFetchedConfig.current = true
+                console.log('hasFetchedConfig-readConfig', 'end')
+            })
+            .catch((err) => {
+                console.error('hasFetchedConfig-readConfig', 'err', err)
+
+                setConfiguration(defaultConfiguration)
+                persistConfigurationData({ locale: defaultConfiguration.locale, themeMode: defaultConfiguration.themeMode })
+            })
     }
 
     const persistConfigurationData = async (data: ConfigurationStorableData) => {
@@ -298,9 +307,10 @@ export function App() {
 
     const hasInit = useRef<boolean>(false)
 
-    if (!hasInit.current) {
+    if (hasFetchedConfig && !hasInit.current) {
         hasInit.current = true
-        init()
+        if (showDbConfigurationModal === false)
+            init()
     }
 
     console.log('App', { configuration, auth, isAuthLoading })
@@ -326,6 +336,32 @@ export function App() {
                                         <Slide direction={!isAuthLoading && (!auth.user || !auth.ac) ? 'up' : 'down'} in={!isAuthLoading && (!auth.user || !auth.ac)} timeout={250}>
                                             <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
                                                 <LoginForm onFinish={login} />
+                                            </Paper>
+                                        </Slide>
+                                    </Modal>
+
+                                    <Modal open={showDbConfigurationModal} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
+                                        <Slide direction={showDbConfigurationModal ? 'up' : 'down'} in={showDbConfigurationModal} timeout={250}>
+                                            <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
+                                                <DbSettingsForm onFinish={async (settings: MongodbConfig) => {
+                                                    console.log(settings)
+                                                    const c = await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig();
+                                                    console.log(c);
+                                                    (window as typeof window & { configAPI: configAPI }).configAPI.writeConfig({
+                                                        ...c,
+                                                        mongodb: {
+                                                            supportsTransaction: false,
+                                                            url: "mongodb://localhost:8082",
+                                                            databaseName: "primaryDB",
+                                                            auth: {
+                                                                username: "admin",
+                                                                password: "password"
+                                                            }
+                                                        }
+                                                    });
+
+                                                    (window as typeof window & { appAPI: appAPI }).appAPI.reLaunch()
+                                                }} />
                                             </Paper>
                                         </Slide>
                                     </Modal>

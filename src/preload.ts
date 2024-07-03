@@ -1,9 +1,12 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import * as menu from './Electron/Menu/renderer/menu'
 import * as configs from './Electron/Configuration/renderer/configuration'
 import type { menuAPI } from './Electron/Menu/renderer/menuAPI'
 import { configAPI } from './Electron/Configuration/renderer/configAPI'
 import { handleDbRendererEvents } from './Electron/Database/handleDbRendererEvents'
+import { handleAppRendererEvents } from './Electron/handleAppRendererEvents'
+
+contextBridge.exposeInMainWorld('appAPI', handleAppRendererEvents())
 
 contextBridge.exposeInMainWorld('menuAPI', {
     openMenu: menu.openMenu,

@@ -1,13 +1,13 @@
 import { useState, useContext, useEffect, useRef } from "react";
 import { DataGrid } from "../Components/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
-import { ResultContext } from "../ResultContext";
+import { ResultContext } from "../Contexts/ResultContext";
 import { t } from "i18next";
 import { Button, Grid, Paper } from "@mui/material";
 import LoadingScreen from "../Components/LoadingScreen";
 import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
-import { ConfigurationContext } from "../ConfigurationContext";
+import { ConfigurationContext } from "../Contexts/ConfigurationContext";
 
 export default function Visits() {
     const setResult = useContext(ResultContext).setResult

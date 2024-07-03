@@ -1,4 +1,4 @@
-import type { ConfigurationStorableData } from "../../react/ConfigurationContext"
+import type { ConfigurationStorableData } from "../../react/Contexts/ConfigurationContext"
 
 export type MongodbConfig = {
     supportsTransaction: boolean;
@@ -24,9 +24,9 @@ export type Config = {
     mongodb?: MongodbConfig,
     auth?: AuthConfig,
     peers?: Peer[],
-    appIdentifier: string,
-    appName: string,
+    appIdentifier?: string,
+    appName?: string,
     isMaster?: boolean,
-    port: number,
+    port?: number,
     ip?: string
 }

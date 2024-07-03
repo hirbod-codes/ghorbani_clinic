@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { ConfigurationContext } from "../ConfigurationContext";
+import { ConfigurationContext } from "../Contexts/ConfigurationContext";
 import { fromDateTimeToFormat } from "../Lib/DateTime/date-time-helpers";
 import { DateTime } from "luxon";
 import { t } from "i18next";

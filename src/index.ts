@@ -1,10 +1,8 @@
 import os from 'os'
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import { handleMenuEvents } from './Electron/Menu/menu';
 import { handleConfigEvents, readConfig, writeConfigSync } from './Electron/Configuration/configuration';
 import { handleDbEvents } from './Electron/Database/handleDbEvents';
-import { handlePeerEvents } from './Electron/Peers/peer';
-// import { expressApp } from './Electron/Express/express';
 
 const c = readConfig()
 
@@ -56,17 +54,23 @@ const createWindow = (): void => {
 };
 
 app.on('ready', async () => {
-    createWindow()
+    ipcMain.on('relaunch-app', () => {
+        app.relaunch()
+        app.exit()
+    })
+
+    writeConfigSync({})
 
     handleConfigEvents()
 
-    const c = readConfig()
+    createWindow()
 
-    // expressApp.listen(Number(c.port), () => console.log(`Express server has launched at http://${c.ip}:${c.port}`));
+    const c = readConfig()
+    if (app.isPackaged && !c.mongodb)
+        return
 
     handleMenuEvents()
     await handleDbEvents()
-    handlePeerEvents()
 })
 
 app.on('window-all-closed', () => {

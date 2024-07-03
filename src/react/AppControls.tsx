@@ -4,7 +4,7 @@ import { Dispatch, SetStateAction } from 'react/index'
 import { HomeOutlined, PersonOutlined, SettingsOutlined, MenuOutlined, LogoutOutlined, LightModeOutlined, DarkModeOutlined, ExpandLess, ExpandMore, DisplaySettingsOutlined, MasksOutlined, AccessTimeOutlined, } from '@mui/icons-material'
 import { AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Collapse, CircularProgress, Grid, Theme } from '@mui/material'
 
-import { AuthContext } from './Lib/AuthContext'
+import { AuthContext } from './Contexts/AuthContext'
 import { resources } from '../Electron/Database/Repositories/Auth/resources'
 import { Home } from './Pages/Home'
 import { Users } from './Pages/Users'
@@ -14,7 +14,7 @@ import { t } from 'i18next'
 import { General } from './Pages/Settings/General'
 import { MenuBar } from './Components/MenuBar'
 import { ThemeContext } from '@emotion/react'
-import { ConfigurationContext } from './ConfigurationContext'
+import { ConfigurationContext } from './Contexts/ConfigurationContext'
 import { getReactLocale } from './Lib/helpers'
 
 export default function AppControls({ setContent, authLoading, children }: { setContent: Dispatch<SetStateAction<JSX.Element>>, authLoading: boolean, children?: ReactNode }) {

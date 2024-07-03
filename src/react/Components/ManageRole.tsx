@@ -7,7 +7,7 @@ import { Privilege } from "../../Electron/Database/Models/Privilege";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
 import LoadingScreen from "./LoadingScreen";
 import { getAttributes } from "../../Electron/Database/Repositories/Auth/resources";
-import { ResultContext } from "../ResultContext";
+import { ResultContext } from "../Contexts/ResultContext";
 
 type Resource = { name: string, index: number, create?: boolean, read?: string[] | undefined, update?: string[] | undefined, delete?: boolean }
 

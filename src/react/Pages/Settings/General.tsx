@@ -1,6 +1,6 @@
 import { Stack, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
 import { useContext } from "react";
-import { ConfigurationContext } from "../../ConfigurationContext";
+import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { Calendar, TimeZone } from "../../Lib/DateTime";
 import { languages } from "../../i18next";
 import { t } from "i18next";

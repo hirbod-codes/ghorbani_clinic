@@ -18,22 +18,6 @@ export const visitRepository = new VisitRepository();
 export const fileRepository = new FileRepository()
 
 export async function handleDbEvents() {
-    if (!app.isPackaged) {
-        const c = readConfig()
-        writeConfigSync({
-            ...c,
-            mongodb: {
-                supportsTransaction: false,
-                url: "mongodb://localhost:8082",
-                databaseName: "primaryDB",
-                auth: {
-                    username: "admin",
-                    password: "password"
-                }
-            }
-        })
-    }
-
     try { await db.initializeDb() }
     catch (err) { console.error(err) }
 
