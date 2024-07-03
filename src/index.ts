@@ -4,13 +4,11 @@ import { handleMenuEvents } from './Electron/Menu/menu';
 import { handleConfigEvents, readConfig, writeConfigSync } from './Electron/Configuration/configuration';
 import { handleDbEvents } from './Electron/Database/handleDbEvents';
 import { handlePeerEvents } from './Electron/Peers/peer';
+// import { expressApp } from './Electron/Express/express';
 
-const port = process.env.PORT || 13468;
-const appIdentifier = process.env.APP_IDENTIFIER;
-const appName = process.env.APP_NAME;
-const host = process.env.HOST;
+const c = readConfig()
 
-if (!host || !appIdentifier || !appName)
+if (!c.appIdentifier || !c.appName || !c.port)
     throw new Error('Incomplete environment variables provided.')
 
 const interfaces: NodeJS.Dict<os.NetworkInterfaceInfo[]> = os.networkInterfaces();
@@ -30,15 +28,9 @@ console.log('address: ', ip);
 if (!ip)
     throw new Error('Failed to find the host IP address.')
 
-const c = readConfig()
-
 writeConfigSync({
     ...c,
-    hostName: host,
-    appIdentifier,
-    appName,
-    ip,
-    port: Number(port),
+    ip
 })
 
 declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
@@ -66,10 +58,15 @@ const createWindow = (): void => {
 app.on('ready', async () => {
     createWindow()
 
-    handlePeerEvents()
-    handleMenuEvents()
     handleConfigEvents()
+
+    const c = readConfig()
+
+    // expressApp.listen(Number(c.port), () => console.log(`Express server has launched at http://${c.ip}:${c.port}`));
+
+    handleMenuEvents()
     await handleDbEvents()
+    handlePeerEvents()
 })
 
 app.on('window-all-closed', () => {
@@ -78,7 +75,6 @@ app.on('window-all-closed', () => {
 });
 
 app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) {
-        createWindow();
-    }
+    if (BrowserWindow.getAllWindows().length === 0)
+        createWindow()
 });

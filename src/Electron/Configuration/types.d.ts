@@ -26,8 +26,7 @@ export type Config = {
     peers?: Peer[],
     appIdentifier: string,
     appName: string,
-    isMaster: boolean,
-    hostName: string,
+    isMaster?: boolean,
     port: number,
-    ip: string
+    ip?: string
 }

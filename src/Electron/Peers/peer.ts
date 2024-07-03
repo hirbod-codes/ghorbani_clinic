@@ -41,7 +41,6 @@ export async function updatePeers(): Promise<void> {
     if (!Array.isArray(c.peers))
         return
 
-    let masterTimestamp: number | undefined = undefined
     for (let i = 0; i < c.peers.length; i++) {
         const res = await fetch(`http://${c.peers[i].ip}:${c.peers[i].port}/is-master`)
         if (res.status < 200)
@@ -61,19 +60,9 @@ export async function getBrowsedPeers(): Promise<Peer[]> {
 }
 
 export function handlePeerEvents() {
-    ipcMain.handle('browse-peers', () => {
-        return browsePeers()
-    })
+    ipcMain.handle('browse-peers', () => browsePeers())
 
-    ipcMain.handle('become-master-peer', async () => {
-        return await becomeMasterPeer()
-    })
+    ipcMain.handle('become-master-peer', async () => await becomeMasterPeer())
 
-    ipcMain.handle('browse-peers', async () => {
-        return await browsePeers()
-    })
-
-    ipcMain.handle('get-browsed-peers', async () => {
-        return await getBrowsedPeers()
-    })
+    ipcMain.handle('get-browsed-peers', async () => await getBrowsedPeers())
 }

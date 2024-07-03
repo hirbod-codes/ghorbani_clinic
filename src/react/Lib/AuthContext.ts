@@ -3,7 +3,7 @@ import { User } from '../../Electron/Database/Models/User';
 import { AccessControl } from 'accesscontrol';
 
 export const AuthContext = createContext<{
-    user: User,
+    user?: User,
     accessControl?: AccessControl,
     fetchUser: () => void | Promise<void>,
     logout: () => void | Promise<void>,

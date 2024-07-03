@@ -2,14 +2,23 @@ import { app, ipcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
 import type { Config } from './types'
+import { v4 as uuidV4 } from 'uuid';
 
 export function readConfig(): Config | null | undefined {
     const configFile = path.join(app.getPath('appData'), app.getName(), 'Configuration', 'config.json')
 
     if (!fs.existsSync(configFile))
-        return undefined
+        writeConfigSync({ appIdentifier: 'clinic', appName: `clinic-${uuidV4()}.local`, port: 3001 })
 
-    const configJson = fs.readFileSync(configFile).toString()
+    let configJson = fs.readFileSync(configFile).toString()
+    let c = JSON.parse(configJson)
+
+    if (c.appIdentifier && c.appName && c.port)
+        return c
+
+    writeConfigSync({ ...c, appIdentifier: 'clinic', appName: `clinic-${uuidV4()}.local`, port: 3001 })
+
+    configJson = fs.readFileSync(configFile).toString()
     return JSON.parse(configJson)
 }
 

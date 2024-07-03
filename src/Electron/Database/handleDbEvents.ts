@@ -21,7 +21,8 @@ export async function handleDbEvents() {
     if (!app.isPackaged) {
         const c = readConfig()
         writeConfigSync({
-            ...c, mongodb: {
+            ...c,
+            mongodb: {
                 supportsTransaction: false,
                 url: "mongodb://localhost:8082",
                 databaseName: "primaryDB",
@@ -44,8 +45,9 @@ export async function handleDbEvents() {
     await visitRepository.handleEvents()
     await fileRepository.handleEvents()
 
-    if (!app.isPackaged) {
-        await seedUsersRoles(await db.getUsersCollection(), await db.getPrivilegesCollection())
-        await seedPatientsVisits(50, await db.getPatientsCollection(), await db.getVisitsCollection());
-    }
+    if (app.isPackaged)
+        return
+
+    await seedUsersRoles(await db.getUsersCollection(), await db.getPrivilegesCollection())
+    await seedPatientsVisits(50, await db.getPatientsCollection(), await db.getVisitsCollection());
 }

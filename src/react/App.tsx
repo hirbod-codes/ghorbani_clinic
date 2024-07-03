@@ -1,27 +1,13 @@
-import HomeIcon from '@mui/icons-material/HomeOutlined';
-import PersonIcon from '@mui/icons-material/PersonOutlined';
-import SettingsIcon from '@mui/icons-material/SettingsOutlined';
-import MenuIcon from '@mui/icons-material/MenuOutlined';
-import CheckIcon from '@mui/icons-material/CheckOutlined';
-import CloseIcon from '@mui/icons-material/CloseOutlined';
-import DangerousIcon from '@mui/icons-material/DangerousOutlined';
-import LogoutIcon from '@mui/icons-material/LogoutOutlined';
-import LightModeIcon from '@mui/icons-material/LightModeOutlined'
-import DarkModeIcon from '@mui/icons-material/DarkModeOutlined'
-import ExpandLess from '@mui/icons-material/ExpandLess';
-import ExpandMore from '@mui/icons-material/ExpandMore';
-import DisplaySettingsIcon from '@mui/icons-material/DisplaySettingsOutlined';
+import { CheckOutlined, CloseOutlined, DangerousOutlined } from '@mui/icons-material';
 
-import { CssBaseline, PaletteMode, createTheme, useMediaQuery, AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, ThemeProvider, Collapse, CircularProgress, Stack, Box, Modal, Slide, Paper, Snackbar, Alert, AlertColor, AlertPropsColorOverrides, Grid } from '@mui/material'
+import { CssBaseline, PaletteMode, createTheme, useMediaQuery, ThemeProvider, Modal, Slide, Paper, Snackbar, Alert, Grid } from '@mui/material'
 import { useState, useRef } from 'react'
 import { Localization, enUS } from '@mui/material/locale';
 import { useTranslation } from "react-i18next";
 
 import type { Locale } from './Lib/Localization';
 import type { Calendar, TimeZone } from './Lib/DateTime';
-import { MenuBar } from './Components/MenuBar';
 import { ConfigurationContext, ConfigurationData, ConfigurationStorableData } from './ConfigurationContext';
-import { General } from './Pages/Settings/General';
 import { Home } from './Pages/Home';
 import { getLocale, getReactLocale } from './Lib/helpers';
 import { CacheProvider } from '@emotion/react';
@@ -34,14 +20,9 @@ import { User } from '../Electron/Database/Models/User';
 import { AuthContext } from './Lib/AuthContext';
 import { NavigationContext } from './Lib/NavigationContext';
 import { AccessControl } from 'accesscontrol';
-import { resources } from "../Electron/Database/Repositories/Auth/resources";
-import LoadingScreen from './Components/LoadingScreen';
 import { LoginForm } from './LoginForm';
 import { Result, ResultContext } from './ResultContext';
-import { Users } from './Pages/Users';
-import Patients from './Pages/Patients';
-import Visits from './Pages/Visits';
-import { AccessTimeOutlined, MasksOutlined } from '@mui/icons-material';
+import AppControls from './AppControls';
 
 // Create rtl cache
 const rtlCache = createCache({
@@ -54,9 +35,6 @@ const ltrCache = createCache({
 });
 
 export function App() {
-    // Navigation
-    const [openDrawer, setOpenDrawer] = useState(false)
-    const [openSettingsList, setOpenSettingsList] = useState(false)
     const [content, setContent] = useState(<Home />)
 
     // Localization
@@ -175,7 +153,6 @@ export function App() {
 
     // Authentication
     const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true)
-    const [authLoading, setAuthLoading] = useState<boolean>(false)
     const [auth, setAuth] = useState<{ user: User | undefined, ac: AccessControl | undefined }>({ user: undefined, ac: undefined })
 
     const getAccessControl = async (): Promise<AccessControl | undefined> => {
@@ -328,10 +305,6 @@ export function App() {
 
     console.log('App', { configuration, auth, isAuthLoading })
 
-    const readsUsers = auth.ac && auth.user && auth.ac.can(auth.user.roleName).read(resources.USER).granted
-    const readsPatients = auth.ac && auth.user && auth.ac.can(auth.user.roleName).read(resources.PATIENT).granted
-    const readsVisits = auth.ac && auth.user && auth.ac.can(auth.user.roleName).read(resources.VISIT).granted
-
     return (
         <>
             <ResultContext.Provider value={{ result, setResult }}>
@@ -339,130 +312,38 @@ export function App() {
                     <ConfigurationContext.Provider value={{ get: configuration, set: { updateTheme, updateLocale, updateTimeZone } }}>
                         <CacheProvider value={configuration.locale.direction === 'rtl' ? rtlCache : ltrCache}>
                             <ThemeProvider theme={configuration.theme}>
-                                {isAuthLoading
-                                    ? <LoadingScreen />
-                                    : <AuthContext.Provider value={{ user: auth.user, logout, fetchUser: async () => { await fetchUser() }, accessControl: auth.ac }}>
-                                        <CssBaseline enableColorScheme />
+                                <AuthContext.Provider value={{ user: auth.user, logout, fetchUser: async () => { await fetchUser() }, accessControl: auth.ac }}>
+                                    <CssBaseline enableColorScheme />
 
-                                        {auth.user && auth.ac &&
-                                            <>
-                                                <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)}>
-                                                    <List>
-                                                        <ListItemButton onClick={() => { setContent(<Home />); setOpenDrawer(false) }}>
-                                                            <ListItemIcon>
-                                                                <HomeIcon />
-                                                            </ListItemIcon>
-                                                            <ListItemText primary={t('home')} />
-                                                        </ListItemButton>
-                                                        {
-                                                            readsUsers &&
-                                                            <ListItemButton onClick={() => { setContent(<Users />); setOpenDrawer(false) }}>
-                                                                <ListItemIcon>
-                                                                    <PersonIcon />
-                                                                </ListItemIcon>
-                                                                <ListItemText primary={t('users')} />
-                                                            </ListItemButton>
-                                                        }
-                                                        {
-                                                            readsPatients &&
-                                                            <ListItemButton onClick={() => { setContent(<Patients />); setOpenDrawer(false) }}>
-                                                                <ListItemIcon>
-                                                                    <MasksOutlined />
-                                                                </ListItemIcon>
-                                                                <ListItemText primary={t('patients')} />
-                                                            </ListItemButton>
-                                                        }
-                                                        {
-                                                            readsVisits &&
-                                                            <ListItemButton onClick={() => { setContent(<Visits />); setOpenDrawer(false) }}>
-                                                                <ListItemIcon>
-                                                                    <AccessTimeOutlined />
-                                                                </ListItemIcon>
-                                                                <ListItemText primary={t('visits')} />
-                                                            </ListItemButton>
-                                                        }
-                                                        <ListItemButton onClick={() => setOpenSettingsList(!openSettingsList)}>
-                                                            <ListItemIcon>
-                                                                <SettingsIcon />
-                                                            </ListItemIcon>
-                                                            <ListItemText primary={t('settings')} />
-                                                            {openSettingsList ? <ExpandLess /> : <ExpandMore />}
-                                                        </ListItemButton>
-                                                        <Collapse in={openSettingsList} timeout="auto" unmountOnExit>
-                                                            <List component="div" disablePadding>
-                                                                <ListItemButton sx={{ pl: 4 }} onClick={() => { setContent(<General />); setOpenDrawer(false) }}>
-                                                                    <ListItemIcon>
-                                                                        <DisplaySettingsIcon />
-                                                                    </ListItemIcon>
-                                                                    <ListItemText primary={t("general")} />
-                                                                </ListItemButton>
-                                                            </List>
-                                                        </Collapse>
-                                                    </List>
-                                                </Drawer>
+                                    <AppControls authLoading={isAuthLoading} setContent={setContent}>
+                                        {/* MenuBar ==> 2rem, AppBar ==> 3rem */}
+                                        <Grid item xs={12} sx={{ height: 'calc(100% - 5rem)', overflowY: 'auto' }}>
+                                            {auth.user && content}
+                                        </Grid>
+                                    </AppControls>
 
-                                                <Grid container sx={{ height: '100%' }}>
-                                                    <Grid item xs={12}>
-                                                        <MenuBar backgroundColor={configuration.theme.palette.background.default} />
-                                                    </Grid>
+                                    <Modal open={!isAuthLoading && (!auth.user || !auth.ac)} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
+                                        <Slide direction={!isAuthLoading && (!auth.user || !auth.ac) ? 'up' : 'down'} in={!isAuthLoading && (!auth.user || !auth.ac)} timeout={250}>
+                                            <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
+                                                <LoginForm onFinish={login} />
+                                            </Paper>
+                                        </Slide>
+                                    </Modal>
 
-                                                    <Grid item xs={12} height={'3rem'}>
-                                                        <AppBar position='relative'>
-                                                            <Toolbar variant="dense">
-                                                                <IconButton size='large' color='inherit' onClick={() => setOpenDrawer(true)} sx={{ mr: 2 }}>
-                                                                    <MenuIcon fontSize='inherit' />
-                                                                </IconButton>
-                                                                <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
-                                                                    {/* Title */}
-                                                                    {auth.user && auth.user?.username}
-                                                                </Typography>
-                                                                {
-                                                                    auth.user &&
-                                                                    <IconButton size='medium' color='inherit' onClick={async () => { await logout(); }}>
-                                                                        {
-                                                                            authLoading
-                                                                                ? <CircularProgress size='small' />
-                                                                                : <LogoutIcon />
-                                                                        }
-                                                                    </IconButton>
-                                                                }
-                                                                <IconButton size='medium' color='inherit' onClick={() => updateTheme(configuration.theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.locale.direction, getReactLocale(configuration.locale.code))}>
-                                                                    {configuration.theme.palette.mode == 'light' ? <LightModeIcon fontSize='inherit' /> : <DarkModeIcon fontSize='inherit' />}
-                                                                </IconButton>
-                                                            </Toolbar>
-                                                        </AppBar>
-                                                    </Grid>
-
-                                                    <Grid item xs={12} sx={{ height: 'calc(100% - 5rem)', overflowY: 'auto' }}>
-                                                        {auth.user && content}
-                                                    </Grid>
-                                                </Grid>
-                                            </>
-                                        }
-
-                                        <Modal open={!isAuthLoading && (!auth.user || !auth.ac)} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
-                                            <Slide direction={!isAuthLoading && (!auth.user || !auth.ac) ? 'up' : 'down'} in={!isAuthLoading && (!auth.user || !auth.ac)} timeout={250}>
-                                                <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
-                                                    <LoginForm onFinish={login} />
-                                                </Paper>
-                                            </Slide>
-                                        </Modal>
-
-                                        <Snackbar
-                                            open={result !== null}
-                                            autoHideDuration={7000}
-                                            onClose={() => setResult(null)}
-                                            action={result?.action}
+                                    <Snackbar
+                                        open={result !== null}
+                                        autoHideDuration={7000}
+                                        onClose={() => setResult(null)}
+                                        action={result?.action}
+                                    >
+                                        <Alert
+                                            icon={result?.severity === 'success' ? <CheckOutlined fontSize="inherit" /> : (result?.severity === 'error' ? <CloseOutlined fontSize="inherit" /> : (result?.severity === 'warning' ? <DangerousOutlined fontSize="inherit" /> : null))}
+                                            severity={result?.severity}
                                         >
-                                            <Alert
-                                                icon={result?.severity === 'success' ? <CheckIcon fontSize="inherit" /> : (result?.severity === 'error' ? <CloseIcon fontSize="inherit" /> : (result?.severity === 'warning' ? <DangerousIcon fontSize="inherit" /> : null))}
-                                                severity={result?.severity}
-                                            >
-                                                {result?.message}
-                                            </Alert>
-                                        </Snackbar>
-                                    </AuthContext.Provider>
-                                }
+                                            {result?.message}
+                                        </Alert>
+                                    </Snackbar>
+                                </AuthContext.Provider>
                             </ThemeProvider >
                         </CacheProvider>
                     </ConfigurationContext.Provider>
