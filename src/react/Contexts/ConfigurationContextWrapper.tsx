@@ -1,5 +1,5 @@
 import { CssBaseline, Modal, PaletteMode, Paper, Slide, ThemeProvider, createTheme, useMediaQuery } from '@mui/material';
-import { useState, useRef, ReactNode, useContext } from 'react';
+import { useState, useRef, ReactNode } from 'react';
 import { Localization, enUS } from '@mui/material/locale';
 import { useTranslation } from "react-i18next";
 import type { Locale } from '../Lib/Localization';
@@ -12,9 +12,6 @@ import createCache from '@emotion/cache';
 import { prefixer } from 'stylis';
 import rtlPlugin from 'stylis-plugin-rtl';
 import DbSettingsForm from '../Components/Settings/DbSettingsForm';
-import { MongodbConfig } from '../../Electron/Configuration/types';
-import { appAPI } from '../../Electron/handleAppRendererEvents';
-import { ResultContext } from './ResultContext';
 
 // Create rtl cache
 const rtlCache = createCache({
@@ -28,8 +25,6 @@ const ltrCache = createCache({
 
 
 export function ConfigurationContextWrapper({ children }: { children?: ReactNode; }) {
-    const setResult = useContext(ResultContext)?.setResult ?? ((o: any) => { })
-
     const { t, i18n } = useTranslation();
 
     const initialThemeMode: PaletteMode = useMediaQuery('(prefers-color-scheme: dark)') ? 'dark' : 'light';
@@ -164,22 +159,7 @@ export function ConfigurationContextWrapper({ children }: { children?: ReactNode
                             <Modal open={showDbConfigurationModal} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
                                 <Slide direction={showDbConfigurationModal ? 'up' : 'down'} in={showDbConfigurationModal} timeout={250}>
                                     <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
-                                        <DbSettingsForm onFinish={async (settings: MongodbConfig) => {
-                                            if (!settings.auth || !settings.auth.username || !settings.auth.password || !settings.databaseName || !settings.url) {
-                                                setResult({
-                                                    severity: 'error',
-                                                    message: t('invalidSettingsProvided')
-                                                })
-                                                return
-                                            }
-                                            const c = await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig();
-                                            (window as typeof window & { configAPI: configAPI }).configAPI.writeConfig({
-                                                ...c,
-                                                mongodb: settings
-                                            });
-
-                                            (window as typeof window & { appAPI: appAPI }).appAPI.reLaunch()
-                                        }} />
+                                        <DbSettingsForm />
                                     </Paper>
                                 </Slide>
                             </Modal>

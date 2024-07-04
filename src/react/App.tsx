@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react'
 
-import { HomeOutlined, PersonOutlined, SettingsOutlined, MenuOutlined, LogoutOutlined, LightModeOutlined, DarkModeOutlined, ExpandLess, ExpandMore, DisplaySettingsOutlined, MasksOutlined, AccessTimeOutlined, } from '@mui/icons-material'
+import { HomeOutlined, PersonOutlined, SettingsOutlined, MenuOutlined, LogoutOutlined, LightModeOutlined, DarkModeOutlined, ExpandLess, ExpandMore, DisplaySettingsOutlined, StorageOutlined, MasksOutlined, AccessTimeOutlined, } from '@mui/icons-material'
 import { AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Collapse, CircularProgress, Grid, Theme } from '@mui/material'
 
 import { AuthContext } from './Contexts/AuthContext'
@@ -16,6 +16,7 @@ import { ThemeContext } from '@emotion/react'
 import { ConfigurationContext } from './Contexts/ConfigurationContext'
 import { getReactLocale } from './Lib/helpers'
 import { NavigationContext } from './Contexts/NavigationContext'
+import DbSettings from './Pages/Settings/DbSettings'
 
 export default function App() {
     const nav = useContext(NavigationContext)
@@ -83,6 +84,12 @@ export default function App() {
                                     <DisplaySettingsOutlined />
                                 </ListItemIcon>
                                 <ListItemText primary={t("general")} />
+                            </ListItemButton>
+                            <ListItemButton sx={{ pl: 4 }} onClick={() => { setContent(<DbSettings />); setOpenDrawer(false) }}>
+                                <ListItemIcon>
+                                    <StorageOutlined />
+                                </ListItemIcon>
+                                <ListItemText primary={t("Db")} />
                             </ListItemButton>
                         </List>
                     </Collapse>

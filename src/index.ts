@@ -56,11 +56,8 @@ const createWindow = (): void => {
 app.on('ready', async () => {
     ipcMain.on('relaunch-app', () => {
         app.relaunch()
-        app.quit()
+        app.exit()
     })
-
-    // if (!app.isPackaged)
-    //     writeConfigSync({})
 
     handleConfigEvents()
 
