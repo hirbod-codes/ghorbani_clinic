@@ -59,8 +59,8 @@ app.on('ready', async () => {
         app.quit()
     })
 
-    if (!app.isPackaged)
-        writeConfigSync({})
+    // if (!app.isPackaged)
+    //     writeConfigSync({})
 
     handleConfigEvents()
 

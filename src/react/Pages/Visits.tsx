@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect, useRef } from "react";
+import { useState, useContext, useRef } from "react";
 import { DataGrid } from "../Components/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
 import { ResultContext } from "../Contexts/ResultContext";

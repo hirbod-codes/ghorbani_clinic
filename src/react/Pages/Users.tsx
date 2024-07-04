@@ -12,9 +12,10 @@ import { AuthContext } from "../Contexts/AuthContext";
 import ManageUser from "../Components/ManageUser";
 import ManageRole from "../Components/ManageRole";
 import { ResultContext } from "../Contexts/ResultContext";
-import { NavigationContext } from "../Lib/NavigationContext";
+import { NavigationContext } from "../Contexts/NavigationContext";
 import { DataGrid } from "../Components/DataGrid";
 import { GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
+import { Home } from "./Home";
 
 export function Users() {
     const setResult = useContext(ResultContext).setResult
@@ -23,7 +24,7 @@ export function Users() {
     const nav = useContext(NavigationContext)
 
     if (!auth.accessControl?.can(auth.user.roleName).read(resources.USER).granted)
-        nav.goHome()
+        nav.setContent(<Home />)
 
     const [roles, setRoles] = useState<string[] | undefined>(undefined)
     const [role, setRole] = useState<string | undefined>(undefined)

@@ -1,5 +1,6 @@
 import { createContext } from 'react';
 
 export const NavigationContext = createContext<{
-    goHome: () => void | Promise<void>
+    setContent: (content: JSX.Element) => void | Promise<void>,
+    content?: JSX.Element,
 } | undefined>(undefined);

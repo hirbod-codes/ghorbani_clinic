@@ -19,7 +19,9 @@ export type ConfigurationSetter = {
 
 export type Configuration = {
     get: ConfigurationData,
-    set: ConfigurationSetter
+    set: ConfigurationSetter,
+    hasFetchedConfig?: boolean,
+    showDbConfigurationModal?: boolean,
 }
 
-export const ConfigurationContext = createContext<Configuration>(undefined);
+export const ConfigurationContext = createContext<Configuration | undefined>(undefined);
