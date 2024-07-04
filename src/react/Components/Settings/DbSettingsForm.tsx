@@ -1,12 +1,11 @@
 import { Stack, TextField, Button, Checkbox, FormControlLabel, FormGroup, Typography } from '@mui/material';
 import { useState, useContext } from 'react';
-import { MongodbConfig } from '../../../Electron/Configuration/types';
 import { t } from 'i18next';
 import { configAPI } from '../../../Electron/Configuration/renderer/configAPI';
 import { appAPI } from '../../../Electron/handleAppRendererEvents';
 import { ResultContext } from '../../../react/Contexts/ResultContext';
 
-export default function DbSettingsForm() {
+export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean }) {
     const setResult = useContext(ResultContext)?.setResult ?? ((o: any) => { })
 
     const [username, setUsername] = useState<string>('')
@@ -17,9 +16,11 @@ export default function DbSettingsForm() {
 
     return (
         <>
-            <Typography variant={'h5'}>
-                {t('dbSettings')}
-            </Typography>
+            {!noTitle &&
+                <Typography variant={'h5'}>
+                    {t('dbSettings')}
+                </Typography>
+            }
 
             <Stack direction='column' spacing={2}>
                 <TextField variant='standard' type='text' value={username} onChange={(e) => setUsername(e.target.value)} label={t('username')} />

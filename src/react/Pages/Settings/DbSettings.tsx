@@ -1,9 +1,12 @@
+import { Box } from '@mui/material'
 import DbSettingsForm from '../../../react/Components/Settings/DbSettingsForm'
 
-export default function DbSettings() {
+export function DbSettings() {
     return (
         <>
-            <DbSettingsForm />
+            <Box m={1} p={2}>
+                <DbSettingsForm noTitle />
+            </Box>
         </>
     )
 }

@@ -9,7 +9,7 @@ import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../Contexts/ConfigurationContext";
 
-export default function Visits() {
+export function Visits() {
     const setResult = useContext(ResultContext).setResult
     const configuration = useContext(ConfigurationContext)
 

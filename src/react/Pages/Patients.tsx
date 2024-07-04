@@ -1,4 +1,4 @@
-export default function Patients() {
+export function Patients() {
     return (
         <div>Patients</div>
     )
