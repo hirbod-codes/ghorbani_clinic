@@ -1,93 +1,82 @@
-import { app, BrowserWindow, ipcMain, Menu } from 'electron'
-import { template } from './Electron/Menu/Templates/MainMenu'
+import os from 'os'
+import { app, BrowserWindow, ipcMain } from 'electron';
+import { handleMenuEvents } from './Electron/Menu/menu';
+import { handleConfigEvents, readConfig, writeConfigSync } from './Electron/Configuration/configuration';
+import { handleDbEvents } from './Electron/Database/handleDbEvents';
 
-declare const MAIN_WINDOW_WEBPACK_ENTRY: string
-declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string
+const c = readConfig()
 
-if (require('electron-squirrel-startup')) {
-  app.quit()
-}
+if (!c.appIdentifier || !c.appName || !c.port)
+    throw new Error('Incomplete environment variables provided.')
 
-const isWindows: boolean = process.platform === 'win32'
+const interfaces: NodeJS.Dict<os.NetworkInterfaceInfo[]> = os.networkInterfaces();
+console.log('interfaces: ', interfaces);
 
-const createWindow = async (): Promise<BrowserWindow> => {
-  const mainWindow = new BrowserWindow({
-    height: 600,
-    width: 800,
-    center: true,
-    fullscreen: false,
-    frame: isWindows ? false : true,
-    webPreferences: {
-      preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
-    },
-  })
+const ip = Object.entries(interfaces)
+    .reduce<os.NetworkInterfaceInfo | undefined>((pArr, cArr) => {
+        if (pArr)
+            return pArr
 
-  mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY)
+        if (cArr[1])
+            return cArr[1]?.find(f => f.family === 'IPv4' && f.internal === false);
+    }, undefined)?.address;
 
-  mainWindow.webContents.openDevTools()
+console.log('address: ', ip);
 
-  return mainWindow
-}
+if (!ip)
+    throw new Error('Failed to find the host IP address.')
+
+writeConfigSync({
+    ...c,
+    ip
+})
+
+declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
+declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
+
+if (require('electron-squirrel-startup')) app.quit();
+
+const createWindow = (): void => {
+    const mainWindow = new BrowserWindow({
+        height: 900,
+        width: 1200,
+        center: true,
+        frame: false,
+        webPreferences: {
+            preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+        },
+    });
+
+    mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+
+    if (!app.isPackaged)
+        mainWindow.webContents.openDevTools({ mode: 'right' });
+};
 
 app.on('ready', async () => {
-  await createWindow()
+    ipcMain.on('relaunch-app', () => {
+        app.relaunch()
+        app.exit()
+    })
 
-  ipcMain.on('open-menu', (e) => {
-    const menu = Menu.buildFromTemplate(template)
-    menu.popup({ window: BrowserWindow.fromWebContents(e.sender) })
-  })
+    handleConfigEvents()
 
-  ipcMain.on('minimize', () => {
-    const browserWindow = BrowserWindow.getFocusedWindow()
+    createWindow()
 
-    if (browserWindow.minimizable)
-      browserWindow.minimize()
-  })
+    const c = readConfig()
+    if (app.isPackaged && !c.mongodb)
+        return
 
-  ipcMain.on('maximize', () => {
-    const browserWindow = BrowserWindow.getFocusedWindow()
-
-    if (browserWindow.maximizable)
-      browserWindow.maximize()
-  })
-
-  ipcMain.on('unmaximize', () => {
-    const browserWindow = BrowserWindow.getFocusedWindow()
-
-    browserWindow.unmaximize()
-  })
-
-  ipcMain.on('maxUnmax', () => {
-    const browserWindow = BrowserWindow.getFocusedWindow()
-
-    if (browserWindow.isMaximized())
-      browserWindow.unmaximize()
-    else
-      browserWindow.maximize()
-  })
-
-  ipcMain.on('close', () => {
-    const browserWindow = BrowserWindow.getFocusedWindow()
-
-    browserWindow.close()
-  })
-
-  ipcMain.handle('isMaximized', () => {
-    const browserWindow = BrowserWindow.getFocusedWindow()
-
-    if (browserWindow !== null)
-      return browserWindow.isMaximized()
-  })
+    handleMenuEvents()
+    await handleDbEvents()
 })
 
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
-})
+    if (process.platform !== 'darwin')
+        app.quit();
+});
 
-app.on('activate', async () => {
-  if (BrowserWindow.getAllWindows().length === 0) {
-    await createWindow()
-  }
-})
+app.on('activate', () => {
+    if (BrowserWindow.getAllWindows().length === 0)
+        createWindow()
+});
