@@ -1,4 +1,4 @@
-import { hashSync } from 'bcrypt'
+import { hashSync } from 'bcryptjs'
 import { User } from "../../Models/User";
 import { roles } from "./dev-permissions";
 import { DateTime } from 'luxon';
