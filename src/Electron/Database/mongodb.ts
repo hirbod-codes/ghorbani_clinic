@@ -105,7 +105,7 @@ export class MongoDB implements dbAPI {
 
         return new MongoClient(c.mongodb.url, {
             directConnection: true,
-            authMechanism: "SCRAM-SHA-256",
+            authMechanism: "DEFAULT",
             auth: {
                 username: c.mongodb.auth.username,
                 password: c.mongodb.auth.password,

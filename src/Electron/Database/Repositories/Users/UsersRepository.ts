@@ -11,7 +11,7 @@ import { DateTime } from "luxon";
 import { extractKeys, extractKeysRecursive } from "../../helpers";
 import { getFields } from "../../Models/helpers";
 import { ipcMain } from "electron";
-import { hashSync } from "bcrypt";
+import { hashSync } from "bcryptjs";
 
 export class UsersRepository extends MongoDB implements IUsersRepository {
     async handleEvents(): Promise<void> {

@@ -1,7 +1,7 @@
 import { MongoDB } from "../../mongodb";
 import { User } from "../../Models/User";
 import { IAuthRepository } from "../../dbAPI";
-import { compareSync } from "bcrypt";
+import { compareSync } from "bcryptjs";
 import { Auth } from "./Auth";
 import { DateTime } from "luxon";
 import { ipcMain } from "electron";

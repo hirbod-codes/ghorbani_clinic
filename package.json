@@ -9,6 +9,7 @@
         "name": "Hirbod Khatami",
         "email": "hirbod.khatami.words@gmail.com"
     },
+    "license": "MIT",
     "main": ".webpack/main",
     "scripts": {
         "start": "electron-forge start",
@@ -28,7 +29,9 @@
         "@electron/fuses": "^1.8.0",
         "@faker-js/faker": "^8.4.1",
         "@types/bcrypt": "^5.0.2",
+        "@types/bcryptjs": "^2.4.6",
         "@types/luxon": "^3.4.2",
+        "@types/node": "^20.14.9",
         "@types/react-dom": "^18.3.0",
         "@types/stylis": "^4.2.6",
         "@types/uuid": "^10.0.0",
@@ -46,7 +49,6 @@
         "ts-node": "^10.9.2",
         "typescript": "~4.5.4"
     },
-    "license": "MIT",
     "dependencies": {
         "@emotion/react": "^11.11.4",
         "@emotion/styled": "^11.11.5",
@@ -55,12 +57,11 @@
         "@mui/material": "^5.15.20",
         "@mui/x-data-grid": "^7.7.0",
         "accesscontrol": "^2.2.1",
-        "bcrypt": "^5.0.1",
+        "bcryptjs": "^2.4.3",
         "electron-squirrel-startup": "^1.0.1",
         "i18next": "^23.11.5",
         "luxon": "^3.4.4",
-        "mongodb": "^6.7.0",
-        "multicast-dns": "^7.2.5",
+        "mongodb": "6.8",
         "react-i18next": "^14.1.2",
         "stylis": "^4.3.2",
         "stylis-plugin-rtl": "^2.1.1",
