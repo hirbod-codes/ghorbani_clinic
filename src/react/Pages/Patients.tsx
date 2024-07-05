@@ -164,7 +164,7 @@ export function Patients() {
             >
                 <Slide direction={editingPatientId !== undefined || creatingPatient ? 'up' : 'down'} in={editingPatientId !== undefined || creatingPatient} timeout={250}>
                     <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
-                        <ManagePatient patient={patients.find(p => p._id && p._id === editingPatientId)} />
+                        <ManagePatient inputPatient={patients.find(p => p._id && p._id === editingPatientId)} />
                     </Paper>
                 </Slide>
             </Modal>
