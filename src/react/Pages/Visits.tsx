@@ -14,6 +14,7 @@ export function Visits() {
     const setResult = useContext(ResultContext).setResult
     const configuration = useContext(ConfigurationContext)
 
+    const [loading, setLoading] = useState<boolean>(true)
     const [visits, setVisits] = useState<Visit[]>([])
 
     // ID of the visit that is taken for its diagnosis representation
@@ -21,10 +22,12 @@ export function Visits() {
 
     console.log('Visits', { setResult, configuration, visits, showingDiagnosis })
 
-    const init = async () => {
+    const init = async (offset: number, limit: number) => {
+        setLoading(true)
         console.log('init', 'start');
-        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getVisits()
+        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getVisits(offset, limit)
         console.log('fetchVisits', 'res', res)
+        setLoading(false)
 
         if (res.code !== 200 || !res.data) {
             setResult({
@@ -45,7 +48,7 @@ export function Visits() {
 
     useEffect(() => {
         console.log('Visits', 'useEffect', 'start');
-        init().then(() => console.log('useEffect', 'end'))
+        init(0, 25).then(() => console.log('useEffect', 'end'))
     }, [])
 
     if (!visits || visits.length === 0)
@@ -88,9 +91,10 @@ export function Visits() {
                             hideFooter={false}
                             overWriteColumns={columns}
                             autoSizing
-                            // serverSidePagination
-                            onPaginationModelChange={(m, d) => console.log('ModelChange', m, d)}
-                            orderedColumnsFields={['actions']}
+                            loading={loading}
+                            serverSidePagination
+                            onPaginationModelChange={async (m, d) => await init(m.page, m.pageSize)}
+                            orderedColumnsFields={['actions', 'patientId', 'due']}
                             hiddenColumns={['_id']} />
                     </Paper>
                 </Grid>
