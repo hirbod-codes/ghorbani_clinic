@@ -87,9 +87,11 @@ export function Visits() {
                             data={visits}
                             hideFooter={false}
                             overWriteColumns={columns}
-                            autoSizing={false}
+                            autoSizing
+                            // serverSidePagination
+                            onPaginationModelChange={(m, d) => console.log('ModelChange', m, d)}
                             orderedColumnsFields={['actions']}
-                            hiddenColumns={['_id', 'patientId']} />
+                            hiddenColumns={['_id']} />
                     </Paper>
                 </Grid>
             </Grid>

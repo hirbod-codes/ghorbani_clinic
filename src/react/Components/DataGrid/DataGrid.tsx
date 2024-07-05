@@ -1,13 +1,12 @@
 import { GridColDef } from '@mui/x-data-grid'
 import { useState, useEffect } from 'react'
 import LoadingScreen from '../LoadingScreen'
-import { number } from 'yup'
 import { Box } from '@mui/material'
 import { DataGridCore } from './DataGridCore'
 import { DataGrid } from './types';
 import { getColumns } from './helpers'
 
-export function DataGrid({ data, idField = '_id', orderedColumnsFields, overWriteColumns, additionalColumns, hiddenColumns, autoSizing = true, customToolbar, hideFooter = true, loading = false }: DataGrid) {
+export function DataGrid({ data, idField = '_id', orderedColumnsFields, overWriteColumns, additionalColumns, hiddenColumns, autoSizing = true, customToolbar, hideFooter = true, loading = false, serverSidePagination = false, onPaginationMetaChange, onPaginationModelChange }: DataGrid) {
     const [columns, setColumns] = useState<GridColDef<any>[] | undefined>(undefined)
 
     useEffect(() => {
@@ -33,10 +32,12 @@ export function DataGrid({ data, idField = '_id', orderedColumnsFields, overWrit
 
                         let cvLength
 
-                        if (number().required().isValidSync(cv[c.field]))
+                        if (typeof cv[c.field] === 'number' || typeof cv[c.field] === 'bigint')
                             cvLength = cv[c.field]
-                        else
+                        else if (Array.isArray(cv[c.field]) || typeof cv[c.field] === 'string')
                             cvLength = cv[c.field].length
+                        else
+                            return undefined
 
                         let presentableValue = cv[c.field]
                         if (c.valueGetter)
@@ -65,6 +66,9 @@ export function DataGrid({ data, idField = '_id', orderedColumnsFields, overWrit
                 loading={loading}
                 autoSizing={autoSizing}
                 dimensions={dimensions}
+                serverSidePagination={serverSidePagination}
+                onPaginationMetaChange={onPaginationMetaChange}
+                onPaginationModelChange={onPaginationModelChange}
             />
         </>
     )
