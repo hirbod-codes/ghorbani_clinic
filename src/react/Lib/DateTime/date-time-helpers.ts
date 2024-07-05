@@ -85,11 +85,10 @@ export function fromDateTimeToFormat(toLocale: Locale, fromCalendar: Calendar, d
 }
 
 export function getLocaleMonths(locale: Locale, year: number): { name: string, days: number }[] {
-    const language = getLuxonLocale(locale.code)
     if (locale.calendar === 'Persian')
-        return getPersianMonths(isLeapPersianYear(year), language)
+        return getPersianMonths(isLeapPersianYear(year), locale.code)
     if (locale.calendar === 'Gregorian')
-        return getGregorianMonths(isLeapGregorianYear(year), language)
+        return getGregorianMonths(isLeapGregorianYear(year), locale.code)
 
     throw new Error('An unknown calendar requested.')
 }

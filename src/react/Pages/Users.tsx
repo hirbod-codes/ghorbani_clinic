@@ -13,7 +13,7 @@ import ManageUser from "../Components/ManageUser";
 import ManageRole from "../Components/ManageRole";
 import { ResultContext } from "../Contexts/ResultContext";
 import { NavigationContext } from "../Contexts/NavigationContext";
-import { DataGrid } from "../Components/DataGrid";
+import { DataGrid } from "../Components/DataGrid/DataGrid";
 import { GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
 import { Home } from "./Home";
 

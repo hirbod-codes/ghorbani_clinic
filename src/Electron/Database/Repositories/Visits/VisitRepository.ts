@@ -14,7 +14,7 @@ import { getFields } from "../../Models/helpers";
 export class VisitRepository extends MongoDB implements IVisitRepository {
     async handleEvents(): Promise<void> {
         ipcMain.handle('create-visit', async (_e, { visit }: { visit: Visit }) => await this.handleErrors(async () => await this.createVisit(visit)))
-        ipcMain.handle('get-visits', async (_e, { patientId }: { patientId?: string | undefined }) => await this.handleErrors(async () => await this.getVisits(patientId)))
+        ipcMain.handle('get-visits', async (_e, { patientIdOffset, count }: { patientIdOffset?: string | number, count?: number }) => await this.handleErrors(async () => await this.getVisits(patientIdOffset as any, count)))
         ipcMain.handle('update-visit', async (_e, { visit }: { visit: Visit }) => await this.handleErrors(async () => await this.updateVisit(visit)))
         ipcMain.handle('delete-visit', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.deleteVisit(id)))
     }
@@ -40,7 +40,8 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
 
     async getVisits(): Promise<Visit[]>
     async getVisits(patientId: string): Promise<Visit[]>
-    async getVisits(patientId?: string | undefined): Promise<Visit[]> {
+    async getVisits(offset: number, count: number): Promise<Visit[]>
+    async getVisits(patientIdOffset?: string | number, count?: number): Promise<Visit[]> {
         const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();
@@ -49,7 +50,13 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         if (!privileges.can(user.roleName).read(resources.VISIT).granted)
             throw new Unauthorized()
 
-        const visits: Visit[] = await (await this.getVisitsCollection()).find(patientId ? { patientId: patientId } : undefined).toArray();
+        let visits: Visit[]
+        if (patientIdOffset === undefined && typeof patientIdOffset === 'string')
+            visits = await (await this.getVisitsCollection()).find(patientIdOffset ? { patientId: patientIdOffset } : undefined).sort('due', -1).toArray()
+        else if (typeof patientIdOffset === 'number' || typeof patientIdOffset === 'bigint')
+            visits = await (await this.getVisitsCollection()).find().limit(count).skip(patientIdOffset * count).sort('due', -1).toArray()
+        else
+            throw new Error('Invalid value provided for parameter patientIdOffset')
 
         const readableVisits = extractKeysRecursive(visits, getFields(readableFields, privileges.can(user.roleName).read(resources.VISIT).attributes));
 

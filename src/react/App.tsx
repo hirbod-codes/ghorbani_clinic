@@ -33,6 +33,8 @@ export default function App() {
     const readsPatients = auth.accessControl && auth.user && auth.accessControl.can(auth.user.roleName).read(resources.PATIENT).granted
     const readsVisits = auth.accessControl && auth.user && auth.accessControl.can(auth.user.roleName).read(resources.VISIT).granted
 
+    console.log('App', { nav, auth, theme, configuration, setContent, openDrawer, openSettingsList })
+
     return (
         <>
             <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)}>
