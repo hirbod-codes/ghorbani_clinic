@@ -5,9 +5,7 @@ import { useState, useContext, ReactNode } from 'react';
 import type { IFileRepository, IPatientRepository, IVisitRepository } from '../../../Electron/Database/dbAPI';
 import { DateTime } from 'luxon'
 
-import AddIcon from '@mui/icons-material/AddOutlined';
-import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
+import { AddOutlined } from '@mui/icons-material';
 
 import { Patient } from '../../../Electron/Database/Models/Patient';
 import type { Visit } from '../../../Electron/Database/Models/Visit';
@@ -16,6 +14,9 @@ import { DateField } from '../DateTime/DateField';
 import { fromDateTimeParts } from '../../../react/Lib/DateTime/date-time-helpers';
 import { fromUnix } from '../../../react/Lib/DateTime/date-time-helpers';
 import { ManageVisits } from '../Visits/ManageVisit';
+import LoadingScreen from '../LoadingScreen';
+import { t } from 'i18next';
+import { ResultContext } from '../../Contexts/ResultContext';
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -35,6 +36,7 @@ async function getVisits(patientId: string): Promise<Visit[]> {
 }
 
 export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null | undefined }) {
+    const setResult = useContext(ResultContext).setResult
     const locale = useContext(ConfigurationContext).get.locale
 
     const [socialIdError, setSocialIdError] = useState<boolean>(false)
@@ -91,14 +93,16 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
             console.error(error)
         } finally {
             if (result !== true) {
-                setSnackbarSeverity('error')
-                setSnackbarMessage('failed to register the patient.')
-                setOpenSnackbar(true)
+                setResult({
+                    severity: 'error',
+                    message: t('failedToRegisteredPatient')
+                })
             }
 
-            setSnackbarSeverity('success')
-            setSnackbarMessage('The patient was successfully registered.')
-            setOpenSnackbar(true)
+            setResult({
+                severity: 'success',
+                message: t('successfullyRegisteredPatient')
+            })
         }
     }
 
@@ -106,17 +110,8 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
     const [dialogTitle, setDialogTitle] = useState('')
     const [dialogContent, setDialogContent] = useState('')
 
-    const [openSnackbar, setOpenSnackbar] = useState(true)
-    const [snackbarSeverity, setSnackbarSeverity] = useState<OverridableStringUnion<AlertColor, AlertPropsColorOverrides>>('info')
-    const [snackbarMessage, setSnackbarMessage] = useState('')
-    const [snackbarAction] = useState<ReactNode | null>(null)
-
     if (loading)
-        return (
-            <Stack direction='row' justifyContent={'center'} sx={{ height: '100%', width: '100%', p: 3 }}>
-                <CircularProgress />
-            </Stack>
-        )
+        return (<LoadingScreen />)
 
     return (
         <>
@@ -192,7 +187,7 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
                                 role={undefined}
                                 variant="text"
                                 tabIndex={-1}
-                                startIcon={<AddIcon />}
+                                startIcon={<AddOutlined />}
                             >
                                 Add documents
                                 <VisuallyHiddenInput type="file" multiple={true} onChange={async (e) => {
@@ -246,17 +241,6 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
                     <Button onClick={() => { submit(); setDialogOpen(false) }}>Yes</Button>
                 </DialogActions>
             </Dialog>
-
-            <Snackbar
-                open={openSnackbar}
-                autoHideDuration={7000}
-                onClose={() => setOpenSnackbar(false)}
-                action={snackbarAction}
-            >
-                <Alert icon={snackbarSeverity === 'success' ? <CheckIcon fontSize="inherit" /> : (snackbarSeverity === 'error' ? <CloseIcon fontSize="inherit" /> : null)} severity={snackbarSeverity}>
-                    {snackbarMessage}
-                </Alert>
-            </Snackbar>
         </>
     )
 }

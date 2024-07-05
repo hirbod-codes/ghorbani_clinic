@@ -83,6 +83,7 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                     color="success"
                     onClick={() => {
                         visits.push(getDefaultVisit());
+                        onChange([...visits])
                         setVisits([...visits]);
                     }}
                 >

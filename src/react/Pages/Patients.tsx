@@ -155,7 +155,7 @@ export function Patients() {
             </Grid>
 
             <Modal
-                onClose={() => setEditingPatientId(undefined)}
+                onClose={() => { setEditingPatientId(undefined); setCreatingPatient(false) }}
                 open={editingPatientId !== undefined || creatingPatient}
                 closeAfterTransition
                 disableAutoFocus
