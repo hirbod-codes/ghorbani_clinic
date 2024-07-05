@@ -145,6 +145,10 @@ export function Users() {
 
     const columns: GridColDef<any>[] = [
         {
+            field: 'roleName',
+            width: 120,
+        },
+        {
             field: 'createdAt',
             type: 'number',
             valueFormatter: (createdAt: number) => fromUnixToFormat(configuration.get.locale, createdAt, DATE),

@@ -3,7 +3,7 @@ import { DataGrid } from "../Components/DataGrid/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
 import { ResultContext } from "../Contexts/ResultContext";
 import { t } from "i18next";
-import { Button, CircularProgress, Grid, IconButton, Modal, Paper, Slide, Typography } from "@mui/material";
+import { Button, CircularProgress, Fade, Grid, IconButton, Modal, Paper, Slide, Typography } from "@mui/material";
 import LoadingScreen from "../Components/LoadingScreen";
 import { GridActionsCellItem, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
@@ -28,9 +28,10 @@ export function Patients() {
     const [creatingPatient, setCreatingPatient] = useState<boolean>(false)
     const [deletingPatientId, setDeletingPatientId] = useState<string | undefined>(undefined)
 
-    const [showingStringArray, setShowingStringArray] = useState<string[] | undefined>(undefined)
+    const [showingAddress, setShowingAddress] = useState<string | undefined>(undefined)
+    const [showingMH, setShowingMH] = useState<string[] | undefined>(undefined)
 
-    console.log('Patients', { setResult, configuration, patients, showingStringArray })
+    console.log('Patients', { setResult, configuration, patients, showingStringArray: showingAddress })
 
     const init = async (offset: number, limit: number) => {
         setLoading(true)
@@ -73,13 +74,13 @@ export function Patients() {
             field: 'address',
             type: 'actions',
             width: 120,
-            renderCell: (params: GridRenderCellParams<any, Date>) => (params.row.address ? <Button onClick={() => { const a = patients.find(p => p._id === params.row._id)?.address; setShowingStringArray(a ? [a] : undefined) }}>{t('Show')}</Button> : null)
+            renderCell: (params: GridRenderCellParams<any, Date>) => (params.row.address ? <Button onClick={() => setShowingAddress(patients.find(p => p._id === params.row._id)?.address)}>{t('Show')}</Button> : null)
         },
         {
             field: 'medicalHistory',
             type: 'actions',
             width: 120,
-            renderCell: (params: GridRenderCellParams<any, Date>) => (params.row.medicalHistory && params.row.medicalHistory.length !== 0 ? <Button onClick={() => setShowingStringArray(patients.find(p => p._id === params.row._id)?.medicalHistory)}>{t('Show')}</Button> : null)
+            renderCell: (params: GridRenderCellParams<any, Date>) => (params.row.medicalHistory && params.row.medicalHistory.length !== 0 ? <Button onClick={() => setShowingMH(patients.find(p => p._id === params.row._id)?.medicalHistory)}>{t('Show')}</Button> : null)
         },
         {
             field: 'birthDate',
@@ -134,11 +135,13 @@ export function Patients() {
                                                     severity: 'error',
                                                     message: t('failedToDeletePatient')
                                                 })
+
+                                            await init(page.offset, page.limit)
+
                                             setResult({
                                                 severity: 'success',
                                                 message: t('successfullyDeletedPatient')
                                             })
-                                            await init(page.offset, page.limit)
                                         }} label={t('delete')} /> : null,
                                     ]
                                 },
@@ -170,22 +173,41 @@ export function Patients() {
             </Modal>
 
             <Modal
-                onClose={() => setShowingStringArray(undefined)}
-                open={showingStringArray !== undefined}
+                onClose={() => setShowingAddress(undefined)}
+                open={showingAddress !== undefined}
                 closeAfterTransition
                 disableAutoFocus
                 sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
                 slotProps={{ backdrop: { sx: { top: '2rem' } } }}
             >
-                <Slide direction={showingStringArray !== undefined ? 'up' : 'down'} in={showingStringArray !== undefined} timeout={250}>
-                    <Paper sx={{ width: '60%', overflowY: 'auto', height: '80%', padding: '0.5rem 2rem' }}>
-                        {showingStringArray && showingStringArray?.map((str, i) =>
+                <Fade in={showingAddress !== undefined} timeout={250}>
+                    <Paper sx={{ width: '60%', overflowY: 'auto', padding: '0.5rem 2rem' }}>
+                        {showingAddress &&
+                            <Typography variant='body1'>
+                                {showingAddress}
+                            </Typography>
+                        }
+                    </Paper>
+                </Fade>
+            </Modal>
+
+            <Modal
+                onClose={() => setShowingMH(undefined)}
+                open={showingMH !== undefined}
+                closeAfterTransition
+                disableAutoFocus
+                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
+                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
+            >
+                <Fade in={showingMH !== undefined} timeout={250}>
+                    <Paper sx={{ width: '60%', overflowY: 'auto', padding: '0.5rem 2rem' }}>
+                        {showingMH && showingMH?.map((mh, i) =>
                             <Typography key={i} variant='body1'>
-                                {str}
+                                {mh}
                             </Typography>
                         )}
                     </Paper>
-                </Slide>
+                </Fade>
             </Modal>
         </>
     )
