@@ -5,7 +5,7 @@ import { NavigationContextWrapper } from './Contexts/NavigationContextWrapper';
 import { ResultContextWrapper } from './Contexts/ResultContextWrapper';
 
 export function AppWrappers() {
-    console.log('App')
+    console.log('AppWrappers')
     return (
         <>
             <ConfigurationContextWrapper >
