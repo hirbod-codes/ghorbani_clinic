@@ -1,7 +1,6 @@
 import { styled } from '@mui/material/styles';
-import { Grid, Button, Stack, TextField, Select, MenuItem, InputLabel, FormControl, Divider, DialogTitle, DialogContent, DialogContentText, DialogActions, Dialog, Snackbar, Alert, AlertColor, AlertPropsColorOverrides, CircularProgress } from '@mui/material';
-import type { OverridableStringUnion } from '@mui/types/index'
-import { useState, useContext, ReactNode } from 'react';
+import { Grid, Button, Stack, TextField, Select, MenuItem, InputLabel, FormControl, Divider, DialogTitle, DialogContent, DialogContentText, DialogActions, Dialog } from '@mui/material';
+import { useState, useContext } from 'react';
 import type { IFileRepository, IPatientRepository, IVisitRepository } from '../../../Electron/Database/dbAPI';
 import { DateTime } from 'luxon'
 

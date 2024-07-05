@@ -1,9 +1,9 @@
-import { useState, useContext, useEffect, useRef } from "react";
+import { useState, useContext, useEffect } from "react";
 import { DataGrid } from "../Components/DataGrid/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
 import { ResultContext } from "../Contexts/ResultContext";
 import { t } from "i18next";
-import { Button, CircularProgress, Grid, IconButton, Modal, Paper, Slide, Typography } from "@mui/material";
+import { Button, CircularProgress, Grid, Modal, Paper, Slide, Typography } from "@mui/material";
 import LoadingScreen from "../Components/LoadingScreen";
 import { GridActionsCellItem, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
