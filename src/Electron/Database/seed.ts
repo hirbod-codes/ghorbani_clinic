@@ -40,7 +40,7 @@ export async function seedPatientsVisits(patientCount: number, patientsCollectio
                 try {
                     const patientCreatedAt = DateTime.fromISO(faker.date.between({ from: '2019-01-01T00:00:00.000Z', to: '2024-01-01T00:00:00.000Z' }).toISOString())
                     const gender = faker.datatype.boolean(0.5) ? 'male' : 'female'
-                    const age = faker.number.int({ min: 0, max: 85 })
+                    const age = faker.number.int({ min: 0, max: 60 })
                     let patient = {
                         schemaVersion: 'v0.0.1',
                         firstName: faker.person.firstName(gender),
@@ -50,7 +50,7 @@ export async function seedPatientsVisits(patientCount: number, patientsCollectio
                         age: age,
                         gender: gender,
                         medicalHistory: Array.from({ length: faker.number.int({ min: 0, max: 7 }) }, () => faker.lorem.lines(3)),
-                        birthDate: DateTime.now().minus({ years: age }).toUnixInteger(),
+                        birthDate: DateTime.utc().minus({ years: age }).toUnixInteger(),
                         updatedAt: patientCreatedAt.toUnixInteger(),
                         createdAt: patientCreatedAt.toUnixInteger(),
                     } as Patient

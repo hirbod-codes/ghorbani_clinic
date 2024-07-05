@@ -3,19 +3,30 @@ import { DataGrid } from "../Components/DataGrid/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
 import { ResultContext } from "../Contexts/ResultContext";
 import { t } from "i18next";
-import { Button, Grid, Modal, Paper, Slide, Typography } from "@mui/material";
+import { Button, CircularProgress, Grid, IconButton, Modal, Paper, Slide, Typography } from "@mui/material";
 import LoadingScreen from "../Components/LoadingScreen";
-import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { GridActionsCellItem, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../Contexts/ConfigurationContext";
 import { Patient } from "../../Electron/Database/Models/Patient";
+import { AddOutlined, DeleteOutline, EditOutlined, RefreshOutlined } from "@mui/icons-material";
+import { AuthContext } from "../Contexts/AuthContext";
+import { resources } from "../../Electron/Database/Repositories/Auth/resources";
+import { ManagePatient } from "../Components/Patients/ManagePatient";
 
 export function Patients() {
-    const setResult = useContext(ResultContext).setResult
+    const auth = useContext(AuthContext)
     const configuration = useContext(ConfigurationContext)
+    const setResult = useContext(ResultContext).setResult
+
+    const [page, setPage] = useState({ offset: 0, limit: 25 })
 
     const [loading, setLoading] = useState<boolean>(true)
     const [patients, setPatients] = useState<Patient[]>([])
+
+    const [editingPatientId, setEditingPatientId] = useState<string | undefined>(undefined)
+    const [creatingPatient, setCreatingPatient] = useState<boolean>(false)
+    const [deletingPatientId, setDeletingPatientId] = useState<string | undefined>(undefined)
 
     const [showingStringArray, setShowingStringArray] = useState<string[] | undefined>(undefined)
 
@@ -47,11 +58,15 @@ export function Patients() {
 
     useEffect(() => {
         console.log('Patients', 'useEffect', 'start');
-        init(0, 25).then(() => console.log('useEffect', 'end'))
-    }, [])
+        init(page.offset, page.limit).then(() => console.log('useEffect', 'end'))
+    }, [page])
 
     if (!patients || patients.length === 0)
         return (<LoadingScreen />)
+
+    const createsPatient = auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).create(resources.PATIENT)
+    const updatesPatient = auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).update(resources.PATIENT)
+    const deletesPatient = auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.PATIENT)
 
     const columns: GridColDef<any>[] = [
         {
@@ -67,15 +82,21 @@ export function Patients() {
             renderCell: (params: GridRenderCellParams<any, Date>) => (params.row.medicalHistory && params.row.medicalHistory.length !== 0 ? <Button onClick={() => setShowingStringArray(patients.find(p => p._id === params.row._id)?.medicalHistory)}>{t('Show')}</Button> : null)
         },
         {
+            field: 'birthDate',
+            type: 'number',
+            valueFormatter: (ts: number) => fromUnixToFormat(configuration.get.locale, ts, DATE),
+            width: 200,
+        },
+        {
             field: 'createdAt',
             type: 'number',
-            valueFormatter: (createdAt: number) => fromUnixToFormat(configuration.get.locale, createdAt, DATE),
+            valueFormatter: (ts: number) => fromUnixToFormat(configuration.get.locale, ts, DATE),
             width: 200,
         },
         {
             field: 'updatedAt',
             type: 'number',
-            valueFormatter: (updatedAt: number) => fromUnixToFormat(configuration.get.locale, updatedAt, DATE),
+            valueFormatter: (ts: number) => fromUnixToFormat(configuration.get.locale, ts, DATE),
             width: 200,
         },
     ]
@@ -89,21 +110,69 @@ export function Patients() {
                             data={patients}
                             hideFooter={false}
                             overWriteColumns={columns}
+                            customToolbar={[
+                                <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
+                                createsPatient && <Button onClick={() => setCreatingPatient(true)} startIcon={<AddOutlined />}>{t('Create')}</Button>,
+                            ]}
+                            additionalColumns={[
+                                {
+                                    field: 'actions',
+                                    type: 'actions',
+                                    headerName: t('actions'),
+                                    headerAlign: 'center',
+                                    align: 'center',
+                                    width: 120,
+                                    getActions: ({ row }) => [
+                                        updatesPatient ? <GridActionsCellItem icon={editingPatientId === row._id ? <CircularProgress size={20} /> : <EditOutlined />} onClick={() => setEditingPatientId(patients.find(p => p._id === row._id)?._id as string)} label={t('edit')} /> : null,
+                                        deletesPatient ? <GridActionsCellItem icon={deletingPatientId === row._id ? <CircularProgress size={20} /> : <DeleteOutline />} onClick={async () => {
+                                            setDeletingPatientId(row._id)
+                                            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deletePatient(row._id)
+                                            setDeletingPatientId(undefined)
+
+                                            if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1)
+                                                setResult({
+                                                    severity: 'error',
+                                                    message: t('failedToDeletePatient')
+                                                })
+                                            setResult({
+                                                severity: 'success',
+                                                message: t('successfullyDeletedPatient')
+                                            })
+                                            await init(page.offset, page.limit)
+                                        }} label={t('delete')} /> : null,
+                                    ]
+                                },
+                            ]}
                             autoSizing
                             loading={loading}
                             serverSidePagination
-                            onPaginationModelChange={async (m, d) => await init(m.page, m.pageSize)}
+                            onPaginationModelChange={(m, d) => setPage({ offset: m.page, limit: m.pageSize })}
                             orderedColumnsFields={['actions']}
-                            hiddenColumns={['_id']} />
+                            hiddenColumns={['_id']}
+                        />
                     </Paper>
                 </Grid>
             </Grid>
 
             <Modal
+                onClose={() => setEditingPatientId(undefined)}
+                open={editingPatientId !== undefined || creatingPatient}
+                closeAfterTransition
+                disableAutoFocus
+                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
+                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
+            >
+                <Slide direction={editingPatientId !== undefined || creatingPatient ? 'up' : 'down'} in={editingPatientId !== undefined || creatingPatient} timeout={250}>
+                    <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
+                        <ManagePatient patient={patients.find(p => p._id && p._id === editingPatientId)} />
+                    </Paper>
+                </Slide>
+            </Modal>
+
+            <Modal
                 onClose={() => setShowingStringArray(undefined)}
                 open={showingStringArray !== undefined}
                 closeAfterTransition
-                disableEscapeKeyDown
                 disableAutoFocus
                 sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
                 slotProps={{ backdrop: { sx: { top: '2rem' } } }}

@@ -95,7 +95,8 @@ export function Visits() {
                             serverSidePagination
                             onPaginationModelChange={async (m, d) => await init(m.page, m.pageSize)}
                             orderedColumnsFields={['actions', 'patientId', 'due']}
-                            hiddenColumns={['_id']} />
+                            hiddenColumns={['_id']}
+                        />
                     </Paper>
                 </Grid>
             </Grid>
