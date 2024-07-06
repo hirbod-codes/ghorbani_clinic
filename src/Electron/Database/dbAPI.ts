@@ -56,7 +56,7 @@ export type IVisitRepository = dbAPI & {
     createVisit(visit: Visit): Promise<InsertOneResult>;
     getVisits(): Promise<Visit[]>;
     getVisits(offset: number, count: number): Promise<Visit[]>;
-        getVisits(patientId: string): Promise<Visit[]>;
+    getVisits(patientId: string): Promise<Visit[]>;
     updateVisit(visit: Visit): Promise<UpdateResult>;
     deleteVisit(id: string): Promise<DeleteResult>;
 }
