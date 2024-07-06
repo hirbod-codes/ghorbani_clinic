@@ -47,8 +47,8 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                     <AccordionDetails>
                         <DateTimeField
                             onChange={(dateTime) => {
-                                const convertedDate = fromDateTimeParts({ ...locale, calendar: 'Gregorian' }, locale, dateTime.date, dateTime.time);
-                                visits[i].due = DateTime.local(convertedDate.date.year, convertedDate.date.month, convertedDate.date.day, convertedDate.time.hour, convertedDate.time.minute, convertedDate.time.second, { zone: locale.zone }).toUnixInteger();
+                                const convertedDate = fromDateTimeParts({ ...locale, calendar: 'Gregorian', zone: 'UTC' }, locale, dateTime.date, dateTime.time);
+                                visits[i].due = DateTime.local(convertedDate.date.year, convertedDate.date.month, convertedDate.date.day, convertedDate.time.hour, convertedDate.time.minute, convertedDate.time.second, { zone: 'UTC' }).toUnixInteger();
                                 onChange([...visits])
                                 setVisits([...visits])
                             }}

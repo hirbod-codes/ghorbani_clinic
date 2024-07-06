@@ -7,6 +7,7 @@ import { Visit } from "../../Models/Visit"
 export function handleRendererEvents(): RendererEvents {
     return {
         createPatient: async (patient: Patient): Promise<MainProcessResponse<InsertOneResult>> => JSON.parse(await ipcRenderer.invoke('create-patient', { patient })),
+        getPatientsEstimatedCount: async (): Promise<MainProcessResponse<number>> => JSON.parse(await ipcRenderer.invoke('get-patients-estimated-count')),
         getPatientWithVisits: async (socialId: string): Promise<MainProcessResponse<Patient & { visits: Visit[] }>> => JSON.parse(await ipcRenderer.invoke('get-patient-with-visits', { socialId })),
         getPatientsWithVisits: async (offset: number, count: number): Promise<MainProcessResponse<(Patient & { visits: Visit[] })[]>> => JSON.parse(await ipcRenderer.invoke('get-patients-with-visits', { offset, count })),
         getPatients: async (offset: number, count: number): Promise<MainProcessResponse<Patient[]>> => JSON.parse(await ipcRenderer.invoke('get-patients', { offset, count })),
@@ -18,6 +19,7 @@ export function handleRendererEvents(): RendererEvents {
 
 export type RendererEvents = {
     createPatient: (patient: Patient) => Promise<MainProcessResponse<InsertOneResult>>
+    getPatientsEstimatedCount: () => Promise<MainProcessResponse<number>>
     getPatientWithVisits: (socialId: string) => Promise<MainProcessResponse<Patient & { visits: Visit[] }>>
     getPatientsWithVisits: (offset: number, count: number) => Promise<MainProcessResponse<(Patient & { visits: Visit[] })[]>>
     getPatients: (offset: number, count: number) => Promise<MainProcessResponse<Patient[]>>

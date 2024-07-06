@@ -44,6 +44,7 @@ export type IPatientRepository = dbAPI & {
     handleEvents(): Promise<void>;
     createPatient(patient: Patient): Promise<InsertOneResult>;
     getPatientWithVisits(socialId: string): Promise<Patient & { visits: Visit[] }>;
+    getPatientsEstimatedCount(): Promise<number>;
     getPatient(socialId: string): Promise<Patient | null>;
     getPatients(offset: number, count: number): Promise<Patient[]>;
     getPatientsWithVisits(offset: number, count: number): Promise<(Patient & { visits: Visit[] })[]>;
@@ -54,6 +55,9 @@ export type IPatientRepository = dbAPI & {
 export type IVisitRepository = dbAPI & {
     handleEvents(): Promise<void>;
     createVisit(visit: Visit): Promise<InsertOneResult>;
+    getVisitsEstimatedCount(): Promise<number>;
+    getExpiredVisitsCount(): Promise<number>;
+    getExpiredVisits(): Promise<Visit[]>;
     getVisits(): Promise<Visit[]>;
     getVisits(offset: number, count: number): Promise<Visit[]>;
     getVisits(patientId: string): Promise<Visit[]>;

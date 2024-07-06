@@ -14,6 +14,9 @@ import { getFields } from "../../Models/helpers";
 export class VisitRepository extends MongoDB implements IVisitRepository {
     async handleEvents(): Promise<void> {
         ipcMain.handle('create-visit', async (_e, { visit }: { visit: Visit }) => await this.handleErrors(async () => await this.createVisit(visit)))
+        ipcMain.handle('get-visits-estimated-count', async () => await this.handleErrors(async () => await this.getVisitsEstimatedCount()))
+        ipcMain.handle('get-expired-visits-count', async () => await this.handleErrors(async () => await this.getExpiredVisitsCount()))
+        ipcMain.handle('get-expired-visits', async () => await this.handleErrors(async () => await this.getExpiredVisits()))
         ipcMain.handle('get-visits', async (_e, { patientIdOffset, count }: { patientIdOffset?: string | number, count?: number }) => await this.handleErrors(async () => await this.getVisits(patientIdOffset as any, count)))
         ipcMain.handle('update-visit', async (_e, { visit }: { visit: Visit }) => await this.handleErrors(async () => await this.updateVisit(visit)))
         ipcMain.handle('delete-visit', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.deleteVisit(id)))
@@ -36,6 +39,19 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         visit.updatedAt = DateTime.utc().toUnixInteger();
 
         return await (await this.getVisitsCollection()).insertOne(visit)
+    }
+
+    async getVisitsEstimatedCount(): Promise<number> {
+        return await (await this.getVisitsCollection()).estimatedDocumentCount()
+    }
+
+    async getExpiredVisitsCount(): Promise<number> {
+        return (await this.getExpiredVisits()).length
+    }
+
+    async getExpiredVisits(): Promise<Visit[]> {
+        const nowTs = DateTime.utc().toUnixInteger()
+        return (await (await this.getVisitsCollection()).find({ due: { $lt: nowTs } }).toArray())
     }
 
     async getVisits(): Promise<Visit[]>
