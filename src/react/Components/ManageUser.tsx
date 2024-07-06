@@ -57,7 +57,7 @@ export default function ManageUser({ roles, defaultUser, onFinish }: { roles: st
                 {/* Password */}
                 {
                     readsUserPassword &&
-                    <TextField variant='standard' type='password' disabled={!updatesUserPassword} onChange={(e) => setUser({ ...user, password: e.target.value })} value={user?.password ?? ''} label={t('updatePassword')} fullWidth />
+                    <TextField variant='standard' type='password' disabled={!updatesUserPassword} onChange={(e) => setUser({ ...user, password: e.target.value })} value={user?.password ?? ''} label={t('password')} fullWidth />
                 }
                 <Divider sx={{ mt: 2, mb: 2 }} />
                 <Button fullWidth startIcon={<CheckOutlined />} onClick={async () => {

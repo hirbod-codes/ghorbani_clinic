@@ -10,7 +10,7 @@ import { DATE, fromUnixToFormat } from '../Lib/DateTime/date-time-helpers';
 import { ConfigurationContext } from '../Contexts/ConfigurationContext';
 import { AuthContext } from "../Contexts/AuthContext";
 import ManageUser from "../Components/ManageUser";
-import ManageRole from "../Components/ManageRole";
+import { ManageRole } from "../Components/ManageRole";
 import { ResultContext } from "../Contexts/ResultContext";
 import { NavigationContext } from "../Contexts/NavigationContext";
 import { DataGrid } from "../Components/DataGrid/DataGrid";
@@ -82,11 +82,13 @@ export function Users() {
             setRows(fetchedUsers)
     }
 
+    const refresh = async () => {
+        const r = await fetchRoles()
+        await updateRows(r ? r[0] : undefined)
+    }
+
     useEffect(() => {
-        fetchRoles()
-            .then((r) => {
-                updateRows(r ? r[0] : undefined)
-            })
+        refresh()
     }, [])
 
     const deleteUser = async (id: string) => {
@@ -184,16 +186,17 @@ export function Users() {
                                 {roles?.map((r, i) =>
                                     <div
                                         key={i}
+                                        onDoubleClick={() => setRoleActionsCollapse([...roleActionsCollapse, r])}
                                         onMouseEnter={() => {
                                             timeout.current.r = setTimeout(() => {
                                                 setRoleActionsCollapse([...roleActionsCollapse, r]);
                                             }, 500);
                                         }}
-                                        onMouseLeave={() => { if (!roleActionsCollapse.includes(r)) clearTimeout(timeout.current.r) }}
+                                        onMouseLeave={() => { if (timeout.current.r) clearTimeout(timeout.current.r) }}
                                     >
                                         <Box sx={{ mt: 1 }}></Box>
 
-                                        <ListItemButton selected={role === r} onClick={() => { updateRows(r) }}>
+                                        <ListItemButton selected={role === r} onClick={async () => { await updateRows(r, false) }}>
                                             <ListItemText primary={t(r)} />
                                         </ListItemButton>
 
@@ -217,7 +220,7 @@ export function Users() {
                                                 } */}
                                                 {
                                                     deletesRole &&
-                                                    <ListItemButton onClick={async () => await deleteRole(r)} sx={{ pl: 4 }}>
+                                                    <ListItemButton onClick={async () => { await deleteRole(r); await refresh() }} sx={{ pl: 4 }}>
                                                         <ListItemIcon>
                                                             {deletingRole ? <CircularProgress size={20} /> : <DeleteOutlined />}
                                                         </ListItemIcon>
@@ -327,7 +330,7 @@ export function Users() {
                             setOpenManageRoleModal(false)
                             setEditingRole(undefined)
                             setReadingRole(undefined)
-                            await fetchRoles()
+                            await refresh()
                         }} />
                     </Paper>
                 </Slide>
