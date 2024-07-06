@@ -1,7 +1,6 @@
 import { styled } from '@mui/material/styles';
-import { Grid, Button, Stack, TextField, Select, MenuItem, InputLabel, FormControl, Divider, DialogTitle, DialogContent, DialogContentText, DialogActions, Dialog } from '@mui/material';
+import { Grid, Button, Stack, TextField, Select, MenuItem, InputLabel, FormControl, Divider, DialogTitle, DialogContent, DialogContentText, DialogActions, Dialog, Typography } from '@mui/material';
 import { useState, useContext } from 'react';
-import type { IFileRepository, IPatientRepository, IVisitRepository } from '../../../Electron/Database/dbAPI';
 import { DateTime } from 'luxon'
 
 import { AddOutlined } from '@mui/icons-material';
@@ -16,6 +15,7 @@ import { ManageVisits } from '../Visits/ManageVisit';
 import LoadingScreen from '../LoadingScreen';
 import { t } from 'i18next';
 import { ResultContext } from '../../Contexts/ResultContext';
+import { RendererDbAPI } from '../../../Electron/Database/handleDbRendererEvents';
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -29,17 +29,21 @@ const VisuallyHiddenInput = styled('input')({
     width: 1,
 });
 
-async function getVisits(patientId: string): Promise<Visit[]> {
-    const result = await (window as typeof window & { dbAPI: IVisitRepository }).dbAPI.getVisits(patientId)
-    return result
+async function getVisits(patientId: string): Promise<Visit[] | undefined> {
+    const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getVisits(patientId)
+    if (res.code !== 200)
+        return undefined
+
+    return res.data ?? []
 }
 
-export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null | undefined }) {
+export function ManagePatient({ inputPatient }: { inputPatient?: Patient | undefined }) {
     const setResult = useContext(ResultContext).setResult
     const locale = useContext(ConfigurationContext).get.locale
 
     const [socialIdError, setSocialIdError] = useState<boolean>(false)
 
+    const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined)
     const [loading, setLoading] = useState<boolean>(true)
 
     const [patient, setPatient] = useState<Patient>()
@@ -55,43 +59,54 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
     }
     else if (!patient && inputPatient) {
         setPatient(inputPatient)
-        if (inputPatient.birthDate)
-            getVisits(inputPatient._id as string).then((v) => {
-                setLoading(false)
+        getVisits(inputPatient._id as string).then((v) => {
+            setLoading(false)
+            if (v !== undefined)
                 setVisits(v)
-            })
+            else
+                setErrorMessage(t('failedToFetchPatientVisits'))
+        })
     }
 
     const [files, setFiles] = useState<{ fileName: string, bytes: Buffer | Uint8Array }[]>([])
 
     const submit = async () => {
-        let id = undefined, result = undefined
+        let id = undefined, response = undefined
 
         try {
             if (inputPatient) {
                 id = patient._id
-                if (!await (window as typeof window & { dbAPI: IPatientRepository }).dbAPI.updatePatient(patient))
-                    throw new Error('failed to update the patient.')
-                for (const visit of visits)
-                    if (!await (window as typeof window & { dbAPI: IVisitRepository }).dbAPI.updateVisit(visit))
-                        throw new Error('failed to update the patient\'s visits.')
+                const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.updatePatient(patient);
+                if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.matchedCount !== 1 || res.data.modifiedCount !== 1)
+                    throw new Error(t('failedToUpdatePatient'))
+                for (const visit of visits) {
+                    const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.updateVisit(visit);
+                    if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.matchedCount !== 1 || res.data.modifiedCount !== 1)
+                        throw new Error(t('failedToUpdatePatientVisits'))
+                }
             }
             else {
-                id = await (window as typeof window & { dbAPI: IPatientRepository }).dbAPI.createPatient(patient)
+                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createPatient(patient)
+                if (res.code !== 200 || res.data.acknowledged !== true || res.data.insertedId.toString() === '')
+                    throw new Error(t('failedToRegisterPatient'))
+
+                id = res.data.insertedId.toString()
+
                 for (const visit of visits) {
-                    visit.patientId = id.insertedId
-                    if (!await (window as typeof window & { dbAPI: IVisitRepository }).dbAPI.createVisit(visit))
-                        throw new Error('failed to create the patient\'s visits.')
+                    visit.patientId = id
+                    const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.createVisit(visit);
+                    if (res.code !== 200 || !res.data.acknowledged || res.data.insertedId.toString() === '')
+                        throw new Error(t('failedToRegisterPatientVisits'))
                 }
             }
 
-            result = await (window as typeof window & { dbAPI: IFileRepository }).dbAPI.uploadFiles(id as string, files)
-            if (!result)
-                throw new Error('failed to upload the patient\'s documents.')
+            response = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadFiles(id as string, files)
+            if (response.code !== 200 || response.data !== true)
+                throw new Error(t('failedToUploadPatientsDocuments'))
         } catch (error) {
             console.error(error)
         } finally {
-            if (result !== true) {
+            if (!response || response.data !== true) {
                 setResult({
                     severity: 'error',
                     message: t('failedToRegisteredPatient')
@@ -112,10 +127,15 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
     if (loading)
         return (<LoadingScreen />)
 
+    if (errorMessage !== undefined)
+        return (<Typography align='center'>{errorMessage}</Typography>)
+
     return (
         <>
             <Stack justifyContent={'space-around'} sx={{ height: '100%', width: '100%' }}>
-                <h1>Register patient</h1>
+                <Typography variant='h4'>
+                    {inputPatient ? 'Update' : 'Register'} patient
+                </Typography>
                 <Grid container spacing={2} >
                     <Grid item>
                         {/* First name */}
@@ -214,11 +234,11 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | null 
                     <Grid item xs={12}>
                         {/* Submit */}
                         <Button variant="contained" fullWidth onClick={() => {
-                            setDialogTitle('About to register...')
+                            setDialogTitle(`About to ${inputPatient ? 'update' : 'register'}...`)
                             setDialogContent('Are you sure?')
                             setDialogOpen(true)
                         }}>
-                            Complete
+                            {t('Complete')}
                         </Button>
                     </Grid>
                     <Grid item xs={12}>

@@ -11,7 +11,7 @@ import { ResultContext } from "../Contexts/ResultContext";
 
 type Resource = { name: string, index: number, create?: boolean, read?: string[] | undefined, update?: string[] | undefined, delete?: boolean }
 
-export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, onFinish?: () => Promise<void> | void }) {
+export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, onFinish?: () => Promise<void> | void }) {
     const setResult = useContext(ResultContext).setResult
 
     const [fetchRoleFailed, setFetchRoleFailed] = useState<boolean>(false)
@@ -24,6 +24,7 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
         setFetchRoleFailed(false)
         if (!roleName && defaultRole) {
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPrivileges(defaultRole)
+            console.log('ManageRole', 'fetchRole', 'res', res)
             if (res.code !== 200) {
                 setFetchRoleFailed(true)
                 return
@@ -33,19 +34,22 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
             setRoleName(defaultRole)
 
             const newResources: Resource[] = Object.entries(staticResources).map(r => ({ name: r[1], index: 0 }))
-            for (let i = 0; i < res.data.length; i++) {
-                if (newResources.find(r => r.name === res.data[i].resource) === undefined) {
-                    let resource: Resource = { name: res.data[i].resource, index: 0 }
+
+            const filteredPrivileges = res.data.filter(f => f.role === defaultRole)
+
+            for (let i = 0; i < filteredPrivileges.length; i++) {
+                if (newResources.find(r => r.name === filteredPrivileges[i].resource) === undefined) {
+                    let resource: Resource = { name: filteredPrivileges[i].resource, index: 0 }
                     newResources.push(resource)
                 }
 
-                const index = newResources.findIndex(r => r.name === res.data[i].resource)
+                const index = newResources.findIndex(r => r.name === filteredPrivileges[i].resource)
                 if (index < 0)
                     continue
 
-                let attributes = res.data[i].attributes.split(', ')
+                let attributes = filteredPrivileges[i].attributes.split(', ')
                 if (attributes.includes('*'))
-                    attributes = attributes.filter(f => f !== '*').concat(getAttributes(res.data[i].resource, res.data[i].action))
+                    attributes = attributes.filter(f => f !== '*').concat(getAttributes(filteredPrivileges[i].resource, filteredPrivileges[i].action))
                 const excludedAttributes: string[] = []
                 attributes = attributes.filter((v, i, arr) => {
                     if (v.includes('!')) {
@@ -60,13 +64,13 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
                     return true
                 })
 
-                if (res.data[i].action.includes('create'))
+                if (filteredPrivileges[i].action.includes('create'))
                     newResources[index].create = true
-                else if (res.data[i].action.includes('read'))
+                else if (filteredPrivileges[i].action.includes('read'))
                     newResources[index].read = attributes
-                else if (res.data[i].action.includes('update'))
+                else if (filteredPrivileges[i].action.includes('update'))
                     newResources[index].update = attributes
-                else if (res.data[i].action.includes('delete'))
+                else if (filteredPrivileges[i].action.includes('delete'))
                     newResources[index].delete = true
             }
             setResources(newResources)
@@ -155,7 +159,7 @@ export default function ManageRole({ defaultRole, onFinish }: { defaultRole?: st
             </LoadingScreen>
         )
 
-    console.log('ManageRole', 'resources', resources)
+    console.log('ManageRole', { roleName, resources })
 
     return (
         <>
