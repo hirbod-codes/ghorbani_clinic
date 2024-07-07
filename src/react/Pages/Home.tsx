@@ -41,8 +41,8 @@ export function Home() {
     return (
         <>
             <Grid container spacing={1} p={1}>
-                <Grid item sm={0} md={'auto'}></Grid>
-                <Grid item sm={12} md={6}>
+                <Grid item xs={0} sm={3}></Grid>
+                <Grid item xs={12} sm={6}>
                     <TextField
                         fullWidth
                         label={t('search')}
@@ -60,7 +60,7 @@ export function Home() {
                         }}
                     />
                 </Grid>
-                <Grid item sm={0} md={'auto'}></Grid>
+                <Grid item xs={0} sm={3}></Grid>
 
                 <Grid item xs={6}></Grid>
                 <Grid item xs={6}></Grid>
