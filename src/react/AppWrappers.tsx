@@ -8,15 +8,15 @@ export function AppWrappers() {
     console.log('AppWrappers')
     return (
         <>
-            <ConfigurationContextWrapper >
-                <AuthContextWrapper>
-                    <NavigationContextWrapper>
-                        <ResultContextWrapper>
+            <ConfigurationContextWrapper>
+                <ResultContextWrapper>
+                    <AuthContextWrapper>
+                        <NavigationContextWrapper>
                             <App />
-                        </ResultContextWrapper>
-                    </NavigationContextWrapper>
-                </AuthContextWrapper>
-            </ConfigurationContextWrapper>
+                        </NavigationContextWrapper>
+                    </AuthContextWrapper>
+                </ResultContextWrapper>
+            </ConfigurationContextWrapper >
         </>
     )
 }
