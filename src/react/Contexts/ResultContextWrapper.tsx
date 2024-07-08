@@ -5,17 +5,18 @@ import { CheckOutlined, CloseOutlined, DangerousOutlined } from '@mui/icons-mate
 
 
 export function ResultContextWrapper({ children }: { children?: ReactNode; }) {
+    const [resultOpen, setResultOpen] = useState<boolean>(false);
     const [result, setResult] = useState<Result | undefined>(undefined);
 
     console.log('ResultContextWrapper', { result })
 
     return (
-        <ResultContext.Provider value={{ result, setResult }}>
+        <ResultContext.Provider value={{ result, setResult: (r) => { setResult(r); setResultOpen(true) } }}>
             {children}
             <Snackbar
-                open={result !== null}
+                open={resultOpen}
                 autoHideDuration={7000}
-                onClose={() => setResult(null)}
+                onClose={() => { setResultOpen(false) }}
                 action={result?.action}
             >
                 <Alert
