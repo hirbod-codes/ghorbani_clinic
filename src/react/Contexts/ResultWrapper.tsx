@@ -1,18 +1,25 @@
-import { useState, ReactNode } from 'react';
-import { Result, ResultContext } from './ResultContext';
+import { useState, useCallback, ReactNode } from 'react';
+import { Result } from './ResultTypes.d';
 import { Alert, Snackbar } from '@mui/material';
 import { CheckOutlined, CloseOutlined, DangerousOutlined } from '@mui/icons-material';
+import { subscribe } from '../Lib/Events';
 
+export const RESULT_EVENT_NAME = 'showResult'
 
-export function ResultContextWrapper({ children }: { children?: ReactNode; }) {
+export function ResultWrapper({ children }: { children?: ReactNode; }) {
     const [resultOpen, setResultOpen] = useState<boolean>(false);
     const [result, setResult] = useState<Result | undefined>(undefined);
+
+    const updateResult = useCallback((r?: Result) => { setResult(r); setResultOpen(true) }, [])
+
+    subscribe(RESULT_EVENT_NAME, (e?: CustomEvent) => updateResult(e?.detail))
 
     console.log('ResultContextWrapper', { result })
 
     return (
-        <ResultContext.Provider value={{ result, setResult: (r) => { setResult(r); setResultOpen(true) } }}>
+        <>
             {children}
+
             <Snackbar
                 open={resultOpen}
                 autoHideDuration={7000}
@@ -26,6 +33,6 @@ export function ResultContextWrapper({ children }: { children?: ReactNode; }) {
                     {result?.message}
                 </Alert>
             </Snackbar>
-        </ResultContext.Provider>
+        </>
     );
 }

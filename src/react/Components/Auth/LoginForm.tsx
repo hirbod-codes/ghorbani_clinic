@@ -5,6 +5,7 @@ import { t } from 'i18next';
 export function LoginForm({ onFinish }: { onFinish: (username: string, password: string) => void | Promise<void>; }) {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+
     return (
         <>
             <Stack direction='column' spacing={2}>

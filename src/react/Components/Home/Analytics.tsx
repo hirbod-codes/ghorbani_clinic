@@ -1,17 +1,15 @@
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { t } from "i18next";
 import { Button, CircularProgress, Grid, Stack, Typography } from "@mui/material";
 import { RendererDbAPI } from "../../../Electron/Database/handleDbRendererEvents";
 import { RefreshOutlined } from "@mui/icons-material";
-import { ResultContext } from "../../Contexts/ResultContext";
 import { AnimatedCircularProgressBar } from "../ProgressBars/AnimatedCircularProgressBar";
 import { AnimatedCounter } from "../Counters/AnimatedCounter";
+import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
+import { publish } from "../../Lib/Events";
 
 
 export function Analytics() {
-    const setResult = useContext(ResultContext).setResult;
-
-    // const [initialized, setInitialized] = useState<boolean>(false)
     const initialized = useRef<boolean>(false);
     const [initLoading, setInitLoading] = useState<boolean>(true);
     const [initFailed, setInitFailed] = useState<boolean>(false);
@@ -20,7 +18,7 @@ export function Analytics() {
     const [expiredVisitsCount, setExpiredVisitsCount] = useState<number | undefined>();
     const [patientsCount, setPatientsCount] = useState<number | undefined>();
 
-    console.log('Home', { initLoading, initFailed, visitsCount, expiredVisitsCount, patientsCount });
+    console.log('Analytics', { initLoading, initFailed, visitsCount, expiredVisitsCount, patientsCount });
 
     const initPatientsProgressBars = async () => {
         setPatientsCount(undefined);
@@ -31,9 +29,9 @@ export function Analytics() {
 
             setPatientsCount(res.data);
         } catch (error) {
-            console.error('Home', 'initPatientsProgressBars', error);
+            console.error('Analytics', 'initPatientsProgressBars', error);
 
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'error',
                 message: t('failedToFetchPatientsCount')
             });
@@ -50,9 +48,9 @@ export function Analytics() {
 
             setVisitsCount(res.data);
         } catch (error) {
-            console.error('Home', 'initVisitsProgressBars', error);
+            console.error('Analytics', 'initVisitsProgressBars', error);
 
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'error',
                 message: t('failedToFetchVisitsCount')
             });
@@ -69,9 +67,9 @@ export function Analytics() {
 
             setExpiredVisitsCount(res.data);
         } catch (error) {
-            console.error('Home', 'initExpiredVisitsProgressBars', error);
+            console.error('Analytics', 'initExpiredVisitsProgressBars', error);
 
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'error',
                 message: t('failedToFetchExpiredVisitsCount')
             });
@@ -93,7 +91,7 @@ export function Analytics() {
 
             setInitLoading(false);
         } catch (error) {
-            console.error('Home', 'initProgressBars', error);
+            console.error('Analytics', 'initProgressBars', error);
             setInitLoading(false);
             setInitFailed(true);
         }

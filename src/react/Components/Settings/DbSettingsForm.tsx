@@ -3,10 +3,10 @@ import { useState, useContext } from 'react';
 import { t } from 'i18next';
 import { configAPI } from '../../../Electron/Configuration/renderer/configAPI';
 import { appAPI } from '../../../Electron/handleAppRendererEvents';
-import { ResultContext } from '../../../react/Contexts/ResultContext';
+import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
+import { publish } from '../../Lib/Events';
 
 export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean }) {
-    const setResult = useContext(ResultContext)?.setResult ?? ((o: any) => { })
 
     const [username, setUsername] = useState<string>('')
     const [password, setPassword] = useState<string>('')
@@ -37,7 +37,7 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                     const settings = { url, databaseName, supportsTransaction, auth: { username, password } }
 
                     if (!settings.auth || !settings.auth.username || !settings.auth.password || !settings.databaseName || !settings.url) {
-                        setResult({
+                        publish(RESULT_EVENT_NAME, {
                             severity: 'error',
                             message: t('invalidSettingsProvided')
                         })

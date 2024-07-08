@@ -2,20 +2,20 @@ import App from './App';
 import { ConfigurationContextWrapper } from './Contexts/ConfigurationContextWrapper';
 import { AuthContextWrapper } from './Contexts/AuthContextWrapper';
 import { NavigationContextWrapper } from './Contexts/NavigationContextWrapper';
-import { ResultContextWrapper } from './Contexts/ResultContextWrapper';
+import { ResultWrapper } from './Contexts/ResultWrapper';
 
 export function AppWrappers() {
     console.log('AppWrappers')
     return (
         <>
             <ConfigurationContextWrapper>
-                <ResultContextWrapper>
+                <ResultWrapper>
                     <AuthContextWrapper>
                         <NavigationContextWrapper>
                             <App />
                         </NavigationContextWrapper>
                     </AuthContextWrapper>
-                </ResultContextWrapper>
+                </ResultWrapper>
             </ConfigurationContextWrapper >
         </>
     )

@@ -11,14 +11,14 @@ import { ConfigurationContext } from '../Contexts/ConfigurationContext';
 import { AuthContext } from "../Contexts/AuthContext";
 import ManageUser from "../Components/ManageUser";
 import { ManageRole } from "../Components/ManageRole";
-import { ResultContext } from "../Contexts/ResultContext";
 import { NavigationContext } from "../Contexts/NavigationContext";
 import { DataGrid } from "../Components/DataGrid/DataGrid";
 import { GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
 import { Home } from "./Home";
+import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
+import { publish } from "../Lib/Events";
 
 export function Users() {
-    const setResult = useContext(ResultContext).setResult
     const configuration = useContext(ConfigurationContext)
     const auth = useContext(AuthContext)
     const nav = useContext(NavigationContext)
@@ -97,21 +97,21 @@ export function Users() {
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteUser(id)
             setDeletingUser(undefined)
             if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1) {
-                setResult({
+                publish(RESULT_EVENT_NAME, {
                     severity: 'error',
                     message: t('failedToDelete'),
                 })
                 return
             }
 
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'success',
                 message: t('successfullyDeleted'),
             })
         } catch (error) {
             console.error(error)
 
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'error',
                 message: t('failedToDelete'),
             })
@@ -124,21 +124,21 @@ export function Users() {
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteRole(roleName)
             setDeletingRole(undefined)
             if (res.code !== 200) {
-                setResult({
+                publish(RESULT_EVENT_NAME, {
                     severity: 'error',
                     message: t('failedToDelete'),
                 })
                 return
             }
 
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'success',
                 message: t('successfullyDeleted'),
             })
         } catch (error) {
             console.error(error)
 
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'error',
                 message: t('failedToDelete'),
             })

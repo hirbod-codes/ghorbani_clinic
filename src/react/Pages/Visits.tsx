@@ -1,7 +1,6 @@
 import { useState, useContext, useEffect, useRef } from "react";
 import { DataGrid } from "../Components/DataGrid/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
-import { ResultContext } from "../Contexts/ResultContext";
 import { t } from "i18next";
 import { Button, Grid, Modal, Paper, Slide, Typography } from "@mui/material";
 import LoadingScreen from "../Components/LoadingScreen";
@@ -9,9 +8,10 @@ import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../Contexts/ConfigurationContext";
 import { Visit } from "../../Electron/Database/Models/Visit";
+import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
+import { publish } from "../Lib/Events";
 
 export function Visits() {
-    const setResult = useContext(ResultContext).setResult
     const configuration = useContext(ConfigurationContext)
 
     const [loading, setLoading] = useState<boolean>(true)
@@ -20,7 +20,7 @@ export function Visits() {
     // ID of the visit that is taken for its diagnosis representation
     const [showingDiagnosis, setShowingDiagnosis] = useState<string | undefined>(undefined)
 
-    console.log('Visits', { setResult, configuration, visits, showingDiagnosis })
+    console.log('Visits', {  configuration, visits, showingDiagnosis })
 
     const init = async (offset: number, limit: number) => {
         setLoading(true)
@@ -30,14 +30,14 @@ export function Visits() {
         setLoading(false)
 
         if (res.code !== 200 || !res.data) {
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'error',
                 message: t('failedToFetchVisits')
             })
             return
         }
 
-        setResult({
+        publish(RESULT_EVENT_NAME, {
             severity: 'success',
             message: t('successfullyFetchedVisits')
         })

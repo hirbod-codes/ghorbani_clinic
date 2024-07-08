@@ -14,8 +14,9 @@ import { fromUnix } from '../../../react/Lib/DateTime/date-time-helpers';
 import { ManageVisits } from '../Visits/ManageVisit';
 import LoadingScreen from '../LoadingScreen';
 import { t } from 'i18next';
-import { ResultContext } from '../../Contexts/ResultContext';
 import { RendererDbAPI } from '../../../Electron/Database/handleDbRendererEvents';
+import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
+import { publish } from '../../Lib/Events';
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -38,7 +39,6 @@ async function getVisits(patientId: string): Promise<Visit[] | undefined> {
 }
 
 export function ManagePatient({ inputPatient }: { inputPatient?: Patient | undefined }) {
-    const setResult = useContext(ResultContext).setResult
     const locale = useContext(ConfigurationContext).get.locale
 
     const [socialIdError, setSocialIdError] = useState<boolean>(false)
@@ -107,13 +107,13 @@ export function ManagePatient({ inputPatient }: { inputPatient?: Patient | undef
             console.error(error)
         } finally {
             if (!response || response.data !== true) {
-                setResult({
+                publish(RESULT_EVENT_NAME, {
                     severity: 'error',
                     message: t('failedToRegisteredPatient')
                 })
             }
 
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'success',
                 message: t('successfullyRegisteredPatient')
             })

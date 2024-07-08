@@ -1,7 +1,6 @@
 import { useState, useContext, useEffect, useRef } from "react";
 import { DataGrid } from "../Components/DataGrid/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
-import { ResultContext } from "../Contexts/ResultContext";
 import { t } from "i18next";
 import { Button, CircularProgress, Fade, Grid, IconButton, Modal, Paper, Slide, Typography } from "@mui/material";
 import LoadingScreen from "../Components/LoadingScreen";
@@ -13,11 +12,12 @@ import { AddOutlined, DeleteOutline, EditOutlined, RefreshOutlined } from "@mui/
 import { AuthContext } from "../Contexts/AuthContext";
 import { resources } from "../../Electron/Database/Repositories/Auth/resources";
 import { ManagePatient } from "../Components/Patients/ManagePatient";
+import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
+import { publish } from "../Lib/Events";
 
 export function Patients() {
     const auth = useContext(AuthContext)
     const configuration = useContext(ConfigurationContext)
-    const setResult = useContext(ResultContext).setResult
 
     const [page, setPage] = useState({ offset: 0, limit: 25 })
 
@@ -31,7 +31,7 @@ export function Patients() {
     const [showingAddress, setShowingAddress] = useState<string | undefined>(undefined)
     const [showingMH, setShowingMH] = useState<string[] | undefined>(undefined)
 
-    console.log('Patients', { setResult, configuration, patients, showingStringArray: showingAddress })
+    console.log('Patients', { configuration, patients, showingStringArray: showingAddress })
 
     const init = async (offset: number, limit: number) => {
         setLoading(true)
@@ -41,14 +41,14 @@ export function Patients() {
         setLoading(false)
 
         if (res.code !== 200 || !res.data) {
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'error',
                 message: t('failedToFetchPatients')
             })
             return
         }
 
-        setResult({
+        publish(RESULT_EVENT_NAME, {
             severity: 'success',
             message: t('successfullyFetchedPatients')
         })
@@ -131,14 +131,14 @@ export function Patients() {
                                             setDeletingPatientId(undefined)
 
                                             if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1)
-                                                setResult({
+                                                publish(RESULT_EVENT_NAME, {
                                                     severity: 'error',
                                                     message: t('failedToDeletePatient')
                                                 })
 
                                             await init(page.offset, page.limit)
 
-                                            setResult({
+                                            publish(RESULT_EVENT_NAME, {
                                                 severity: 'success',
                                                 message: t('successfullyDeletedPatient')
                                             })

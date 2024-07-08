@@ -3,18 +3,18 @@ import { t } from "i18next";
 import { CircularProgress, InputAdornment, Modal, Paper, Slide, TextField } from "@mui/material";
 import { RendererDbAPI } from "../../../Electron/Database/handleDbRendererEvents";
 import { SearchOutlined } from "@mui/icons-material";
-import { ResultContext } from "../../Contexts/ResultContext";
 import { Patient } from "../../../Electron/Database/Models/Patient";
 import { ManagePatient } from "../Patients/ManagePatient";
+import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
+import { publish } from "../../Lib/Events";
 
 
 export function SearchPatientField() {
-    const setResult = useContext(ResultContext).setResult;
-
     const [loading, setLoading] = useState<boolean>(false);
     const [socialId, setSocialId] = useState<string | undefined>(undefined);
     const [patient, setPatient] = useState<Patient | undefined>(undefined);
 
+    console.log('SearchPatientField', { loading, socialId, patient });
 
     const onSocialIdChange = async (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         if (Number.isNaN(e.target.value))
@@ -33,7 +33,7 @@ export function SearchPatientField() {
         if (res.code !== 200 || !res.data)
             return;
 
-        setResult({
+        publish(RESULT_EVENT_NAME, {
             severity: 'success',
             message: t('foundPatient')
         });
