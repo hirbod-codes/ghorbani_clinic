@@ -1,0 +1,79 @@
+import { useContext, useState, ChangeEvent } from "react";
+import { t } from "i18next";
+import { CircularProgress, InputAdornment, Modal, Paper, Slide, TextField } from "@mui/material";
+import { RendererDbAPI } from "../../../Electron/Database/handleDbRendererEvents";
+import { SearchOutlined } from "@mui/icons-material";
+import { ResultContext } from "../../Contexts/ResultContext";
+import { Patient } from "../../../Electron/Database/Models/Patient";
+import { ManagePatient } from "../Patients/ManagePatient";
+
+
+export function SearchPatientField() {
+    const setResult = useContext(ResultContext).setResult;
+
+    const [loading, setLoading] = useState<boolean>(false);
+    const [socialId, setSocialId] = useState<string | undefined>(undefined);
+    const [patient, setPatient] = useState<Patient | undefined>(undefined);
+
+
+    const onSocialIdChange = async (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        if (Number.isNaN(e.target.value))
+            return;
+
+        if (e.target.value && e.target.value.trim().length <= 10)
+            setSocialId(e.target.value);
+
+        if (!e.target.value || e.target.value.trim().length !== 10)
+            return;
+
+        setLoading(true);
+        const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.getPatient(e.target.value);
+        setLoading(false);
+
+        if (res.code !== 200 || !res.data)
+            return;
+
+        setResult({
+            severity: 'success',
+            message: t('foundPatient')
+        });
+
+        setPatient(res.data);
+    };
+
+    return (
+        <>
+            <TextField
+                fullWidth
+                label={t('search')}
+                type="text"
+                variant="standard"
+                value={socialId ?? ''}
+                onChange={onSocialIdChange}
+                error={socialId !== undefined && socialId.length !== 10}
+                helperText={socialId !== undefined && socialId.length !== 10 ? t('InvalidSocialId') : (!loading && socialId && socialId.length === 10 && !patient ? t('patientNotFound') : '')}
+                InputProps={{
+                    startAdornment: (
+                        <InputAdornment position="start">
+                            {loading ? <CircularProgress size={20} /> : <SearchOutlined />}
+                        </InputAdornment>
+                    ),
+                }} />
+
+            <Modal
+                onClose={() => { setPatient(undefined); setSocialId(undefined) }}
+                open={patient !== undefined}
+                closeAfterTransition
+                disableAutoFocus
+                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
+                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
+            >
+                <Slide direction={patient !== undefined ? 'up' : 'down'} in={patient !== undefined} timeout={250}>
+                    <Paper sx={{ width: '60%', maxHeight: '80%', overflow: 'auto', padding: '0.5rem 2rem' }}>
+                        <ManagePatient inputPatient={patient} />
+                    </Paper>
+                </Slide>
+            </Modal>
+        </>
+    );
+}

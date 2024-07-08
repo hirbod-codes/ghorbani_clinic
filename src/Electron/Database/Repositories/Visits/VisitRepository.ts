@@ -42,10 +42,24 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
     }
 
     async getVisitsEstimatedCount(): Promise<number> {
+        const user = await authRepository.getAuthenticatedUser()
+        if (!user)
+            throw new Unauthenticated();
+
+        if (!(await privilegesRepository.getAccessControl()).can(user.roleName).read(resources.VISIT).granted)
+            throw new Unauthorized()
+
         return await (await this.getVisitsCollection()).estimatedDocumentCount()
     }
 
     async getExpiredVisitsCount(): Promise<number> {
+        const user = await authRepository.getAuthenticatedUser()
+        if (!user)
+            throw new Unauthenticated();
+
+        if (!(await privilegesRepository.getAccessControl()).can(user.roleName).read(resources.VISIT).granted)
+            throw new Unauthorized()
+
         return (await this.getExpiredVisits()).length
     }
 

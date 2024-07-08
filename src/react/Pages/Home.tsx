@@ -1,92 +1,188 @@
-import { useContext, useState, ChangeEvent } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { t } from "i18next";
-import { Button, CircularProgress, Grid, InputAdornment, Modal, Paper, Slide, TextField, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Grid, Stack, Typography } from "@mui/material";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
-import { SearchOutlined } from "@mui/icons-material";
+import { RefreshOutlined } from "@mui/icons-material";
 import { ResultContext } from "../Contexts/ResultContext";
-import { Patient } from "../../Electron/Database/Models/Patient";
-import { ManagePatient } from "../Components/Patients/ManagePatient";
 import { AnimatedCircularProgressBar } from "../Components/ProgressBars/AnimatedCircularProgressBar";
+import { AnimatedCounter } from "../Components/Counters/AnimatedCounter";
+import { SearchPatientField } from "../Components/Search/SearchPatientField";
 
 export function Home() {
     const setResult = useContext(ResultContext).setResult
 
-    const [loading, setLoading] = useState<boolean>(false)
-    const [socialId, setSocialId] = useState<string | undefined>(undefined)
+    // const [initialized, setInitialized] = useState<boolean>(false)
+    const initialized = useRef<boolean>(false)
+    const [initLoading, setInitLoading] = useState<boolean>(true)
+    const [initFailed, setInitFailed] = useState<boolean>(false)
 
-    const [patient, setPatient] = useState<Patient | undefined>(undefined)
+    const [visitsCount, setVisitsCount] = useState<number | undefined>()
+    const [expiredVisitsCount, setExpiredVisitsCount] = useState<number | undefined>()
+    const [patientsCount, setPatientsCount] = useState<number | undefined>()
 
-    const onSocialIdChange = async (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        if (e.target.value && e.target.value.trim().length <= 10)
-            setSocialId(e.target.value)
+    console.log('Home', { initLoading, initFailed, visitsCount, expiredVisitsCount, patientsCount })
 
-        if (!e.target.value || e.target.value.trim().length !== 10)
-            return
+    const initPatientsProgressBars = async () => {
+        setPatientsCount(undefined)
+        try {
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPatientsEstimatedCount()
+            if (res.code !== 200 || !res.data)
+                throw new Error(`bad response. Response code: ${res.code}`)
 
-        setLoading(true)
-        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPatient(e.target.value)
-        setLoading(false)
+            setPatientsCount(res.data)
+        } catch (error) {
+            console.error('Home', 'initPatientsProgressBars', error)
 
-        if (res.code !== 200 || !res.data)
-            return
+            setResult({
+                severity: 'error',
+                message: t('failedToFetchPatientsCount')
+            })
 
-        setResult({
-            severity: 'success',
-            message: t('foundPatient')
-        })
-
-        setPatient(res.data)
+            throw error
+        }
     }
+    const initVisitsProgressBars = async () => {
+        setVisitsCount(undefined)
+        try {
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getVisitsEstimatedCount()
+            if (res.code !== 200 || !res.data)
+                throw new Error(`bad response. Response code: ${res.code}`)
+
+            setVisitsCount(res.data)
+        } catch (error) {
+            console.error('Home', 'initVisitsProgressBars', error)
+
+            setResult({
+                severity: 'error',
+                message: t('failedToFetchVisitsCount')
+            })
+
+            throw error
+        }
+    }
+    const initExpiredVisitsProgressBars = async () => {
+        setExpiredVisitsCount(undefined)
+        try {
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getExpiredVisitsCount()
+            if (res.code !== 200 || !res.data)
+                throw new Error(`bad response. Response code: ${res.code}`)
+
+            setExpiredVisitsCount(res.data)
+        } catch (error) {
+            console.error('Home', 'initExpiredVisitsProgressBars', error)
+
+            setResult({
+                severity: 'error',
+                message: t('failedToFetchExpiredVisitsCount')
+            })
+
+            throw error
+        }
+    }
+
+    const initProgressBars = async () => {
+        setInitFailed(false)
+        setInitLoading(true)
+
+        try {
+            await Promise.all([
+                initPatientsProgressBars(),
+                initVisitsProgressBars(),
+                initExpiredVisitsProgressBars(),
+            ])
+
+            setInitLoading(false)
+        } catch (error) {
+            console.error('Home', 'initProgressBars', error)
+            setInitFailed(true)
+        }
+    }
+
+    useEffect(() => {
+        if (!initialized.current)
+            initProgressBars()
+                .then(() => (initialized.current = true))
+    }, [])
 
     return (
         <>
             <Grid container spacing={1} p={1}>
                 <Grid item xs={0} sm={3}></Grid>
                 <Grid item xs={12} sm={6}>
-                    <TextField
-                        fullWidth
-                        label={t('search')}
-                        type="text"
-                        variant="standard"
-                        value={socialId}
-                        onChange={onSocialIdChange}
-                        error={socialId !== undefined && socialId.length !== 10} helperText={t('InvalidSocialId')}
-                        InputProps={{
-                            startAdornment: (
-                                <InputAdornment position="start">
-                                    {loading ? <CircularProgress size={20} /> : <SearchOutlined />}
-                                </InputAdornment>
-                            ),
-                        }}
-                    />
+                    <SearchPatientField />
                 </Grid>
                 <Grid item xs={0} sm={3}></Grid>
 
-                <Grid item xs={6}></Grid>
-                <Grid item xs={6}></Grid>
-                <Grid item xs={12}></Grid>
+                <Grid item xs={12}>
+                    <Box mb={10}></Box>
+                </Grid>
+
+                {initFailed
+                    ?
+                    <>
+                        <Grid item xs={3}></Grid>
+                        <Grid item xs={6}>
+                            <Button onClick={async () => await initProgressBars()} variant='outlined' startIcon={<RefreshOutlined />} fullWidth> {t('Reload')} </Button>
+                        </Grid>
+                        <Grid item xs={3}></Grid>
+                    </>
+                    :
+                    (
+                        initLoading
+                            ?
+                            <>
+                                <Grid item xs={12}>
+                                    <Stack direction='row' justifyContent='center'>
+                                        <CircularProgress size={80} />
+                                    </Stack>
+                                </Grid>
+                            </>
+                            :
+                            <>
+                                <Grid item xs={6} container justifyContent='center'>
+                                    {visitsCount
+                                        ?
+                                        <AnimatedCircularProgressBar start={0} end={70}>
+                                            <Typography variant='h4'>
+                                                <AnimatedCounter start={0} end={visitsCount} />
+                                            </Typography>
+                                        </AnimatedCircularProgressBar>
+                                        :
+                                        <CircularProgress />
+                                    }
+                                </Grid>
+
+                                <Grid item xs={6} container justifyContent='center' alignContent='center'>
+                                    {expiredVisitsCount
+                                        ?
+                                        <AnimatedCircularProgressBar start={0} end={70}>
+                                            <Typography variant='h4'>
+                                                <AnimatedCounter start={0} end={expiredVisitsCount} />
+                                            </Typography>
+                                        </AnimatedCircularProgressBar>
+                                        :
+                                        <CircularProgress />
+                                    }
+                                </Grid>
+
+                                <Grid item xs={3}></Grid>
+                                <Grid item xs={6} container justifyContent='center'>
+                                    {patientsCount
+                                        ?
+                                        <AnimatedCircularProgressBar start={0} end={70}>
+                                            <Typography variant='h4'>
+                                                <AnimatedCounter start={0} end={patientsCount} />
+                                            </Typography>
+                                        </AnimatedCircularProgressBar>
+                                        :
+                                        <CircularProgress />
+                                    }
+                                </Grid>
+                                <Grid item xs={3}></Grid>
+                            </>
+                    )
+                }
             </Grid>
-
-            <Modal
-                onClose={() => setPatient(undefined)}
-                open={patient !== undefined}
-                closeAfterTransition
-                disableAutoFocus
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
-                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
-            >
-                <Slide direction={patient !== undefined ? 'up' : 'down'} in={patient !== undefined} timeout={250}>
-                    <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
-                        <ManagePatient inputPatient={patient} />
-                    </Paper>
-                </Slide>
-            </Modal>
-
-            <AnimatedCircularProgressBar start={0} end={70}>
-                <Typography variant='h4'>
-                    patientsCount
-                </Typography>
-            </AnimatedCircularProgressBar>
         </>
     )
 }

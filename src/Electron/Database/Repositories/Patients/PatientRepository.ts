@@ -44,6 +44,13 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
     }
 
     async getPatientsEstimatedCount(): Promise<number> {
+        const user = await authRepository.getAuthenticatedUser()
+        if (!user)
+            throw new Unauthenticated();
+
+        if (!(await privilegesRepository.getAccessControl()).can(user.roleName).read(resources.PATIENT).granted)
+            throw new Unauthorized()
+
         return await (await this.getPatientsCollection()).estimatedDocumentCount()
     }
 
