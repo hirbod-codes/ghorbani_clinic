@@ -7,7 +7,7 @@ export function AnimatedCircularProgressBar({ start, end, children }: { start: n
     const progress = useSpring({
         from: { percentComplete: start },
         to: { percentComplete: end },
-        config: { mass: 1, tension: 1000, friction: 1000 }
+        config: { mass: 5, tension: 120, friction: 120 }
     });
 
     const AnimatedCircularProgress = animated((props) => (<CircularProgressBar {...{ ...props, percentComplete: props.percentComplete }} />));

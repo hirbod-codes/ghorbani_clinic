@@ -1,10 +1,10 @@
-import { useState, useContext, useEffect, useRef } from "react";
+import { useState, useContext, useEffect } from "react";
 import { DataGrid } from "../Components/DataGrid/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
 import { t } from "i18next";
-import { Button, CircularProgress, Fade, Grid, IconButton, Modal, Paper, Slide, Typography } from "@mui/material";
+import { Button, CircularProgress, Fade, Grid, Modal, Paper, Slide, Typography } from "@mui/material";
 import LoadingScreen from "../Components/LoadingScreen";
-import { GridActionsCellItem, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { GridActionsCellItem, GridColDef, GridColumnVisibilityModel, GridRenderCellParams } from "@mui/x-data-grid";
 import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../Contexts/ConfigurationContext";
 import { Patient } from "../../Electron/Database/Models/Patient";
@@ -14,12 +14,14 @@ import { resources } from "../../Electron/Database/Repositories/Auth/resources";
 import { ManagePatient } from "../Components/Patients/ManagePatient";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish } from "../Lib/Events";
+import { configAPI } from "../../Electron/Configuration/renderer/configAPI";
 
 export function Patients() {
     const auth = useContext(AuthContext)
     const configuration = useContext(ConfigurationContext)
 
     const [page, setPage] = useState({ offset: 0, limit: 25 })
+    const [hiddenColumns, setHiddenColumns] = useState<string[]>(['_id'])
 
     const [loading, setLoading] = useState<boolean>(true)
     const [patients, setPatients] = useState<Patient[]>([])
@@ -31,7 +33,7 @@ export function Patients() {
     const [showingAddress, setShowingAddress] = useState<string | undefined>(undefined)
     const [showingMH, setShowingMH] = useState<string[] | undefined>(undefined)
 
-    console.log('Patients', { configuration, patients, showingStringArray: showingAddress })
+    console.log('Patients', { configuration, patients, showingAddress })
 
     const init = async (offset: number, limit: number) => {
         setLoading(true)
@@ -62,8 +64,13 @@ export function Patients() {
         init(page.offset, page.limit).then(() => console.log('useEffect', 'end'))
     }, [page])
 
-    if (!patients || patients.length === 0)
-        return (<LoadingScreen />)
+    useEffect(() => {
+        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+            .then((c) => {
+                if (c?.columnVisibilityModels?.patients)
+                    setHiddenColumns(Object.entries(c.columnVisibilityModels.patients).filter(f => f[1] === false).map(arr => arr[0]))
+            })
+    }, [])
 
     const createsPatient = auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).create(resources.PATIENT)
     const updatesPatient = auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).update(resources.PATIENT)
@@ -73,34 +80,37 @@ export function Patients() {
         {
             field: 'address',
             type: 'actions',
-            width: 120,
             renderCell: (params: GridRenderCellParams<any, Date>) => (params.row.address ? <Button onClick={() => setShowingAddress(patients.find(p => p._id === params.row._id)?.address)}>{t('Show')}</Button> : null)
+        },
+        {
+            field: '_id',
+            hideable: false,
+
         },
         {
             field: 'medicalHistory',
             type: 'actions',
-            width: 120,
             renderCell: (params: GridRenderCellParams<any, Date>) => (params.row.medicalHistory && params.row.medicalHistory.length !== 0 ? <Button onClick={() => setShowingMH(patients.find(p => p._id === params.row._id)?.medicalHistory)}>{t('Show')}</Button> : null)
         },
         {
             field: 'birthDate',
             type: 'number',
-            valueFormatter: (ts: number) => fromUnixToFormat(configuration.get.locale, ts, DATE),
-            width: 200,
+            valueGetter: (ts: number) => fromUnixToFormat(configuration.get.locale, ts, DATE),
         },
         {
             field: 'createdAt',
             type: 'number',
-            valueFormatter: (ts: number) => fromUnixToFormat(configuration.get.locale, ts, DATE),
-            width: 200,
+            valueGetter: (ts: number) => fromUnixToFormat(configuration.get.locale, ts, DATE),
         },
         {
             field: 'updatedAt',
             type: 'number',
-            valueFormatter: (ts: number) => fromUnixToFormat(configuration.get.locale, ts, DATE),
-            width: 200,
+            valueGetter: (ts: number) => fromUnixToFormat(configuration.get.locale, ts, DATE),
         },
     ]
+
+    if (!patients || patients.length === 0)
+        return (<LoadingScreen />)
 
     return (
         <>
@@ -108,9 +118,16 @@ export function Patients() {
                 <Grid item xs={12} height={'100%'}>
                     <Paper sx={{ p: 1, height: '100%' }}>
                         <DataGrid
+                            name='patients'
                             data={patients}
                             hideFooter={false}
                             overWriteColumns={columns}
+                            loading={loading}
+                            serverSidePagination
+                            onPaginationModelChange={(m, d) => setPage({ offset: m.page, limit: m.pageSize })}
+                            orderedColumnsFields={['actions']}
+                            storeColumnVisibilityModel
+                            hiddenColumns={hiddenColumns}
                             customToolbar={[
                                 <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
                                 createsPatient && <Button onClick={() => setCreatingPatient(true)} startIcon={<AddOutlined />}>{t('Create')}</Button>,
@@ -146,12 +163,6 @@ export function Patients() {
                                     ]
                                 },
                             ]}
-                            autoSizing
-                            loading={loading}
-                            serverSidePagination
-                            onPaginationModelChange={(m, d) => setPage({ offset: m.page, limit: m.pageSize })}
-                            orderedColumnsFields={['actions']}
-                            hiddenColumns={['_id']}
                         />
                     </Paper>
                 </Grid>

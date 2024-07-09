@@ -1,75 +1,98 @@
-import { GridColDef } from '@mui/x-data-grid'
+import { GridColumnVisibilityModel, GridPaginationModel, GridToolbarColumnsButton, GridToolbarContainer, GridToolbarDensitySelector, GridToolbarExport, GridToolbarFilterButton, DataGrid as XDataGrid, useGridApiRef } from '@mui/x-data-grid';
 import { useState, useEffect } from 'react'
 import LoadingScreen from '../LoadingScreen'
-import { Box } from '@mui/material'
-import { DataGridCore } from './DataGridCore'
 import { DataGrid } from './types';
 import { getColumns } from './helpers'
+import { configAPI } from '../../../Electron/Configuration/renderer/configAPI';
 
-export function DataGrid({ data, idField = '_id', orderedColumnsFields, overWriteColumns, additionalColumns, hiddenColumns, autoSizing = true, customToolbar, hideFooter = true, loading = false, serverSidePagination = false, onPaginationMetaChange, onPaginationModelChange }: DataGrid) {
-    const [columns, setColumns] = useState<GridColDef<any>[] | undefined>(undefined)
+export function DataGrid({ name, data, idField = '_id', orderedColumnsFields, overWriteColumns, additionalColumns, hiddenColumns, storeColumnVisibilityModel = false, autosizeOptions, customToolbar, density = 'compact', hideFooter = true, loading = false, paginationModel, serverSidePagination = false, onPaginationMetaChange, onPaginationModelChange, columnVisibilityModel, onColumnVisibilityModelChange }: DataGrid) {
+    if (!autosizeOptions)
+        autosizeOptions = {
+            includeHeaders: true,
+            includeOutliers: true,
+            outliersFactor: 1,
+            expand: false,
+        }
 
-    useEffect(() => {
-        console.log('DataGrid', 'useEffect', 'start')
-        setColumns(getColumns(data, overWriteColumns, additionalColumns, orderedColumnsFields))
-        console.log('DataGrid', 'useEffect', 'end')
-    }, [overWriteColumns, additionalColumns, orderedColumnsFields])
+    const apiRef = useGridApiRef()
+    const [columnVisibilityModelState, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>()
+    const [paginationModelState, setPaginationModel] = useState<GridPaginationModel>({
+        page: 0,
+        pageSize: 25,
+    });
 
-    const dimensions: { [k: string]: any } = Object.fromEntries(columns?.map(c => ([c.field, null])) ?? [])
+    const columns = getColumns(data, overWriteColumns, additionalColumns, orderedColumnsFields)
 
-    console.log('DataGrid', { data, columns, dimensions })
+    console.log('DataGrid', { data, columns })
 
     if (!columns || columns?.length === 0)
         return (<LoadingScreen />)
 
     return (
         <>
-            {autoSizing && columns?.map((c, i) =>
-                <Box key={i} ref={ref => dimensions[c.field] = ref} style={{ display: 'inline', color: '#00000000', position: 'absolute', bottom: '0', left: '0' }}>
-                    {data.reduce((pv, cv, ci, arr) => {
-                        if (!cv[c.field])
-                            return undefined
+            <div style={{ height: '100%' }}>
+                <XDataGrid
+                    getRowId={(r) => r[idField]}
+                    columns={columns}
+                    rows={data}
+                    hideFooter={hideFooter ?? true}
+                    loading={loading ?? false}
+                    density={density}
+                    rowCount={serverSidePagination ? -1 : undefined}
+                    paginationMode={serverSidePagination ? 'server' : 'client'}
+                    pagination
+                    paginationModel={serverSidePagination ? (paginationModel ?? paginationModelState) : undefined}
+                    onPaginationMetaChange={onPaginationMetaChange}
+                    onPaginationModelChange={serverSidePagination
+                        ? (m, d) => {
+                            if (!paginationModel)
+                                setPaginationModel(m);
 
-                        let cvLength
+                            if (onPaginationModelChange)
+                                onPaginationModelChange(m, d)
+                        }
+                        : undefined
+                    }
+                    columnVisibilityModel={columnVisibilityModel ?? columnVisibilityModelState}
+                    onColumnVisibilityModelChange={async (m, d) => {
+                        await apiRef.current.autosizeColumns(autosizeOptions)
 
-                        if (typeof cv[c.field] === 'number' || typeof cv[c.field] === 'bigint')
-                            cvLength = cv[c.field]
-                        else if (Array.isArray(cv[c.field]) || typeof cv[c.field] === 'string')
-                            cvLength = cv[c.field].length
-                        else
-                            return undefined
+                        if (!columnVisibilityModel)
+                            setColumnVisibilityModel(m)
 
-                        let presentableValue = cv[c.field]
-                        if (c.valueGetter)
-                            presentableValue = c.valueGetter(cv[c.field] as never, cv, c, {} as any)
-                        if (c.valueFormatter)
-                            presentableValue = c.valueFormatter(cv[c.field] as never, cv, c, {} as any)
+                        if (storeColumnVisibilityModel) {
+                            const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+                            if (!c.columnVisibilityModels)
+                                c.columnVisibilityModels = {}
+                            c.columnVisibilityModels[name] = m;
+                            (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig({ ...c })
+                        }
 
-                        if (!pv)
-                            return { max: cvLength, v: presentableValue }
-
-                        if (cvLength > pv.max)
-                            return { max: cvLength, v: presentableValue }
-                        else
-                            return pv
-                    }, null)?.v.toString()}
-                </Box>
-            )}
-            <DataGridCore
-                data={data}
-                columns={columns ?? []}
-                idField={idField}
-                orderedColumnsFields={orderedColumnsFields}
-                hiddenColumns={hiddenColumns}
-                customToolbar={customToolbar}
-                hideFooter={hideFooter}
-                loading={loading}
-                autoSizing={autoSizing}
-                dimensions={dimensions}
-                serverSidePagination={serverSidePagination}
-                onPaginationMetaChange={onPaginationMetaChange}
-                onPaginationModelChange={onPaginationModelChange}
-            />
+                        if (onColumnVisibilityModelChange)
+                            onColumnVisibilityModelChange(m, d)
+                    }}
+                    initialState={{
+                        columns: {
+                            orderedFields: orderedColumnsFields,
+                            columnVisibilityModel: Object.fromEntries(hiddenColumns?.map(hc => [hc, false]) ?? [])
+                        }
+                    }}
+                    slots={{
+                        toolbar: () => (
+                            <GridToolbarContainer>
+                                <GridToolbarColumnsButton />
+                                <GridToolbarFilterButton />
+                                <GridToolbarDensitySelector />
+                                <GridToolbarExport />
+                                {...(customToolbar ?? [])}
+                            </GridToolbarContainer>
+                        )
+                    }}
+                    autosizeOnMount
+                    apiRef={apiRef}
+                    autosizeOptions={autosizeOptions}
+                />
+            </div>
         </>
     )
 }

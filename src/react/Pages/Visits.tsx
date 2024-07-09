@@ -10,6 +10,7 @@ import { ConfigurationContext } from "../Contexts/ConfigurationContext";
 import { Visit } from "../../Electron/Database/Models/Visit";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish } from "../Lib/Events";
+import { configAPI } from "../../Electron/Configuration/renderer/configAPI";
 
 export function Visits() {
     const configuration = useContext(ConfigurationContext)
@@ -17,10 +18,12 @@ export function Visits() {
     const [loading, setLoading] = useState<boolean>(true)
     const [visits, setVisits] = useState<Visit[]>([])
 
+    const [hiddenColumns, setHiddenColumns] = useState<string[]>(['_id'])
+
     // ID of the visit that is taken for its diagnosis representation
     const [showingDiagnosis, setShowingDiagnosis] = useState<string | undefined>(undefined)
 
-    console.log('Visits', {  configuration, visits, showingDiagnosis })
+    console.log('Visits', { configuration, visits, showingDiagnosis })
 
     const init = async (offset: number, limit: number) => {
         setLoading(true)
@@ -49,6 +52,14 @@ export function Visits() {
     useEffect(() => {
         console.log('Visits', 'useEffect', 'start');
         init(0, 25).then(() => console.log('useEffect', 'end'))
+    }, [])
+
+    useEffect(() => {
+        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+            .then((c) => {
+                if (c?.columnVisibilityModels?.patients)
+                    setHiddenColumns(Object.entries(c.columnVisibilityModels.patients).filter(f => f[1] === false).map(arr => arr[0]))
+            })
     }, [])
 
     if (!visits || visits.length === 0)
@@ -87,15 +98,16 @@ export function Visits() {
                 <Grid item xs={12} height={'100%'}>
                     <Paper sx={{ p: 1, height: '100%' }}>
                         <DataGrid
+                            name='visits'
                             data={visits}
                             hideFooter={false}
                             overWriteColumns={columns}
-                            autoSizing
                             loading={loading}
                             serverSidePagination
                             onPaginationModelChange={async (m, d) => await init(m.page, m.pageSize)}
                             orderedColumnsFields={['actions', 'patientId', 'due']}
-                            hiddenColumns={['_id']}
+                            storeColumnVisibilityModel
+                            hiddenColumns={hiddenColumns}
                         />
                     </Paper>
                 </Grid>

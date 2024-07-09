@@ -1,7 +1,7 @@
 import { Box, useTheme } from "@mui/material";
 import { ReactNode } from 'react';
 
-export function CircularProgressBar({percentComplete, size = 50, strokeWidth = 5, colors, children}: {
+export function CircularProgressBar({ percentComplete, size = 50, strokeWidth = 5, colors, children }: {
     percentComplete: number;
     size?: number;
     strokeWidth?: number;
@@ -39,7 +39,8 @@ export function CircularProgressBar({percentComplete, size = 50, strokeWidth = 5
                         strokeDasharray={circumference}
                         strokeDashoffset={0}
                         fill="transparent"
-                        stroke={colors.base} />
+                        stroke={colors.base}
+                    />
                     <circle
                         strokeWidth={strokeWidth}
                         r={radius}
@@ -48,7 +49,8 @@ export function CircularProgressBar({percentComplete, size = 50, strokeWidth = 5
                         strokeDasharray={circumference}
                         strokeDashoffset={offset}
                         fill="transparent"
-                        stroke={colors.progress} />
+                        stroke={colors.progress}
+                    />
                 </svg>
                 <Box
                     sx={{

@@ -17,6 +17,7 @@ import { GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
 import { Home } from "./Home";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish } from "../Lib/Events";
+import { configAPI } from "../../Electron/Configuration/renderer/configAPI";
 
 export function Users() {
     const configuration = useContext(ConfigurationContext)
@@ -42,6 +43,8 @@ export function Users() {
 
     const [rows, setRows] = useState([])
     const [loading, setLoading] = useState(true)
+
+    const [hiddenColumns, setHiddenColumns] = useState<string[]>(['_id'])
 
     const fetchRoles = async (): Promise<string[] | undefined | null> => {
         setLoading(true)
@@ -89,6 +92,14 @@ export function Users() {
 
     useEffect(() => {
         refresh()
+    }, [])
+
+    useEffect(() => {
+        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+            .then((c) => {
+                if (c?.columnVisibilityModels?.patients)
+                    setHiddenColumns(Object.entries(c.columnVisibilityModels.patients).filter(f => f[1] === false).map(arr => arr[0]))
+            })
     }, [])
 
     const deleteUser = async (id: string) => {
@@ -251,11 +262,13 @@ export function Users() {
                     <Grid item xs={readsRole ? 8 : 12} sm={readsRole ? 10 : 12}>
                         <Paper sx={{ p: 1, height: '100%' }}>
                             <DataGrid
+                                name='users'
                                 data={rows}
                                 overWriteColumns={columns}
-                                orderedColumnsFields={['actions']}
                                 loading={loading}
-                                hiddenColumns={['_id']}
+                                orderedColumnsFields={['actions']}
+                                storeColumnVisibilityModel
+                                hiddenColumns={hiddenColumns}
                                 additionalColumns={(deletesUser || updatesUser) ? [{
                                     field: 'actions',
                                     headerName: '',
