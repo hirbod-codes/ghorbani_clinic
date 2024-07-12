@@ -60,20 +60,11 @@ export function SearchPatientField() {
                     ),
                 }} />
 
-            <Modal
-                onClose={() => { setPatient(undefined); setSocialId(undefined) }}
+            <ManagePatient
                 open={patient !== undefined}
-                closeAfterTransition
-                disableAutoFocus
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
-                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
-            >
-                <Slide direction={patient !== undefined ? 'up' : 'down'} in={patient !== undefined} timeout={250}>
-                    <Paper sx={{ width: '60%', maxHeight: '80%', overflow: 'auto', padding: '0.5rem 2rem' }}>
-                        <ManagePatient inputPatient={patient} />
-                    </Paper>
-                </Slide>
-            </Modal>
+                onClose={() => { setPatient(undefined); setSocialId(undefined) }}
+                inputPatient={patient}
+            />
         </>
     );
 }

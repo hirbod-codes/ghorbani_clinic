@@ -2,7 +2,7 @@ import { useState, useContext, useEffect } from "react";
 import { DataGrid } from "../Components/DataGrid/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
 import { t } from "i18next";
-import { Button, CircularProgress, Fade, Grid, Modal, Paper, Slide, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Fade, Grid, Modal, Paper, Slide, Typography } from "@mui/material";
 import LoadingScreen from "../Components/LoadingScreen";
 import { GridActionsCellItem, GridColDef, GridColumnVisibilityModel, GridRenderCellParams } from "@mui/x-data-grid";
 import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
@@ -15,6 +15,7 @@ import { ManagePatient } from "../Components/Patients/ManagePatient";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish } from "../Lib/Events";
 import { configAPI } from "../../Electron/Configuration/renderer/configAPI";
+import { ArrowBox } from "../Components/ArrowBox/ArrowBox";
 
 export function Patients() {
     const auth = useContext(AuthContext)
@@ -33,13 +34,25 @@ export function Patients() {
     const [showingAddress, setShowingAddress] = useState<string | undefined>(undefined)
     const [showingMH, setShowingMH] = useState<string[] | undefined>(undefined)
 
-    console.log('Patients', { configuration, patients, showingAddress })
+    console.log('Patients', {
+        auth,
+        configuration,
+        page,
+        hiddenColumns,
+        loading,
+        patients,
+        editingPatientId,
+        creatingPatient,
+        deletingPatientId,
+        showingAddress,
+        showingMH
+    })
 
     const init = async (offset: number, limit: number) => {
         setLoading(true)
-        console.log('init', 'start');
+        console.log('Patients', 'init', 'start');
         const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPatients(offset, limit)
-        console.log('fetchPatients', 'res', res)
+        console.log('Patients', 'fetchPatients', 'res', res)
         setLoading(false)
 
         if (res.code !== 200 || !res.data) {
@@ -56,13 +69,16 @@ export function Patients() {
         })
         setPatients(res.data)
 
-        console.log('init', 'end');
+        console.log('Patients', 'init', 'end');
     }
 
     useEffect(() => {
         console.log('Patients', 'useEffect', 'start');
-        init(page.offset, page.limit).then(() => console.log('useEffect', 'end'))
-    }, [page])
+        if (!auth || !auth.user || !auth.accessControl)
+            return
+
+        init(page.offset, page.limit).then(() => console.log('Patients', 'useEffect', 'end'))
+    }, [page, auth])
 
     useEffect(() => {
         (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
@@ -71,6 +87,9 @@ export function Patients() {
                     setHiddenColumns(Object.entries(c.columnVisibilityModels.patients).filter(f => f[1] === false).map(arr => arr[0]))
             })
     }, [])
+
+    if (!auth || !auth.user || !auth.accessControl)
+        return (<LoadingScreen />)
 
     const createsPatient = auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).create(resources.PATIENT)
     const updatesPatient = auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).update(resources.PATIENT)
@@ -168,20 +187,11 @@ export function Patients() {
                 </Grid>
             </Grid>
 
-            <Modal
-                onClose={() => { setEditingPatientId(undefined); setCreatingPatient(false) }}
+            <ManagePatient
                 open={editingPatientId !== undefined || creatingPatient}
-                closeAfterTransition
-                disableAutoFocus
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
-                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
-            >
-                <Slide direction={editingPatientId !== undefined || creatingPatient ? 'up' : 'down'} in={editingPatientId !== undefined || creatingPatient} timeout={250}>
-                    <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
-                        <ManagePatient inputPatient={patients.find(p => p._id && p._id === editingPatientId)} />
-                    </Paper>
-                </Slide>
-            </Modal>
+                onClose={() => { setEditingPatientId(undefined); setCreatingPatient(false) }}
+                inputPatient={patients.find(p => p._id && p._id === editingPatientId)}
+            />
 
             <Modal
                 onClose={() => setShowingAddress(undefined)}
