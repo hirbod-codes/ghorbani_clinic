@@ -5,6 +5,7 @@ import { ArrowBox } from "../ArrowBox/ArrowBox";
 import { useSpring, animated, easings } from 'react-spring';
 import useMeasure from 'react-use-measure'
 import { MedicalHistory } from "../../../Electron/Database/Models/Patient";
+import LoadingScreen from "../LoadingScreen";
 
 export type MedicalHistoryProps = {
     open: boolean;
@@ -16,10 +17,9 @@ export type MedicalHistoryProps = {
 export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }: MedicalHistoryProps) {
     const [openDrawer, setOpenDrawer] = useState(false)
 
+    const [medicalHistory, setMedicalHistory] = useState<MedicalHistory | undefined>(inputMedicalHistory ?? { description: '', histories: [] })
 
-    const [medicalHistory, setMedicalHistory] = useState<MedicalHistory>(inputMedicalHistory)
-
-    const [fetchedHistories, setFetchedHistories] = useState<string[]>(['aaa', 'bbb', 'ccc'])
+    const [fetchedHistories, setFetchedHistories] = useState<string[] | undefined>(undefined)
 
     const [containerRef, { height }] = useMeasure()
 
@@ -30,6 +30,22 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
 
     useEffect(() => {
     }, [])
+
+    console.log('MedicalHistory', { openDrawer, medicalHistory, fetchedHistories })
+
+    const toggleHistory = (v: boolean, fh: string) => {
+        if (v && medicalHistory.histories.find(f => f === fh) === undefined) {
+            medicalHistory.histories.push(fh)
+            setMedicalHistory({ ...medicalHistory })
+            if (onChange)
+                onChange({ ...medicalHistory })
+        }
+        else if (!v && medicalHistory.histories.find(f => f === fh) !== undefined) {
+            setMedicalHistory({ ...medicalHistory, histories: medicalHistory.histories.filter(f => f !== fh) })
+            if (onChange)
+                onChange({ ...medicalHistory, histories: medicalHistory.histories.filter(f => f !== fh) })
+        }
+    }
 
     return (
         <>
@@ -45,30 +61,35 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                     <Box sx={{ width: '80%', height: '80%', position: 'relative', overflow: 'hidden', p: 0, m: 0 }} ref={containerRef}>
                         <animated.div style={{ position: 'relative', width: '12rem', left: drawerAnimation.left, zIndex: 100 }}>
                             <Paper sx={{ height, padding: '0.5rem 2rem', zIndex: 101 }}>
-                                <List sx={{ pt: 3 }}>
-                                    {fetchedHistories.map((fh, i) =>
-                                        <ListItem key={i} disablePadding>
-                                            <ListItemButton dense>
-                                                <ListItemIcon>
-                                                    <Checkbox
-                                                        edge="start"
-                                                        checked={medicalHistory?.histories.find(f => f === fh) !== undefined}
-                                                        onChange={(e, v) => {
-                                                            if (v && medicalHistory?.histories.find(f => f === fh) === undefined) {
-                                                                medicalHistory.histories.push(fh)
-                                                                setMedicalHistory({ ...medicalHistory })
-                                                            }
-                                                            else if (!v && medicalHistory?.histories.find(f => f === fh) !== undefined)
-                                                                setMedicalHistory({ ...medicalHistory, histories: medicalHistory.histories.filter(f => f !== fh) })
-                                                        }}
-                                                        disableRipple
-                                                    />
-                                                </ListItemIcon>
-                                                <ListItemText primary={fh} />
-                                            </ListItemButton>
-                                        </ListItem>
-                                    )}
-                                </List>
+                                {fetchedHistories === undefined
+                                    ? <LoadingScreen />
+                                    :
+                                    <List sx={{ pt: 3 }}>
+                                        {fetchedHistories.map((fh, i) =>
+                                            <ListItem key={i} disablePadding>
+                                                <ListItemButton
+                                                    dense
+                                                    onClick={() => {
+                                                        const v = !medicalHistory.histories.find(f => f === fh) !== undefined
+                                                        toggleHistory(v, fh)
+                                                    }}
+                                                >
+                                                    <ListItemIcon>
+                                                        <Checkbox
+                                                            edge="start"
+                                                            checked={medicalHistory.histories.find(f => f === fh) !== undefined}
+                                                            onChange={(e, v) => {
+                                                                toggleHistory(v, fh)
+                                                            }}
+                                                            disableRipple
+                                                        />
+                                                    </ListItemIcon>
+                                                    <ListItemText primary={fh} />
+                                                </ListItemButton>
+                                            </ListItem>
+                                        )}
+                                    </List>
+                                }
                             </Paper>
                         </animated.div>
 
@@ -85,8 +106,8 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                                                 {t('medicalHistory')}
                                             </Typography>
                                             {medicalHistory.histories.map((h, i) =>
-                                                <ListItem>
-                                                    <ListItemText key={i} primary={h} />
+                                                <ListItem key={i}>
+                                                    <ListItemText primary={h} />
                                                 </ListItem>
                                             )}
                                         </List>
@@ -118,6 +139,8 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                                             fullWidth
                                             onChange={(e) => {
                                                 setMedicalHistory({ ...medicalHistory, description: e.target.value })
+                                                if (onChange)
+                                                    onChange({ ...medicalHistory, description: e.target.value })
                                             }}
                                         />
                                     </Paper>

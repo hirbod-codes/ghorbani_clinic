@@ -9,7 +9,7 @@ export default function LoadingScreen({ children }: { children?: ReactNode }) {
                 direction="column"
                 alignItems="center"
                 justifyContent="center"
-                sx={{ border: '1px solid black', minHeight: '100vh' }}
+                sx={{ minHeight: '100%' }}
             >
                 <CircularProgress />
                 {children}

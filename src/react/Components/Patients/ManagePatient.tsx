@@ -65,13 +65,6 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
         setPatient(inputPatient)
     }, [inputPatient])
 
-    // if (!patient && !inputPatient)
-    //     setPatient({
-    //         schemaVersion: 'v0.0.1',
-    //         createdAt: DateTime.local({ zone: locale.zone }).toUnixInteger(),
-    //         updatedAt: DateTime.local({ zone: locale.zone }).toUnixInteger(),
-    //     })
-
     const submit = async () => {
         let id = undefined, response = undefined
 
@@ -181,12 +174,12 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                         <TextField variant='standard' onChange={(e) => setPatient({ ...patient, lastName: e.target.value })} id='lastName' value={patient?.lastName ?? ''} sx={{ width: '7rem' }} />
                                                     </Stack>
 
-                                                    <Button sx={{ width: '7rem' }} variant='outlined' onClick={() => setShowAddress(true)}>
+                                                    <Button sx={{ width: 'fit-content' }} variant='outlined' onClick={() => setShowAddress(true)}>
                                                         {t('address')}
                                                     </Button>
 
                                                     {/* Medical History */}
-                                                    <Button sx={{ width: '7rem' }} variant='outlined' onClick={() => setShowMedicalHistory(true)}>
+                                                    <Button sx={{ width: 'fit-content' }} variant='outlined' onClick={() => setShowMedicalHistory(true)}>
                                                         {t('medicalHistory')}
                                                     </Button>
                                                     <MedicalHistory
@@ -199,14 +192,15 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                     {/* Files */}
                                                     <Stack direction='row' spacing={1} divider={<Divider orientation='vertical' variant='middle' flexItem />} alignItems='center'>
                                                         {files.length !== 0 &&
-                                                            <Button disabled variant='text'>
+                                                            <Button disabled sx={{ width: 'fit-content' }} variant='outlined' >
                                                                 {files.length} files are added
                                                             </Button>
                                                         }
                                                         <Button
                                                             component="label"
+                                                            sx={{ width: 'fit-content' }}
+                                                            variant='outlined'
                                                             role={undefined}
-                                                            variant="text"
                                                             tabIndex={-1}
                                                             startIcon={<AddOutlined />}
                                                         >
@@ -221,7 +215,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                             }} />
                                                         </Button>
                                                         {files.length !== 0 &&
-                                                            <Button variant="text" onClick={() => setFiles([])}>
+                                                            <Button sx={{ width: 'fit-content' }} variant='outlined' onClick={() => setFiles([])}>
                                                                 reset documents
                                                             </Button>
                                                         }
