@@ -174,9 +174,11 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                         <TextField variant='standard' onChange={(e) => setPatient({ ...patient, lastName: e.target.value })} id='lastName' value={patient?.lastName ?? ''} sx={{ width: '7rem' }} />
                                                     </Stack>
 
+                                                    {/* Address */}
                                                     <Button sx={{ width: 'fit-content' }} variant='outlined' onClick={() => setShowAddress(true)}>
                                                         {t('address')}
                                                     </Button>
+                                                    <Address open={showAddress} onClose={() => setShowAddress(false)} defaultAddress={patient?.address} onChange={(address) => setPatient({ ...patient, address })} />
 
                                                     {/* Medical History */}
                                                     <Button sx={{ width: 'fit-content' }} variant='outlined' onClick={() => setShowMedicalHistory(true)}>
@@ -311,20 +313,6 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                         </Dialog>
                                     </>
                             )}
-                    </Paper>
-                </Slide>
-            </Modal >
-            <Modal
-                onClose={() => setShowAddress(false)}
-                open={showAddress}
-                closeAfterTransition
-                disableAutoFocus
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
-                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
-            >
-                <Slide direction={showAddress ? 'up' : 'down'} in={showAddress} timeout={250}>
-                    <Paper sx={{ padding: '0.5rem 2rem', overflow: 'auto' }}>
-                        <Address defaultAddress={patient?.address} onChange={(address) => setPatient({ ...patient, address })} />
                     </Paper>
                 </Slide>
             </Modal>

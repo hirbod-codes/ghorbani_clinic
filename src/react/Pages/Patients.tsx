@@ -7,7 +7,7 @@ import LoadingScreen from "../Components/LoadingScreen";
 import { GridActionsCellItem, GridColDef, GridColumnVisibilityModel, GridRenderCellParams } from "@mui/x-data-grid";
 import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../Contexts/ConfigurationContext";
-import { Patient } from "../../Electron/Database/Models/Patient";
+import { Patient, PatientsMedicalHistory } from "../../Electron/Database/Models/Patient";
 import { AddOutlined, DeleteOutline, EditOutlined, RefreshOutlined } from "@mui/icons-material";
 import { AuthContext } from "../Contexts/AuthContext";
 import { resources } from "../../Electron/Database/Repositories/Auth/resources";
@@ -15,7 +15,8 @@ import { ManagePatient } from "../Components/Patients/ManagePatient";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish } from "../Lib/Events";
 import { configAPI } from "../../Electron/Configuration/renderer/configAPI";
-import { ArrowBox } from "../Components/ArrowBox/ArrowBox";
+import { MedicalHistory } from "../Components/Patients/MedicalHistory";
+import { Address } from "../Components/Patients/Address";
 
 export function Patients() {
     const auth = useContext(AuthContext)
@@ -31,8 +32,9 @@ export function Patients() {
     const [creatingPatient, setCreatingPatient] = useState<boolean>(false)
     const [deletingPatientId, setDeletingPatientId] = useState<string | undefined>(undefined)
 
-    const [showingAddress, setShowingAddress] = useState<string | undefined>(undefined)
-    const [showingMH, setShowingMH] = useState<string[] | undefined>(undefined)
+    const [activePatientId, setActivePatientId] = useState<string | undefined>(undefined)
+    const [showingAddress, setShowingAddress] = useState<boolean>(false)
+    const [showingMH, setShowingMH] = useState<boolean>(false)
 
     console.log('Patients', {
         auth,
@@ -60,8 +62,18 @@ export function Patients() {
                 severity: 'error',
                 message: t('failedToFetchPatients')
             })
+
+            publish(RESULT_EVENT_NAME, {
+                severity: 'success',
+                message: t('successfullyFetchedPatients')
+            })
             return
         }
+
+        publish(RESULT_EVENT_NAME, {
+            severity: 'error',
+            message: t('failedToFetchPatients')
+        })
 
         publish(RESULT_EVENT_NAME, {
             severity: 'success',
@@ -99,7 +111,10 @@ export function Patients() {
         {
             field: 'address',
             type: 'actions',
-            renderCell: (params: GridRenderCellParams<any, Date>) => (params.row.address ? <Button onClick={() => setShowingAddress(patients.find(p => p._id === params.row._id)?.address)}>{t('Show')}</Button> : null)
+            renderCell: (params: GridRenderCellParams<any, Date>) => (params.row.address ? <Button onClick={() => {
+                setActivePatientId(patients.find(p => p._id === params.row._id)?._id as string)
+                setShowingAddress(true)
+            }}>{t('Show')}</Button> : null)
         },
         {
             field: '_id',
@@ -109,7 +124,10 @@ export function Patients() {
         {
             field: 'medicalHistory',
             type: 'actions',
-            renderCell: (params: GridRenderCellParams<any, Date>) => (params.row.medicalHistory && params.row.medicalHistory.length !== 0 ? <Button onClick={() => setShowingMH(patients.find(p => p._id === params.row._id)?.medicalHistory)}>{t('Show')}</Button> : null)
+            renderCell: (params: GridRenderCellParams<any, Date>) => (params.row.medicalHistory && params.row.medicalHistory.length !== 0 ? <Button onClick={() => {
+                setActivePatientId(patients.find(p => p._id === params.row._id)?._id as string)
+                setShowingMH(true)
+            }}>{t('Show')}</Button> : null)
         },
         {
             field: 'birthDate',
@@ -193,43 +211,66 @@ export function Patients() {
                 inputPatient={patients.find(p => p._id && p._id === editingPatientId)}
             />
 
-            <Modal
-                onClose={() => setShowingAddress(undefined)}
-                open={showingAddress !== undefined}
-                closeAfterTransition
-                disableAutoFocus
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
-                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
-            >
-                <Fade in={showingAddress !== undefined} timeout={250}>
-                    <Paper sx={{ width: '60%', overflowY: 'auto', padding: '0.5rem 2rem' }}>
-                        {showingAddress &&
-                            <Typography variant='body1'>
-                                {showingAddress}
-                            </Typography>
-                        }
-                    </Paper>
-                </Fade>
-            </Modal>
+            <Address
+                open={showingAddress}
+                onClose={() => {
+                    setActivePatientId(undefined)
+                    setShowingAddress(false)
+                }}
+                defaultAddress={patients.find(f => f._id === activePatientId)?.address}
+                onChange={async (address) => {
+                    const p = patients.find(f => f._id === activePatientId)
+                    if (!p)
+                        return
 
-            <Modal
-                onClose={() => setShowingMH(undefined)}
-                open={showingMH !== undefined}
-                closeAfterTransition
-                disableAutoFocus
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
-                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
-            >
-                <Fade in={showingMH !== undefined} timeout={250}>
-                    <Paper sx={{ width: '60%', overflowY: 'auto', padding: '0.5rem 2rem' }}>
-                        {showingMH && showingMH?.map((mh, i) =>
-                            <Typography key={i} variant='body1'>
-                                {mh}
-                            </Typography>
-                        )}
-                    </Paper>
-                </Fade>
-            </Modal>
+                    const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updatePatient({ ...p, address: address })
+                    if (res.code !== 200 || !res.data.acknowledged || res.data.matchedCount !== 1) {
+                        publish(RESULT_EVENT_NAME, {
+                            severity: 'error',
+                            message: t('failedToUpdatePatientAddress')
+                        })
+
+                        return
+                    }
+
+                    publish(RESULT_EVENT_NAME, {
+                        severity: 'success',
+                        message: t('successfullyUpdatedPatientAddress')
+                    })
+
+                    setActivePatientId(undefined)
+                    setShowingMH(false)
+                }}
+            />
+
+            <MedicalHistory
+                inputMedicalHistory={patients.find(f => f._id === activePatientId)?.medicalHistory}
+                open={showingMH}
+                onClose={() => setShowingMH(false)}
+                onChange={async (mh) => {
+                    const p = patients.find(f => f._id === activePatientId)
+                    if (!p)
+                        return
+
+                    const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updatePatient({ ...p, medicalHistory: mh })
+                    if (res.code !== 200 || !res.data.acknowledged || res.data.matchedCount !== 1) {
+                        publish(RESULT_EVENT_NAME, {
+                            severity: 'error',
+                            message: t('failedToUpdatePatientMedicalHistory')
+                        })
+
+                        return
+                    }
+
+                    publish(RESULT_EVENT_NAME, {
+                        severity: 'success',
+                        message: t('successfullyUpdatedPatientMedicalHistory')
+                    })
+
+                    setActivePatientId(undefined)
+                    setShowingMH(false)
+                }}
+            />
         </>
     )
 }

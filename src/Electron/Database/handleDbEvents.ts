@@ -4,7 +4,7 @@ import { MedicalHistoryRepository } from "./Repositories/MedicalHistories/Medica
 import { VisitRepository } from "./Repositories/Visits/VisitRepository";
 import { FileRepository } from "./Repositories/Files/FileRepository";
 import { MongoDB } from "./mongodb";
-import { seedPatientsVisits, seedUsersRoles } from "./seed";
+import { seedMedicalHistories, seedPatientsVisits, seedUsersRoles } from "./seed";
 import { UsersRepository } from "./Repositories/Users/UsersRepository";
 import { PrivilegesRepository } from "./Repositories/Privileges/PrivilegesRepository";
 import { AuthRepository } from "./Repositories/Auth/AuthRepository";
@@ -34,6 +34,7 @@ export async function handleDbEvents() {
     if (app.isPackaged)
         return
 
+    await seedMedicalHistories(await db.getMedicalHistoriesCollection())
     await seedUsersRoles(await db.getUsersCollection(), await db.getPrivilegesCollection())
     await seedPatientsVisits(50, await db.getPatientsCollection(), await db.getVisitsCollection());
 }

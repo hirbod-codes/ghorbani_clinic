@@ -30,15 +30,16 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
 
     const [containerRef, { height }] = useMeasure()
 
-    const drawerAnimation = useSpring({
-        left: openDrawer ? '0' : '-12rem',
+    const drawerAnimationLeft = useSpring({
+        left: openDrawer ? '0' : '-50%',
         config: { easing: easings.easeInBack }
     })
 
     const init = async () => {
         setLoading(true)
-
         const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getMedicalHistories()
+        setLoading(false)
+
         if (res.code !== 200) {
             publish(RESULT_EVENT_NAME, {
                 severity: 'error',
@@ -148,8 +149,8 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
             >
                 <Slide direction={open ? 'up' : 'down'} in={open} timeout={250}>
                     <Box sx={{ width: '80%', height: '80%', position: 'relative', overflow: 'hidden', p: 0, m: 0 }} ref={containerRef}>
-                        <animated.div style={{ position: 'relative', width: '12rem', left: drawerAnimation.left, zIndex: 100 }}>
-                            <Paper sx={{ height, padding: '0.5rem 2rem', zIndex: 101 }}>
+                        <animated.div style={{ position: 'relative', width: '50%', left: drawerAnimationLeft.left, zIndex: 100 }}>
+                            <Paper sx={{ height, padding: '0.5rem 2rem', overflow: 'auto', zIndex: 101 }}>
                                 {loading
                                     ? <LoadingScreen />
                                     :
@@ -158,7 +159,7 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                                             ?
                                             <LoadingScreen>
                                                 {!loading &&
-                                                    <Button variant="outlined" onClick={async () => await init()}>
+                                                    <Button variant="outlined" onClick={async () => await init()} sx={{ mt: 1 }}>
                                                         {t('tryAgain')}
                                                     </Button>
                                                 }
