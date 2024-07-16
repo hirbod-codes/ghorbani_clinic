@@ -9,7 +9,9 @@ import LoadingScreen from "../LoadingScreen";
 import { RendererDbAPI } from "../../../Electron/Database/handleDbRendererEvents";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
-import { AddOutlined } from "@mui/icons-material";
+import { AddOutlined, DeleteOutlined, EditOutlined } from "@mui/icons-material";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 export type MedicalHistoryProps = {
     open: boolean;
@@ -29,6 +31,8 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
     const [fetchedHistories, setFetchedHistories] = useState<string[] | undefined>(undefined)
 
     const [containerRef, { height }] = useMeasure()
+
+    const [editing, setEditing] = useState<boolean>(false)
 
     const drawerAnimationLeft = useSpring({
         left: openDrawer ? '0' : '-50%',
@@ -101,6 +105,11 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                                 <TextField fullWidth variant='standard' type='text' onChange={(e) => setAddingMedicalHistory(e.target.value)} />
                             </Grid>
                             <Grid item xs={6}>
+                                <Button fullWidth variant='outlined' color='error' onClick={() => setAddingMedicalHistory(undefined)}>
+                                    {t('cancel')}
+                                </Button>
+                            </Grid>
+                            <Grid item xs={6}>
                                 <Button fullWidth variant='outlined' color='success' onClick={async () => {
                                     if (!addingMedicalHistory || addingMedicalHistory.trim() === '')
                                         return
@@ -129,11 +138,6 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                                     {addingMedicalHistoryLoading ? <CircularProgress /> : t('add')}
                                 </Button>
                             </Grid>
-                            <Grid item xs={6}>
-                                <Button fullWidth variant='outlined' color='error' onClick={() => setAddingMedicalHistory(undefined)}>
-                                    {t('cancel')}
-                                </Button>
-                            </Grid>
                         </Grid>
                     </Paper>
                 </Slide>
@@ -150,7 +154,7 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                 <Slide direction={open ? 'up' : 'down'} in={open} timeout={250}>
                     <Box sx={{ width: '80%', height: '80%', position: 'relative', overflow: 'hidden', p: 0, m: 0 }} ref={containerRef}>
                         <animated.div style={{ position: 'relative', width: '50%', left: drawerAnimationLeft.left, zIndex: 100 }}>
-                            <Paper sx={{ height, padding: '0.5rem 2rem', overflow: 'auto', zIndex: 101 }}>
+                            <Paper sx={{ height, padding: '0.5rem 0rem', overflow: 'auto', zIndex: 101 }}>
                                 {loading
                                     ? <LoadingScreen />
                                     :
@@ -165,9 +169,17 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                                                 }
                                             </LoadingScreen>
                                             :
-                                            <List sx={{ pt: 3 }}>
+                                            <List sx={{ pt: 3 }} dense>
                                                 {fetchedHistories.map((fh, i) =>
-                                                    <ListItem key={i} disablePadding>
+                                                    <ListItem
+                                                        key={i}
+                                                        disablePadding
+                                                        secondaryAction={
+                                                            <IconButton>
+                                                                <DeleteOutlined />
+                                                            </IconButton>
+                                                        }
+                                                    >
                                                         <ListItemButton
                                                             dense
                                                             onClick={() => {
@@ -185,23 +197,18 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                                                                     disableRipple
                                                                 />
                                                             </ListItemIcon>
-                                                            <ListItemText primary={fh} />
-                                                            <ListItemIcon>
-                                                                <Checkbox
-                                                                    edge="start"
-                                                                    checked={medicalHistory.histories.find(f => f === fh) !== undefined}
-                                                                    onChange={(e, v) => {
-                                                                        toggleHistory(v, fh)
-                                                                    }}
-                                                                    disableRipple
-                                                                />
-                                                            </ListItemIcon>
+                                                            <ListItemText primary={fh} primaryTypographyProps={{
+                                                                style: {
+                                                                    whiteSpace: 'nowrap',
+                                                                    overflow: 'auto'
+                                                                }
+                                                            }} />
                                                         </ListItemButton>
                                                     </ListItem>
                                                 )}
                                                 <Divider variant='middle' />
                                                 <ListItem>
-                                                    <Stack direction='row' justifyContent='center'>
+                                                    <Stack direction='row' justifyContent='center' sx={{ width: '100%' }}>
                                                         <IconButton onClick={() => setAddingMedicalHistory('')}>
                                                             {addingMedicalHistory ? <CircularProgress /> : <AddOutlined />}
                                                         </IconButton>
@@ -217,10 +224,10 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                             <ArrowBox />
                         </Box>
 
-                        <Paper sx={{ position: 'absolute', top: 0, width: '100%', height: '100%', padding: '0.5rem 2rem', overflow: 'auto' }} onClick={() => { if (openDrawer) setOpenDrawer(false) }}>
+                        <Paper sx={{ position: 'absolute', top: 0, width: '100%', height: '100%', padding: '0.5rem 2rem', overflow: 'hidden' }} onClick={() => { if (openDrawer) setOpenDrawer(false) }}>
                             <Grid container spacing={1} p={1} sx={{ height: '100%' }}>
                                 <Grid item md={5}>
-                                    <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3 }}>
+                                    <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3, overflow: 'auto' }}>
                                         <List>
                                             <Typography variant='h4'>
                                                 {t('medicalHistory')}
@@ -240,10 +247,36 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
 
                                 <Grid item md={5}>
                                     <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3 }}>
-                                        <Typography variant='h4' height={'10%'}>
-                                            {t('description')}
-                                        </Typography>
-                                        <TextField
+                                        <Stack direction='column' sx={{ height: '100%' }}>
+                                            <Typography variant='h4' height={'10%'}>
+                                                {t('description')}
+                                            </Typography>
+                                            <IconButton onClick={() => setEditing(!editing)}>
+                                                <EditOutlined />
+                                            </IconButton>
+
+                                            {
+                                                editing
+                                                    ?
+                                                    <ReactQuill
+                                                        value={medicalHistory.description ?? ''}
+                                                        style={{ flexGrow: 2 }}
+                                                        onChange={(a) => {
+                                                            setMedicalHistory({ ...medicalHistory, description: a })
+
+                                                            if (onChange)
+                                                                onChange({ ...medicalHistory, description: a })
+                                                        }}
+                                                        theme="snow"
+                                                    />
+                                                    :
+                                                    <div
+                                                        className="ql-editor"
+                                                        dangerouslySetInnerHTML={{ __html: medicalHistory.description ?? '' }}
+                                                    />
+                                            }
+                                        </Stack>
+                                        {/* <TextField
                                             variant='standard'
                                             value={medicalHistory.description ?? ''}
                                             label='Medical history'
@@ -262,7 +295,7 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                                                 if (onChange)
                                                     onChange({ ...medicalHistory, description: e.target.value })
                                             }}
-                                        />
+                                        /> */}
                                     </Paper>
                                 </Grid>
                             </Grid>

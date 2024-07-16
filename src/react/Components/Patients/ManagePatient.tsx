@@ -19,6 +19,7 @@ import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
 import { publish } from '../../Lib/Events';
 import { MedicalHistory } from './MedicalHistory';
 import { Address } from './Address';
+import { TextEditor } from '../TextEditor';
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -143,6 +144,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
 
                                             <Grid item xs={5}>
                                                 <Stack direction='column' spacing={1}>
+                        <TextEditor open={true} />
                                                     {/* Social Id */}
                                                     <Stack direction='row' justifyContent='space-between' alignItems='center'>
                                                         <Typography variant='body1'>
