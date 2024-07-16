@@ -7,6 +7,51 @@ import { User } from "./Models/User";
 import { Privilege } from "./Models/Privilege";
 import { privileges } from "./Repositories/Auth/dev-permissions";
 import { users } from "./Repositories/Auth/dev-users";
+import { MedicalHistory, medicalHistorySchema } from "./Models/MedicalHistory";
+
+export async function seedMedicalHistories(medicalHistoriesCollection: Collection<MedicalHistory>): Promise<void> {
+    try {
+        await medicalHistoriesCollection.deleteMany()
+
+        const medicalHistoriesCount = faker.number.int({ min: 20, max: 60 })
+
+        for (let i = 0; i < medicalHistoriesCount; i++) {
+            let tryCount = 0
+            while (tryCount < 3)
+                try {
+                    const medicalHistoryCreatedAt = DateTime.fromISO(faker.date.between({ from: '2019-01-01T00:00:00.000Z', to: '2024-01-01T00:00:00.000Z' }).toISOString())
+
+                    let medicalHistory: MedicalHistory = {
+                        schemaVersion: 'v0.0.1',
+                        name: faker.string.alpha({ length: { min: 10, max: 50 } }),
+                        updatedAt: medicalHistoryCreatedAt.toUnixInteger(),
+                        createdAt: medicalHistoryCreatedAt.toUnixInteger(),
+                    }
+
+                    if (!medicalHistorySchema.isValidSync(medicalHistory))
+                        throw new Error('seeder failed to create a medicalHistory document.')
+
+                    medicalHistory = medicalHistorySchema.cast(medicalHistory);
+
+                    (await medicalHistoriesCollection.insertOne(medicalHistory)).insertedId.toString()
+
+                    break
+                } catch (error) {
+                    tryCount++
+                    console.error('error', error)
+                    console.log('i', i)
+                    if (tryCount >= 3) {
+                        console.log('The retry limit exceeded, terminating...')
+                        return
+                    }
+                }
+        }
+    }
+    catch (err) {
+        console.error(err)
+        console.error(new Error('Failure while trying to seed Medical histories'))
+    }
+}
 
 export async function seedUsersRoles(usersCollection: Collection<User>, privilegesCollection: Collection<Privilege>): Promise<void> {
     try {
