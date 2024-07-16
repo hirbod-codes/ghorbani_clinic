@@ -5,7 +5,7 @@ import { Date } from '../../Lib/DateTime';
 import { ConfigurationContext } from '../../Contexts/ConfigurationContext';
 import { getLocaleMonths } from '../../Lib/DateTime/date-time-helpers';
 
-export function DateField({ defaultDate, onChange, variant }: { defaultDate?: Date; onChange?: (date: Date) => void; variant?: "standard" | "outlined" | "filled"; }) {
+export function DateField({ defaultDate, width = '7rem', onChange, variant }: { defaultDate?: Date; width?: string; onChange?: (date: Date) => void; variant?: "standard" | "outlined" | "filled"; }) {
     const locale = useContext(ConfigurationContext).get.locale;
     const localeMonths = getLocaleMonths(locale, DateTime.local({ zone: locale.zone }).year);
 
@@ -29,7 +29,7 @@ export function DateField({ defaultDate, onChange, variant }: { defaultDate?: Da
                     variant={variant ?? 'standard'}
                     value={year ?? ''}
                     label='Year'
-                    sx={{ width: '7rem' }}
+                    sx={{ width }}
                     onChange={(e) => {
                         try {
                             if (month === undefined || day === undefined)
@@ -45,7 +45,7 @@ export function DateField({ defaultDate, onChange, variant }: { defaultDate?: Da
                     <Select
                         labelId="month-label"
                         value={month ? localeMonths[month - 1].name : ''}
-                        sx={{ width: '7rem' }}
+                        sx={{ width }}
                         onChange={(e) => {
                             try {
                                 const month = localeMonths.findIndex(m => m.name === e.target.value.toString()) + 1;
@@ -66,7 +66,7 @@ export function DateField({ defaultDate, onChange, variant }: { defaultDate?: Da
                     variant={variant ?? 'standard'}
                     value={day ?? ''}
                     label='Day'
-                    sx={{ width: '7rem' }}
+                    sx={{ width }}
                     onChange={(e) => {
                         try {
                             const day = Number(e.target.value);

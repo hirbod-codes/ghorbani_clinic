@@ -18,6 +18,7 @@ import { RendererDbAPI } from '../../../Electron/Database/handleDbRendererEvents
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
 import { publish } from '../../Lib/Events';
 import { MedicalHistory } from './MedicalHistory';
+import { Address } from './Address';
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -47,6 +48,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
     const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined)
     const [loading, setLoading] = useState<boolean>(false)
     const [showMedicalHistory, setShowMedicalHistory] = useState<boolean>(false)
+    const [showAddress, setShowAddress] = useState<boolean>(false)
 
     const [patient, setPatient] = useState<Patient>(inputPatient)
     const [visits, setVisits] = useState<Visit[]>([])
@@ -139,76 +141,63 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                     ? <Typography align='center'>{errorMessage}</Typography>
                                     :
                                     <>
-                                        <Stack justifyContent={'space-around'} sx={{ height: '100%', width: '100%' }}>
-                                            <Typography variant='h4'>
-                                                {inputPatient ? 'Update' : 'Register'} patient
-                                            </Typography>
-                                            <Grid container spacing={2} >
-                                                <Grid item>
-                                                    {/* First name */}
-                                                    <TextField variant='standard' onChange={(e) => setPatient({ ...patient, firstName: e.target.value })} id='firstName' value={patient?.firstName ?? ''} label='First name' sx={{ width: '7rem' }} />
-                                                </Grid>
-                                                <Grid item>
-                                                    {/* Last name */}
-                                                    <TextField variant='standard' onChange={(e) => setPatient({ ...patient, lastName: e.target.value })} id='lastName' value={patient?.lastName ?? ''} label='Last name' sx={{ width: '7rem' }} />
-                                                </Grid>
-                                                <Grid item>
+                                        <Grid container spacing={2} columns={11}>
+                                            <Grid item xs={11}>
+                                                <Typography variant='h4'>
+                                                    {inputPatient ? 'Update' : 'Register'} patient
+                                                </Typography>
+                                            </Grid>
+
+                                            <Grid item xs={5}>
+                                                <Stack direction='column' spacing={1}>
                                                     {/* Social Id */}
-                                                    <TextField variant='standard' onChange={(e) => {
-                                                        const id = e.target.value
-                                                        if (id.length !== 10)
-                                                            setSocialIdError(true)
-                                                        else
-                                                            setSocialIdError(false)
+                                                    <Stack direction='row' justifyContent='space-between' alignItems='center'>
+                                                        <Typography variant='body1'>
+                                                            {t('socialId')}
+                                                        </Typography>
+                                                        <TextField variant='standard' onChange={(e) => {
+                                                            const id = e.target.value
+                                                            if (id.length !== 10)
+                                                                setSocialIdError(true)
+                                                            else
+                                                                setSocialIdError(false)
 
-                                                        setPatient({ ...patient, socialId: id })
-                                                    }} id='socialId' value={patient?.socialId ?? ''} label='Social Id' required sx={{ width: '7rem' }} error={socialIdError} helperText={socialIdError ? 'must have 10 digits' : ''} />
-                                                </Grid>
-                                                <Grid item>
-                                                    {/* Gender */}
-                                                    <FormControl variant='standard' >
-                                                        <InputLabel id="gender-label">Gender</InputLabel>
-                                                        <Select onChange={(e) => setPatient({ ...patient, gender: e.target.value })} labelId="gender-label" id='gender' value={patient?.gender ?? ''} sx={{ width: '7rem' }} >
-                                                            <MenuItem value='male'>male</MenuItem>
-                                                            <MenuItem value='female'>female</MenuItem>
-                                                        </Select>
-                                                    </FormControl>
-                                                </Grid>
-                                                <Grid item>
-                                                    {/* Age */}
-                                                    <TextField variant='standard' id='age' value={patient?.age ?? ''} label='Age' sx={{ width: '7rem' }} disabled />
-                                                </Grid>
-                                                <Grid item>
-                                                    {/* Birth Date */}
-                                                    <DateField onChange={(date) => {
-                                                        const birthDate = fromDateTimeParts({ ...locale, calendar: 'Gregorian' }, locale, date)
+                                                            setPatient({ ...patient, socialId: id })
+                                                        }} id='socialId' value={patient?.socialId ?? ''} required sx={{ width: '7rem' }} error={socialIdError} helperText={socialIdError ? 'must have 10 digits' : ''} />
+                                                    </Stack>
+                                                    {/* First name */}
+                                                    <Stack direction='row' justifyContent='space-between' alignItems='center'>
+                                                        <Typography variant='body1'>
+                                                            {t('firstName')}
+                                                        </Typography>
+                                                        <TextField variant='standard' onChange={(e) => setPatient({ ...patient, firstName: e.target.value })} id='firstName' value={patient?.firstName ?? ''} sx={{ width: '7rem' }} />
+                                                    </Stack>
 
-                                                        const now = DateTime.local({ zone: locale.zone })
+                                                    {/* Last name */}
+                                                    <Stack direction='row' justifyContent='space-between' alignItems='center'>
+                                                        <Typography variant='body1'>
+                                                            {t('lastName')}
+                                                        </Typography>
+                                                        <TextField variant='standard' onChange={(e) => setPatient({ ...patient, lastName: e.target.value })} id='lastName' value={patient?.lastName ?? ''} sx={{ width: '7rem' }} />
+                                                    </Stack>
 
-                                                        setPatient({
-                                                            ...patient,
-                                                            age: now.year - birthDate.date.year,
-                                                            birthDate: DateTime.local(birthDate.date.year, birthDate.date.month, birthDate.date.day, { zone: locale.zone }).toUnixInteger(),
-                                                        })
-                                                    }} defaultDate={patient?.birthDate ? fromUnix(locale, patient?.birthDate).date : undefined} />
-                                                </Grid>
-                                                <Grid item>
+                                                    <Button sx={{ width: '7rem' }} variant='outlined' onClick={() => setShowAddress(true)}>
+                                                        {t('address')}
+                                                    </Button>
+
                                                     {/* Medical History */}
-                                                    <Button onClick={() => setShowMedicalHistory(true)}>Medical History</Button>
+                                                    <Button sx={{ width: '7rem' }} variant='outlined' onClick={() => setShowMedicalHistory(true)}>
+                                                        {t('medicalHistory')}
+                                                    </Button>
                                                     <MedicalHistory
                                                         open={showMedicalHistory}
                                                         onClose={() => setShowMedicalHistory(false)}
-                                                        inputMedicalHistory={{ description: 'aaaaaa', histories: ['aaa', 'bbb'] }}
-                                                    // onChange={ }
+                                                        inputMedicalHistory={patient?.medicalHistory}
+                                                        onChange={(mh) => setPatient({ ...patient, medicalHistory: mh })}
                                                     />
-                                                </Grid>
-                                                <Grid item>
-                                                    {/* Address */}
-                                                    <TextField variant='standard' id='address' value={patient?.address ?? ''} label='Address' sx={{ width: '7rem' }} multiline rows={patient?.address ? 3 : 1} onChange={(e) => setPatient({ ...patient, address: e.target.value })} />
-                                                </Grid>
-                                                <Grid item xs={12}>
+
                                                     {/* Files */}
-                                                    <Stack direction='row' spacing={1} divider={<Divider orientation='vertical' variant='middle' flexItem />} >
+                                                    <Stack direction='row' spacing={1} divider={<Divider orientation='vertical' variant='middle' flexItem />} alignItems='center'>
                                                         {files.length !== 0 &&
                                                             <Button disabled variant='text'>
                                                                 {files.length} files are added
@@ -237,27 +226,80 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                             </Button>
                                                         }
                                                     </Stack>
-                                                </Grid>
-                                                <Grid item xs={12}>
-                                                </Grid>
-                                                {/* Manage Visits */}
-                                                <Grid item xs={12}>
-                                                    <ManageVisits onChange={(visits: Visit[]) => setVisits(visits)} defaultVisits={visits} />
-                                                </Grid>
-                                                <Grid item xs={12}>
-                                                    {/* Submit */}
-                                                    <Button variant="contained" fullWidth onClick={() => {
-                                                        setDialogTitle(`About to ${inputPatient ? 'update' : 'register'}...`)
-                                                        setDialogContent('Are you sure?')
-                                                        setDialogOpen(true)
-                                                    }}>
-                                                        {t('Complete')}
-                                                    </Button>
-                                                </Grid>
-                                                <Grid item xs={12}>
-                                                </Grid>
+                                                </Stack>
                                             </Grid>
-                                        </Stack>
+
+                                            <Grid item container xs={1} justifyContent='center'>
+                                                <Divider orientation='vertical' variant='middle' />
+                                            </Grid>
+
+                                            <Grid item xs={5}>
+                                                <Stack direction='column' spacing={1}>
+                                                    {/* Age */}
+                                                    <Stack direction='row' justifyContent='space-between' alignItems='center'>
+                                                        <Typography variant='body1'>
+                                                            {t('age')}
+                                                        </Typography>
+                                                        <TextField variant='standard' id='age' value={patient?.age ?? ''} sx={{ width: '7rem' }} disabled />
+                                                    </Stack>
+
+                                                    {/* Birth Date */}
+                                                    <Stack direction='row' justifyContent='space-between' alignItems='center'>
+                                                        <Typography variant='body1'>
+                                                            {t('birthDate')}
+                                                        </Typography>
+                                                        <DateField
+                                                            width='4rem'
+                                                            onChange={(date) => {
+                                                                const birthDate = fromDateTimeParts({ ...locale, calendar: 'Gregorian' }, locale, date)
+
+                                                                const now = DateTime.local({ zone: locale.zone })
+
+                                                                setPatient({
+                                                                    ...patient,
+                                                                    age: now.year - birthDate.date.year,
+                                                                    birthDate: DateTime.local(birthDate.date.year, birthDate.date.month, birthDate.date.day, { zone: locale.zone }).toUnixInteger(),
+                                                                })
+                                                            }}
+                                                            defaultDate={patient?.birthDate ? fromUnix(locale, patient?.birthDate).date : undefined} />
+                                                    </Stack>
+
+                                                    {/* Gender */}
+                                                    <Stack direction='row' justifyContent='space-between' alignItems='center'>
+                                                        <Typography variant='body1'>
+                                                            {t('gender')}
+                                                        </Typography>
+                                                        <FormControl variant='standard' >
+                                                            <Select onChange={(e) => setPatient({ ...patient, gender: e.target.value })} value={patient?.gender ?? ''} sx={{ width: '7rem' }} >
+                                                                <MenuItem value='male'>male</MenuItem>
+                                                                <MenuItem value='female'>female</MenuItem>
+                                                            </Select>
+                                                        </FormControl>
+                                                    </Stack>
+                                                </Stack>
+                                            </Grid>
+
+                                            <Grid item xs={12}>
+                                            </Grid>
+
+                                            {/* Manage Visits */}
+                                            <Grid item xs={12}>
+                                                <ManageVisits onChange={(visits: Visit[]) => setVisits(visits)} defaultVisits={visits} />
+                                            </Grid>
+
+                                            <Grid item xs={12}>
+                                                {/* Submit */}
+                                                <Button variant="contained" fullWidth onClick={() => {
+                                                    setDialogTitle(`About to ${inputPatient ? 'update' : 'register'}...`)
+                                                    setDialogContent('Are you sure?')
+                                                    setDialogOpen(true)
+                                                }}>
+                                                    {t('Complete')}
+                                                </Button>
+                                            </Grid>
+                                            <Grid item xs={12}>
+                                            </Grid>
+                                        </Grid>
 
                                         <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} >
                                             <DialogTitle>
@@ -275,6 +317,20 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                         </Dialog>
                                     </>
                             )}
+                    </Paper>
+                </Slide>
+            </Modal >
+            <Modal
+                onClose={() => setShowAddress(false)}
+                open={showAddress}
+                closeAfterTransition
+                disableAutoFocus
+                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
+                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
+            >
+                <Slide direction={showAddress ? 'up' : 'down'} in={showAddress} timeout={250}>
+                    <Paper sx={{ padding: '0.5rem 2rem', overflow: 'auto' }}>
+                        <Address defaultAddress={patient?.address} onChange={(address) => setPatient({ ...patient, address })} />
                     </Paper>
                 </Slide>
             </Modal>

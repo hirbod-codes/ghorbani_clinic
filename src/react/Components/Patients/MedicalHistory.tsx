@@ -1,14 +1,10 @@
-import { Box, Checkbox, ClickAwayListener, Divider, Drawer, Grid, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Modal, Paper, Slide, TextField, Typography } from "@mui/material";
+import { Box, Checkbox, Divider, Grid, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Modal, Paper, Slide, TextField, Typography } from "@mui/material";
 import { t } from "i18next";
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { ArrowBox } from "../ArrowBox/ArrowBox";
 import { useSpring, animated, easings } from 'react-spring';
 import useMeasure from 'react-use-measure'
-
-export type MedicalHistory = {
-    histories: string[];
-    description: string;
-}
+import { MedicalHistory } from "../../../Electron/Database/Models/Patient";
 
 export type MedicalHistoryProps = {
     open: boolean;
