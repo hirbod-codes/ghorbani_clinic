@@ -5,6 +5,7 @@ import { Patient } from "./Models/Patient"
 import { Visit } from "./Models/Visit"
 import { MongodbConfig } from "../Configuration/types"
 import { User } from "./Models/User"
+import { MedicalHistory } from "./Models/MedicalHistory"
 
 export type dbAPI = {
     getConfig: () => Promise<MongodbConfig>;
@@ -50,6 +51,15 @@ export type IPatientRepository = dbAPI & {
     getPatientsWithVisits(offset: number, count: number): Promise<(Patient & { visits: Visit[] })[]>;
     updatePatient(patient: Patient): Promise<UpdateResult>;
     deletePatient(id: string): Promise<DeleteResult>
+}
+
+export type IMedicalHistoryRepository = dbAPI & {
+    handleEvents(): Promise<void>;
+    createMedicalHistory(medicalHistory: MedicalHistory): Promise<InsertOneResult>;
+    getMedicalHistories(): Promise<MedicalHistory[]>;
+    getMedicalHistory(name: string): Promise<MedicalHistory>;
+    deleteMedicalHistoryById(id: string): Promise<DeleteResult>;
+    deleteMedicalHistoryByName(name: string): Promise<DeleteResult>;
 }
 
 export type IVisitRepository = dbAPI & {

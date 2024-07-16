@@ -1,24 +1,28 @@
-import { Box, Checkbox, Divider, Grid, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Modal, Paper, Slide, TextField, Typography } from "@mui/material";
+import { Box, Button, Checkbox, Divider, Grid, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Modal, Paper, Slide, TextField, Typography } from "@mui/material";
 import { t } from "i18next";
 import { useState, useEffect } from 'react'
 import { ArrowBox } from "../ArrowBox/ArrowBox";
 import { useSpring, animated, easings } from 'react-spring';
 import useMeasure from 'react-use-measure'
-import { MedicalHistory } from "../../../Electron/Database/Models/Patient";
+import { PatientsMedicalHistory } from "../../../Electron/Database/Models/Patient";
 import LoadingScreen from "../LoadingScreen";
+import { RendererDbAPI } from "../../../Electron/Database/handleDbRendererEvents";
+import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
+import { publish } from "../../Lib/Events";
 
 export type MedicalHistoryProps = {
     open: boolean;
     onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void;
-    inputMedicalHistory?: MedicalHistory | undefined;
-    onChange?: (medicalHistory: MedicalHistory) => any
+    inputMedicalHistory?: PatientsMedicalHistory | undefined;
+    onChange?: (medicalHistory: PatientsMedicalHistory) => any
 }
 
 export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }: MedicalHistoryProps) {
-    const [openDrawer, setOpenDrawer] = useState(false)
+    const [openDrawer, setOpenDrawer] = useState<boolean>(false)
 
-    const [medicalHistory, setMedicalHistory] = useState<MedicalHistory | undefined>(inputMedicalHistory ?? { description: '', histories: [] })
+    const [medicalHistory, setMedicalHistory] = useState<PatientsMedicalHistory | undefined>(inputMedicalHistory ?? { description: '', histories: [] })
 
+    const [loading, setLoading] = useState<boolean>(true)
     const [fetchedHistories, setFetchedHistories] = useState<string[] | undefined>(undefined)
 
     const [containerRef, { height }] = useMeasure()
@@ -28,7 +32,31 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
         config: { easing: easings.easeInBack }
     })
 
+    const init = async () => {
+        setLoading(true)
+
+        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getMedicalHistories()
+        if (res.code !== 200) {
+            publish(RESULT_EVENT_NAME, {
+                severity: 'error',
+                message: t('failedToFetchMedicalHistories')
+            })
+
+            return
+        }
+
+        publish(RESULT_EVENT_NAME, {
+            severity: 'success',
+            message: t('successfullyFetchedMedicalHistories')
+        })
+
+        const mh = res.data.map(m => m.name).filter(f => f !== null || f !== undefined || f.trim() !== '') ?? []
+
+        setFetchedHistories(mh)
+    }
+
     useEffect(() => {
+        init()
     }, [])
 
     console.log('MedicalHistory', { openDrawer, medicalHistory, fetchedHistories })
@@ -61,34 +89,46 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                     <Box sx={{ width: '80%', height: '80%', position: 'relative', overflow: 'hidden', p: 0, m: 0 }} ref={containerRef}>
                         <animated.div style={{ position: 'relative', width: '12rem', left: drawerAnimation.left, zIndex: 100 }}>
                             <Paper sx={{ height, padding: '0.5rem 2rem', zIndex: 101 }}>
-                                {fetchedHistories === undefined
+                                {loading === undefined
                                     ? <LoadingScreen />
                                     :
-                                    <List sx={{ pt: 3 }}>
-                                        {fetchedHistories.map((fh, i) =>
-                                            <ListItem key={i} disablePadding>
-                                                <ListItemButton
-                                                    dense
-                                                    onClick={() => {
-                                                        const v = !medicalHistory.histories.find(f => f === fh) !== undefined
-                                                        toggleHistory(v, fh)
-                                                    }}
-                                                >
-                                                    <ListItemIcon>
-                                                        <Checkbox
-                                                            edge="start"
-                                                            checked={medicalHistory.histories.find(f => f === fh) !== undefined}
-                                                            onChange={(e, v) => {
+                                    (
+                                        fetchedHistories === undefined
+                                            ?
+                                            <LoadingScreen>
+                                                {!loading &&
+                                                    <Button variant="outlined" onClick={async () => await init()}>
+                                                        {t('tryAgain')}
+                                                    </Button>
+                                                }
+                                            </LoadingScreen>
+                                            :
+                                            <List sx={{ pt: 3 }}>
+                                                {fetchedHistories.map((fh, i) =>
+                                                    <ListItem key={i} disablePadding>
+                                                        <ListItemButton
+                                                            dense
+                                                            onClick={() => {
+                                                                const v = !medicalHistory.histories.find(f => f === fh) !== undefined
                                                                 toggleHistory(v, fh)
                                                             }}
-                                                            disableRipple
-                                                        />
-                                                    </ListItemIcon>
-                                                    <ListItemText primary={fh} />
-                                                </ListItemButton>
-                                            </ListItem>
-                                        )}
-                                    </List>
+                                                        >
+                                                            <ListItemIcon>
+                                                                <Checkbox
+                                                                    edge="start"
+                                                                    checked={medicalHistory.histories.find(f => f === fh) !== undefined}
+                                                                    onChange={(e, v) => {
+                                                                        toggleHistory(v, fh)
+                                                                    }}
+                                                                    disableRipple
+                                                                />
+                                                            </ListItemIcon>
+                                                            <ListItemText primary={fh} />
+                                                        </ListItemButton>
+                                                    </ListItem>
+                                                )}
+                                            </List>
+                                    )
                                 }
                             </Paper>
                         </animated.div>

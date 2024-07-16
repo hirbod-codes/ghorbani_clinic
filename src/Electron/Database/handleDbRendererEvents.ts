@@ -1,10 +1,11 @@
 import { ipcRenderer } from "electron";
-import { RendererEvents as AuthRendererEvents, handleRendererEvents as handleAuthRendererEvents } from './Repositories/Auth/AuthRenderer';
-import { RendererEvents as UserRendererEvents, handleRendererEvents as handleUserRendererEvents } from './Repositories/Users/UsersRenderer';
-import { RendererEvents as PrivilegeRendererEvents, handleRendererEvents as handlePrivilegeRendererEvents } from './Repositories/Privileges/PrivilegesRenderer';
-import { RendererEvents as PatientRendererEvents, handleRendererEvents as handlePatientRendererEvents } from './Repositories/Patients/PatientRenderer';
-import { RendererEvents as VisitRendererEvents, handleRendererEvents as handleVisitRendererEvents } from './Repositories/Visits/VisitRenderer';
-import { RendererEvents as FileRendererEvents, handleRendererEvents as handleFileRendererEvents } from './Repositories/Files/FileRenderer';
+import { type RendererEvents as AuthRendererEvents, handleRendererEvents as handleAuthRendererEvents } from './Repositories/Auth/AuthRenderer';
+import { type RendererEvents as UserRendererEvents, handleRendererEvents as handleUserRendererEvents } from './Repositories/Users/UsersRenderer';
+import { type RendererEvents as PrivilegeRendererEvents, handleRendererEvents as handlePrivilegeRendererEvents } from './Repositories/Privileges/PrivilegesRenderer';
+import { type RendererEvents as PatientRendererEvents, handleRendererEvents as handlePatientRendererEvents } from './Repositories/Patients/PatientRenderer';
+import { type RendererEvents as MedicalHistoryRendererEvents, handleRendererEvents as handleMedicalHistoryRendererEvents } from './Repositories/MedicalHistories/MedicalHistoryRenderer';
+import { type RendererEvents as VisitRendererEvents, handleRendererEvents as handleVisitRendererEvents } from './Repositories/Visits/VisitRenderer';
+import { type RendererEvents as FileRendererEvents, handleRendererEvents as handleFileRendererEvents } from './Repositories/Files/FileRenderer';
 import { MongodbConfig } from "../Configuration/types";
 
 export type RendererDbAPI =
@@ -12,6 +13,7 @@ export type RendererDbAPI =
     UserRendererEvents &
     PrivilegeRendererEvents &
     PatientRendererEvents &
+    MedicalHistoryRendererEvents &
     VisitRendererEvents &
     FileRendererEvents &
     {
@@ -35,6 +37,7 @@ export function handleDbRendererEvents(): RendererDbAPI {
         ...handleUserRendererEvents(),
         ...handlePrivilegeRendererEvents(),
         ...handlePatientRendererEvents(),
+        ...handleMedicalHistoryRendererEvents(),
         ...handleVisitRendererEvents(),
         ...handleFileRendererEvents(),
     };

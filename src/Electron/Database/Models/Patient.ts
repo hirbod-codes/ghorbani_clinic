@@ -1,26 +1,27 @@
 import { ObjectId } from "mongodb";
-import { InferType, array, number, object, mixed, string } from "yup"
+import { InferType, number, object, mixed, string, array } from "yup"
 
 export const collectionName = 'patients'
 
-export const medicalHistorySchema = object().optional().shape({
+export const patientsMedicalHistorySchema = object().optional().shape({
     description: string().optional(),
     histories: array().optional().of(string().required())
 })
 
-export type MedicalHistory = InferType<typeof medicalHistorySchema>
+export type PatientsMedicalHistory = InferType<typeof patientsMedicalHistorySchema>
 
 // after updates, don't forget to also update privileges
 export const patientSchema = object().required().shape({
     schemaVersion: string().optional().min(6).max(10),
     _id: mixed<string | ObjectId>().optional(),
     socialId: string().required().length(10),
+    phoneNumber: string().optional().length(11),
     firstName: string().optional(),
     lastName: string().optional(),
     gender: string().optional().oneOf(['male', 'female']),
     age: number().optional().min(0).max(130),
     birthDate: number().optional(),
-    medicalHistory: medicalHistorySchema,
+    medicalHistory: patientsMedicalHistorySchema,
     address: string().optional(),
     createdAt: number().optional(),
     updatedAt: number().optional(),
@@ -32,6 +33,7 @@ export const fields: (keyof Patient)[] = [
     'schemaVersion',
     '_id',
     'socialId',
+    'phoneNumber',
     'firstName',
     'lastName',
     'gender',

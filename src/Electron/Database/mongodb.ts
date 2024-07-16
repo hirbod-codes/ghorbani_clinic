@@ -1,5 +1,6 @@
 import { ClientSession, Collection, Db, GridFSBucket, MongoClient } from "mongodb";
 import { type Patient, collectionName as patientsCollectionName } from "./Models/Patient";
+import { type MedicalHistory, collectionName as patientsMedicalHistoriesCollectionName } from "./Models/MedicalHistory";
 import { Visit, collectionName as visitsCollectionName } from "./Models/Visit";
 import { collectionName as filesCollectionName } from "./Models/File";
 import { collectionName as privilegesCollectionName } from "./Models/Privilege";
@@ -162,6 +163,7 @@ export class MongoDB implements dbAPI {
         await this.addUsersCollection()
         await this.addPrivilegesCollection()
         await this.addPatientsCollection()
+        await this.addMedicalHistoriesCollection()
         await this.addVisitsCollection()
     }
 
@@ -210,6 +212,21 @@ export class MongoDB implements dbAPI {
             await db.createIndex(patientsCollectionName, { updatedAt: 1 }, { name: 'updated-at' })
     }
 
+    private async addMedicalHistoriesCollection() {
+        const db = await this.getDb();
+
+        if (!(await db.listCollections().toArray()).map(e => e.name).includes(patientsMedicalHistoriesCollectionName))
+            await db.createCollection(patientsMedicalHistoriesCollectionName)
+
+        const indexes = await db.collection(patientsMedicalHistoriesCollectionName).indexes()
+
+        if (indexes.find(i => i.name === 'patientId') === undefined)
+            await db.createIndex(visitsCollectionName, { patientId: 1 }, { name: 'patientId' })
+
+        if (indexes.find(i => i.name === 'unique-name') === undefined)
+            await db.createIndex(patientsMedicalHistoriesCollectionName, { name: 1 }, { unique: true, name: 'unique-name' })
+    }
+
     private async addVisitsCollection() {
         const db = await this.getDb();
 
@@ -241,6 +258,10 @@ export class MongoDB implements dbAPI {
 
     async getPatientsCollection(client?: MongoClient, db?: Db): Promise<Collection<Patient>> {
         return (db ?? (await this.getDb(client))).collection<Patient>(patientsCollectionName)
+    }
+
+    async getMedicalHistoriesCollection(client?: MongoClient, db?: Db): Promise<Collection<MedicalHistory>> {
+        return (db ?? (await this.getDb(client))).collection<MedicalHistory>(patientsMedicalHistoriesCollectionName)
     }
 
     async getVisitsCollection(client?: MongoClient, db?: Db): Promise<Collection<Visit>> {

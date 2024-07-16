@@ -9,6 +9,7 @@ export const resources = {
     VISIT: 'visit',
     PRIVILEGE: 'privilege',
     FILE: 'file',
+    MEDICAL_HISTORY: 'medicalHistory'
 }
 
 export function getAttributes(resource: string, action: string) {
