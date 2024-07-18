@@ -246,29 +246,37 @@ export function Patients() {
             <MedicalHistory
                 inputMedicalHistory={patients.find(f => f._id === activePatientId)?.medicalHistory}
                 open={showingMH}
-                onClose={() => setShowingMH(false)}
                 onChange={async (mh) => {
-                    const p = patients.find(f => f._id === activePatientId)
-                    if (!p)
-                        return
+                    try {
+                        const p = patients.find(f => f._id === activePatientId)
+                        if (!p)
+                            return
 
-                    const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updatePatient({ ...p, medicalHistory: mh })
-                    if (res.code !== 200 || !res.data.acknowledged || res.data.matchedCount !== 1) {
+                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updatePatient({ ...p, medicalHistory: mh })
+                        if (res.code !== 200 || !res.data.acknowledged || res.data.matchedCount !== 1) {
+                            publish(RESULT_EVENT_NAME, {
+                                severity: 'error',
+                                message: t('failedToUpdatePatientMedicalHistory')
+                            })
+
+                            return
+                        }
+
+                        publish(RESULT_EVENT_NAME, {
+                            severity: 'success',
+                            message: t('successfullyUpdatedPatientMedicalHistory')
+                        })
+
+                        setActivePatientId(undefined)
+                        setShowingMH(false)
+                    } catch (error) {
                         publish(RESULT_EVENT_NAME, {
                             severity: 'error',
                             message: t('failedToUpdatePatientMedicalHistory')
                         })
 
-                        return
+                        throw error
                     }
-
-                    publish(RESULT_EVENT_NAME, {
-                        severity: 'success',
-                        message: t('successfullyUpdatedPatientMedicalHistory')
-                    })
-
-                    setActivePatientId(undefined)
-                    setShowingMH(false)
                 }}
             />
         </>

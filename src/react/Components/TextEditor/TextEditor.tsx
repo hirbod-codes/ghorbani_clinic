@@ -1,5 +1,5 @@
 import { Lock, LockOpen, TextFields } from "@mui/icons-material";
-import { Box, Button, Stack, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
 import type { EditorOptions } from "@tiptap/core";
 import { useCallback, useRef, useState } from "react";
 import {
@@ -32,8 +32,10 @@ export function TextEditor({ defaultContent, onChange }: { defaultContent?: stri
         placeholder: "Add your own content here...",
     });
     const rteRef = useRef<RichTextEditorRef>(null);
-    const [isEditable, setIsEditable] = useState(true);
-    const [showMenuBar, setShowMenuBar] = useState(true);
+    const [isEditable, setIsEditable] = useState<boolean>(true);
+    const [showMenuBar, setShowMenuBar] = useState<boolean>(true);
+
+    const [saving, setSaving] = useState<boolean>(false);
 
     const handleNewImageFiles = useCallback(
         (files: File[], insertPosition?: number): void => {
@@ -189,11 +191,19 @@ export function TextEditor({ defaultContent, onChange }: { defaultContent?: stri
                                     variant="outlined"
                                     size="small"
                                     onClick={() => {
-                                        if (onChange)
-                                            onChange(rteRef.current?.editor?.getHTML())
+                                        try {
+                                            setSaving(true)
+                                            if (onChange)
+                                                onChange(rteRef.current?.editor?.getHTML())
+                                            setSaving(false)
+                                        }
+                                        catch (err) {
+                                            setSaving(false)
+                                            throw err
+                                        }
                                     }}
                                 >
-                                    {t('save')}
+                                    {saving ? <CircularProgress size={25} /> : t('save')}
                                 </Button>
                             </Stack>
                         ),

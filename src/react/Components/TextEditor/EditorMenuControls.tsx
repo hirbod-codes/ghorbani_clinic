@@ -35,7 +35,7 @@ import {
 export default function EditorMenuControls() {
     const theme = useTheme();
     return (
-        <MenuControlsContainer>
+        <MenuControlsContainer className='menuControlsContainer'>
             <MenuSelectFontFamily
                 options={[
                     { label: "Comic Sans", value: "Comic Sans MS, Comic Sans" },

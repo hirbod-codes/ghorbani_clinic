@@ -187,9 +187,11 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                     </Button>
                                                     <MedicalHistory
                                                         open={showMedicalHistory}
-                                                        onClose={() => setShowMedicalHistory(false)}
                                                         inputMedicalHistory={patient?.medicalHistory}
-                                                        onChange={(mh) => setPatient({ ...patient, medicalHistory: mh })}
+                                                        onChange={(mh) => {
+                                                            setPatient({ ...patient, medicalHistory: mh });
+                                                            setShowMedicalHistory(false)
+                                                        }}
                                                     />
 
                                                     {/* Files */}
@@ -286,12 +288,16 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
 
                                             <Grid item xs={12}>
                                                 {/* Submit */}
-                                                <Button variant="contained" fullWidth onClick={() => {
-                                                    setDialogTitle(`About to ${inputPatient ? 'update' : 'register'}...`)
-                                                    setDialogContent('Are you sure?')
-                                                    setDialogOpen(true)
-                                                }}>
-                                                    {t('Complete')}
+                                                <Button
+                                                    variant="contained"
+                                                    fullWidth
+                                                    color='success'
+                                                    onClick={() => {
+                                                        setDialogTitle(`About to ${inputPatient ? 'update' : 'register'}...`)
+                                                        setDialogContent('Are you sure?')
+                                                        setDialogOpen(true)
+                                                    }}>
+                                                    {t('done')}
                                                 </Button>
                                             </Grid>
                                             <Grid item xs={12}>

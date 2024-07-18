@@ -10,6 +10,7 @@ import { RendererDbAPI } from "../../../Electron/Database/handleDbRendererEvents
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 import { AddOutlined, DeleteOutlined, EditOutlined } from "@mui/icons-material";
+import { TextEditorWrapper } from "../TextEditor/TextEditorWrapper";
 
 export type MedicalHistoryProps = {
     open: boolean;
@@ -65,24 +66,152 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
         init()
     }, [])
 
+    useEffect(() => {
+        setMedicalHistory(inputMedicalHistory ?? { description: '', histories: [] })
+    }, [inputMedicalHistory])
+
     console.log('MedicalHistory', { openDrawer, medicalHistory, fetchedHistories })
 
     const toggleHistory = (v: boolean, fh: string) => {
-        if (v && medicalHistory.histories.find(f => f === fh) === undefined) {
-            medicalHistory.histories.push(fh)
+        if (v && medicalHistory.histories?.find(f => f === fh) === undefined) {
+            medicalHistory.histories?.push(fh)
             setMedicalHistory({ ...medicalHistory })
-            if (onChange)
-                onChange({ ...medicalHistory })
         }
-        else if (!v && medicalHistory.histories.find(f => f === fh) !== undefined) {
-            setMedicalHistory({ ...medicalHistory, histories: medicalHistory.histories.filter(f => f !== fh) })
-            if (onChange)
-                onChange({ ...medicalHistory, histories: medicalHistory.histories.filter(f => f !== fh) })
-        }
+        else if (!v && medicalHistory.histories?.find(f => f === fh) !== undefined)
+            setMedicalHistory({ ...medicalHistory, histories: medicalHistory.histories?.filter(f => f !== fh) })
     }
 
     return (
         <>
+            <Modal
+                onClose={onClose}
+                open={open}
+                closeAfterTransition
+                disableAutoFocus
+                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
+                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
+            >
+                <Slide direction={open ? 'up' : 'down'} in={open} timeout={250}>
+                    <Box sx={{ width: '80%', height: '80%', position: 'relative', overflow: 'hidden', p: 0, m: 0 }} ref={containerRef}>
+                        <animated.div style={{ position: 'relative', width: '50%', left: drawerAnimationLeft.left, zIndex: 100 }}>
+                            <Paper sx={{ height, padding: '0.5rem 0rem', overflow: 'auto', zIndex: 101 }}>
+                                {loading
+                                    ? <LoadingScreen />
+                                    :
+                                    (
+                                        fetchedHistories === undefined
+                                            ?
+                                            <LoadingScreen>
+                                                {!loading &&
+                                                    <Button variant="outlined" onClick={async () => await init()} sx={{ mt: 1 }}>
+                                                        {t('tryAgain')}
+                                                    </Button>
+                                                }
+                                            </LoadingScreen>
+                                            :
+                                            <List sx={{ pt: 3 }} dense>
+                                                {fetchedHistories.map((fh, i) =>
+                                                    <ListItem
+                                                        key={i}
+                                                        disablePadding
+                                                        secondaryAction={
+                                                            <IconButton>
+                                                                <DeleteOutlined />
+                                                            </IconButton>
+                                                        }
+                                                    >
+                                                        <ListItemButton
+                                                            dense
+                                                            onClick={() => {
+                                                                const v = !medicalHistory.histories?.find(f => f === fh) !== undefined
+                                                                toggleHistory(v, fh)
+                                                            }}
+                                                        >
+                                                            <ListItemIcon>
+                                                                <Checkbox
+                                                                    edge="start"
+                                                                    checked={medicalHistory.histories?.find(f => f === fh) !== undefined}
+                                                                    onChange={(e, v) => {
+                                                                        toggleHistory(v, fh)
+                                                                    }}
+                                                                    disableRipple
+                                                                />
+                                                            </ListItemIcon>
+                                                            <ListItemText primary={fh} primaryTypographyProps={{
+                                                                style: {
+                                                                    whiteSpace: 'nowrap',
+                                                                    overflow: 'auto'
+                                                                }
+                                                            }} />
+                                                        </ListItemButton>
+                                                    </ListItem>
+                                                )}
+                                                <Divider variant='middle' />
+                                                <ListItem>
+                                                    <Stack direction='row' justifyContent='center' sx={{ width: '100%' }}>
+                                                        <IconButton onClick={() => setAddingMedicalHistory('')}>
+                                                            {addingMedicalHistory ? <CircularProgress /> : <AddOutlined />}
+                                                        </IconButton>
+                                                    </Stack>
+                                                </ListItem>
+                                            </List>
+                                    )
+                                }
+                            </Paper>
+                        </animated.div>
+
+                        <Box sx={{ position: 'absolute', top: '50%', transform: 'translate(0, -50%)', zIndex: 9 }} onClick={() => setOpenDrawer(true)}>
+                            <ArrowBox />
+                        </Box>
+
+                        <Paper sx={{ position: 'absolute', top: 0, width: '100%', height: '100%', padding: '0.5rem 2rem', overflow: 'hidden' }} onClick={() => { if (openDrawer) setOpenDrawer(false) }}>
+                            <Stack direction='column' spacing={2} sx={{ height: '100%' }}>
+                                <Grid container sx={{ height: '100%' }} columns={24}>
+                                    <Grid item xs={11}>
+                                        <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3, overflow: 'auto' }}>
+                                            <List>
+                                                <Typography variant='h4'>
+                                                    {t('medicalHistory')}
+                                                </Typography>
+                                                {medicalHistory.histories?.map((h, i) =>
+                                                    <ListItem key={i}>
+                                                        <ListItemText primary={h} />
+                                                    </ListItem>
+                                                )}
+                                            </List>
+                                        </Paper>
+                                    </Grid>
+
+                                    <Grid item xs={1} container justifyContent='center' >
+                                        <Divider orientation="vertical" variant='middle' />
+                                    </Grid>
+
+                                    <Grid item xs={11}>
+                                        <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3 }}>
+                                            <TextEditorWrapper
+                                                defaultContent={medicalHistory?.description}
+                                                onChange={(content) => setMedicalHistory({ ...medicalHistory, description: content })}
+                                                title={t('address')}
+                                            />
+                                        </Paper>
+                                    </Grid>
+
+                                </Grid>
+
+                                <Divider variant='middle' />
+
+                                <Button fullWidth variant='outlined' color='success' onClick={() => {
+                                    if (onChange)
+                                        onChange(medicalHistory)
+                                }} >
+                                    {t('done')}
+                                </Button>
+                            </Stack>
+                        </Paper>
+                    </Box>
+                </Slide>
+            </Modal>
+
             <Modal
                 onClose={() => setAddingMedicalHistory(undefined)}
                 open={addingMedicalHistory !== undefined}
@@ -93,7 +222,7 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
             >
                 <Slide direction={addingMedicalHistory !== undefined ? 'up' : 'down'} in={addingMedicalHistory !== undefined} timeout={250}>
                     <Paper sx={{ position: 'absolute', top: 0, width: '100%', height: '100%', padding: '0.5rem 2rem', overflow: 'auto' }}>
-                        <Grid container spacing={2}>
+                        <Grid container spacing={0}>
                             <Grid item xs={12}>
                                 <Typography variant='h5'>
                                     {t('AddMedicalHistoryTitle')}
@@ -138,147 +267,6 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                             </Grid>
                         </Grid>
                     </Paper>
-                </Slide>
-            </Modal>
-
-            <Modal
-                onClose={onClose}
-                open={open}
-                closeAfterTransition
-                disableAutoFocus
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
-                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
-            >
-                <Slide direction={open ? 'up' : 'down'} in={open} timeout={250}>
-                    <Box sx={{ width: '80%', height: '80%', position: 'relative', overflow: 'hidden', p: 0, m: 0 }} ref={containerRef}>
-                        <animated.div style={{ position: 'relative', width: '50%', left: drawerAnimationLeft.left, zIndex: 100 }}>
-                            <Paper sx={{ height, padding: '0.5rem 0rem', overflow: 'auto', zIndex: 101 }}>
-                                {loading
-                                    ? <LoadingScreen />
-                                    :
-                                    (
-                                        fetchedHistories === undefined
-                                            ?
-                                            <LoadingScreen>
-                                                {!loading &&
-                                                    <Button variant="outlined" onClick={async () => await init()} sx={{ mt: 1 }}>
-                                                        {t('tryAgain')}
-                                                    </Button>
-                                                }
-                                            </LoadingScreen>
-                                            :
-                                            <List sx={{ pt: 3 }} dense>
-                                                {fetchedHistories.map((fh, i) =>
-                                                    <ListItem
-                                                        key={i}
-                                                        disablePadding
-                                                        secondaryAction={
-                                                            <IconButton>
-                                                                <DeleteOutlined />
-                                                            </IconButton>
-                                                        }
-                                                    >
-                                                        <ListItemButton
-                                                            dense
-                                                            onClick={() => {
-                                                                const v = !medicalHistory.histories.find(f => f === fh) !== undefined
-                                                                toggleHistory(v, fh)
-                                                            }}
-                                                        >
-                                                            <ListItemIcon>
-                                                                <Checkbox
-                                                                    edge="start"
-                                                                    checked={medicalHistory.histories.find(f => f === fh) !== undefined}
-                                                                    onChange={(e, v) => {
-                                                                        toggleHistory(v, fh)
-                                                                    }}
-                                                                    disableRipple
-                                                                />
-                                                            </ListItemIcon>
-                                                            <ListItemText primary={fh} primaryTypographyProps={{
-                                                                style: {
-                                                                    whiteSpace: 'nowrap',
-                                                                    overflow: 'auto'
-                                                                }
-                                                            }} />
-                                                        </ListItemButton>
-                                                    </ListItem>
-                                                )}
-                                                <Divider variant='middle' />
-                                                <ListItem>
-                                                    <Stack direction='row' justifyContent='center' sx={{ width: '100%' }}>
-                                                        <IconButton onClick={() => setAddingMedicalHistory('')}>
-                                                            {addingMedicalHistory ? <CircularProgress /> : <AddOutlined />}
-                                                        </IconButton>
-                                                    </Stack>
-                                                </ListItem>
-                                            </List>
-                                    )
-                                }
-                            </Paper>
-                        </animated.div>
-
-                        <Box sx={{ position: 'absolute', top: '50%', transform: 'translate(0, -50%)', zIndex: 9 }} onClick={() => setOpenDrawer(true)}>
-                            <ArrowBox />
-                        </Box>
-
-                        <Paper sx={{ position: 'absolute', top: 0, width: '100%', height: '100%', padding: '0.5rem 2rem', overflow: 'hidden' }} onClick={() => { if (openDrawer) setOpenDrawer(false) }}>
-                            <Grid container spacing={1} p={1} sx={{ height: '100%' }}>
-                                <Grid item md={5}>
-                                    <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3, overflow: 'auto' }}>
-                                        <List>
-                                            <Typography variant='h4'>
-                                                {t('medicalHistory')}
-                                            </Typography>
-                                            {medicalHistory.histories.map((h, i) =>
-                                                <ListItem key={i}>
-                                                    <ListItemText primary={h} />
-                                                </ListItem>
-                                            )}
-                                        </List>
-                                    </Paper>
-                                </Grid>
-
-                                <Grid item container justifyContent='center' md={2}>
-                                    <Divider orientation="vertical" variant='middle' />
-                                </Grid>
-
-                                <Grid item md={5}>
-                                    <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3 }}>
-                                        <Stack direction='column' sx={{ height: '100%' }}>
-                                            <Typography variant='h4' height={'10%'}>
-                                                {t('description')}
-                                            </Typography>
-                                            <IconButton onClick={() => setEditing(!editing)}>
-                                                <EditOutlined />
-                                            </IconButton>
-
-                                        </Stack>
-                                        {/* <TextField
-                                            variant='standard'
-                                            value={medicalHistory.description ?? ''}
-                                            label='Medical history'
-                                            multiline
-                                            minRows={10}
-                                            sx={{
-                                                height: '90%',
-                                                "& .MuiInputBase-root": {
-                                                    flexGrow: 1,
-                                                    alignItems: 'stretch'
-                                                }
-                                            }}
-                                            fullWidth
-                                            onChange={(e) => {
-                                                setMedicalHistory({ ...medicalHistory, description: e.target.value })
-                                                if (onChange)
-                                                    onChange({ ...medicalHistory, description: e.target.value })
-                                            }}
-                                        /> */}
-                                    </Paper>
-                                </Grid>
-                            </Grid>
-                        </Paper>
-                    </Box>
                 </Slide>
             </Modal>
         </>
