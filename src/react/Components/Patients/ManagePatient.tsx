@@ -144,7 +144,6 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
 
                                             <Grid item xs={5}>
                                                 <Stack direction='column' spacing={1}>
-                                                    <TextEditorModal open={true} />
                                                     {/* Social Id */}
                                                     <Stack direction='row' justifyContent='space-between' alignItems='center'>
                                                         <Typography variant='body1'>

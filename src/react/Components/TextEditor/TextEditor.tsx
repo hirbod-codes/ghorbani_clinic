@@ -186,7 +186,7 @@ export function TextEditor({ defaultContent, onSave }: { defaultContent?: string
                                     size="small"
                                     onClick={() => setIsEditable((currentState) => !currentState)}
                                     selected={!isEditable}
-                                    IconComponent={isEditable ? Lock : LockOpen}
+                                    IconComponent={isEditable ? LockOpen : Lock}
                                 />
 
                                 <Button
