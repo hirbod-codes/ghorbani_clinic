@@ -33,7 +33,10 @@ const VisuallyHiddenInput = styled('input')({
     width: 1,
 });
 
-async function getVisits(patientId: string): Promise<Visit[] | undefined> {
+async function getVisits(patientId?: string): Promise<Visit[] | undefined> {
+    if (!patientId)
+        return undefined
+
     const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getVisits(patientId)
     if (res.code !== 200)
         return undefined
@@ -62,8 +65,21 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
 
     console.log('ManagePatient', { socialIdError, errorMessage, loading, patient, visits, files, open, onClose, inputPatient })
 
-    useEffect(() => {
+    const init = async () => {
+        if (!inputPatient)
+            return
+
         setPatient(inputPatient)
+        const v = await getVisits(inputPatient?._id as string)
+
+        if (!v)
+            return
+
+        setVisits(v)
+    }
+
+    useEffect(() => {
+        init()
     }, [inputPatient])
 
     const submit = async () => {

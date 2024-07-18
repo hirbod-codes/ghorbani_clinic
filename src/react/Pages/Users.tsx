@@ -97,8 +97,8 @@ export function Users() {
     useEffect(() => {
         (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
             .then((c) => {
-                if (c?.columnVisibilityModels?.patients)
-                    setHiddenColumns(Object.entries(c.columnVisibilityModels.patients).filter(f => f[1] === false).map(arr => arr[0]))
+                if (c?.columnVisibilityModels?.users)
+                    setHiddenColumns(Object.entries(c.columnVisibilityModels.users).filter(f => f[1] === false).map(arr => arr[0]))
             })
     }, [])
 

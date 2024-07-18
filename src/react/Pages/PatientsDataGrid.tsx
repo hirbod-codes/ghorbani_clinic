@@ -3,7 +3,6 @@ import { DataGrid } from "../Components/DataGrid/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
 import { t } from "i18next";
 import { Button, CircularProgress, Grid, Paper } from "@mui/material";
-import LoadingScreen from "../Components/LoadingScreen";
 import { GridActionsCellItem, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../Contexts/ConfigurationContext";
@@ -14,20 +13,16 @@ import { resources } from "../../Electron/Database/Repositories/Auth/resources";
 import { ManagePatient } from "../Components/Patients/ManagePatient";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish } from "../Lib/Events";
-import { configAPI } from "../../Electron/Configuration/renderer/configAPI";
 import { MedicalHistory } from "../Components/Patients/MedicalHistory";
 import { Address } from "../Components/Patients/Address";
-import { PatientsDataGrid } from "./PatientsDataGrid";
 
-export function Patients() {
+export function PatientsDataGrid({ loading = false, defaultPatients = [], defaultHiddenColumns = ['_id'], onPageChange, onRefresh }: { loading: boolean, defaultPatients: Patient[], defaultHiddenColumns: string[], onPageChange?: (offset: number, limit: number) => void | Promise<void>, onRefresh?: (offset: number, limit: number) => void | Promise<void> }) {
     const auth = useContext(AuthContext)
     const configuration = useContext(ConfigurationContext)
 
     const [page, setPage] = useState({ offset: 0, limit: 25 })
-    const [hiddenColumns, setHiddenColumns] = useState<string[]>(['_id'])
 
-    const [loading, setLoading] = useState<boolean>(true)
-    const [patients, setPatients] = useState<Patient[]>([])
+    const [patients, setPatients] = useState<Patient[]>(defaultPatients ?? [])
 
     const [editingPatientId, setEditingPatientId] = useState<string | undefined>(undefined)
     const [creatingPatient, setCreatingPatient] = useState<boolean>(false)
@@ -37,11 +32,11 @@ export function Patients() {
     const [showingAddress, setShowingAddress] = useState<boolean>(false)
     const [showingMH, setShowingMH] = useState<boolean>(false)
 
-    console.log('Patients', {
+    console.log('PatientsDataGrid', {
         auth,
         configuration,
         page,
-        hiddenColumns,
+        defaultHiddenColumns,
         loading,
         patients,
         editingPatientId,
@@ -51,53 +46,13 @@ export function Patients() {
         showingMH
     })
 
-    const init = async (offset: number, limit: number) => {
-        setLoading(true)
-        console.log('Patients', 'init', 'start');
-        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPatients(offset, limit)
-        console.log('Patients', 'fetchPatients', 'res', res)
-        setLoading(false)
-
-        if (res.code !== 200 || !res.data) {
-            publish(RESULT_EVENT_NAME, {
-                severity: 'error',
-                message: t('failedToFetchPatients')
-            })
-
-            return
-        }
-
-        publish(RESULT_EVENT_NAME, {
-            severity: 'success',
-            message: t('successfullyFetchedPatients')
-        })
-        setPatients(res.data)
-
-        console.log('Patients', 'init', 'end');
-    }
-
-    useEffect(() => {
-        console.log('Patients', 'useEffect', 'start');
-        if (!auth || !auth.user || !auth.accessControl)
-            return
-
-        init(page.offset, page.limit).then(() => console.log('Patients', 'useEffect', 'end'))
-    }, [page, auth])
-
-    useEffect(() => {
-        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-            .then((c) => {
-                if (c?.columnVisibilityModels?.patients)
-                    setHiddenColumns(Object.entries(c.columnVisibilityModels.patients).filter(f => f[1] === false).map(arr => arr[0]))
-            })
-    }, [])
-
-    if (!auth || !auth.user || !auth.accessControl)
-        return (<LoadingScreen />)
-
     const createsPatient = auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).create(resources.PATIENT)
     const updatesPatient = auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).update(resources.PATIENT)
     const deletesPatient = auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.PATIENT)
+
+    useEffect(() => {
+        setPatients(defaultPatients)
+    }, [defaultPatients])
 
     const columns: GridColDef<any>[] = [
         {
@@ -138,9 +93,6 @@ export function Patients() {
         },
     ]
 
-    if (!patients || patients.length === 0)
-        return (<LoadingScreen />)
-
     return (
         <>
             <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
@@ -153,12 +105,17 @@ export function Patients() {
                             overWriteColumns={columns}
                             loading={loading}
                             serverSidePagination
-                            onPaginationModelChange={(m, d) => setPage({ offset: m.page, limit: m.pageSize })}
+                            onPaginationModelChange={(m, d) => {
+                                setPage({ offset: m.page, limit: m.pageSize })
+
+                                if (onPageChange)
+                                    onPageChange(m.page, m.pageSize)
+                            }}
                             orderedColumnsFields={['actions']}
                             storeColumnVisibilityModel
-                            hiddenColumns={hiddenColumns}
+                            hiddenColumns={defaultHiddenColumns}
                             customToolbar={[
-                                <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
+                                <Button onClick={async () => onRefresh && await onRefresh(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
                                 createsPatient && <Button onClick={() => setCreatingPatient(true)} startIcon={<AddOutlined />}>{t('Create')}</Button>,
                             ]}
                             additionalColumns={[
@@ -182,7 +139,10 @@ export function Patients() {
                                                     message: t('failedToDeletePatient')
                                                 })
 
-                                            await init(page.offset, page.limit)
+                                            if (onRefresh)
+                                                await onRefresh(page.offset, page.limit)
+                                            else
+                                                setPatients(patients.filter(p => p._id !== row._id))
 
                                             publish(RESULT_EVENT_NAME, {
                                                 severity: 'success',

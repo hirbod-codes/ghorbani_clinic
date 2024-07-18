@@ -1,4 +1,4 @@
-import { GridColumnVisibilityModel, GridPaginationModel, GridToolbarColumnsButton, GridToolbarContainer, GridToolbarDensitySelector, GridToolbarExport, GridToolbarFilterButton, DataGrid as XDataGrid, useGridApiRef } from '@mui/x-data-grid';
+import { GridColDef, GridColumnVisibilityModel, GridPaginationModel, GridToolbarColumnsButton, GridToolbarContainer, GridToolbarDensitySelector, GridToolbarExport, GridToolbarFilterButton, DataGrid as XDataGrid, useGridApiRef } from '@mui/x-data-grid';
 import { useState, useEffect } from 'react'
 import LoadingScreen from '../LoadingScreen'
 import { DataGrid } from './types';
@@ -21,7 +21,12 @@ export function DataGrid({ name, data, idField = '_id', orderedColumnsFields, ov
         pageSize: 25,
     });
 
-    const columns = getColumns(data, overWriteColumns, additionalColumns, orderedColumnsFields)
+
+    const [columns, setColumns] = useState<GridColDef<any>[]>([])
+
+    useEffect(() => {
+        setColumns(getColumns(data, overWriteColumns, additionalColumns, orderedColumnsFields))
+    }, [data, overWriteColumns, additionalColumns, orderedColumnsFields])
 
     console.log('DataGrid', { data, columns })
 
@@ -40,6 +45,7 @@ export function DataGrid({ name, data, idField = '_id', orderedColumnsFields, ov
                     density={density}
                     rowCount={serverSidePagination ? -1 : undefined}
                     paginationMode={serverSidePagination ? 'server' : 'client'}
+                    pageSizeOptions={[1, 25, 50, 100]}
                     pagination
                     paginationModel={serverSidePagination ? (paginationModel ?? paginationModelState) : undefined}
                     onPaginationMetaChange={onPaginationMetaChange}
@@ -54,18 +60,19 @@ export function DataGrid({ name, data, idField = '_id', orderedColumnsFields, ov
                         : undefined
                     }
                     columnVisibilityModel={columnVisibilityModel ?? columnVisibilityModelState}
-                    onColumnVisibilityModelChange={async (m, d) => {
-                        await apiRef.current.autosizeColumns(autosizeOptions)
+                    onColumnVisibilityModelChange={(m, d) => {
+                        apiRef.current.autosizeColumns(autosizeOptions)
 
                         if (!columnVisibilityModel)
                             setColumnVisibilityModel(m)
 
                         if (storeColumnVisibilityModel) {
-                            const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-                            if (!c.columnVisibilityModels)
-                                c.columnVisibilityModels = {}
-                            c.columnVisibilityModels[name] = m;
-                            (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig({ ...c })
+                            (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig().then((c) => {
+                                if (!c.columnVisibilityModels)
+                                    c.columnVisibilityModels = {}
+                                c.columnVisibilityModels[name] = m;
+                                (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig({ ...c })
+                            })
                         }
 
                         if (onColumnVisibilityModelChange)
