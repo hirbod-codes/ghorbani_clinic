@@ -17,7 +17,6 @@ import { publish } from "../Lib/Events";
 import { configAPI } from "../../Electron/Configuration/renderer/configAPI";
 import { MedicalHistory } from "../Components/Patients/MedicalHistory";
 import { Address } from "../Components/Patients/Address";
-import { PatientsDataGrid } from "./PatientsDataGrid";
 
 export function Patients() {
     const auth = useContext(AuthContext)
