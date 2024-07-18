@@ -1,12 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { IconButton, Modal, Paper, Slide, Stack, Typography } from "@mui/material"
 
 import { TextEditor } from './TextEditor';
-import { EditOutlined, WatchOutlined } from '@mui/icons-material';
+import { EditOutlined, RemoveRedEyeOutlined } from '@mui/icons-material';
 
-export function TextEditorModal({ open, onClose, title, defaultText: defaultContent, onChange }: { open: boolean; onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void; title?: string; defaultText?: string | undefined; onChange?: (address: string) => void | Promise<void> }) {
-    const [text, setText] = useState<string | undefined>(undefined)
+export function TextEditorModal({ open, onClose, title, defaultContent, onChange }: { open: boolean; onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void; title?: string; defaultContent?: string | undefined; onChange?: (content: string) => void | Promise<void> }) {
+    const [content, setContent] = useState<string | undefined>(defaultContent)
     const [editing, setEditing] = useState<boolean>(false)
+
+    console.log('TextEditorModal', { open, onClose, title, defaultContent, onChange, content, editing })
+
+    useEffect(() => { setContent(defaultContent) }, [defaultContent])
 
     return (
         <>
@@ -26,20 +30,20 @@ export function TextEditorModal({ open, onClose, title, defaultText: defaultCont
                                     {title}
                                 </Typography>
                                 <IconButton onClick={() => setEditing(!editing)}>
-                                    {editing ? <WatchOutlined /> : <EditOutlined />}
+                                    {editing ? <EditOutlined /> : <RemoveRedEyeOutlined />}
                                 </IconButton>
                             </Stack>
                             {editing
                                 ? <TextEditor
                                     defaultContent={defaultContent}
-                                    onSave={(content) => {
-                                        setText(text)
+                                    onChange={(c) => {
+                                        setContent(c)
                                         if (onChange)
-                                            onChange(content)
+                                            onChange(c)
                                     }}
                                 />
                                 : <Typography variant='body1'>
-                                    {text}
+                                    {content}
                                 </Typography>
                             }
                         </Stack>

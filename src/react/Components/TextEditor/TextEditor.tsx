@@ -17,8 +17,6 @@ import { useExtensions } from "./useExtensions";
 import './styles.css'
 import { t } from "i18next";
 
-const exampleContent = '';
-
 function fileListToImageFiles(fileList: FileList): File[] {
     // You may want to use a package like attr-accept
     // (https://www.npmjs.com/package/attr-accept) to restrict to certain file
@@ -29,7 +27,7 @@ function fileListToImageFiles(fileList: FileList): File[] {
     });
 }
 
-export function TextEditor({ defaultContent, onSave }: { defaultContent?: string, onSave?: (content?: string) => void | Promise<void> }) {
+export function TextEditor({ defaultContent, onChange }: { defaultContent?: string, onChange?: (content?: string) => void | Promise<void> }) {
     const extensions = useExtensions({
         placeholder: "Add your own content here...",
     });
@@ -118,8 +116,6 @@ export function TextEditor({ defaultContent, onSave }: { defaultContent?: string
         [handleNewImageFiles],
     );
 
-    const [submittedContent, setSubmittedContent] = useState(defaultContent);
-
     return (
         <>
             <Box
@@ -136,7 +132,7 @@ export function TextEditor({ defaultContent, onSave }: { defaultContent?: string
                     ref={rteRef}
                     className="editor"
                     extensions={extensions}
-                    content={exampleContent}
+                    content={defaultContent}
                     editable={isEditable}
                     editorProps={{
                         handleDrop: handleDrop,
@@ -193,9 +189,8 @@ export function TextEditor({ defaultContent, onSave }: { defaultContent?: string
                                     variant="outlined"
                                     size="small"
                                     onClick={() => {
-                                        setSubmittedContent(rteRef.current?.editor?.getHTML() ?? "")
-                                        if (onSave)
-                                            onSave(defaultContent)
+                                        if (onChange)
+                                            onChange(rteRef.current?.editor?.getHTML())
                                     }}
                                 >
                                     {t('save')}
