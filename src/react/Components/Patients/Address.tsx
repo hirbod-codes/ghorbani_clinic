@@ -2,8 +2,6 @@ import { useState } from 'react'
 import { EditOutlined } from "@mui/icons-material";
 import { Divider, Grid, IconButton, Modal, Paper, Slide, Stack, Typography } from "@mui/material";
 import { t } from "i18next";
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 
 export function Address({ open, onClose, defaultAddress, onChange }: { open: boolean, onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void, defaultAddress: string; onChange?: (address: string) => void | Promise<void> }) {
     const [editing, setEditing] = useState<boolean>(false)
@@ -37,7 +35,7 @@ export function Address({ open, onClose, defaultAddress, onChange }: { open: boo
                                 </Stack>
                             </Grid>
                             <Grid item xs={12}>
-                                {
+                                {/* {
                                     editing
                                         ? <ReactQuill
                                             value={address}
@@ -52,7 +50,7 @@ export function Address({ open, onClose, defaultAddress, onChange }: { open: boo
                                             className="ql-editor"
                                             dangerouslySetInnerHTML={{ __html: address }}
                                         />
-                                }
+                                } */}
                             </Grid>
                         </Grid>
                     </Paper>

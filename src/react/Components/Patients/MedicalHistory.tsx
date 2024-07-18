@@ -10,8 +10,6 @@ import { RendererDbAPI } from "../../../Electron/Database/handleDbRendererEvents
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 import { AddOutlined, DeleteOutlined, EditOutlined } from "@mui/icons-material";
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 
 export type MedicalHistoryProps = {
     open: boolean;
@@ -255,26 +253,6 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                                                 <EditOutlined />
                                             </IconButton>
 
-                                            {
-                                                editing
-                                                    ?
-                                                    <ReactQuill
-                                                        value={medicalHistory.description ?? ''}
-                                                        style={{ flexGrow: 2 }}
-                                                        onChange={(a) => {
-                                                            setMedicalHistory({ ...medicalHistory, description: a })
-
-                                                            if (onChange)
-                                                                onChange({ ...medicalHistory, description: a })
-                                                        }}
-                                                        theme="snow"
-                                                    />
-                                                    :
-                                                    <div
-                                                        className="ql-editor"
-                                                        dangerouslySetInnerHTML={{ __html: medicalHistory.description ?? '' }}
-                                                    />
-                                            }
                                         </Stack>
                                         {/* <TextField
                                             variant='standard'
