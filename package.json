@@ -103,7 +103,6 @@
         "bcryptjs": "^2.4.3",
         "electron-squirrel-startup": "^1.0.1",
         "i18next": "^23.11.5",
-        "lexical": "^0.16.1",
         "luxon": "^3.4.4",
         "mongodb": "6.8",
         "mui-tiptap": "^1.9.2",

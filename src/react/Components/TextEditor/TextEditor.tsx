@@ -6,7 +6,6 @@ import {
     LinkBubbleMenu,
     MenuButton,
     RichTextEditor,
-    RichTextReadOnly,
     TableBubbleMenu,
     insertImages,
     type RichTextEditorRef,

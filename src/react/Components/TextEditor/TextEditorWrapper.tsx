@@ -1,31 +1,43 @@
 import { useState, useEffect } from 'react';
-import { Divider, IconButton, Stack, Typography } from "@mui/material"
+import { Divider, IconButton, Paper, Stack, Typography } from "@mui/material"
 
 import { TextEditor } from './TextEditor';
-import { EditOutlined, RemoveRedEyeOutlined } from '@mui/icons-material';
+import { DrawOutlined, EditOutlined, RemoveRedEyeOutlined, TypeSpecimenOutlined } from '@mui/icons-material';
+import { Canvas } from '../Canvas/Canvas';
 
 export function TextEditorWrapper({ title, defaultContent, onChange }: { title?: string; defaultContent?: string | undefined; onChange?: (content: string) => void | Promise<void> }) {
     const [content, setContent] = useState<string | undefined>(defaultContent)
-    const [editing, setEditing] = useState<boolean>(false)
+    const [status, setStatus] = useState<string>('showing')
 
-    console.log('TextEditorWrapper', { title, defaultContent, onChange, content, editing })
+    console.log('TextEditorWrapper', { title, defaultContent, onChange, content, status })
 
     useEffect(() => { setContent(defaultContent) }, [defaultContent])
 
     return (
         <>
-            <Stack direction='column' spacing={1}>
+            <Stack direction='column' spacing={1} sx={{ width: '100%', height: '100%', border: '1px solid green' }}>
                 <Stack direction='row' justifyContent='space-between' alignContent='center'>
                     <Typography variant='h5'>
                         {title}
                     </Typography>
-                    <IconButton onClick={() => setEditing(!editing)}>
-                        {editing ? <EditOutlined /> : <RemoveRedEyeOutlined />}
-                    </IconButton>
+                    <Stack direction='row' justifyContent='end' alignContent='center'>
+                        <IconButton onClick={() => setStatus('showing')}>
+                            <RemoveRedEyeOutlined />
+                        </IconButton>
+                        <IconButton onClick={() => setStatus('typing')}>
+                            <TypeSpecimenOutlined />
+                        </IconButton>
+                        <IconButton onClick={() => setStatus('drawing')}>
+                            <DrawOutlined />
+                        </IconButton>
+                    </Stack>
                 </Stack>
+
                 <Divider />
-                {editing
-                    ? <TextEditor
+
+                {status === 'typing'
+                    &&
+                    <TextEditor
                         defaultContent={defaultContent}
                         onChange={(c) => {
                             setContent(c)
@@ -33,7 +45,19 @@ export function TextEditorWrapper({ title, defaultContent, onChange }: { title?:
                                 onChange(c)
                         }}
                     />
-                    : <Typography variant='body1'>
+                }
+
+                {
+                    status === 'drawing'
+                    &&
+                    <Paper sx={{ flexGrow: 2, width: '100%', height: '100%', border: '1px solid green' }}>
+                        <Canvas />
+                    </Paper>
+                }
+
+                {status === 'showing'
+                    &&
+                    <Typography variant='body1'>
                         {content}
                     </Typography>
                 }
