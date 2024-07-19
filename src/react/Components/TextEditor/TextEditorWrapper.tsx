@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Divider, IconButton, Paper, Stack, Typography } from "@mui/material"
+import { Box, Divider, IconButton, Stack, Typography } from "@mui/material"
 
 import { TextEditor } from './TextEditor';
-import { DrawOutlined, EditOutlined, RemoveRedEyeOutlined, TypeSpecimenOutlined } from '@mui/icons-material';
+import { DrawOutlined, RemoveRedEyeOutlined, TypeSpecimenOutlined } from '@mui/icons-material';
 import { Canvas } from '../Canvas/Canvas';
 
 export function TextEditorWrapper({ title, defaultContent, onChange }: { title?: string; defaultContent?: string | undefined; onChange?: (content: string) => void | Promise<void> }) {
@@ -15,7 +15,7 @@ export function TextEditorWrapper({ title, defaultContent, onChange }: { title?:
 
     return (
         <>
-            <Stack direction='column' spacing={1} sx={{ width: '100%', height: '100%', border: '1px solid green' }}>
+            <Stack direction='column' spacing={1} sx={{ width: '100%', height: '100%' }}>
                 <Stack direction='row' justifyContent='space-between' alignContent='center'>
                     <Typography variant='h5'>
                         {title}
@@ -50,9 +50,9 @@ export function TextEditorWrapper({ title, defaultContent, onChange }: { title?:
                 {
                     status === 'drawing'
                     &&
-                    <Paper sx={{ flexGrow: 2, width: '100%', height: '100%', border: '1px solid green' }}>
+                    <Box sx={{ flexGrow: 2, width: '100%', height: '100%' }}>
                         <Canvas />
-                    </Paper>
+                    </Box>
                 }
 
                 {status === 'showing'

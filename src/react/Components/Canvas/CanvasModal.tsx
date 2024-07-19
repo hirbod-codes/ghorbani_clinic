@@ -16,7 +16,7 @@ export function CanvasModal({ open, onClose, title, defaultContent, onChange }: 
             >
                 <Slide direction={open ? 'up' : 'down'} in={open} timeout={250}>
                     <Paper sx={{ width: '80%', height: '90%', padding: '0.5rem 1rem', overflow: 'auto' }}>
-                        {/* <Canvas /> */}
+                        <Canvas />
                     </Paper>
                 </Slide>
             </Modal>

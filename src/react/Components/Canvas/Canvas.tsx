@@ -1,4 +1,4 @@
-import { CssBaseline, Paper, ThemeProvider, colors, useTheme } from "@mui/material";
+import { CssBaseline, Divider, IconButton, Paper, Stack, ThemeProvider, colors, useTheme } from "@mui/material";
 import { MutableRefObject, useContext, useEffect, useRef, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { configAPI } from "../../../Electron/Configuration/renderer/configAPI";
@@ -6,6 +6,7 @@ import { Draw } from "./types";
 import { useDraw } from "./useCanvas";
 
 import './styles.css'
+import { ColorLensOutlined } from "@mui/icons-material";
 
 export function Canvas() {
     let theme = useContext(ConfigurationContext).get.theme
@@ -50,18 +51,26 @@ export function Canvas() {
 
         ctx.fillStyle = lineColor
         ctx.beginPath()
-        ctx.arc(startPoint.x, startPoint.y, 2, 0, 2 * Math.PI)
+        ctx.arc(startPoint.x, startPoint.y, 0.3, 0, 2 * Math.PI)
         ctx.fill()
     }
 
     return (
-        <Paper sx={{ width: '100%', height: '100%', border: '1px solid green', p: 0, m: 0 }} ref={parentRef}>
-            <canvas
-                ref={canvasRef}
-                onMouseDown={onMouseDown}
-                className='canvas'
-            />
-        </Paper>
+        <Stack direction='column' alignItems='start' sx={{ height: '100%' }}>
+            <IconButton>
+                <ColorLensOutlined />
+            </IconButton>
+
+            <Divider />
+
+            <Paper elevation={2} sx={{ flexGrow: 2, width: '100%', height: '100%', p: 0, m: 0 }} ref={parentRef}>
+                <canvas
+                    ref={canvasRef}
+                    onMouseDown={onMouseDown}
+                    className='canvas'
+                />
+            </Paper>
+        </Stack>
     )
 }
 
