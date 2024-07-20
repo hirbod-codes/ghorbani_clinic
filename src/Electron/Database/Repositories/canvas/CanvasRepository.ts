@@ -8,18 +8,19 @@ import { Unauthorized } from "../../Unauthorized";
 import { resources } from "../Auth/resources";
 import path from "path";
 import fs from 'fs';
+import { Canvas } from "../../Models/Canvas";
 
 export class CanvasRepository extends MongoDB implements ICanvasRepository {
     async handleEvents(): Promise<void> {
-        ipcMain.handle('upload-canvas', async (_e, { canvas }: { canvas: ImageData }) => await this.handleErrors(async () => await this.uploadCanvas(canvas)))
+        ipcMain.handle('upload-canvas', async (_e, { canvas }: { canvas: Canvas }) => await this.handleErrors(async () => await this.uploadCanvas(canvas)))
         ipcMain.handle('retrieve-canvases', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.retrieveCanvases(id)))
-        ipcMain.handle('download-canvas', async (_e, { id }: { id: string }) => async () => await this.downloadCanvas(id))
+        ipcMain.handle('download-canvas', async (_e, { id }: { id: string }) => async () => await this.handleErrors(async () => await this.downloadCanvas(id)))
         ipcMain.handle('download-canvases', async (_e, { ids }: { ids: string[] }) => await this.handleErrors(async () => await this.downloadCanvases(ids)))
         ipcMain.handle('open-canvas', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.openCanvas(id)))
         ipcMain.handle('delete-canvases', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.deleteCanvases(id)))
     }
 
-    async uploadCanvas(canvas: ImageData): Promise<string> {
+    uploadCanvas(canvas: Canvas): Promise<string> {
         return new Promise(async (res, rej) => {
             const authenticated = await authRepository.getAuthenticatedUser()
             if (authenticated == null)
@@ -32,22 +33,26 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
 
             console.log('uploading...', { canvas });
 
-            const bucket = await this.getPatientsDocumentsBucket();
+            const bucket = await this.getCanvasBucket();
 
-            const id = ObjectId.generate().toString()
+            const id = (new ObjectId()).toString()
             const upload = bucket.openUploadStream(id, { metadata: { colorSpace: canvas.colorSpace, width: canvas.width, height: canvas.height } });
 
             upload.on('finish', function () {
                 console.log("Upload Finish.");
             });
 
-            console.log('Upload result', upload.write(canvas.data, (err) => {
+            const result = upload.write(Buffer.from(canvas.data), (err) => {
                 if (err)
                     throw err
 
                 console.log('finished uploading.');
                 res(id)
-            }));
+            })
+            console.log('Upload result', result);
+
+            if (!result)
+                rej()
 
             upload.end()
         })
@@ -64,7 +69,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
             throw new Unauthorized()
 
         console.log('retrieving...');
-        const bucket = await this.getPatientsDocumentsBucket();
+        const bucket = await this.getCanvasBucket();
 
         const f = await bucket.find({ _id: new ObjectId(id) }).toArray();
 
@@ -72,7 +77,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
         return f
     }
 
-    async downloadCanvas(id: string): Promise<ImageData> {
+    downloadCanvas(id: string): Promise<Canvas> {
         return new Promise(async (res, rej) => {
             const authenticated = await authRepository.getAuthenticatedUser()
             if (authenticated == null)
@@ -84,7 +89,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
                 throw new Unauthorized()
 
             console.log('downloading...');
-            const bucket = await this.getPatientsDocumentsBucket();
+            const bucket = await this.getCanvasBucket();
 
             const f = await bucket.find({ _id: new ObjectId(id) }).toArray();
             if (f.length === 0)
@@ -98,14 +103,14 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
                     if (err)
                         throw err
 
-                    res(new ImageData(Uint8ClampedArray.from(fs.readFileSync(filePath)), f[0].metadata.width, f[0].metadata.height, { colorSpace: f[0].metadata.colorSpace }));
+                    res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data: Uint8ClampedArray.from(fs.readFileSync(filePath)).toString() })
                     console.log('finished downloading.');
                 });
         })
     }
 
-    async downloadCanvases(ids: string[]): Promise<ImageData[]> {
-        const files: ImageData[] = []
+    async downloadCanvases(ids: string[]): Promise<Canvas[]> {
+        const files: Canvas[] = []
         ids.forEach(async (id) => {
             files.push(await this.downloadCanvas(id))
         });
@@ -124,7 +129,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
             throw new Unauthorized()
 
         console.log('opening...');
-        const bucket = await this.getPatientsDocumentsBucket();
+        const bucket = await this.getCanvasBucket();
 
         const f = await bucket.find({ _id: new ObjectId(id) }).toArray();
         if (f.length === 0)
@@ -158,7 +163,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
         if (!permission.granted)
             throw new Unauthorized()
 
-        const bucket = await this.getPatientsDocumentsBucket();
+        const bucket = await this.getCanvasBucket();
 
         const cursor = bucket.find({ _id: new ObjectId(id) });
 

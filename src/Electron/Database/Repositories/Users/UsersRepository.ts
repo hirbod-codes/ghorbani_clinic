@@ -1,4 +1,4 @@
-import { DeleteResult, Document, InsertOneResult, MongoTopologyClosedError, ObjectId, UpdateResult } from "mongodb";
+import { DeleteResult, Document, InsertOneResult, ObjectId, UpdateResult } from "mongodb";
 import { MongoDB } from "../../mongodb";
 import { User, readableFields, updatableFields, userSchema } from "../../Models/User";
 import { IUsersRepository } from "../../dbAPI";

@@ -13,19 +13,33 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, onChan
     const [content, setContent] = useState<string | undefined>(defaultContent)
     const [status, setStatus] = useState<string>('showing')
 
-    console.log('TextEditorWrapper', { title, defaultContent, onChange, content, status })
+    console.log('TextEditorWrapper', { title, defaultContent, defaultCanvas, onChange, content, status })
 
     const canvas = useRef<HTMLCanvasElement>()
 
     useEffect(() => {
         setContent(defaultContent);
 
-        (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(defaultCanvas)
-            .then((c) => {
-                const context = canvas?.current?.getContext('2d', { willReadFrequently: true })
-                context?.putImageData(c, canvas?.current?.width, canvas?.current?.height)
-            })
-    }, [defaultContent])
+        if (defaultCanvas)
+            (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(defaultCanvas)
+                .then((res) => {
+                    console.log('res', res)
+
+                    if (res.code !== 200)
+                        publish(RESULT_EVENT_NAME, {
+                            severity: 'error',
+                            message: t('failedToUploadCanvas')
+                        })
+
+                    publish(RESULT_EVENT_NAME, {
+                        severity: 'success',
+                        message: t('successfullyUploadedCanvas')
+                    })
+
+                    const context = canvas?.current?.getContext('2d', { willReadFrequently: true })
+                    context?.putImageData(new ImageData(Uint8ClampedArray.from(Buffer.from(res.data.data)), res.data.width, res.data.height, { colorSpace: res.data.colorSpace }), canvas?.current?.width, canvas?.current?.height)
+                })
+    }, [defaultContent, defaultCanvas])
 
     return (
         <>
@@ -80,24 +94,22 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, onChan
                     <Button variant='contained' color='success' onClick={async () => {
                         let canvasId
                         if (status === 'drawing') {
-                            console.log(
-                                'TextEditorWrapper',
-                                'onDone',
-                                canvas?.current,
-                                canvas?.current?.getContext('2d'),
-                                canvas?.current?.getContext('2d', { willReadFrequently: true })?.getImageData(0, 0, canvas?.current?.width, canvas?.current?.height),
-                            );
-
                             const image = canvas?.current?.getContext('2d', { willReadFrequently: true })?.getImageData(0, 0, canvas?.current?.width, canvas?.current?.height)
 
-                            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(image)
+                            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas({ width: image.width, height: image.height, colorSpace: 'srgb', data: image.data.toString() })
+                            console.log('res', res)
                             if (res.code !== 200)
                                 publish(RESULT_EVENT_NAME, {
                                     severity: 'error',
                                     message: t('failedToUploadCanvas')
                                 })
-                            else
-                                canvasId = res.data
+
+                            publish(RESULT_EVENT_NAME, {
+                                severity: 'success',
+                                message: t('successfullyUploadedCanvas')
+                            })
+
+                            canvasId = res.data
                         }
 
                         if (onChange)

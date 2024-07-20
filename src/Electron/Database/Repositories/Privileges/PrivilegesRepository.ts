@@ -162,7 +162,6 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         console.log(funcName, 'authenticated')
 
         const privileges = await this.getPrivileges();
-        console.log(funcName, 'privileges', JSON.stringify(privileges))
 
         return new AccessControl((privileges))
     }
@@ -178,7 +177,6 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         console.log(funcName, 'authenticated')
 
         const privileges = await (await this.getPrivilegesCollection()).find().toArray();
-        console.log(funcName, 'privileges', JSON.stringify(privileges))
 
         return privileges
     }
@@ -187,8 +185,6 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         const funcName = 'updatePrivilege'
 
         console.log('updatePrivilege', 'called')
-
-        console.log(funcName, 'privilege', JSON.stringify(privilege, undefined, 4))
 
         const user = await authRepository.getAuthenticatedUser()
         if (user == null)

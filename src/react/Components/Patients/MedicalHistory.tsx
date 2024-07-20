@@ -24,7 +24,7 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
 
     const [addingMedicalHistoryLoading, setAddingMedicalHistoryLoading] = useState<boolean>(false)
     const [addingMedicalHistory, setAddingMedicalHistory] = useState<string | undefined>(undefined)
-    const [medicalHistory, setMedicalHistory] = useState<PatientsMedicalHistory | undefined>(inputMedicalHistory ?? { description: '', histories: [] })
+    const [medicalHistory, setMedicalHistory] = useState<PatientsMedicalHistory | undefined>(inputMedicalHistory ?? { description: { text: '', canvas: undefined }, histories: [] })
 
     const [loading, setLoading] = useState<boolean>(true)
     const [fetchedHistories, setFetchedHistories] = useState<string[] | undefined>(undefined)
@@ -67,7 +67,7 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
     }, [])
 
     useEffect(() => {
-        setMedicalHistory(inputMedicalHistory ?? { description: '', histories: [] })
+        setMedicalHistory(inputMedicalHistory ?? { description: { text: '', canvas: undefined }, histories: [] })
     }, [inputMedicalHistory])
 
     console.log('MedicalHistory', { openDrawer, medicalHistory, fetchedHistories })
@@ -189,8 +189,9 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                                     <Grid item xs={11}>
                                         <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3 }}>
                                             <TextEditorWrapper
-                                                defaultContent={medicalHistory?.description}
-                                                onChange={(content) => setMedicalHistory({ ...medicalHistory, description: content })}
+                                                defaultContent={medicalHistory?.description?.text}
+                                                defaultCanvas={medicalHistory?.description?.canvas as string}
+                                                onChange={(content, canvasId) => setMedicalHistory({ ...medicalHistory, description: { text: content, canvas: canvasId } })}
                                                 title={t('address')}
                                             />
                                         </Paper>

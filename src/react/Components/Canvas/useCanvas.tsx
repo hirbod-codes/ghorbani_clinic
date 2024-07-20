@@ -9,19 +9,18 @@ export const useDraw = (onDraw: ({ ctx, currentPoint, prevPoint }: Draw) => void
 
     const onMouseDown = () => setMouseDown(true)
 
+    const ctx = canvasRef.current?.getContext('2d', { willReadFrequently: true })
+
     const clear = () => {
         const canvas = canvasRef.current
         if (!canvas)
             return
 
-        const ctx = canvas.getContext('2d')
         if (!ctx)
             return
 
         ctx.clearRect(0, 0, canvas.width, canvas.height)
     }
-
-    const ctx = canvasRef.current?.getContext('2d')
 
     const onMouseMove = (e: MouseEvent) => {
         if (!mouseDown)

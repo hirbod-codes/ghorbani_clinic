@@ -6,6 +6,7 @@ import { Visit } from "./Models/Visit"
 import { MongodbConfig } from "../Configuration/types"
 import { User } from "./Models/User"
 import { MedicalHistory } from "./Models/MedicalHistory"
+import { Canvas } from "./Models/Canvas"
 
 export type dbAPI = {
     getConfig: () => Promise<MongodbConfig>;
@@ -87,10 +88,10 @@ export type IPatientsDocumentsRepository = dbAPI & {
 
 export type ICanvasRepository = dbAPI & {
     handleEvents(): Promise<void>;
-    uploadCanvas(canvas: ImageData): Promise<string>;
+    uploadCanvas(canvas: Canvas): Promise<string>;
     retrieveCanvases(id: string): Promise<GridFSFile[]>;
-    downloadCanvas(id: string): Promise<ImageData>;
-    downloadCanvases(ids: string[]): Promise<ImageData[]>;
+    downloadCanvas(id: string): Promise<Canvas>;
+    downloadCanvases(ids: string[]): Promise<Canvas[]>;
     openCanvas(id: string): Promise<void>;
     deleteCanvases(id: string): Promise<boolean>;
 }

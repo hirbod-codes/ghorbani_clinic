@@ -273,11 +273,11 @@ export class MongoDB implements dbAPI {
         return new GridFSBucket(db ?? (await this.getDb(client)), { bucketName: patientsDocumentsCollectionName });
     }
 
-    async getCanvasPatientsDocumentsBucket(client?: MongoClient, db?: Db): Promise<GridFSBucket> {
+    async getCanvasBucket(client?: MongoClient, db?: Db): Promise<GridFSBucket> {
         return new GridFSBucket(db ?? (await this.getDb(client)), { bucketName: canvasCollectionName });
     }
 
-    async handleErrors(callback: () => Promise<unknown>): Promise<string> {
+    async handleErrors(callback: () => Promise<unknown> | unknown): Promise<string> {
         try {
             return JSON.stringify({
                 code: 200,
@@ -286,7 +286,8 @@ export class MongoDB implements dbAPI {
         }
         catch (error) {
             console.error('error in main process')
-            console.error(error)
+            console.error('error', error)
+            console.error('error json', JSON.stringify(error, undefined, 4))
             if (error instanceof Unauthorized)
                 return JSON.stringify({ code: 403 })
             else if (error instanceof Unauthenticated)

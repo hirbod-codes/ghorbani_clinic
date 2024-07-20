@@ -38,9 +38,10 @@ if (require('electron-squirrel-startup')) app.quit();
 
 const createWindow = (): void => {
     const mainWindow = new BrowserWindow({
-        height: 900,
-        width: 1200,
-        center: true,
+        // height: 900,
+        // width: 1200,
+        // center: true,
+        fullscreen: true,
         frame: false,
         webPreferences: {
             preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
@@ -50,7 +51,7 @@ const createWindow = (): void => {
     mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
     if (!app.isPackaged)
-        mainWindow.webContents.openDevTools({ mode: 'right' });
+        mainWindow.webContents.openDevTools({ mode: 'detach' });
 };
 
 app.on('ready', async () => {
