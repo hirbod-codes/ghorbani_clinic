@@ -2,7 +2,7 @@ import { Modal, Paper, Slide } from "@mui/material"
 
 import { TextEditorWrapper } from './TextEditorWrapper';
 
-export function TextEditorModal({ open, onClose, title, defaultContent, onChange }: { open: boolean; onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void; title?: string; defaultContent?: string | undefined; onChange?: (content: string) => void | Promise<void> }) {
+export function TextEditorModal({ open, onClose, title, defaultContent, defaultCanvas, onChange }: { open: boolean; onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void; title?: string; defaultContent?: string | undefined; defaultCanvas?: string; onChange?: (content: string) => void | Promise<void> }) {
     console.log('TextEditorModal', { open, onClose, title, defaultContent, onChange })
 
     return (
@@ -19,6 +19,7 @@ export function TextEditorModal({ open, onClose, title, defaultContent, onChange
                     <Paper sx={{ width: '80%', height: '90%', padding: '0.5rem 1rem', overflow: 'auto' }}>
                         <TextEditorWrapper
                             title={title}
+                            defaultCanvas={defaultCanvas}
                             defaultContent={defaultContent}
                             onChange={onChange}
                         />

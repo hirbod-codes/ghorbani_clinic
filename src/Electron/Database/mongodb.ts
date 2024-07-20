@@ -2,7 +2,8 @@ import { ClientSession, Collection, Db, GridFSBucket, MongoClient } from "mongod
 import { type Patient, collectionName as patientsCollectionName } from "./Models/Patient";
 import { type MedicalHistory, collectionName as patientsMedicalHistoriesCollectionName } from "./Models/MedicalHistory";
 import { Visit, collectionName as visitsCollectionName } from "./Models/Visit";
-import { collectionName as filesCollectionName } from "./Models/File";
+import { collectionName as patientsDocumentsCollectionName } from "./Models/PatientsDocuments";
+import { collectionName as canvasCollectionName } from "./Models/Canvas";
 import { collectionName as privilegesCollectionName } from "./Models/Privilege";
 import { collectionName as usersCollectionName } from "./Models/User";
 import type { dbAPI } from "./dbAPI";
@@ -268,8 +269,12 @@ export class MongoDB implements dbAPI {
         return (db ?? (await this.getDb(client))).collection<Visit>(visitsCollectionName)
     }
 
-    async getBucket(client?: MongoClient, db?: Db): Promise<GridFSBucket> {
-        return new GridFSBucket(db ?? (await this.getDb(client)), { bucketName: filesCollectionName });
+    async getPatientsDocumentsBucket(client?: MongoClient, db?: Db): Promise<GridFSBucket> {
+        return new GridFSBucket(db ?? (await this.getDb(client)), { bucketName: patientsDocumentsCollectionName });
+    }
+
+    async getCanvasPatientsDocumentsBucket(client?: MongoClient, db?: Db): Promise<GridFSBucket> {
+        return new GridFSBucket(db ?? (await this.getDb(client)), { bucketName: canvasCollectionName });
     }
 
     async handleErrors(callback: () => Promise<unknown>): Promise<string> {

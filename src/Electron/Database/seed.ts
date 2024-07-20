@@ -91,10 +91,18 @@ export async function seedPatientsVisits(patientCount: number, patientsCollectio
                         firstName: faker.person.firstName(gender),
                         lastName: faker.person.lastName(gender),
                         socialId: faker.string.numeric(10),
-                        address: `${faker.location.country()}-${faker.location.city()}-${faker.location.streetAddress()}`,
+                        phoneNumber: '0' + faker.string.numeric({ length: 10, allowLeadingZeros: false }),
+                        address: {
+                            text: `${faker.location.country()}-${faker.location.city()}-${faker.location.streetAddress()}`
+                        },
                         age: age,
                         gender: gender,
-                        medicalHistory: faker.datatype.boolean(0.3) ? undefined : { description: faker.lorem.lines(5), histories: Array.from({ length: faker.number.int({ min: 0, max: 7 }) }, () => faker.string.alpha(10)) },
+                        medicalHistory: faker.datatype.boolean(0.3) ? undefined : {
+                            description: {
+                                text: faker.lorem.lines(5),
+                            },
+                            histories: Array.from({ length: faker.number.int({ min: 0, max: 7 }) }, () => faker.string.alpha(10))
+                        },
                         birthDate: DateTime.utc().minus({ years: age }).toUnixInteger(),
                         updatedAt: patientCreatedAt.toUnixInteger(),
                         createdAt: patientCreatedAt.toUnixInteger(),

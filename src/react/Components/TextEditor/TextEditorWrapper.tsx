@@ -1,17 +1,31 @@
-import { useState, useEffect } from 'react';
-import { Box, Divider, IconButton, Stack, Typography } from "@mui/material"
+import { useState, useEffect, useRef } from 'react';
+import { Box, Button, Divider, IconButton, Stack, Typography } from "@mui/material"
 
 import { TextEditor } from './TextEditor';
 import { DrawOutlined, RemoveRedEyeOutlined, TypeSpecimenOutlined } from '@mui/icons-material';
 import { Canvas } from '../Canvas/Canvas';
+import { t } from 'i18next';
+import { RendererDbAPI } from '../../../Electron/Database/handleDbRendererEvents';
+import { publish } from '../../Lib/Events';
+import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
 
-export function TextEditorWrapper({ title, defaultContent, onChange }: { title?: string; defaultContent?: string | undefined; onChange?: (content: string) => void | Promise<void> }) {
+export function TextEditorWrapper({ title, defaultContent, defaultCanvas, onChange }: { title?: string; defaultContent?: string | undefined; defaultCanvas?: string; onChange?: (content: string, canvasId?: string) => void | Promise<void> }) {
     const [content, setContent] = useState<string | undefined>(defaultContent)
     const [status, setStatus] = useState<string>('showing')
 
     console.log('TextEditorWrapper', { title, defaultContent, onChange, content, status })
 
-    useEffect(() => { setContent(defaultContent) }, [defaultContent])
+    const canvas = useRef<HTMLCanvasElement>()
+
+    useEffect(() => {
+        setContent(defaultContent);
+
+        (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(defaultCanvas)
+            .then((c) => {
+                const context = canvas?.current?.getContext('2d', { willReadFrequently: true })
+                context?.putImageData(c, canvas?.current?.width, canvas?.current?.height)
+            })
+    }, [defaultContent])
 
     return (
         <>
@@ -39,11 +53,7 @@ export function TextEditorWrapper({ title, defaultContent, onChange }: { title?:
                     &&
                     <TextEditor
                         defaultContent={defaultContent}
-                        onChange={(c) => {
-                            setContent(c)
-                            if (onChange)
-                                onChange(c)
-                        }}
+                        onChange={(c) => setContent(c)}
                     />
                 }
 
@@ -51,7 +61,7 @@ export function TextEditorWrapper({ title, defaultContent, onChange }: { title?:
                     status === 'drawing'
                     &&
                     <Box sx={{ flexGrow: 2, width: '100%', height: '100%' }}>
-                        <Canvas />
+                        <Canvas outRef={canvas} />
                     </Box>
                 }
 
@@ -61,6 +71,41 @@ export function TextEditorWrapper({ title, defaultContent, onChange }: { title?:
                         {content}
                     </Typography>
                 }
+
+                <Stack direction='row' justifyContent='space-between' alignContent='center'>
+                    <Button variant='contained' color='error' onClick={() => { }}>
+                        {t('cancel')}
+                    </Button>
+
+                    <Button variant='contained' color='success' onClick={async () => {
+                        let canvasId
+                        if (status === 'drawing') {
+                            console.log(
+                                'TextEditorWrapper',
+                                'onDone',
+                                canvas?.current,
+                                canvas?.current?.getContext('2d'),
+                                canvas?.current?.getContext('2d', { willReadFrequently: true })?.getImageData(0, 0, canvas?.current?.width, canvas?.current?.height),
+                            );
+
+                            const image = canvas?.current?.getContext('2d', { willReadFrequently: true })?.getImageData(0, 0, canvas?.current?.width, canvas?.current?.height)
+
+                            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(image)
+                            if (res.code !== 200)
+                                publish(RESULT_EVENT_NAME, {
+                                    severity: 'error',
+                                    message: t('failedToUploadCanvas')
+                                })
+                            else
+                                canvasId = res.data
+                        }
+
+                        if (onChange)
+                            onChange(content, canvasId)
+                    }} >
+                        {t('done')}
+                    </Button>
+                </Stack>
             </Stack>
         </>
     )

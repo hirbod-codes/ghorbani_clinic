@@ -1,0 +1,170 @@
+import { GridFSFile, ObjectId } from "mongodb";
+import { ICanvasRepository } from "../../dbAPI";
+import { MongoDB } from "../../mongodb";
+import { app, ipcMain, shell } from "electron";
+import { authRepository, privilegesRepository } from "../../handleDbEvents";
+import { Unauthenticated } from "../../Unauthenticated";
+import { Unauthorized } from "../../Unauthorized";
+import { resources } from "../Auth/resources";
+import path from "path";
+import fs from 'fs';
+
+export class CanvasRepository extends MongoDB implements ICanvasRepository {
+    async handleEvents(): Promise<void> {
+        ipcMain.handle('upload-canvas', async (_e, { canvas }: { canvas: ImageData }) => await this.handleErrors(async () => await this.uploadCanvas(canvas)))
+        ipcMain.handle('retrieve-canvases', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.retrieveCanvases(id)))
+        ipcMain.handle('download-canvas', async (_e, { id }: { id: string }) => async () => await this.downloadCanvas(id))
+        ipcMain.handle('download-canvases', async (_e, { ids }: { ids: string[] }) => await this.handleErrors(async () => await this.downloadCanvases(ids)))
+        ipcMain.handle('open-canvas', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.openCanvas(id)))
+        ipcMain.handle('delete-canvases', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.deleteCanvases(id)))
+    }
+
+    async uploadCanvas(canvas: ImageData): Promise<string> {
+        return new Promise(async (res, rej) => {
+            const authenticated = await authRepository.getAuthenticatedUser()
+            if (authenticated == null)
+                throw new Unauthenticated();
+
+            const privileges = await privilegesRepository.getAccessControl();
+            const permission = privileges.can(authenticated.roleName).create(resources.FILE);
+            if (!permission.granted)
+                throw new Unauthorized()
+
+            console.log('uploading...', { canvas });
+
+            const bucket = await this.getPatientsDocumentsBucket();
+
+            const id = ObjectId.generate().toString()
+            const upload = bucket.openUploadStream(id, { metadata: { colorSpace: canvas.colorSpace, width: canvas.width, height: canvas.height } });
+
+            upload.on('finish', function () {
+                console.log("Upload Finish.");
+            });
+
+            console.log('Upload result', upload.write(canvas.data, (err) => {
+                if (err)
+                    throw err
+
+                console.log('finished uploading.');
+                res(id)
+            }));
+
+            upload.end()
+        })
+    }
+
+    async retrieveCanvases(id: string): Promise<GridFSFile[]> {
+        const authenticated = await authRepository.getAuthenticatedUser()
+        if (authenticated == null)
+            throw new Unauthenticated();
+
+        const privileges = await privilegesRepository.getAccessControl();
+        const permission = privileges.can(authenticated.roleName).read(resources.FILE);
+        if (!permission.granted)
+            throw new Unauthorized()
+
+        console.log('retrieving...');
+        const bucket = await this.getPatientsDocumentsBucket();
+
+        const f = await bucket.find({ _id: new ObjectId(id) }).toArray();
+
+        console.log('found files', f.length);
+        return f
+    }
+
+    async downloadCanvas(id: string): Promise<ImageData> {
+        return new Promise(async (res, rej) => {
+            const authenticated = await authRepository.getAuthenticatedUser()
+            if (authenticated == null)
+                throw new Unauthenticated();
+
+            const privileges = await privilegesRepository.getAccessControl();
+            const permission = privileges.can(authenticated.roleName).read(resources.FILE);
+            if (!permission.granted)
+                throw new Unauthorized()
+
+            console.log('downloading...');
+            const bucket = await this.getPatientsDocumentsBucket();
+
+            const f = await bucket.find({ _id: new ObjectId(id) }).toArray();
+            if (f.length === 0)
+                return null;
+
+            const filePath = path.join(app.getAppPath(), 'tmp', 'downloads', f[0]._id.toString() + f[0].filename);
+
+            bucket.openDownloadStreamByName(f[0].filename)
+                .pipe(fs.createWriteStream(filePath), { end: true })
+                .close((err) => {
+                    if (err)
+                        throw err
+
+                    res(new ImageData(Uint8ClampedArray.from(fs.readFileSync(filePath)), f[0].metadata.width, f[0].metadata.height, { colorSpace: f[0].metadata.colorSpace }));
+                    console.log('finished downloading.');
+                });
+        })
+    }
+
+    async downloadCanvases(ids: string[]): Promise<ImageData[]> {
+        const files: ImageData[] = []
+        ids.forEach(async (id) => {
+            files.push(await this.downloadCanvas(id))
+        });
+
+        return files
+    }
+
+    async openCanvas(id: string): Promise<void> {
+        const authenticated = await authRepository.getAuthenticatedUser()
+        if (authenticated == null)
+            throw new Unauthenticated();
+
+        const privileges = await privilegesRepository.getAccessControl();
+        const permission = privileges.can(authenticated.roleName).read(resources.FILE);
+        if (!permission.granted)
+            throw new Unauthorized()
+
+        console.log('opening...');
+        const bucket = await this.getPatientsDocumentsBucket();
+
+        const f = await bucket.find({ _id: new ObjectId(id) }).toArray();
+        if (f.length === 0)
+            return null;
+
+        console.log('found files', f.length);
+
+        const filePath = path.join(app.getAppPath(), 'tmp', 'downloads', f[0]._id.toString() + f[0].filename);
+
+        bucket.openDownloadStreamByName(f[0].filename)
+            .on('end', async () => {
+                if (process.platform == 'darwin')
+                    console.log('shell result', await shell.openExternal('file://' + filePath));
+
+                else
+                    console.log('shell result', await shell.openPath(filePath));
+            })
+            .pipe(fs.createWriteStream(filePath), { end: true });
+
+        console.log('finished opening.');
+        return;
+    }
+
+    async deleteCanvases(id: string): Promise<boolean> {
+        const authenticated = await authRepository.getAuthenticatedUser()
+        if (authenticated == null)
+            throw new Unauthenticated();
+
+        const privileges = await privilegesRepository.getAccessControl();
+        const permission = privileges.can(authenticated.roleName).delete(resources.FILE);
+        if (!permission.granted)
+            throw new Unauthorized()
+
+        const bucket = await this.getPatientsDocumentsBucket();
+
+        const cursor = bucket.find({ _id: new ObjectId(id) });
+
+        for await (const doc of cursor)
+            await bucket.delete(new ObjectId(doc._id));
+
+        return true;
+    }
+}

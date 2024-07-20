@@ -1,10 +1,11 @@
 import { ObjectId } from "mongodb";
 import { InferType, number, object, mixed, string, array } from "yup"
+import { contentSchema } from "./Content";
 
 export const collectionName = 'patients'
 
 export const patientsMedicalHistorySchema = object().optional().shape({
-    description: string().optional(),
+    description: contentSchema,
     histories: array().optional().of(string().required())
 })
 
@@ -22,7 +23,7 @@ export const patientSchema = object().required().shape({
     age: number().optional().min(0).max(130),
     birthDate: number().optional(),
     medicalHistory: patientsMedicalHistorySchema,
-    address: string().optional(),
+    address: contentSchema,
     createdAt: number().optional(),
     updatedAt: number().optional(),
 })

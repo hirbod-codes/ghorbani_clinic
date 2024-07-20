@@ -75,7 +75,7 @@ export type IVisitRepository = dbAPI & {
     deleteVisit(id: string): Promise<DeleteResult>;
 }
 
-export type IFileRepository = dbAPI & {
+export type IPatientsDocumentsRepository = dbAPI & {
     handleEvents(): Promise<void>;
     uploadFiles(patientId: string, files: { fileName: string; bytes: Buffer | Uint8Array; }[]): Promise<boolean>;
     retrieveFiles(patientId: string): Promise<GridFSFile[]>;
@@ -83,4 +83,14 @@ export type IFileRepository = dbAPI & {
     downloadFiles(patientId: string): Promise<string[]>;
     openFile(patientId: string, fileName: string): Promise<void>;
     deleteFiles(patientId: string): Promise<boolean>;
+}
+
+export type ICanvasRepository = dbAPI & {
+    handleEvents(): Promise<void>;
+    uploadCanvas(canvas: ImageData): Promise<string>;
+    retrieveCanvases(id: string): Promise<GridFSFile[]>;
+    downloadCanvas(id: string): Promise<ImageData>;
+    downloadCanvases(ids: string[]): Promise<ImageData[]>;
+    openCanvas(id: string): Promise<void>;
+    deleteCanvases(id: string): Promise<boolean>;
 }

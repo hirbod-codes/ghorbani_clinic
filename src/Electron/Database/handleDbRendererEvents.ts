@@ -5,7 +5,8 @@ import { type RendererEvents as PrivilegeRendererEvents, handleRendererEvents as
 import { type RendererEvents as PatientRendererEvents, handleRendererEvents as handlePatientRendererEvents } from './Repositories/Patients/PatientRenderer';
 import { type RendererEvents as MedicalHistoryRendererEvents, handleRendererEvents as handleMedicalHistoryRendererEvents } from './Repositories/MedicalHistories/MedicalHistoryRenderer';
 import { type RendererEvents as VisitRendererEvents, handleRendererEvents as handleVisitRendererEvents } from './Repositories/Visits/VisitRenderer';
-import { type RendererEvents as FileRendererEvents, handleRendererEvents as handleFileRendererEvents } from './Repositories/Files/FileRenderer';
+import { type RendererEvents as FileRendererEvents, handleRendererEvents as handleFileRendererEvents } from './Repositories/PatientsDocuments/PatientsDocumentsRenderer';
+import { type RendererEvents as CanvasRendererEvents, handleRendererEvents as handleCanvasRendererEvents } from './Repositories/canvas/CanvasRenderer';
 import { MongodbConfig } from "../Configuration/types";
 
 export type RendererDbAPI =
@@ -16,6 +17,7 @@ export type RendererDbAPI =
     MedicalHistoryRendererEvents &
     VisitRendererEvents &
     FileRendererEvents &
+    CanvasRendererEvents &
     {
         initializeDb: (config: MongodbConfig) => Promise<boolean>,
         getConfig: () => Promise<MongodbConfig>,
@@ -40,5 +42,6 @@ export function handleDbRendererEvents(): RendererDbAPI {
         ...handleMedicalHistoryRendererEvents(),
         ...handleVisitRendererEvents(),
         ...handleFileRendererEvents(),
+        ...handleCanvasRendererEvents(),
     };
 }

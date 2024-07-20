@@ -208,13 +208,14 @@ export function Patients() {
                     setActivePatientId(undefined)
                     setShowingAddress(false)
                 }}
-                defaultAddress={patients.find(f => f._id === activePatientId)?.address}
-                onChange={async (address) => {
+                defaultAddress={patients.find(f => f._id === activePatientId)?.address.text}
+                defaultCanvas={patients.find(f => f._id === activePatientId)?.address.canvas as string}
+                onChange={async (address, canvasId) => {
                     const p = patients.find(f => f._id === activePatientId)
                     if (!p)
                         return
 
-                    const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updatePatient({ ...p, address: address })
+                    const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updatePatient({ ...p, address: { text: address, canvas: canvasId } })
                     if (res.code !== 200 || !res.data.acknowledged || res.data.matchedCount !== 1) {
                         publish(RESULT_EVENT_NAME, {
                             severity: 'error',

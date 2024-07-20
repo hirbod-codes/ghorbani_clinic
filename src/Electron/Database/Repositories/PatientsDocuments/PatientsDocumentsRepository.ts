@@ -3,13 +3,13 @@ import { GridFSFile, ObjectId } from "mongodb";
 import path from 'path';
 import fs from 'fs';
 import { MongoDB } from "../../mongodb";
-import type { IFileRepository } from "../../dbAPI";
+import type { IPatientsDocumentsRepository } from "../../dbAPI";
 import { Unauthorized } from "../../Unauthorized";
 import { Unauthenticated } from "../../Unauthenticated";
 import { resources } from "../Auth/resources";
 import { authRepository, privilegesRepository } from "../../handleDbEvents";
 
-export class FileRepository extends MongoDB implements IFileRepository {
+export class PatientsDocumentsRepository extends MongoDB implements IPatientsDocumentsRepository {
     async handleEvents(): Promise<void> {
         ipcMain.handle('upload-files', async (_e, { patientId, files }: { patientId: string, files: { fileName: string, bytes: Buffer | Uint8Array }[] }) => await this.handleErrors(async () => await this.uploadFiles(patientId, files)))
         ipcMain.handle('retrieve-files', async (_e, { patientId }: { patientId: string }) => await this.handleErrors(async () => await this.retrieveFiles(patientId)))
@@ -32,7 +32,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
         console.log('uploading...');
         console.log(patientId, files);
 
-        const bucket = await this.getBucket();
+        const bucket = await this.getPatientsDocumentsBucket();
 
         for (const file of files) {
             const upload = bucket.openUploadStream(file.fileName, {
@@ -63,7 +63,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
             throw new Unauthorized()
 
         console.log('retrieving...');
-        const bucket = await this.getBucket();
+        const bucket = await this.getPatientsDocumentsBucket();
 
         const f = await bucket.find({ metadata: { patientId: patientId } }).toArray();
 
@@ -82,7 +82,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
             throw new Unauthorized()
 
         console.log('downloading...');
-        const bucket = await this.getBucket();
+        const bucket = await this.getPatientsDocumentsBucket();
 
         const f = await bucket.find({ metadata: { patientId: patientId }, filename: fileName }).toArray();
         if (f.length === 0)
@@ -109,7 +109,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
             throw new Unauthorized()
 
         console.log('downloading...');
-        const bucket = await this.getBucket();
+        const bucket = await this.getPatientsDocumentsBucket();
 
         const files: string[] = [];
 
@@ -142,7 +142,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
             throw new Unauthorized()
 
         console.log('opening...');
-        const bucket = await this.getBucket();
+        const bucket = await this.getPatientsDocumentsBucket();
 
         const f = await bucket.find({ metadata: { patientId: patientId } }).toArray();
 
@@ -179,7 +179,7 @@ export class FileRepository extends MongoDB implements IFileRepository {
         if (!permission.granted)
             throw new Unauthorized()
 
-        const bucket = await this.getBucket();
+        const bucket = await this.getPatientsDocumentsBucket();
 
         const cursor = bucket.find({ 'metadata.patientId': patientId });
 

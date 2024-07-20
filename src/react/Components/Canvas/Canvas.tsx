@@ -1,5 +1,5 @@
 import { Divider, IconButton, Menu, Paper, Stack, TextField } from "@mui/material";
-import { useContext, useEffect, useRef, useState } from "react";
+import { MutableRefObject, useContext, useEffect, useRef, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { configAPI } from "../../../Electron/Configuration/renderer/configAPI";
 import { Draw } from "./types";
@@ -10,7 +10,7 @@ import { ColorLensOutlined } from "@mui/icons-material";
 import { t } from "i18next";
 import { HexAlphaColorPicker } from "react-colorful";
 
-export function Canvas() {
+export function Canvas({ outRef }: { outRef?: MutableRefObject<HTMLCanvasElement> }) {
     let theme = useContext(ConfigurationContext).get.theme
 
     const init = async () => {
@@ -33,6 +33,8 @@ export function Canvas() {
     const [radius, setRadius] = useState<string>('0.3')
 
     const { canvasRef, onMouseDown, clear } = useDraw(drawLine)
+    if (outRef)
+        outRef.current = canvasRef.current
 
     const parentRef = useRef<HTMLDivElement>()
 
@@ -44,7 +46,7 @@ export function Canvas() {
         }
     }, [])
 
-    console.log('Canvas', { anchorEl, color, lineWidth, radius, parentRef })
+    console.log('Canvas', { anchorEl, color, lineWidth, radius, parentRef, canvasRef, outRef })
 
     function drawLine({ prevPoint, currentPoint, ctx }: Draw) {
         const { x: currX, y: currY } = currentPoint

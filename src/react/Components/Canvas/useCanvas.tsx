@@ -21,12 +21,13 @@ export const useDraw = (onDraw: ({ ctx, currentPoint, prevPoint }: Draw) => void
         ctx.clearRect(0, 0, canvas.width, canvas.height)
     }
 
+    const ctx = canvasRef.current?.getContext('2d')
+
     const onMouseMove = (e: MouseEvent) => {
         if (!mouseDown)
             return
         const currentPoint = computePointInCanvas(e)
 
-        const ctx = canvasRef.current?.getContext('2d')
         if (!ctx || !currentPoint)
             return
 

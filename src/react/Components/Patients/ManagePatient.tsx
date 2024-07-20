@@ -195,7 +195,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                     <Button sx={{ width: 'fit-content' }} variant='outlined' onClick={() => setShowAddress(true)}>
                                                         {t('address')}
                                                     </Button>
-                                                    <Address open={showAddress} onClose={() => setShowAddress(false)} defaultAddress={patient?.address} onChange={(address) => setPatient({ ...patient, address })} />
+                                                    <Address open={showAddress} onClose={() => setShowAddress(false)} defaultAddress={patient?.address.text} defaultCanvas={patient?.address.canvas as string} onChange={(address, canvasId) => setPatient({ ...patient, address: { text: address, canvas: canvasId } })} />
 
                                                     {/* Medical History */}
                                                     <Button sx={{ width: 'fit-content' }} variant='outlined' onClick={() => setShowMedicalHistory(true)}>
