@@ -277,12 +277,16 @@ export class MongoDB implements dbAPI {
         return new GridFSBucket(db ?? (await this.getDb(client)), { bucketName: canvasCollectionName });
     }
 
-    async handleErrors(callback: () => Promise<unknown> | unknown): Promise<string> {
+    async handleErrors(callback: () => Promise<unknown> | unknown, jsonStringify = true): Promise<string | any> {
         try {
-            return JSON.stringify({
+            const response = {
                 code: 200,
                 data: await callback()
-            })
+            }
+            if (jsonStringify)
+                return JSON.stringify(response)
+            else
+                return response
         }
         catch (error) {
             console.error('error in main process')

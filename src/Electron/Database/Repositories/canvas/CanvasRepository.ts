@@ -8,13 +8,13 @@ import { Unauthorized } from "../../Unauthorized";
 import { resources } from "../Auth/resources";
 import path from "path";
 import fs from 'fs';
-import { Canvas } from "../../Models/Canvas";
+import { Canvas, canvasSchema } from "../../Models/Canvas";
 
 export class CanvasRepository extends MongoDB implements ICanvasRepository {
     async handleEvents(): Promise<void> {
         ipcMain.handle('upload-canvas', async (_e, { canvas }: { canvas: Canvas }) => await this.handleErrors(async () => await this.uploadCanvas(canvas)))
         ipcMain.handle('retrieve-canvases', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.retrieveCanvases(id)))
-        ipcMain.handle('download-canvas', async (_e, { id }: { id: string }) => async () => await this.handleErrors(async () => await this.downloadCanvas(id)))
+        ipcMain.handle('download-canvas', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.downloadCanvas(id)))
         ipcMain.handle('download-canvases', async (_e, { ids }: { ids: string[] }) => await this.handleErrors(async () => await this.downloadCanvases(ids)))
         ipcMain.handle('open-canvas', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.openCanvas(id)))
         ipcMain.handle('delete-canvases', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.deleteCanvases(id)))
@@ -31,6 +31,11 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
             if (!permission.granted)
                 throw new Unauthorized()
 
+            if (!canvasSchema.isValidSync(canvas))
+                throw new Error('invalid canvas provided')
+
+            canvas = canvasSchema.cast(canvas)
+
             console.log('uploading...', { canvas });
 
             const bucket = await this.getCanvasBucket();
@@ -42,17 +47,14 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
                 console.log("Upload Finish.");
             });
 
-            const result = upload.write(Buffer.from(canvas.data), (err) => {
+            const result = upload.write(canvas.data, (err) => {
                 if (err)
-                    throw err
+                    rej(err)
 
                 console.log('finished uploading.');
                 res(id)
             })
             console.log('Upload result', result);
-
-            if (!result)
-                rej()
 
             upload.end()
         })
@@ -67,6 +69,9 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
         const permission = privileges.can(authenticated.roleName).read(resources.FILE);
         if (!permission.granted)
             throw new Unauthorized()
+
+        if (!id || !ObjectId.isValid(id))
+            throw new Error('Invalid id provided')
 
         console.log('retrieving...');
         const bucket = await this.getCanvasBucket();
@@ -88,6 +93,9 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
             if (!permission.granted)
                 throw new Unauthorized()
 
+            if (!id || !ObjectId.isValid(id))
+                throw new Error('Invalid id provided')
+
             console.log('downloading...');
             const bucket = await this.getCanvasBucket();
 
@@ -101,9 +109,9 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
                 .pipe(fs.createWriteStream(filePath), { end: true })
                 .close((err) => {
                     if (err)
-                        throw err
+                        rej(err)
 
-                    res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data: Uint8ClampedArray.from(fs.readFileSync(filePath)).toString() })
+                    res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data: Uint8ClampedArray.from(fs.readFileSync(filePath)) })
                     console.log('finished downloading.');
                 });
         })
@@ -127,6 +135,9 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
         const permission = privileges.can(authenticated.roleName).read(resources.FILE);
         if (!permission.granted)
             throw new Unauthorized()
+
+        if (!id || !ObjectId.isValid(id))
+            throw new Error('Invalid id provided')
 
         console.log('opening...');
         const bucket = await this.getCanvasBucket();
@@ -162,6 +173,9 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
         const permission = privileges.can(authenticated.roleName).delete(resources.FILE);
         if (!permission.granted)
             throw new Unauthorized()
+
+        if (!id || !ObjectId.isValid(id))
+            throw new Error('Invalid id provided')
 
         const bucket = await this.getCanvasBucket();
 

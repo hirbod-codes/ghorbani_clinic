@@ -9,7 +9,15 @@ import { RendererDbAPI } from '../../../Electron/Database/handleDbRendererEvents
 import { publish } from '../../Lib/Events';
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
 
-export function TextEditorWrapper({ title, defaultContent, defaultCanvas, onChange }: { title?: string; defaultContent?: string | undefined; defaultCanvas?: string; onChange?: (content: string, canvasId?: string) => void | Promise<void> }) {
+export type TextEditorWrapperProps = {
+    title?: string;
+    defaultContent?: string | undefined;
+    defaultCanvas?: string;
+    onChange?: (content: string, canvasId?: string) => void | Promise<void>
+    onCancel?: () => void | Promise<void>
+}
+
+export function TextEditorWrapper({ title, defaultContent, defaultCanvas, onChange, onCancel }: TextEditorWrapperProps) {
     const [content, setContent] = useState<string | undefined>(defaultContent)
     const [status, setStatus] = useState<string>('showing')
 
@@ -20,25 +28,25 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, onChan
     useEffect(() => {
         setContent(defaultContent);
 
-        if (defaultCanvas)
-            (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(defaultCanvas)
-                .then((res) => {
-                    console.log('res', res)
+        // if (defaultCanvas)
+        //     (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(defaultCanvas)
+        //         .then((res) => {
+        //             console.log('res', res)
 
-                    if (res.code !== 200)
-                        publish(RESULT_EVENT_NAME, {
-                            severity: 'error',
-                            message: t('failedToUploadCanvas')
-                        })
+        //             if (res.code !== 200)
+        //                 publish(RESULT_EVENT_NAME, {
+        //                     severity: 'error',
+        //                     message: t('failedToUploadCanvas')
+        //                 })
 
-                    publish(RESULT_EVENT_NAME, {
-                        severity: 'success',
-                        message: t('successfullyUploadedCanvas')
-                    })
+        //             publish(RESULT_EVENT_NAME, {
+        //                 severity: 'success',
+        //                 message: t('successfullyUploadedCanvas')
+        //             })
 
-                    const context = canvas?.current?.getContext('2d', { willReadFrequently: true })
-                    context?.putImageData(new ImageData(Uint8ClampedArray.from(Buffer.from(res.data.data)), res.data.width, res.data.height, { colorSpace: res.data.colorSpace }), canvas?.current?.width, canvas?.current?.height)
-                })
+        //             const context = canvas?.current?.getContext('2d', { willReadFrequently: true })
+        //             context?.putImageData(new ImageData(Uint8ClampedArray.from(Buffer.from(decodeBase64(res.data.data, res.data.data.length))), res.data.width, res.data.height, { colorSpace: res.data.colorSpace }), canvas?.current?.width, canvas?.current?.height)
+        //         })
     }, [defaultContent, defaultCanvas])
 
     return (
@@ -87,7 +95,25 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, onChan
                 }
 
                 <Stack direction='row' justifyContent='space-between' alignContent='center'>
-                    <Button variant='contained' color='error' onClick={() => { }}>
+                    <Button variant='contained' color='error' onClick={async () => {
+                        if (!defaultCanvas)
+                            return
+
+                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(defaultCanvas)
+                        console.log('res', res)
+                        if (res.code !== 200)
+                            publish(RESULT_EVENT_NAME, {
+                                severity: 'error',
+                                message: t('failedToUploadCanvas')
+                            })
+
+                        publish(RESULT_EVENT_NAME, {
+                            severity: 'success',
+                            message: t('successfullyUploadedCanvas')
+                        })
+
+                        canvas?.current?.getContext('2d', { willReadFrequently: true })?.putImageData(new ImageData(res.data.data, res.data.width, res.data.height, { colorSpace: res.data.colorSpace }), canvas?.current?.width, canvas?.current?.height)
+                    }}>
                         {t('cancel')}
                     </Button>
 
@@ -96,7 +122,7 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, onChan
                         if (status === 'drawing') {
                             const image = canvas?.current?.getContext('2d', { willReadFrequently: true })?.getImageData(0, 0, canvas?.current?.width, canvas?.current?.height)
 
-                            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas({ width: image.width, height: image.height, colorSpace: 'srgb', data: image.data.toString() })
+                            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas({ width: image.width, height: image.height, colorSpace: 'srgb', data: image.data })
                             console.log('res', res)
                             if (res.code !== 200)
                                 publish(RESULT_EVENT_NAME, {
