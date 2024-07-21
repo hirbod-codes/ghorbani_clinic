@@ -212,6 +212,8 @@ export function Patients() {
                 defaultCanvas={patients.find(f => f._id === activePatientId)?.address?.canvas as string}
                 canvasFileName={`address-${patients.find(f => f._id === activePatientId)?._id}`}
                 onChange={async (address, canvasId) => {
+                    console.log('Patients', 'Address', 'onChange', address, canvasId)
+
                     const p = patients.find(f => f._id === activePatientId)
                     if (!p)
                         return

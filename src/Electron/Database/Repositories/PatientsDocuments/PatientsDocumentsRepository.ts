@@ -92,10 +92,10 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
 
         bucket.openDownloadStreamByName(f[0].filename)
             .pipe(fs.createWriteStream(filePath), { end: true })
-            .close();
+            .close()
 
-        console.log('finished downloading.');
-        return filePath;
+        console.log('finished downloading.')
+        return filePath
     }
 
     async downloadFiles(patientId: string): Promise<string[]> {

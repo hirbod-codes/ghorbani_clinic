@@ -40,8 +40,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
 
             const bucket = await this.getCanvasBucket();
 
-            const id = (new ObjectId()).toString()
-            const upload = bucket.openUploadStream(id, { metadata: { colorSpace: canvas.colorSpace, width: canvas.width, height: canvas.height } });
+            const upload = bucket.openUploadStream(fileName, { metadata: { colorSpace: canvas.colorSpace, width: canvas.width, height: canvas.height } });
 
             upload.on('finish', () => {
                 console.log("Upload Finish.");
@@ -95,6 +94,8 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
             if (!id || !ObjectId.isValid(id))
                 throw new Error('Invalid id provided')
 
+            console.log('downloadCanvas', { id });
+
             const bucket = await this.getCanvasBucket();
 
             const f = await bucket.find({ _id: new ObjectId(id) }).toArray();
@@ -112,27 +113,45 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
             console.log('downloadCanvas', 'filePath', filePath);
 
             console.log('downloadCanvas', 'downloading...');
-            const readable = bucket.openDownloadStreamByName(f[0].filename)
 
-            const chunks: any[] = []
-            readable.on('readable', () => {
-                let chunk = readable.read();
-                while (chunk !== null) {
-                    chunks.push(chunk);
-                }
-            })
-                // .pipe(fs.createWriteStream(filePath), { end: true })
-                .on('end', () => {
-                    const data = Uint8ClampedArray.from(chunks)
-                    console.log('downloadCanvas', 'data', data)
+            bucket.openDownloadStreamByName(f[0].filename)
+                .pipe(fs.createWriteStream(filePath), { end: true })
+                .close((err) => {
+                    if (err) {
+                        console.error(err)
+                        rej(err)
+                    }
 
+                    const data = Uint8ClampedArray.from(fs.readFileSync(filePath))
                     res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data })
                     console.log('downloadCanvas', 'finished downloading.')
                 })
-                .on('error', (err) => {
-                    if (err)
-                        rej(err)
-                });
+
+
+            // const readable = bucket.openDownloadStreamByName(f[0].filename)
+
+            // let chunks: any[] = []
+            // readable.on('readable', () => {
+            //     let chunk = readable.read();
+            //     while (chunk !== null)
+            //         chunks = chunks.concat(chunk)
+            // })
+            //     // .pipe(fs.createWriteStream(filePath), { end: true })
+            //     .on('end', () => {
+            //         console.log('downloadCanvas', 'chunks', chunks)
+
+            //         const data = Uint8ClampedArray.from(chunks)
+            //         console.log('downloadCanvas', 'data', data)
+
+            //         res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data })
+            //         console.log('downloadCanvas', 'finished downloading.')
+            //     })
+            //     .on('error', (err) => {
+            //         if (err) {
+            //             console.error(err)
+            //             rej(err)
+            //         }
+            //     });
         })
     }
 
