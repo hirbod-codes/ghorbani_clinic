@@ -210,6 +210,7 @@ export function Patients() {
                 }}
                 defaultAddress={patients.find(f => f._id === activePatientId)?.address?.text}
                 defaultCanvas={patients.find(f => f._id === activePatientId)?.address?.canvas as string}
+                canvasFileName={`address-${patients.find(f => f._id === activePatientId)?._id}`}
                 onChange={async (address, canvasId) => {
                     const p = patients.find(f => f._id === activePatientId)
                     if (!p)

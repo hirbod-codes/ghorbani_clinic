@@ -4,7 +4,7 @@ import { Modal, Paper, Slide, Dialog, DialogActions, DialogContent, DialogConten
 import { TextEditorWrapper } from './TextEditorWrapper';
 import { t } from "i18next";
 
-export function TextEditorModal({ open, onClose, title, defaultContent, defaultCanvas, onChange }: { open: boolean; onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void; title?: string; defaultContent?: string | undefined; defaultCanvas?: string; onChange?: (content: string) => void | Promise<void> }) {
+export function TextEditorModal({ open, onClose, title, defaultContent, defaultCanvas, canvasFileName, onChange }: { open: boolean; onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void; title?: string; defaultContent?: string | undefined; defaultCanvas?: string; canvasFileName?: string; onChange?: (content: string) => void | Promise<void> }) {
     console.log('TextEditorModal', { open, onClose, title, defaultContent, onChange })
 
     const initDialog: any = {
@@ -41,6 +41,7 @@ export function TextEditorModal({ open, onClose, title, defaultContent, defaultC
                             title={title}
                             defaultCanvas={defaultCanvas}
                             defaultContent={defaultContent}
+                            canvasFileName={canvasFileName}
                             onChange={onChange}
                         />
                     </Paper>

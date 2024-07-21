@@ -12,7 +12,7 @@ import { Canvas, canvasSchema } from "../../Models/Canvas";
 
 export class CanvasRepository extends MongoDB implements ICanvasRepository {
     async handleEvents(): Promise<void> {
-        ipcMain.handle('upload-canvas', async (_e, { canvas }: { canvas: Canvas }) => await this.handleErrors(async () => await this.uploadCanvas(canvas)))
+        ipcMain.handle('upload-canvas', async (_e, { fileName, canvas }: { fileName: string; canvas: Canvas; }) => await this.handleErrors(async () => await this.uploadCanvas(fileName, canvas)))
         ipcMain.handle('retrieve-canvases', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.retrieveCanvases(id)))
         ipcMain.handle('download-canvas', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.downloadCanvas(id)))
         ipcMain.handle('download-canvases', async (_e, { ids }: { ids: string[] }) => await this.handleErrors(async () => await this.downloadCanvases(ids)))
@@ -20,7 +20,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
         ipcMain.handle('delete-canvases', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.deleteCanvases(id)))
     }
 
-    uploadCanvas(canvas: Canvas): Promise<string> {
+    uploadCanvas(fileName: string, canvas: Canvas): Promise<string> {
         return new Promise(async (res, rej) => {
             const authenticated = await authRepository.getAuthenticatedUser()
             if (authenticated == null)
@@ -54,7 +54,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
                 console.log('finished uploading.');
 
                 upload.end()
-                res(id)
+                res(upload.id.toString())
             })
         })
     }

@@ -13,10 +13,11 @@ export type TextEditorWrapperProps = {
     title?: string;
     defaultContent?: string | undefined;
     defaultCanvas?: string;
+    canvasFileName?: string;
     onChange?: (content: string, canvasId?: string) => void | Promise<void>;
 }
 
-export function TextEditorWrapper({ title, defaultContent, defaultCanvas, onChange }: TextEditorWrapperProps) {
+export function TextEditorWrapper({ title, defaultContent, defaultCanvas, canvasFileName, onChange }: TextEditorWrapperProps) {
     const [content, setContent] = useState<string | undefined>(defaultContent)
     const [status, setStatus] = useState<string>('showing')
 
@@ -62,9 +63,12 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, onChan
                         <IconButton onClick={() => setStatus('typing')}>
                             <TypeSpecimenOutlined />
                         </IconButton>
-                        <IconButton onClick={() => setStatus('drawing')}>
-                            <DrawOutlined />
-                        </IconButton>
+                        {canvasFileName
+                            &&
+                            <IconButton onClick={() => setStatus('drawing')}>
+                                <DrawOutlined />
+                            </IconButton>
+                        }
                     </Stack>
                 </Stack>
 
@@ -79,7 +83,7 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, onChan
                 }
 
                 {
-                    status === 'drawing'
+                    canvasFileName && status === 'drawing'
                     &&
                     <Box sx={{ flexGrow: 2, width: '100%', height: '100%' }}>
                         <Canvas outRef={canvas} />
@@ -123,7 +127,7 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, onChan
                         if (status === 'drawing') {
                             const image = canvas?.current?.getContext('2d', { willReadFrequently: true })?.getImageData(0, 0, canvas?.current?.width, canvas?.current?.height)
 
-                            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas({ width: image.width, height: image.height, colorSpace: 'srgb', data: image.data })
+                            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(canvasFileName, { width: image.width, height: image.height, colorSpace: 'srgb', data: image.data })
                             console.log('res', res)
                             if (res.code !== 200 || !res.data) {
                                 publish(RESULT_EVENT_NAME, {

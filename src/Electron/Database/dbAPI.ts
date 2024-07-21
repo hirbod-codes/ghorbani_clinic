@@ -88,7 +88,7 @@ export type IPatientsDocumentsRepository = dbAPI & {
 
 export type ICanvasRepository = dbAPI & {
     handleEvents(): Promise<void>;
-    uploadCanvas(canvas: Canvas): Promise<string>;
+    uploadCanvas(fileName: string, canvas: Canvas): Promise<string>;
     retrieveCanvases(id: string): Promise<GridFSFile[]>;
     downloadCanvas(id: string): Promise<Canvas>;
     downloadCanvases(ids: string[]): Promise<Canvas[]>;
