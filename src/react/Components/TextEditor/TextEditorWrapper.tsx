@@ -13,11 +13,10 @@ export type TextEditorWrapperProps = {
     title?: string;
     defaultContent?: string | undefined;
     defaultCanvas?: string;
-    onChange?: (content: string, canvasId?: string) => void | Promise<void>
-    onCancel?: () => void | Promise<void>
+    onChange?: (content: string, canvasId?: string) => void | Promise<void>;
 }
 
-export function TextEditorWrapper({ title, defaultContent, defaultCanvas, onChange, onCancel }: TextEditorWrapperProps) {
+export function TextEditorWrapper({ title, defaultContent, defaultCanvas, onChange }: TextEditorWrapperProps) {
     const [content, setContent] = useState<string | undefined>(defaultContent)
     const [status, setStatus] = useState<string>('showing')
 
@@ -101,11 +100,13 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, onChan
 
                         const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(defaultCanvas)
                         console.log('res', res)
-                        if (res.code !== 200)
+                        if (res.code !== 200 || !res.data) {
                             publish(RESULT_EVENT_NAME, {
                                 severity: 'error',
                                 message: t('failedToUploadCanvas')
                             })
+                            return
+                        }
 
                         publish(RESULT_EVENT_NAME, {
                             severity: 'success',
@@ -124,11 +125,13 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, onChan
 
                             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas({ width: image.width, height: image.height, colorSpace: 'srgb', data: image.data })
                             console.log('res', res)
-                            if (res.code !== 200)
+                            if (res.code !== 200 || !res.data) {
                                 publish(RESULT_EVENT_NAME, {
                                     severity: 'error',
                                     message: t('failedToUploadCanvas')
                                 })
+                                return
+                            }
 
                             publish(RESULT_EVENT_NAME, {
                                 severity: 'success',
@@ -136,6 +139,7 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, onChan
                             })
 
                             canvasId = res.data
+                            defaultCanvas = res.data
                         }
 
                         if (onChange)

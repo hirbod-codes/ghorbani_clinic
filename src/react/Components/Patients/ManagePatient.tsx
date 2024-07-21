@@ -197,8 +197,8 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                     </Button>
                                                     <Address
                                                         open={showAddress}
-                                                        onClose={() => setShowAddress(false)} defaultAddress={patient?.address.text}
-                                                        defaultCanvas={patient?.address.canvas as string}
+                                                        onClose={() => setShowAddress(false)} defaultAddress={patient?.address?.text}
+                                                        defaultCanvas={patient?.address?.canvas as string}
                                                         onChange={(address, canvasId) => setPatient({ ...patient, address: { text: address, canvas: canvasId } })}
                                                     />
 

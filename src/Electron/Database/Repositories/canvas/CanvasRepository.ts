@@ -43,20 +43,19 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
             const id = (new ObjectId()).toString()
             const upload = bucket.openUploadStream(id, { metadata: { colorSpace: canvas.colorSpace, width: canvas.width, height: canvas.height } });
 
-            upload.on('finish', function () {
+            upload.on('finish', () => {
                 console.log("Upload Finish.");
             });
 
-            const result = upload.write(canvas.data, (err) => {
+            upload.write(canvas.data, (err) => {
                 if (err)
                     rej(err)
 
                 console.log('finished uploading.');
+
+                upload.end()
                 res(id)
             })
-            console.log('Upload result', result);
-
-            upload.end()
         })
     }
 
@@ -96,23 +95,43 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
             if (!id || !ObjectId.isValid(id))
                 throw new Error('Invalid id provided')
 
-            console.log('downloading...');
             const bucket = await this.getCanvasBucket();
 
             const f = await bucket.find({ _id: new ObjectId(id) }).toArray();
-            if (f.length === 0)
-                return null;
+            console.log('downloadCanvas', 'found', f);
+            if (f.length === 0) {
+                res(null);
+                return
+            }
 
-            const filePath = path.join(app.getAppPath(), 'tmp', 'downloads', f[0]._id.toString() + f[0].filename);
+            const folderPath = path.join(app.getPath('appData'), app.getName(), 'tmp', 'downloads')
+            if (!fs.existsSync(folderPath))
+                fs.mkdirSync(folderPath, { recursive: true })
 
-            bucket.openDownloadStreamByName(f[0].filename)
-                .pipe(fs.createWriteStream(filePath), { end: true })
-                .close((err) => {
+            const filePath = path.join(folderPath, f[0]._id.toString() + f[0].filename);
+            console.log('downloadCanvas', 'filePath', filePath);
+
+            console.log('downloadCanvas', 'downloading...');
+            const readable = bucket.openDownloadStreamByName(f[0].filename)
+
+            const chunks: any[] = []
+            readable.on('readable', () => {
+                let chunk = readable.read();
+                while (chunk !== null) {
+                    chunks.push(chunk);
+                }
+            })
+                // .pipe(fs.createWriteStream(filePath), { end: true })
+                .on('end', () => {
+                    const data = Uint8ClampedArray.from(chunks)
+                    console.log('downloadCanvas', 'data', data)
+
+                    res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data })
+                    console.log('downloadCanvas', 'finished downloading.')
+                })
+                .on('error', (err) => {
                     if (err)
                         rej(err)
-
-                    res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data: Uint8ClampedArray.from(fs.readFileSync(filePath)) })
-                    console.log('finished downloading.');
                 });
         })
     }
@@ -148,7 +167,11 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
 
         console.log('found files', f.length);
 
-        const filePath = path.join(app.getAppPath(), 'tmp', 'downloads', f[0]._id.toString() + f[0].filename);
+        const folderPath = path.join(app.getPath('appData'), app.getName(), 'tmp', 'downloads')
+        if (!fs.existsSync(folderPath))
+            fs.mkdirSync(folderPath, { recursive: true })
+
+        const filePath = path.join(folderPath, f[0]._id.toString() + f[0].filename);
 
         bucket.openDownloadStreamByName(f[0].filename)
             .on('end', async () => {

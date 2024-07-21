@@ -1,14 +1,34 @@
-import { Modal, Paper, Slide } from "@mui/material"
+import { useState } from "react";
+import { Modal, Paper, Slide, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from "@mui/material"
 
 import { TextEditorWrapper } from './TextEditorWrapper';
+import { t } from "i18next";
 
 export function TextEditorModal({ open, onClose, title, defaultContent, defaultCanvas, onChange }: { open: boolean; onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void; title?: string; defaultContent?: string | undefined; defaultCanvas?: string; onChange?: (content: string) => void | Promise<void> }) {
     console.log('TextEditorModal', { open, onClose, title, defaultContent, onChange })
 
+    const initDialog: any = {
+        open: false,
+        title: '',
+        content: '',
+        e: undefined,
+        r: undefined,
+    }
+    const [dialog, setDialog] = useState(initDialog)
+    const closeDialog = () => setDialog(initDialog)
+
     return (
         <>
             <Modal
-                onClose={onClose}
+                onClose={(e, r) => {
+                    setDialog({
+                        open: true,
+                        title: t('exiting'),
+                        content: t('areYouSure?'),
+                        e,
+                        r
+                    })
+                }}
                 open={open}
                 closeAfterTransition
                 disableAutoFocus
@@ -26,6 +46,26 @@ export function TextEditorModal({ open, onClose, title, defaultContent, defaultC
                     </Paper>
                 </Slide>
             </Modal>
+
+            <Dialog open={dialog.open} onClose={closeDialog} >
+                <DialogTitle>
+                    {dialog.title}
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        {dialog.content}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeDialog}>{t('No')}</Button>
+                    <Button onClick={() => {
+                        if (onClose)
+                            onClose(dialog.e, dialog.r)
+
+                        closeDialog()
+                    }}>{t('Yes')}</Button>
+                </DialogActions>
+            </Dialog>
         </>
     )
 }
