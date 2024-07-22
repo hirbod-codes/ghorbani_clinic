@@ -9,6 +9,7 @@ import { resources } from "../Auth/resources";
 import path from "path";
 import fs from 'fs';
 import { Canvas, canvasSchema } from "../../Models/Canvas";
+import { DOWNLOADS_DIRECTORY } from "../../../../directories";
 
 export class CanvasRepository extends MongoDB implements ICanvasRepository {
     async handleEvents(): Promise<void> {
@@ -105,27 +106,45 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
                 return
             }
 
-            const folderPath = path.join(app.getPath('appData'), app.getName(), 'tmp', 'downloads')
-            if (!fs.existsSync(folderPath))
-                fs.mkdirSync(folderPath, { recursive: true })
+            if (!fs.existsSync(DOWNLOADS_DIRECTORY))
+                fs.mkdirSync(DOWNLOADS_DIRECTORY, { recursive: true })
 
-            const filePath = path.join(folderPath, f[0]._id.toString() + f[0].filename);
+            const filePath = path.join(DOWNLOADS_DIRECTORY, f[0].filename);
             console.log('downloadCanvas', 'filePath', filePath);
 
             console.log('downloadCanvas', 'downloading...');
 
-            bucket.openDownloadStreamByName(f[0].filename)
+            bucket.openDownloadStream(f[0]._id)
                 .pipe(fs.createWriteStream(filePath), { end: true })
-                .close((err) => {
+                .on('error', (err) => {
                     if (err) {
                         console.error(err)
                         rej(err)
                     }
+                })
+                .on('close', () => {
+                    const data1 = Uint8ClampedArray.from(fs.readFileSync(filePath))
+                    console.log('downloadCanvas', 'data', data1)
+                    const data = fs.readFileSync(filePath).toString('base64')
+                    console.log('downloadCanvas', 'data', data)
 
-                    const data = Uint8ClampedArray.from(fs.readFileSync(filePath))
                     res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data })
                     console.log('downloadCanvas', 'finished downloading.')
                 })
+                .close()
+            // .close((err) => {
+            //     if (err) {
+            //         console.error(err)
+            //         rej(err)
+            //     }
+
+            //     const data = Uint8ClampedArray.from(fs.readFileSync(filePath))
+            //     console.log('downloadCanvas', 'data', data)
+
+            //     res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data })
+            //     console.log('downloadCanvas', 'finished downloading.')
+            // })
+
 
 
             // const readable = bucket.openDownloadStreamByName(f[0].filename)
@@ -186,13 +205,12 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
 
         console.log('found files', f.length);
 
-        const folderPath = path.join(app.getPath('appData'), app.getName(), 'tmp', 'downloads')
-        if (!fs.existsSync(folderPath))
-            fs.mkdirSync(folderPath, { recursive: true })
+        if (!fs.existsSync(DOWNLOADS_DIRECTORY))
+            fs.mkdirSync(DOWNLOADS_DIRECTORY, { recursive: true })
 
-        const filePath = path.join(folderPath, f[0]._id.toString() + f[0].filename);
+        const filePath = path.join(DOWNLOADS_DIRECTORY, f[0]._id.toString() + f[0].filename);
 
-        bucket.openDownloadStreamByName(f[0].filename)
+        bucket.openDownloadStream(f[0]._id)
             .on('end', async () => {
                 if (process.platform == 'darwin')
                     console.log('shell result', await shell.openExternal('file://' + filePath));

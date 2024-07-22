@@ -235,6 +235,8 @@ export function Patients() {
 
                     setActivePatientId(undefined)
                     setShowingMH(false)
+
+                    await init(page.offset, page.limit)
                 }}
             />
 

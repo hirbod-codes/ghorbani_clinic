@@ -8,6 +8,7 @@ import { Unauthorized } from "../../Unauthorized";
 import { Unauthenticated } from "../../Unauthenticated";
 import { resources } from "../Auth/resources";
 import { authRepository, privilegesRepository } from "../../handleDbEvents";
+import { DOWNLOADS_DIRECTORY } from "../../../../directories";
 
 export class PatientsDocumentsRepository extends MongoDB implements IPatientsDocumentsRepository {
     async handleEvents(): Promise<void> {
@@ -88,7 +89,11 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
         if (f.length === 0)
             return null;
 
-        const filePath = path.join(app.getAppPath(), 'tmp', 'downloads', f[0]._id.toString() + f[0].filename);
+        if (!fs.existsSync(DOWNLOADS_DIRECTORY))
+            fs.mkdirSync(DOWNLOADS_DIRECTORY, { recursive: true })
+
+        const filePath = path.join(DOWNLOADS_DIRECTORY, f[0]._id.toString() + f[0].filename);
+        console.log('downloadFile', 'filePath', filePath);
 
         bucket.openDownloadStreamByName(f[0].filename)
             .pipe(fs.createWriteStream(filePath), { end: true })
@@ -117,8 +122,12 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
 
         console.log('found files', f.length);
 
+        if (!fs.existsSync(DOWNLOADS_DIRECTORY))
+            fs.mkdirSync(DOWNLOADS_DIRECTORY, { recursive: true })
+
         for (const doc of f) {
-            const filePath = path.join(app.getAppPath(), 'tmp', 'downloads', doc._id.toString() + doc.filename);
+            const filePath = path.join(DOWNLOADS_DIRECTORY, doc._id.toString() + doc.filename);
+            console.log('downloadFile', 'filePath', filePath);
 
             bucket.openDownloadStreamByName(doc.filename)
                 .pipe(fs.createWriteStream(filePath), { end: true })
@@ -148,11 +157,15 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
 
         console.log('found files', f.length);
 
+        if (!fs.existsSync(DOWNLOADS_DIRECTORY))
+            fs.mkdirSync(DOWNLOADS_DIRECTORY, { recursive: true })
+
         for (const doc of f) {
             if (doc.filename !== fileName)
                 continue;
 
-            const filePath = path.join(app.getAppPath(), 'tmp', 'downloads', doc._id.toString() + doc.filename);
+            const filePath = path.join(DOWNLOADS_DIRECTORY, doc._id.toString() + doc.filename);
+            console.log('downloadFile', 'filePath', filePath);
 
             bucket.openDownloadStreamByName(doc.filename)
                 .on('end', async () => {

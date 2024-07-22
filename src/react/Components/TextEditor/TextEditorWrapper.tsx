@@ -117,6 +117,8 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, canvas
                             message: t('successfullyUploadedCanvas')
                         })
 
+                        Uint8ClampedArray.from(atob(res.data.data))
+
                         canvas?.current?.getContext('2d', { willReadFrequently: true })?.putImageData(new ImageData(res.data.data, res.data.width, res.data.height, { colorSpace: res.data.colorSpace }), canvas?.current?.width, canvas?.current?.height)
                     }}>
                         {t('cancel')}
