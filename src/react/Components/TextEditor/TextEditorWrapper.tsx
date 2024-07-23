@@ -8,7 +8,6 @@ import { t } from 'i18next';
 import { RendererDbAPI } from '../../../Electron/Database/handleDbRendererEvents';
 import { publish } from '../../Lib/Events';
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
-import { brotliCompressSync } from 'zlib';
 
 export type TextEditorWrapperProps = {
     title?: string;
@@ -105,66 +104,66 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, canvas
                         if (!defaultCanvas)
                             return
 
-                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(defaultCanvas)
-                        console.log('res', res)
-                        if (res.code !== 200 || !res.data) {
-                            publish(RESULT_EVENT_NAME, {
-                                severity: 'error',
-                                message: t('failedToUploadCanvas')
-                            })
-                            return
-                        }
+                        // const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(defaultCanvas)
+                        // console.log('res', res)
+                        // if (res.code !== 200 || !res.data) {
+                        //     publish(RESULT_EVENT_NAME, {
+                        //         severity: 'error',
+                        //         message: t('failedToUploadCanvas')
+                        //     })
+                        //     return
+                        // }
 
-                        publish(RESULT_EVENT_NAME, {
-                            severity: 'success',
-                            message: t('successfullyUploadedCanvas')
-                        })
+                        // publish(RESULT_EVENT_NAME, {
+                        //     severity: 'success',
+                        //     message: t('successfullyUploadedCanvas')
+                        // })
 
-                        let src = ''
-                        const reader = new FileReader();
-                        reader.readAsDataURL(new Blob([res.data.data]));
-                        reader.onloadend = function () {
-                            src = reader.result as string;
-                        }
+                        // let src = ''
+                        // const reader = new FileReader();
+                        // reader.readAsDataURL(new Blob([res.data.data]));
+                        // reader.onloadend = function () {
+                        //     src = reader.result as string;
+                        // }
 
                         // const url = URL.createObjectURL(b)
-                        const img = new Image();
+                        // const img = new Image();
 
-                        img.onload = function () {
-                            // URL.revokeObjectURL(img.src);
-                            canvas?.current?.getContext('2d', { willReadFrequently: true })?.drawImage(img, canvas?.current?.width, canvas?.current?.height)
-                        };
+                        // img.onload = function () {
+                        //     // URL.revokeObjectURL(img.src);
+                        //     canvas?.current?.getContext('2d', { willReadFrequently: true })?.drawImage(img, canvas?.current?.width, canvas?.current?.height)
+                        // };
 
-                        img.src = src;
+                        // img.src = src;
 
                         // Uint8ClampedArray.from(atob(res.data.data))
 
                         // canvas?.current?.getContext('2d', { willReadFrequently: true })?.putImageData(new ImageData(res.data.data, res.data.width, res.data.height, { colorSpace: res.data.colorSpace }), canvas?.current?.width, canvas?.current?.height)
 
-                        canvas?.current?.toBlob(async (b) => {
-                            const image = canvas?.current?.getContext('2d', { willReadFrequently: true })?.getImageData(0, 0, canvas?.current?.width, canvas?.current?.height)
-                            const data = await b.arrayBuffer()
+                        // canvas?.current?.toBlob(async (b) => {
+                        //     const image = canvas?.current?.getContext('2d', { willReadFrequently: true })?.getImageData(0, 0, canvas?.current?.width, canvas?.current?.height)
+                        //     const data = await b.arrayBuffer()
 
-                            let src = ''
-                            const reader = new FileReader();
-                            reader.readAsDataURL(b);
-                            reader.onloadend = function () {
-                                src = reader.result as string;
-                            }
+                        //     let src = ''
+                        //     const reader = new FileReader();
+                        //     reader.readAsDataURL(b);
+                        //     reader.onloadend = function () {
+                        //         src = reader.result as string;
+                        //     }
 
-                            // const url = URL.createObjectURL(b)
-                            const img = new Image();
+                        //     // const url = URL.createObjectURL(b)
+                        //     const img = new Image();
 
-                            img.onload = function () {
-                                // URL.revokeObjectURL(img.src);
-                                canvas?.current?.getContext('2d', { willReadFrequently: true })?.drawImage(img, canvas?.current?.width, canvas?.current?.height)
-                            };
+                        //     img.onload = function () {
+                        //         // URL.revokeObjectURL(img.src);
+                        //         canvas?.current?.getContext('2d', { willReadFrequently: true })?.drawImage(img, canvas?.current?.width, canvas?.current?.height)
+                        //     };
 
-                            img.src = src;
+                        //     img.src = src;
 
-                            // const imageData = Uint8ClampedArray.from(data)
-                            // canvas?.current?.getContext('2d', { willReadFrequently: true })?.putImageData(new ImageData(imageData, res.data.width, res.data.height, { colorSpace: res.data.colorSpace }), canvas?.current?.width, canvas?.current?.height)
-                        })
+                        //     // const imageData = Uint8ClampedArray.from(data)
+                        //     // canvas?.current?.getContext('2d', { willReadFrequently: true })?.putImageData(new ImageData(imageData, res.data.width, res.data.height, { colorSpace: res.data.colorSpace }), canvas?.current?.width, canvas?.current?.height)
+                        // })
 
 
 
@@ -191,43 +190,62 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, canvas
                         }
 
                         canvas?.current?.toBlob(async (b) => {
-                            setDataUrl(b.arrayBuffer)
-
                             let canvasId
-                            const image = canvas?.current?.getContext('2d', { willReadFrequently: true })?.getImageData(0, 0, canvas?.current?.width, canvas?.current?.height)
-                            const data = await b.arrayBuffer()
+                            // const image = canvas?.current?.getContext('2d', { willReadFrequently: true })?.getImageData(0, 0, canvas?.current?.width, canvas?.current?.height)
+                            // const data = await b.arrayBuffer()
 
-                            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(canvasFileName, { width: image.width, height: image.height, colorSpace: 'srgb', data })
-                            console.log('res', res)
-                            if (res.code !== 200 || !res.data) {
-                                publish(RESULT_EVENT_NAME, {
-                                    severity: 'error',
-                                    message: t('failedToUploadCanvas')
-                                })
-                                return
-                            }
+                            const imageData = canvas?.current?.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, canvas?.current?.width, canvas?.current?.height)
+                            const data = imageData.data.buffer
 
-                            publish(RESULT_EVENT_NAME, {
-                                severity: 'success',
-                                message: t('successfullyUploadedCanvas')
-                            })
 
-                            canvasId = res.data
-                            defaultCanvas = res.data
+                            const src = 'data:image/png;base64,' + _arrayBufferToBase64(data);
+                            console.log('src', src)
+                            // setDataUrl(src)
 
-                            if (onChange)
-                                onChange(content, canvasId)
-                        })
+                            const uint8ClampedArray = new Uint8ClampedArray(data)
+                            const image = new ImageData(uint8ClampedArray, canvas?.current?.width, canvas?.current?.height, { colorSpace: 'srgb' })
+                            canvas!.current!.getContext('2d', { willReadFrequently: true }).putImageData(image, 200, 200)
+                            // canvas?.current?.getContext('2d', { willReadFrequently: true }).drawImage(await createImageBitmap(), canvas?.current?.width, canvas?.current?.height)
+
+                                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(canvasFileName, { width: image.width, height: image.height, colorSpace: 'srgb', data })
+                                console.log('res', res)
+                            //     if (res.code !== 200 || !res.data) {
+                            //         publish(RESULT_EVENT_NAME, {
+                            //             severity: 'error',
+                            //             message: t('failedToUploadCanvas')
+                            //         })
+                            //         return
+                            //     }
+
+                            //     publish(RESULT_EVENT_NAME, {
+                            //         severity: 'success',
+                            //         message: t('successfullyUploadedCanvas')
+                            //     })
+
+                            //     canvasId = res.data
+                            //     defaultCanvas = res.data
+
+                            //     if (onChange)
+                            //         onChange(content, canvasId)
+                        },)
                     }} >
                         {t('done')}
                     </Button>
                 </Stack>
 
                 {dataUrl &&
-                    <img src={dataUrl} width={200} height={200} />
+                    <img src={dataUrl} width={canvas?.current?.width} height={canvas?.current?.height} />
                 }
             </Stack >
         </>
     )
 }
-
+function _arrayBufferToBase64(buffer: ArrayBuffer): string {
+    let binary = '';
+    let bytes = new Uint8Array(buffer);
+    let len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return window.btoa(binary);
+}

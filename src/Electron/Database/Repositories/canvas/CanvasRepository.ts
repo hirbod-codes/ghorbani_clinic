@@ -48,8 +48,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
                 console.log("Upload Finish.");
             });
 
-            const data: Uint8ClampedArray = canvas.data as Uint8ClampedArray
-            upload.write(Buffer.from(data.buffer), (err) => {
+            upload.write(Buffer.from(canvas.data as ArrayBuffer), (err) => {
                 if (err)
                     rej(err)
             })
@@ -116,44 +115,58 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
 
             console.log('downloadCanvas', 'downloading...');
 
+            const chunks: any = []
             bucket.openDownloadStream(f[0]._id)
-                .pipe(fs.createWriteStream(filePath, { encoding: 'base64' }), { end: true })
-                // .on('error', (err) => {
-                //     if (err) {
-                //         console.error(err)
-                //         rej(err)
-                //     }
-                // })
-                // .on('finish', () => {
-                //     const data1 = Uint8ClampedArray.from(fs.readFileSync(filePath))
-                //     console.log('downloadCanvas', 'data', 'finish', data1)
-                //     const data = fs.readFileSync(filePath).toString('base64')
-                //     console.log('downloadCanvas', 'data', 'finish', data)
-                // })
-                // .on('close', () => {
-                //     const data1 = Uint8ClampedArray.from(fs.readFileSync(filePath))
-                //     console.log('downloadCanvas', 'data', 'close', data1)
-                //     const data = fs.readFileSync(filePath).toString('base64')
-                //     console.log('downloadCanvas', 'data', 'close', data)
-
-                //     res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data })
-                //     console.log('downloadCanvas', 'finished downloading.')
-                // })
-                .end(() => { console.log('end') })
-                .close((err) => {
-                    if (err) {
-                        console.error(err)
-                        rej(err)
-                    }
-
-                    const data0 = fs.readFileSync(filePath)
-                    console.log('downloadCanvas', 'data0', data0)
-                    const data = Uint8ClampedArray.from(fs.readFileSync(filePath))
-                    console.log('downloadCanvas', 'data', data)
-
-                    res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data })
+                .on('data', (chunk) => {
+                    console.log('chunk', typeof chunk, chunk)
+                    chunks.push(chunk)
+                })
+                .on('end', () => {
+                    rej('oh oh')
+                    res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data: chunks })
                     console.log('downloadCanvas', 'finished downloading.')
                 })
+                .on('error', (err) => {
+                    console.error(err)
+                    rej(err)
+                })
+            // .pipe(fs.createWriteStream(filePath), { end: true })
+            // .on('error', (err) => {
+            //     if (err) {
+            //         console.error(err)
+            //         rej(err)
+            //     }
+            // })
+            // .on('finish', () => {
+            //     const data1 = Uint8ClampedArray.from(fs.readFileSync(filePath))
+            //     console.log('downloadCanvas', 'data', 'finish', data1)
+            //     const data = fs.readFileSync(filePath).toString('base64')
+            //     console.log('downloadCanvas', 'data', 'finish', data)
+            // })
+            // .on('close', () => {
+            //     const data1 = Uint8ClampedArray.from(fs.readFileSync(filePath))
+            //     console.log('downloadCanvas', 'data', 'close', data1)
+            //     const data = fs.readFileSync(filePath).toString('base64')
+            //     console.log('downloadCanvas', 'data', 'close', data)
+
+            //     res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data })
+            //     console.log('downloadCanvas', 'finished downloading.')
+            // })
+            // .end(() => { console.log('end') })
+            // .close((err) => {
+            //     if (err) {
+            //         console.error(err)
+            //         rej(err)
+            //     }
+
+            //     const data0 = fs.readFileSync(filePath)
+            //     console.log('downloadCanvas', 'data0', data0)
+            //     const data = Uint8ClampedArray.from(fs.readFileSync(filePath))
+            //     console.log('downloadCanvas', 'data', data)
+
+            //     res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data })
+            //     console.log('downloadCanvas', 'finished downloading.')
+            // })
 
 
 
