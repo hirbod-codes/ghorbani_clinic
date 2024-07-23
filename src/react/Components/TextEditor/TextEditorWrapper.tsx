@@ -9,6 +9,8 @@ import { RendererDbAPI } from '../../../Electron/Database/handleDbRendererEvents
 import { publish } from '../../Lib/Events';
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
 
+import '../Canvas/styles.css'
+
 export type TextEditorWrapperProps = {
     title?: string;
     defaultContent?: string | undefined;
@@ -48,8 +50,6 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, canvas
         //             context?.putImageData(new ImageData(Uint8ClampedArray.from(Buffer.from(decodeBase64(res.data.data, res.data.data.length))), res.data.width, res.data.height, { colorSpace: res.data.colorSpace }), canvas?.current?.width, canvas?.current?.height)
         //         })
     }, [defaultContent, defaultCanvas])
-
-    const [dataUrl, setDataUrl] = useState<any>()
 
     return (
         <>
@@ -104,70 +104,24 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, canvas
                         if (!defaultCanvas)
                             return
 
-                        // const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(defaultCanvas)
-                        // console.log('res', res)
-                        // if (res.code !== 200 || !res.data) {
-                        //     publish(RESULT_EVENT_NAME, {
-                        //         severity: 'error',
-                        //         message: t('failedToUploadCanvas')
-                        //     })
-                        //     return
-                        // }
+                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(defaultCanvas)
+                        console.log('res', res)
+                        if (res.code !== 200 || !res.data) {
+                            publish(RESULT_EVENT_NAME, {
+                                severity: 'error',
+                                message: t('failedToUploadCanvas')
+                            })
+                            return
+                        }
 
-                        // publish(RESULT_EVENT_NAME, {
-                        //     severity: 'success',
-                        //     message: t('successfullyUploadedCanvas')
-                        // })
+                        publish(RESULT_EVENT_NAME, {
+                            severity: 'success',
+                            message: t('successfullyUploadedCanvas')
+                        })
 
-                        // let src = ''
-                        // const reader = new FileReader();
-                        // reader.readAsDataURL(new Blob([res.data.data]));
-                        // reader.onloadend = function () {
-                        //     src = reader.result as string;
-                        // }
-
-                        // const url = URL.createObjectURL(b)
-                        // const img = new Image();
-
-                        // img.onload = function () {
-                        //     // URL.revokeObjectURL(img.src);
-                        //     canvas?.current?.getContext('2d', { willReadFrequently: true })?.drawImage(img, canvas?.current?.width, canvas?.current?.height)
-                        // };
-
-                        // img.src = src;
-
-                        // Uint8ClampedArray.from(atob(res.data.data))
-
-                        // canvas?.current?.getContext('2d', { willReadFrequently: true })?.putImageData(new ImageData(res.data.data, res.data.width, res.data.height, { colorSpace: res.data.colorSpace }), canvas?.current?.width, canvas?.current?.height)
-
-                        // canvas?.current?.toBlob(async (b) => {
-                        //     const image = canvas?.current?.getContext('2d', { willReadFrequently: true })?.getImageData(0, 0, canvas?.current?.width, canvas?.current?.height)
-                        //     const data = await b.arrayBuffer()
-
-                        //     let src = ''
-                        //     const reader = new FileReader();
-                        //     reader.readAsDataURL(b);
-                        //     reader.onloadend = function () {
-                        //         src = reader.result as string;
-                        //     }
-
-                        //     // const url = URL.createObjectURL(b)
-                        //     const img = new Image();
-
-                        //     img.onload = function () {
-                        //         // URL.revokeObjectURL(img.src);
-                        //         canvas?.current?.getContext('2d', { willReadFrequently: true })?.drawImage(img, canvas?.current?.width, canvas?.current?.height)
-                        //     };
-
-                        //     img.src = src;
-
-                        //     // const imageData = Uint8ClampedArray.from(data)
-                        //     // canvas?.current?.getContext('2d', { willReadFrequently: true })?.putImageData(new ImageData(imageData, res.data.width, res.data.height, { colorSpace: res.data.colorSpace }), canvas?.current?.width, canvas?.current?.height)
-                        // })
-
-
-
-                        // canvas?.current?.getContext('2d', { willReadFrequently: true })?.putImageData(new ImageData(Uint8ClampedArray.from(atob(res.data.data as string) as any), res.data.width, res.data.height, { colorSpace: res.data.colorSpace }), canvas?.current?.width, canvas?.current?.height)
+                        const uint8ClampedArray = new Uint8ClampedArray(res.data.data as ArrayBufferLike)
+                        const image = new ImageData(uint8ClampedArray, canvas?.current?.width, canvas?.current?.height, { colorSpace: 'srgb' })
+                        canvas!.current!.getContext('2d', { willReadFrequently: true }).putImageData(image, 0, 0)
                     }}>
                         {t('cancel')}
                     </Button>
@@ -190,52 +144,33 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, canvas
                         }
 
                         canvas?.current?.toBlob(async (b) => {
-                            let canvasId
-                            // const image = canvas?.current?.getContext('2d', { willReadFrequently: true })?.getImageData(0, 0, canvas?.current?.width, canvas?.current?.height)
-                            // const data = await b.arrayBuffer()
-
                             const imageData = canvas?.current?.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, canvas?.current?.width, canvas?.current?.height)
                             const data = imageData.data.buffer
 
+                            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(canvasFileName, { width: canvas?.current?.width, height: canvas?.current?.height, colorSpace: 'srgb', data })
+                            console.log('res', res)
+                            if (res.code !== 200 || !res.data) {
+                                publish(RESULT_EVENT_NAME, {
+                                    severity: 'error',
+                                    message: t('failedToUploadCanvas')
+                                })
+                                return
+                            }
 
-                            const src = 'data:image/png;base64,' + _arrayBufferToBase64(data);
-                            console.log('src', src)
-                            // setDataUrl(src)
+                            publish(RESULT_EVENT_NAME, {
+                                severity: 'success',
+                                message: t('successfullyUploadedCanvas')
+                            })
 
-                            const uint8ClampedArray = new Uint8ClampedArray(data)
-                            const image = new ImageData(uint8ClampedArray, canvas?.current?.width, canvas?.current?.height, { colorSpace: 'srgb' })
-                            canvas!.current!.getContext('2d', { willReadFrequently: true }).putImageData(image, 200, 200)
-                            // canvas?.current?.getContext('2d', { willReadFrequently: true }).drawImage(await createImageBitmap(), canvas?.current?.width, canvas?.current?.height)
+                            defaultCanvas = res.data
 
-                                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(canvasFileName, { width: image.width, height: image.height, colorSpace: 'srgb', data })
-                                console.log('res', res)
-                            //     if (res.code !== 200 || !res.data) {
-                            //         publish(RESULT_EVENT_NAME, {
-                            //             severity: 'error',
-                            //             message: t('failedToUploadCanvas')
-                            //         })
-                            //         return
-                            //     }
-
-                            //     publish(RESULT_EVENT_NAME, {
-                            //         severity: 'success',
-                            //         message: t('successfullyUploadedCanvas')
-                            //     })
-
-                            //     canvasId = res.data
-                            //     defaultCanvas = res.data
-
-                            //     if (onChange)
-                            //         onChange(content, canvasId)
+                            if (onChange)
+                                onChange(content, res.data)
                         },)
                     }} >
                         {t('done')}
                     </Button>
                 </Stack>
-
-                {dataUrl &&
-                    <img src={dataUrl} width={canvas?.current?.width} height={canvas?.current?.height} />
-                }
             </Stack >
         </>
     )
