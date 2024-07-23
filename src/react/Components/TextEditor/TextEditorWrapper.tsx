@@ -27,29 +27,37 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, canvas
 
     const canvas = useRef<HTMLCanvasElement>()
 
-    useEffect(() => {
+    const init = async () => {
         setContent(defaultContent);
 
-        // if (defaultCanvas)
-        //     (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(defaultCanvas)
-        //         .then((res) => {
-        //             console.log('res', res)
+        if (!defaultCanvas || !canvas.current)
+            return
 
-        //             if (res.code !== 200)
-        //                 publish(RESULT_EVENT_NAME, {
-        //                     severity: 'error',
-        //                     message: t('failedToUploadCanvas')
-        //                 })
+        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(defaultCanvas)
+        console.log('res', res)
+        if (res.code !== 200 || !res.data) {
+            publish(RESULT_EVENT_NAME, {
+                severity: 'error',
+                message: t('failedToUploadCanvas')
+            })
+            return
+        }
 
-        //             publish(RESULT_EVENT_NAME, {
-        //                 severity: 'success',
-        //                 message: t('successfullyUploadedCanvas')
-        //             })
+        publish(RESULT_EVENT_NAME, {
+            severity: 'success',
+            message: t('successfullyUploadedCanvas')
+        })
 
-        //             const context = canvas?.current?.getContext('2d', { willReadFrequently: true })
-        //             context?.putImageData(new ImageData(Uint8ClampedArray.from(Buffer.from(decodeBase64(res.data.data, res.data.data.length))), res.data.width, res.data.height, { colorSpace: res.data.colorSpace }), canvas?.current?.width, canvas?.current?.height)
-        //         })
-    }, [defaultContent, defaultCanvas])
+        const uint8ClampedArray = new Uint8ClampedArray((res.data.data as any).data)
+        console.log('uint8ClampedArray', uint8ClampedArray)
+        const image = new ImageData(uint8ClampedArray, res.data.width, res.data.height, { colorSpace: res.data.colorSpace })
+        console.log('image', image)
+        canvas.current?.getContext('2d', { willReadFrequently: true }).putImageData(image, 0, 0)
+    }
+
+    useEffect(() => {
+        init()
+    }, [defaultContent, defaultCanvas, canvas.current])
 
     return (
         <>
@@ -100,39 +108,8 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, canvas
                 }
 
                 <Stack direction='row' justifyContent='space-between' alignContent='center'>
-                    <Button variant='contained' color='error' onClick={async () => {
-                        if (!defaultCanvas)
-                            return
-
-                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(defaultCanvas)
-                        console.log('res', res)
-                        if (res.code !== 200 || !res.data) {
-                            publish(RESULT_EVENT_NAME, {
-                                severity: 'error',
-                                message: t('failedToUploadCanvas')
-                            })
-                            return
-                        }
-
-                        publish(RESULT_EVENT_NAME, {
-                            severity: 'success',
-                            message: t('successfullyUploadedCanvas')
-                        })
-
-                        const uint8ClampedArray = new Uint8ClampedArray(res.data.data as ArrayBufferLike)
-                        const image = new ImageData(uint8ClampedArray, canvas?.current?.width, canvas?.current?.height, { colorSpace: 'srgb' })
-                        canvas!.current!.getContext('2d', { willReadFrequently: true }).putImageData(image, 0, 0)
-                    }}>
+                    <Button variant='contained' color='error' onClick={async () => { }}>
                         {t('cancel')}
-                    </Button>
-                    <Button variant='contained' color='info' onClick={async () => {
-                        if (!defaultCanvas)
-                            return
-
-                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.openCanvas(defaultCanvas)
-                        console.log('res', res)
-                    }}>
-                        {t('cancel1')}
                     </Button>
 
                     <Button variant='contained' color='success' onClick={async () => {
@@ -143,11 +120,11 @@ export function TextEditorWrapper({ title, defaultContent, defaultCanvas, canvas
                             return
                         }
 
-                        canvas?.current?.toBlob(async (b) => {
-                            const imageData = canvas?.current?.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, canvas?.current?.width, canvas?.current?.height)
+                        canvas.current?.toBlob(async (b) => {
+                            const imageData = canvas.current?.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, canvas.current?.width, canvas.current?.height)
                             const data = imageData.data.buffer
 
-                            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(canvasFileName, { width: canvas?.current?.width, height: canvas?.current?.height, colorSpace: 'srgb', data })
+                            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(canvasFileName, { width: canvas.current?.width, height: canvas.current?.height, colorSpace: 'srgb', data })
                             console.log('res', res)
                             if (res.code !== 200 || !res.data) {
                                 publish(RESULT_EVENT_NAME, {
