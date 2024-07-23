@@ -6,7 +6,7 @@ export const canvasSchema = object().required().shape({
     colorSpace: mixed<PredefinedColorSpace>().required(),
     width: number().required(),
     height: number().required(),
-    data: mixed<Uint8ClampedArray | string>().required()
+    data: mixed<Uint8ClampedArray | string | ArrayBuffer>().required()
 })
 
 export type Canvas = InferType<typeof canvasSchema>

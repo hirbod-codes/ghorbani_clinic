@@ -10,6 +10,7 @@ import path from "path";
 import fs from 'fs';
 import { Canvas, canvasSchema } from "../../Models/Canvas";
 import { DOWNLOADS_DIRECTORY } from "../../../../directories";
+import { Stream } from "stream";
 
 export class CanvasRepository extends MongoDB implements ICanvasRepository {
     async handleEvents(): Promise<void> {
@@ -47,15 +48,16 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
                 console.log("Upload Finish.");
             });
 
-            upload.write(canvas.data, (err) => {
+            const data: Uint8ClampedArray = canvas.data as Uint8ClampedArray
+            upload.write(Buffer.from(data.buffer), (err) => {
                 if (err)
                     rej(err)
-
-                console.log('finished uploading.');
-
-                upload.end()
-                res(upload.id.toString())
             })
+
+            console.log('finished uploading.');
+
+            upload.end()
+            res(upload.id.toString())
         })
     }
 
@@ -109,41 +111,49 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
             if (!fs.existsSync(DOWNLOADS_DIRECTORY))
                 fs.mkdirSync(DOWNLOADS_DIRECTORY, { recursive: true })
 
-            const filePath = path.join(DOWNLOADS_DIRECTORY, f[0].filename);
+            const filePath = path.join(DOWNLOADS_DIRECTORY, f[0]._id.toString() + f[0]._id.toString());
             console.log('downloadCanvas', 'filePath', filePath);
 
             console.log('downloadCanvas', 'downloading...');
 
             bucket.openDownloadStream(f[0]._id)
-                .pipe(fs.createWriteStream(filePath), { end: true })
-                .on('error', (err) => {
+                .pipe(fs.createWriteStream(filePath, { encoding: 'base64' }), { end: true })
+                // .on('error', (err) => {
+                //     if (err) {
+                //         console.error(err)
+                //         rej(err)
+                //     }
+                // })
+                // .on('finish', () => {
+                //     const data1 = Uint8ClampedArray.from(fs.readFileSync(filePath))
+                //     console.log('downloadCanvas', 'data', 'finish', data1)
+                //     const data = fs.readFileSync(filePath).toString('base64')
+                //     console.log('downloadCanvas', 'data', 'finish', data)
+                // })
+                // .on('close', () => {
+                //     const data1 = Uint8ClampedArray.from(fs.readFileSync(filePath))
+                //     console.log('downloadCanvas', 'data', 'close', data1)
+                //     const data = fs.readFileSync(filePath).toString('base64')
+                //     console.log('downloadCanvas', 'data', 'close', data)
+
+                //     res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data })
+                //     console.log('downloadCanvas', 'finished downloading.')
+                // })
+                .end(() => { console.log('end') })
+                .close((err) => {
                     if (err) {
                         console.error(err)
                         rej(err)
                     }
-                })
-                .on('close', () => {
-                    const data1 = Uint8ClampedArray.from(fs.readFileSync(filePath))
-                    console.log('downloadCanvas', 'data', data1)
-                    const data = fs.readFileSync(filePath).toString('base64')
+
+                    const data0 = fs.readFileSync(filePath)
+                    console.log('downloadCanvas', 'data0', data0)
+                    const data = Uint8ClampedArray.from(fs.readFileSync(filePath))
                     console.log('downloadCanvas', 'data', data)
 
                     res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data })
                     console.log('downloadCanvas', 'finished downloading.')
                 })
-                .close()
-            // .close((err) => {
-            //     if (err) {
-            //         console.error(err)
-            //         rej(err)
-            //     }
-
-            //     const data = Uint8ClampedArray.from(fs.readFileSync(filePath))
-            //     console.log('downloadCanvas', 'data', data)
-
-            //     res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data })
-            //     console.log('downloadCanvas', 'finished downloading.')
-            // })
 
 
 
@@ -218,7 +228,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
                 else
                     console.log('shell result', await shell.openPath(filePath));
             })
-            .pipe(fs.createWriteStream(filePath), { end: true });
+            .pipe(fs.createWriteStream(filePath, { encoding: 'base64' }), { end: true })
 
         console.log('finished opening.');
         return;

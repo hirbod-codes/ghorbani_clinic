@@ -199,6 +199,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                         open={showAddress}
                                                         onClose={() => setShowAddress(false)} defaultAddress={patient?.address?.text}
                                                         defaultCanvas={patient?.address?.canvas as string}
+                                                        canvasFileName={`address-${patient?._id}.png`}
                                                         onChange={(address, canvasId) => setPatient({ ...patient, address: { text: address, canvas: canvasId } })}
                                                     />
 
@@ -243,6 +244,14 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                         {files.length !== 0 &&
                                                             <Button sx={{ width: 'fit-content' }} variant='outlined' onClick={() => setFiles([])}>
                                                                 reset documents
+                                                            </Button>
+                                                        }
+                                                        {files.length !== 0 &&
+                                                            <Button sx={{ width: 'fit-content' }} variant='outlined' onClick={async () => {
+                                                                const response = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.openFile(patient._id as string, files[0].fileName)
+                                                                console.log(response)
+                                                            }}>
+                                                                open first
                                                             </Button>
                                                         }
                                                     </Stack>
