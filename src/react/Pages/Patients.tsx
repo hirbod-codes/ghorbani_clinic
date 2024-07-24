@@ -16,7 +16,7 @@ import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish } from "../Lib/Events";
 import { configAPI } from "../../Electron/Configuration/renderer/configAPI";
 import { MedicalHistory } from "../Components/Patients/MedicalHistory";
-import { Address } from "../Components/Patients/Address";
+import { EditorModal } from "../Components/Editor/EditorModal";
 
 export function Patients() {
     const auth = useContext(AuthContext)
@@ -202,15 +202,16 @@ export function Patients() {
                 inputPatient={patients.find(p => p._id && p._id === editingPatientId)}
             />
 
-            <Address
+            <EditorModal
                 open={showingAddress}
                 onClose={() => {
                     setActivePatientId(undefined)
                     setShowingAddress(false)
                 }}
-                defaultAddress={patients.find(f => f._id === activePatientId)?.address?.text}
-                defaultCanvas={patients.find(f => f._id === activePatientId)?.address?.canvas as string}
-                canvasFileName={`address-${patients.find(f => f._id === activePatientId)?._id}.png`}
+                text={patients.find(f => f._id === activePatientId)?.address?.text}
+                canvasId={patients.find(f => f._id === activePatientId)?.address?.canvas as string}
+                canvasFileName={`address-${activePatientId}.png`}
+                title={t('address')}
                 onSave={async (address, canvasId) => {
                     console.log('Patients', 'Address', 'onChange', address, canvasId)
 

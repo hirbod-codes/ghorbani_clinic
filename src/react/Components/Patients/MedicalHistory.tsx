@@ -1,4 +1,4 @@
-import { Box, Button, Checkbox, CircularProgress, Divider, Grid, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Modal, Paper, Slide, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, Checkbox, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Grid, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Modal, Paper, Slide, Stack, TextField, Typography } from "@mui/material";
 import { t } from "i18next";
 import { useState, useEffect } from 'react'
 import { ArrowBox } from "../ArrowBox/ArrowBox";
@@ -9,8 +9,8 @@ import LoadingScreen from "../LoadingScreen";
 import { RendererDbAPI } from "../../../Electron/Database/handleDbRendererEvents";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
-import { AddOutlined, DeleteOutlined, EditOutlined } from "@mui/icons-material";
-import { TextEditorWrapper } from "../TextEditor/TextEditorWrapper";
+import { AddOutlined, DeleteOutlined } from "@mui/icons-material";
+import { Editor } from "../Editor/Editor";
 
 export type MedicalHistoryProps = {
     open: boolean;
@@ -30,8 +30,6 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
     const [fetchedHistories, setFetchedHistories] = useState<string[] | undefined>(undefined)
 
     const [containerRef, { height }] = useMeasure()
-
-    const [editing, setEditing] = useState<boolean>(false)
 
     const drawerAnimationLeft = useSpring({
         left: openDrawer ? '0' : '-50%',
@@ -81,10 +79,33 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
             setMedicalHistory({ ...medicalHistory, histories: medicalHistory.histories?.filter(f => f !== fh) })
     }
 
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+
+    const initDialog: any = {
+        open: false,
+        title: '',
+        content: '',
+        e: undefined,
+        r: undefined,
+    }
+    const [dialog, setDialog] = useState(initDialog)
+    const closeDialog = () => setDialog(initDialog)
+
     return (
         <>
             <Modal
-                onClose={onClose}
+                onClose={(e, r) => {
+                    if (hasUnsavedChanges)
+                        setDialog({
+                            open: true,
+                            title: t('exiting'),
+                            content: t('areYouSure?YouHaveUnsavedChanges'),
+                            e,
+                            r
+                        })
+                    else if (onClose)
+                        onClose(e, r)
+                }}
                 open={open}
                 closeAfterTransition
                 disableAutoFocus
@@ -188,10 +209,11 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
 
                                     <Grid item xs={11}>
                                         <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3 }}>
-                                            <TextEditorWrapper
-                                                defaultContent={medicalHistory?.description?.text}
-                                                defaultCanvas={medicalHistory?.description?.canvas as string}
+                                            <Editor
+                                                text={medicalHistory?.description?.text}
+                                                canvasId={medicalHistory?.description?.canvas as string}
                                                 onSave={(content, canvasId) => setMedicalHistory({ ...medicalHistory, description: { text: content, canvas: canvasId } })}
+                                                setHasUnsavedChanges={setHasUnsavedChanges}
                                                 title={t('address')}
                                             />
                                         </Paper>
@@ -270,6 +292,26 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                     </Paper>
                 </Slide>
             </Modal>
+
+            <Dialog open={dialog.open} onClose={closeDialog} >
+                <DialogTitle>
+                    {dialog.title}
+                </DialogTitle>
+                <DialogContent>
+                    <DialogContentText>
+                        {dialog.content}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeDialog}>{t('No')}</Button>
+                    <Button onClick={() => {
+                        if (onClose)
+                            onClose(dialog.e, dialog.r)
+
+                        closeDialog()
+                    }}>{t('Yes')}</Button>
+                </DialogActions>
+            </Dialog>
         </>
     )
 }

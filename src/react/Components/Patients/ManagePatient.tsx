@@ -18,8 +18,7 @@ import { RendererDbAPI } from '../../../Electron/Database/handleDbRendererEvents
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
 import { publish } from '../../Lib/Events';
 import { MedicalHistory } from './MedicalHistory';
-import { Address } from './Address';
-import { TextEditorModal } from '../TextEditor/TextEditorModal';
+import { EditorModal } from '../Editor/EditorModal';
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -196,13 +195,13 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                         {t('address')}
                                                     </Button>
                                                     <EditorModal
-                                                    />
-                                                    <Address
                                                         open={showAddress}
-                                                        onClose={() => setShowAddress(false)} defaultAddress={patient?.address?.text}
-                                                        defaultCanvas={patient?.address?.canvas as string}
+                                                        onClose={() => setShowAddress(false)}
+                                                        text={patient?.address?.text}
+                                                        canvasId={patient?.address?.canvas as string}
                                                         canvasFileName={`address-${patient?._id}.png`}
                                                         onSave={(address, canvasId) => setPatient({ ...patient, address: { text: address, canvas: canvasId } })}
+                                                        title={t('address')}
                                                     />
 
                                                     {/* Medical History */}
