@@ -9,8 +9,6 @@ import { RendererDbAPI } from '../../../Electron/Database/handleDbRendererEvents
 import { publish } from '../../Lib/Events';
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
 
-import '../Canvas/styles.css'
-
 export type TextEditorWrapperProps = {
     title?: string;
     defaultContent?: string | undefined;

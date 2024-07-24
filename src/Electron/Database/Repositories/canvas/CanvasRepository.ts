@@ -114,7 +114,6 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
             console.log('downloadCanvas', 'filePath', filePath);
 
             console.log('downloadCanvas', 'downloading...');
-
             const chunks: Buffer[] = []
             bucket.openDownloadStream(f[0]._id)
                 .on('data', (chunk: Buffer) => {
