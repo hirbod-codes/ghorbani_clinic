@@ -1,5 +1,5 @@
 import { Divider, IconButton, Menu, Paper, Stack, TextField } from "@mui/material";
-import { MutableRefObject, useContext, useEffect, useRef, useState } from "react";
+import { MutableRefObject, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { configAPI } from "../../../Electron/Configuration/renderer/configAPI";
 import { Draw } from "./types";
@@ -34,10 +34,10 @@ export function Canvas({ outRef, onChange }: { outRef?: MutableRefObject<HTMLCan
 
     const { canvasRef, onMouseDown, clear, empty } = useDraw(drawLine, onChange)
 
-    useEffect(() => {
+    const canvas = useCallback((ref) => {
         if (outRef)
             outRef.current = canvasRef.current
-    }, [canvasRef, canvasRef.current])
+    }, [])
 
     const parentRef = useRef<HTMLDivElement>()
 
@@ -84,7 +84,6 @@ export function Canvas({ outRef, onChange }: { outRef?: MutableRefObject<HTMLCan
 
                 <Paper elevation={2} sx={{ flexGrow: 2, width: '100%', height: '100%', p: 0, m: 0 }} ref={parentRef}>
                     <canvas
-                        onChange={() => console.log('canvas changed')}
                         ref={canvasRef}
                         onMouseDown={onMouseDown}
                         className='canvas'

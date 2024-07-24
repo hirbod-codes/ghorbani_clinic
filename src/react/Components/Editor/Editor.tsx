@@ -167,7 +167,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
 
     return loading
         ? (
-            <Backdrop open={loading}>
+            <Backdrop sx={{ zIndex: theme.zIndex.drawer + 1 }} open={loading}>
                 <CircularProgress />
             </Backdrop >
         )
