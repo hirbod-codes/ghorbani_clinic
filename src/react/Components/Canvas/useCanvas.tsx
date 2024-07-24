@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { Draw, Point } from './types'
 
-export const useDraw = (onDraw: ({ ctx, currentPoint, prevPoint }: Draw) => void) => {
+export const useDraw = (draw: ({ ctx, currentPoint, prevPoint }: Draw) => void, onChange?: (empty?: boolean) => void | Promise<void>) => {
+    const [empty, setEmpty] = useState(true)
     const [mouseDown, setMouseDown] = useState(false)
 
     const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -19,7 +20,14 @@ export const useDraw = (onDraw: ({ ctx, currentPoint, prevPoint }: Draw) => void
         if (!ctx)
             return
 
+        if (!empty)
+            if (onChange)
+                onChange(true)
+
         ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+        if (!empty)
+            setEmpty(true)
     }
 
     const onMouseMove = (e: MouseEvent) => {
@@ -30,8 +38,14 @@ export const useDraw = (onDraw: ({ ctx, currentPoint, prevPoint }: Draw) => void
         if (!ctx || !currentPoint)
             return
 
-        onDraw({ ctx, currentPoint, prevPoint: prevPoint.current })
+        if (onChange)
+            onChange(empty)
+
+        draw({ ctx, currentPoint, prevPoint: prevPoint.current })
         prevPoint.current = currentPoint
+
+        if (empty)
+            setEmpty(false)
     }
 
     const computePointInCanvas = (e: MouseEvent) => {
@@ -61,7 +75,7 @@ export const useDraw = (onDraw: ({ ctx, currentPoint, prevPoint }: Draw) => void
             canvasRef.current?.removeEventListener('mousemove', onMouseMove)
             window.removeEventListener('mouseup', onMouseUp)
         }
-    }, [onDraw])
+    }, [draw])
 
-    return { canvasRef, onMouseDown, clear }
+    return { canvasRef, onMouseDown, clear, empty }
 }

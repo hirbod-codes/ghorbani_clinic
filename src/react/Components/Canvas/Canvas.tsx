@@ -10,7 +10,7 @@ import { ColorLensOutlined } from "@mui/icons-material";
 import { t } from "i18next";
 import { HexAlphaColorPicker } from "react-colorful";
 
-export function Canvas({ outRef }: { outRef?: MutableRefObject<HTMLCanvasElement> }) {
+export function Canvas({ outRef, onChange }: { outRef?: MutableRefObject<HTMLCanvasElement>, onChange?: (empty?: boolean) => void | Promise<void> }) {
     let theme = useContext(ConfigurationContext).get.theme
 
     const init = async () => {
@@ -32,9 +32,12 @@ export function Canvas({ outRef }: { outRef?: MutableRefObject<HTMLCanvasElement
     const [lineWidth, setLineWidth] = useState<string>('1')
     const [radius, setRadius] = useState<string>('0.3')
 
-    const { canvasRef, onMouseDown, clear } = useDraw(drawLine)
-    if (outRef)
-        outRef.current = canvasRef.current
+    const { canvasRef, onMouseDown, clear, empty } = useDraw(drawLine, onChange)
+
+    useEffect(() => {
+        if (outRef)
+            outRef.current = canvasRef.current
+    }, [canvasRef, canvasRef.current])
 
     const parentRef = useRef<HTMLDivElement>()
 
@@ -81,6 +84,7 @@ export function Canvas({ outRef }: { outRef?: MutableRefObject<HTMLCanvasElement
 
                 <Paper elevation={2} sx={{ flexGrow: 2, width: '100%', height: '100%', p: 0, m: 0 }} ref={parentRef}>
                     <canvas
+                        onChange={() => console.log('canvas changed')}
                         ref={canvasRef}
                         onMouseDown={onMouseDown}
                         className='canvas'

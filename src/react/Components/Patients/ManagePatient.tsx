@@ -195,12 +195,14 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                     <Button sx={{ width: 'fit-content' }} variant='outlined' onClick={() => setShowAddress(true)}>
                                                         {t('address')}
                                                     </Button>
+                                                    <EditorModal
+                                                    />
                                                     <Address
                                                         open={showAddress}
                                                         onClose={() => setShowAddress(false)} defaultAddress={patient?.address?.text}
                                                         defaultCanvas={patient?.address?.canvas as string}
                                                         canvasFileName={`address-${patient?._id}.png`}
-                                                        onChange={(address, canvasId) => setPatient({ ...patient, address: { text: address, canvas: canvasId } })}
+                                                        onSave={(address, canvasId) => setPatient({ ...patient, address: { text: address, canvas: canvasId } })}
                                                     />
 
                                                     {/* Medical History */}

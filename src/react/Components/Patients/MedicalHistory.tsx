@@ -191,7 +191,7 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                                             <TextEditorWrapper
                                                 defaultContent={medicalHistory?.description?.text}
                                                 defaultCanvas={medicalHistory?.description?.canvas as string}
-                                                onChange={(content, canvasId) => setMedicalHistory({ ...medicalHistory, description: { text: content, canvas: canvasId } })}
+                                                onSave={(content, canvasId) => setMedicalHistory({ ...medicalHistory, description: { text: content, canvas: canvasId } })}
                                                 title={t('address')}
                                             />
                                         </Paper>

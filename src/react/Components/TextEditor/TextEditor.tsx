@@ -26,10 +26,14 @@ function fileListToImageFiles(fileList: FileList): File[] {
     });
 }
 
-export function TextEditor({ defaultContent, onChange }: { defaultContent?: string, onChange?: (content?: string) => void | Promise<void> }) {
-    const extensions = useExtensions({
-        placeholder: "Add your own content here...",
-    });
+export type TextEditorProps = {
+    text?: string;
+    onChange?: (content?: string) => void | Promise<void>;
+    placeholder?: string;
+}
+
+export function TextEditor({ text, onChange, placeholder = "Add your own content here..." }: TextEditorProps) {
+    const extensions = useExtensions({ placeholder });
     const rteRef = useRef<RichTextEditorRef>(null);
     const [isEditable, setIsEditable] = useState<boolean>(true);
     const [showMenuBar, setShowMenuBar] = useState<boolean>(true);
@@ -133,7 +137,7 @@ export function TextEditor({ defaultContent, onChange }: { defaultContent?: stri
                     ref={rteRef}
                     className="editor"
                     extensions={extensions}
-                    content={defaultContent}
+                    content={text}
                     editable={isEditable}
                     editorProps={{
                         handleDrop: handleDrop,

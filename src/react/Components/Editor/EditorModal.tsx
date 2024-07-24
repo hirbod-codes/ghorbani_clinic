@@ -1,22 +1,15 @@
-import { useEffect, useState } from "react";
-import { Modal, Paper, Slide, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Stack, Divider, IconButton } from "@mui/material"
-
-import { TextEditor, TextEditorProps } from './TextEditor';
+import { useState } from "react";
+import { Modal, Paper, Slide, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from "@mui/material"
 import { t } from "i18next";
-import { SaveAltOutlined } from "@mui/icons-material";
+import { Editor, EditorProps } from "./Editor";
 
-export type TextEditorModalProps = TextEditorProps & {
+export type TextEditorModalProps = EditorProps & {
     open: boolean;
     onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void;
-    onChange: () => void | Promise<void>;
-    onSave: (text: string) => void | Promise<void>;
 }
 
-export function TextEditorModal({ open, onClose, onChange, onSave, placeholder, text: inputText }: TextEditorModalProps) {
-    const [text, setText] = useState(inputText)
-    useEffect(() => {
-        setText(inputText)
-    }, [inputText])
+export function EditorModal({ open, onClose, title, text, canvasId, canvasFileName, onChange, onSave, setHasUnsavedChanges: setHasUnsavedChangesProperty }: TextEditorModalProps) {
+    console.log('EditorModal', { open, onClose, title, text, canvasId, canvasFileName })
 
     const initDialog: any = {
         open: false,
@@ -28,9 +21,14 @@ export function TextEditorModal({ open, onClose, onChange, onSave, placeholder, 
     const [dialog, setDialog] = useState(initDialog)
     const closeDialog = () => setDialog(initDialog)
 
-    console.log('TextEditorModal', { open, dialog, placeholder, text })
+    const [hasUnsavedChanges, setHasUnsavedChangesState] = useState(false)
 
-    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+    const setHasUnsavedChanges = (state: boolean) => {
+        setHasUnsavedChangesState(state)
+
+        if (setHasUnsavedChangesProperty)
+            setHasUnsavedChangesProperty(state)
+    }
 
     return (
         <>
@@ -55,29 +53,15 @@ export function TextEditorModal({ open, onClose, onChange, onSave, placeholder, 
             >
                 <Slide direction={open ? 'up' : 'down'} in={open} timeout={250}>
                     <Paper sx={{ width: '80%', height: '90%', padding: '0.5rem 1rem', overflow: 'auto' }}>
-                        <Stack direction='column' spacing={1} sx={{ width: '100%', height: '100%' }}>
-                            <IconButton
-                                onClick={async () => {
-                                    if (onSave)
-                                        await onSave(text)
-                                    setHasUnsavedChanges(false)
-                                }}
-                                color={hasUnsavedChanges ? 'warning' : 'default'}
-                            >
-                                <SaveAltOutlined />
-                            </IconButton>
-                            <Divider />
-                            <TextEditor
-                                placeholder={placeholder}
-                                text={text}
-                                onChange={(t) => {
-                                    setHasUnsavedChanges(true)
-                                    setText(t)
-                                    if (onChange)
-                                        onChange()
-                                }}
-                            />
-                        </Stack>
+                        <Editor
+                            title={title}
+                            text={text}
+                            canvasId={canvasId}
+                            canvasFileName={canvasFileName}
+                            setHasUnsavedChanges={setHasUnsavedChanges}
+                            onSave={onSave}
+                            onChange={onChange}
+                        />
                     </Paper>
                 </Slide>
             </Modal>
@@ -104,4 +88,3 @@ export function TextEditorModal({ open, onClose, onChange, onSave, placeholder, 
         </>
     )
 }
-

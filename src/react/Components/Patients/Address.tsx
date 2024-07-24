@@ -1,18 +1,29 @@
 import { t } from "i18next";
-import { TextEditorModal } from '../TextEditor/TextEditorModal';
+import { Editor } from "../Editor/Editor";
 
-export function Address({ open, onClose, defaultAddress, defaultCanvas, canvasFileName, onChange }: { open: boolean, onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void, defaultAddress: string; defaultCanvas?: string; canvasFileName?: string; onChange?: (address: string, canvasId?: string) => void | Promise<void> }) {
-    console.log('Address', { open, onClose, defaultAddress, onChange })
+export type AddressProps = {
+    open: boolean;
+    onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void;
+    defaultAddress: string;
+    defaultCanvas?: string;
+    canvasFileName?: string;
+    onSave?: (address: string, canvasId?: string) => void | Promise<void>
+    onChange?: () => void | Promise<void>
+}
+
+export function Address({ open, onClose, defaultAddress, defaultCanvas, canvasFileName, onSave, onChange }: AddressProps) {
+    console.log('Address', { open, defaultAddress })
 
     return (
         <>
-            <TextEditorModal
+            <Editor
                 open={open}
                 onClose={onClose}
-                defaultCanvas={defaultCanvas}
-                defaultContent={defaultAddress}
+                canvasId={defaultCanvas}
+                text={defaultAddress}
                 canvasFileName={canvasFileName}
                 onChange={onChange}
+                onSave={onSave}
                 title={t('address')}
             />
         </>
