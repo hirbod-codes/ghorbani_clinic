@@ -1,4 +1,4 @@
-import { DrawOutlined, RemoveRedEyeOutlined, SaveAltOutlined, TypeSpecimenOutlined } from "@mui/icons-material"
+import { DrawOutlined, PrintOutlined, RemoveRedEyeOutlined, SaveAltOutlined, TypeSpecimenOutlined } from "@mui/icons-material"
 import { Backdrop, Box, CircularProgress, Divider, IconButton, Stack, Typography } from "@mui/material"
 import { t } from "i18next";
 import { useState, useRef, useEffect, useContext } from "react"
@@ -8,6 +8,7 @@ import { publish } from "../../Lib/Events";
 import { TextEditor } from "../TextEditor/TextEditor";
 import { Canvas } from "../Canvas/Canvas";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
+import { useReactToPrint } from "react-to-print";
 
 export type EditorProps = {
     title?: string;
@@ -59,6 +60,8 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
     }
 
     const canvas = useRef<HTMLCanvasElement>()
+    const imageRef = useRef<HTMLImageElement>()
+    const print = useReactToPrint({ onAfterPrint: () => { setLoading(false); imageRef.current.src = null } })
 
     console.log('Editor', { title, inputText, canvasId, text, status, canvasFileName, canvas: canvas.current })
 
@@ -241,6 +244,14 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
                         <IconButton onClick={saveCanvas} color={canvasHasUnsavedChanges ? 'warning' : 'default'}>
                             <SaveAltOutlined />
                         </IconButton>
+                        <IconButton onClick={() => {
+                            imageRef.current.style.backgroundColor = theme.palette.background.default
+                            imageRef.current.src = canvas.current.toDataURL()
+                            setLoading(true)
+                            print(null, () => imageRef.current);
+                        }}>
+                            <PrintOutlined />
+                        </IconButton>
                     </Stack>
 
                     <Box sx={{ flexGrow: 2, width: '100%', height: '100%' }}>
@@ -251,6 +262,10 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
                     </Box>
                 </>
             }
+
+            <div style={{ display: 'none' }}>
+                <img ref={imageRef} style={{ width: '100%', height: '500px' }} />
+            </div>
 
         </Stack >
     </>
