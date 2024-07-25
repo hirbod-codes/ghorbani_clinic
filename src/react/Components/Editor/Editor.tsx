@@ -60,7 +60,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
 
     const canvas = useRef<HTMLCanvasElement>()
 
-    console.log('Editor', { title, inputText, canvasId, text, status, canvas: canvas.current })
+    console.log('Editor', { title, inputText, canvasId, text, status, canvasFileName, canvas: canvas.current })
 
     const saveContent = async () => {
         try {
@@ -118,7 +118,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
     }
 
     const init = async () => {
-        console.log('Editor', 'init', 'start')
+        console.log('Editor', 'init', 'start', canvas.current)
 
         setLoading(true)
 
@@ -153,92 +153,106 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
 
         const uint8ClampedArray = new Uint8ClampedArray((res.data.data as any).data)
         console.log('Editor', 'uint8ClampedArray', uint8ClampedArray)
+
         const image = new ImageData(uint8ClampedArray, res.data.width, res.data.height, { colorSpace: res.data.colorSpace })
         console.log('Editor', 'image', image)
-        canvas.current?.getContext('2d', { willReadFrequently: true }).putImageData(image, 0, 0)
+
+        canvas.current.getContext('2d', { willReadFrequently: true }).putImageData(image, 0, 0)
 
         setLoading(false)
         console.log('Editor', 'init', 'end')
     }
 
+    const hasInitCalled = useRef<boolean>()
     useEffect(() => {
-        init()
-    }, [canvasId, canvas, canvas.current])
+        console.log('Editor', 'useEffect', 'start', canvas.current)
+        if (status === 'drawing' && canvas.current && !hasInitCalled.current) {
+            hasInitCalled.current = true
+            init().then(() => console.log('Editor', 'useEffect', 'end'))
+        }
+        else
+            console.log('Editor', 'useEffect', 'end')
+    }, [status, canvas.current])
 
-    return loading
-        ? (
+    return <>
+        {
+            loading
+            &&
             <Backdrop sx={{ zIndex: theme.zIndex.drawer + 1 }} open={loading}>
                 <CircularProgress />
             </Backdrop >
-        )
-        : (
-            <Stack direction='column' spacing={1} sx={{ width: '100%', height: '100%' }}>
-                <Stack direction='row' justifyContent='space-between' alignContent='center'>
-                    <Typography variant='h5'>
-                        {title}
-                    </Typography>
-                    <Stack direction='row' justifyContent='end' alignContent='center'>
-                        <IconButton onClick={() => setStatus('showing')}>
-                            <RemoveRedEyeOutlined />
+        }
+
+        <Stack direction='column' spacing={1} sx={{ width: '100%', height: '100%' }}>
+            <Stack direction='row' justifyContent='space-between' alignContent='center'>
+                <Typography variant='h5'>
+                    {title}
+                </Typography>
+                <Stack direction='row' justifyContent='end' alignContent='center'>
+                    <IconButton onClick={() => setStatus('showing')}>
+                        <RemoveRedEyeOutlined />
+                    </IconButton>
+                    <IconButton onClick={() => setStatus('typing')}>
+                        <TypeSpecimenOutlined />
+                    </IconButton>
+                    {canvasFileName
+                        &&
+                        <IconButton onClick={() => setStatus('drawing')}>
+                            <DrawOutlined />
                         </IconButton>
-                        <IconButton onClick={() => setStatus('typing')}>
-                            <TypeSpecimenOutlined />
-                        </IconButton>
-                        {canvasFileName
-                            &&
-                            <IconButton onClick={() => setStatus('drawing')}>
-                                <DrawOutlined />
-                            </IconButton>
-                        }
-                    </Stack>
+                    }
                 </Stack>
+            </Stack>
 
-                <Divider />
+            <Divider />
 
-                {status === 'showing'
-                    &&
-                    <Typography variant='body1'>
-                        {text}
-                    </Typography>
-                }
+            {status === 'showing'
+                &&
+                <Typography variant='body1'>
+                    {text}
+                </Typography>
+            }
 
-                {status === 'typing'
-                    &&
-                    <>
-                        <Stack direction='row' justifyContent='start' alignContent='center'>
-                            <IconButton onClick={saveContent} color={contentHasUnsavedChanges ? 'warning' : 'default'}>
-                                <SaveAltOutlined />
-                            </IconButton>
-                        </Stack>
-                        <TextEditor
-                            text={inputText}
-                            onChange={async (t) => {
-                                setContentHasUnsavedChanges(true)
-                                setText(t)
-                                if (onChange)
-                                    await onChange()
-                            }}
+            {status === 'typing'
+                &&
+                <>
+                    <Stack direction='row' justifyContent='start' alignContent='center'>
+                        <IconButton onClick={saveContent} color={contentHasUnsavedChanges ? 'warning' : 'default'}>
+                            <SaveAltOutlined />
+                        </IconButton>
+                    </Stack>
+                    <TextEditor
+                        text={inputText}
+                        onChange={async (t) => {
+                            setContentHasUnsavedChanges(true)
+                            setText(t)
+                            if (onChange)
+                                await onChange()
+                        }}
+                    />
+                </>
+            }
+
+            {
+                canvasFileName && status === 'drawing'
+                &&
+                <>
+                    <Stack direction='row' justifyContent='start' alignContent='center'>
+                        <IconButton onClick={saveCanvas} color={canvasHasUnsavedChanges ? 'warning' : 'default'}>
+                            <SaveAltOutlined />
+                        </IconButton>
+                    </Stack>
+
+                    <Box sx={{ flexGrow: 2, width: '100%', height: '100%' }}>
+                        <Canvas
+                            canvasRef={canvas}
+                            {...{ onChange: () => setCanvasHasUnsavedChanges(true) }}
                         />
-                    </>
-                }
+                    </Box>
+                </>
+            }
 
-                {
-                    canvasFileName && status === 'drawing'
-                    &&
-                    <>
-                        <Stack direction='row' justifyContent='start' alignContent='center'>
-                            <IconButton onClick={saveCanvas} color={canvasHasUnsavedChanges ? 'warning' : 'default'}>
-                                <SaveAltOutlined />
-                            </IconButton>
-                        </Stack>
-
-                        <Box sx={{ flexGrow: 2, width: '100%', height: '100%' }}>
-                            <Canvas outRef={canvas} onChange={() => setCanvasHasUnsavedChanges(true)} />
-                        </Box>
-                    </>
-                }
-
-            </Stack >
-        )
+        </Stack >
+    </>
 }
 

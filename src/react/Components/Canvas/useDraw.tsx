@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState } from 'react'
+import { MutableRefObject, useEffect, useRef, useState } from 'react'
 import { Draw, Point } from './types'
 
-export const useDraw = (draw: ({ ctx, currentPoint, prevPoint }: Draw) => void, onChange?: (empty?: boolean) => void | Promise<void>) => {
+export const useDraw = (draw: ({ ctx, currentPoint, prevPoint }: Draw) => void, canvasRef: MutableRefObject<HTMLCanvasElement>, onChange?: (empty?: boolean) => void | Promise<void>) => {
     const [empty, setEmpty] = useState(true)
     const [mouseDown, setMouseDown] = useState(false)
 
-    const canvasRef = useRef<HTMLCanvasElement>(null)
+    // const canvasRef = useRef<HTMLCanvasElement>(null)
     const prevPoint = useRef<null | Point>(null)
 
     const onMouseDown = () => setMouseDown(true)
@@ -77,5 +77,5 @@ export const useDraw = (draw: ({ ctx, currentPoint, prevPoint }: Draw) => void, 
         }
     }, [draw])
 
-    return { canvasRef, onMouseDown, clear, empty }
+    return { onMouseDown, clear, empty }
 }

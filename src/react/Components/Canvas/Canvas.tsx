@@ -3,28 +3,28 @@ import { MutableRefObject, useCallback, useContext, useEffect, useRef, useState 
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { configAPI } from "../../../Electron/Configuration/renderer/configAPI";
 import { Draw } from "./types";
-import { useDraw } from "./useCanvas";
+import { useDraw } from "./useDraw";
 
 import './styles.css'
 import { ColorLensOutlined } from "@mui/icons-material";
 import { t } from "i18next";
 import { HexAlphaColorPicker } from "react-colorful";
 
-export function Canvas({ outRef, onChange }: { outRef?: MutableRefObject<HTMLCanvasElement>, onChange?: (empty?: boolean) => void | Promise<void> }) {
+export function Canvas({ canvasRef, onChange }: { canvasRef?: MutableRefObject<HTMLCanvasElement>, onChange?: (empty?: boolean) => void | Promise<void> }) {
     let theme = useContext(ConfigurationContext).get.theme
 
-    const init = async () => {
-        const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-        console.log(c)
-        if (!c?.configuration?.canvas ?? false) {
-            theme = { ...theme, palette: { ...(theme.palette), mode: 'light' } }
-            await (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig({ ...c, configuration: { ...(c.configuration), canvas: { themeMode: 'light' } } })
-        }
-    }
+    // const init = async () => {
+    //     const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+    //     console.log(c)
+    //     if (!c?.configuration?.canvas ?? false) {
+    //         theme = { ...theme, palette: { ...(theme.palette), mode: 'light' } }
+    //         await (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig({ ...c, configuration: { ...(c.configuration), canvas: { themeMode: 'light' } } })
+    //     }
+    // }
 
-    useEffect(() => {
-        init()
-    }, [])
+    // useEffect(() => {
+    //     init()
+    // }, [])
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
     const [color, setColor] = useState<string>(theme.palette.text.primary)
@@ -32,12 +32,7 @@ export function Canvas({ outRef, onChange }: { outRef?: MutableRefObject<HTMLCan
     const [lineWidth, setLineWidth] = useState<string>('1')
     const [radius, setRadius] = useState<string>('0.3')
 
-    const { canvasRef, onMouseDown, clear, empty } = useDraw(drawLine, onChange)
-
-    const canvas = useCallback((ref) => {
-        if (outRef)
-            outRef.current = canvasRef.current
-    }, [])
+    const { onMouseDown, clear, empty } = useDraw(drawLine, canvasRef, onChange)
 
     const parentRef = useRef<HTMLDivElement>()
 
@@ -47,9 +42,9 @@ export function Canvas({ outRef, onChange }: { outRef?: MutableRefObject<HTMLCan
             canvasRef.current.width = rect.width
             canvasRef.current.height = rect.height
         }
-    }, [])
+    }, [parentRef.current, canvasRef.current])
 
-    console.log('Canvas', { anchorEl, color, lineWidth, radius, parentRef, canvasRef, outRef })
+    console.log('Canvas', { anchorEl, color, lineWidth, radius, parentRef, canvasRef })
 
     function drawLine({ prevPoint, currentPoint, ctx }: Draw) {
         const { x: currX, y: currY } = currentPoint
