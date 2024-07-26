@@ -245,7 +245,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
                             <SaveAltOutlined />
                         </IconButton>
                         <IconButton onClick={() => {
-                            imageRef.current.style.backgroundColor = theme.palette.background.default
+                            // imageRef.current.style.backgroundColor = theme.palette.background.default
                             imageRef.current.src = canvas.current.toDataURL()
                             setLoading(true)
                             print(null, () => imageRef.current);

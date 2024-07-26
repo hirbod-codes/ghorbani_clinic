@@ -1,30 +1,22 @@
-import { Divider, IconButton, Menu, Paper, Stack, TextField } from "@mui/material";
-import { MutableRefObject, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { Divider, IconButton, Menu, PaletteMode, Paper, Stack, TextField } from "@mui/material";
+import { MutableRefObject, useContext, useEffect, useRef, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { configAPI } from "../../../Electron/Configuration/renderer/configAPI";
 import { Draw } from "./types";
 import { useDraw } from "./useDraw";
 
 import './styles.css'
-import { ColorLensOutlined } from "@mui/icons-material";
+import { ColorLensOutlined, DarkModeOutlined, LightModeOutlined } from "@mui/icons-material";
 import { t } from "i18next";
 import { HexAlphaColorPicker } from "react-colorful";
 
-export function Canvas({ canvasRef, onChange }: { canvasRef?: MutableRefObject<HTMLCanvasElement>, onChange?: (empty?: boolean) => void | Promise<void> }) {
+export type CanvasProps = {
+    canvasRef?: MutableRefObject<HTMLCanvasElement>,
+    onChange?: (empty?: boolean) => void | Promise<void>
+}
+
+export function Canvas({ canvasRef, onChange }: CanvasProps) {
     let theme = useContext(ConfigurationContext).get.theme
-
-    // const init = async () => {
-    //     const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-    //     console.log(c)
-    //     if (!c?.configuration?.canvas ?? false) {
-    //         theme = { ...theme, palette: { ...(theme.palette), mode: 'light' } }
-    //         await (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig({ ...c, configuration: { ...(c.configuration), canvas: { themeMode: 'light' } } })
-    //     }
-    // }
-
-    // useEffect(() => {
-    //     init()
-    // }, [])
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
     const [color, setColor] = useState<string>(theme.palette.text.primary)
@@ -64,11 +56,41 @@ export function Canvas({ canvasRef, onChange }: { canvasRef?: MutableRefObject<H
         ctx.fill()
     }
 
+    const [canvasBackground, setCanvasBackground] = useState(theme.palette.common.white)
+
+    const init = async (background?: string) => {
+        if (background) {
+            const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig();
+            (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig({ ...c, configuration: { ...c.configuration, canvas: { backgroundColor: background } } })
+            setCanvasBackground(background)
+            return
+        }
+
+        background = (await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()).configuration?.canvas?.backgroundColor
+        setCanvasBackground(background)
+
+        if (background)
+            return
+    }
+
+    useEffect(() => {
+        init()
+    }, [])
+
     return (
         <>
             {/* for 100% height, a scrollbar will be added, and idk why */}
             <Stack direction='column' alignItems='start' sx={{ height: '98%' }} spacing={1} >
                 <Stack direction='row' alignItems='center' spacing={1} divider={<Divider orientation='vertical' variant='middle' />} >
+                    <IconButton
+                        size='medium'
+                        color='inherit'
+                        onClick={async () => {
+                            await init(canvasBackground === theme.palette.common.black ? theme.palette.common.white : theme.palette.common.black)
+                        }}
+                    >
+                        {canvasBackground === theme.palette.common.white ? <LightModeOutlined fontSize='inherit' /> : <DarkModeOutlined fontSize='inherit' />}
+                    </IconButton>
                     <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
                         <ColorLensOutlined />
                     </IconButton>
@@ -78,7 +100,7 @@ export function Canvas({ canvasRef, onChange }: { canvasRef?: MutableRefObject<H
 
                 <Divider variant='middle' />
 
-                <Paper elevation={2} sx={{ flexGrow: 2, width: '100%', height: '100%', p: 0, m: 0 }} ref={parentRef}>
+                <Paper elevation={2} sx={{ flexGrow: 2, width: '100%', height: '100%', p: 0, m: 0, backgroundColor: canvasBackground }} ref={parentRef}>
                     <canvas
                         ref={canvasRef}
                         onMouseDown={onDown}

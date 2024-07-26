@@ -8,7 +8,7 @@ export type ConfigurationStorableData = {
     locale: Locale,
     themeMode: PaletteMode,
     canvas?: {
-        themeMode: PaletteMode
+        backgroundColor: string
     }
 }
 
