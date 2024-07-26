@@ -145,7 +145,7 @@ export function TextEditor({ text, onChange, placeholder = "Add your own content
                     }}
                     renderControls={() => <EditorMenuControls />}
                     RichTextFieldProps={{
-                        variant: "standard",
+                        variant: 'standard',
                         MenuBarProps: {
                             hide: !showMenuBar,
                         },
@@ -161,7 +161,7 @@ export function TextEditor({ text, onChange, placeholder = "Add your own content
                                     borderTopWidth: 1,
                                     borderTopColor: (theme) => theme.palette.divider,
                                     py: 1,
-                                    px: 1.5,
+                                    px: 1.5
                                 }}
                             >
                                 <MenuButton

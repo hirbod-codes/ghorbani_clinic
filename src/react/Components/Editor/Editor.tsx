@@ -254,10 +254,14 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
                         </IconButton>
                     </Stack>
 
-                    <Box sx={{ flexGrow: 2, width: '100%', height: '100%' }}>
+                    <Box sx={{ flexGrow: 2, overflow: 'hidden' }}>
                         <Canvas
                             canvasRef={canvas}
-                            {...{ onChange: () => setCanvasHasUnsavedChanges(true) }}
+                            onChange={async () => {
+                                setCanvasHasUnsavedChanges(true);
+                                if (onChange)
+                                    await onChange()
+                            }}
                         />
                     </Box>
                 </>
@@ -266,7 +270,6 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
             <div style={{ display: 'none' }}>
                 <img ref={imageRef} style={{ width: '100%', height: '500px' }} />
             </div>
-
         </Stack >
     </>
 }

@@ -29,10 +29,10 @@ export function Canvas({ canvasRef, onChange }: { canvasRef?: MutableRefObject<H
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
     const [color, setColor] = useState<string>(theme.palette.text.primary)
 
-    const [lineWidth, setLineWidth] = useState<string>('1')
+    const [lineWidth, setLineWidth] = useState<string>('1.2')
     const [radius, setRadius] = useState<string>('0.3')
 
-    const { onMouseDown, clear, empty } = useDraw(drawLine, canvasRef, onChange)
+    const { onDown, clear, empty } = useDraw(drawLine, canvasRef, onChange)
 
     const parentRef = useRef<HTMLDivElement>()
 
@@ -66,7 +66,8 @@ export function Canvas({ canvasRef, onChange }: { canvasRef?: MutableRefObject<H
 
     return (
         <>
-            <Stack direction='column' alignItems='start' sx={{ height: '100%' }} spacing={1} >
+            {/* for 100% height, a scrollbar will be added, and idk why */}
+            <Stack direction='column' alignItems='start' sx={{ height: '98%' }} spacing={1} >
                 <Stack direction='row' alignItems='center' spacing={1} divider={<Divider orientation='vertical' variant='middle' />} >
                     <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
                         <ColorLensOutlined />
@@ -80,7 +81,8 @@ export function Canvas({ canvasRef, onChange }: { canvasRef?: MutableRefObject<H
                 <Paper elevation={2} sx={{ flexGrow: 2, width: '100%', height: '100%', p: 0, m: 0 }} ref={parentRef}>
                     <canvas
                         ref={canvasRef}
-                        onMouseDown={onMouseDown}
+                        onMouseDown={onDown}
+                        onTouchStart={onDown}
                         className='canvas'
                     />
                 </Paper>
