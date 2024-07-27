@@ -34,6 +34,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
         setCanvasId(inputCanvasId);
     }, [inputCanvasId])
 
+    const [imageSrc, setImageSrc] = useState<string | undefined>(undefined)
     const [status, setStatus] = useState<string>('showing')
 
     const [contentHasUnsavedChanges, setContentHasUnsavedChangesState] = useState<boolean>(false)
@@ -63,7 +64,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
     const imageRef = useRef<HTMLImageElement>()
     const print = useReactToPrint({ onAfterPrint: () => { setLoading(false); imageRef.current.src = null } })
 
-    console.log('Editor', { title, inputText, canvasId, text, status, canvasFileName, canvas: canvas.current })
+    console.log('Editor', { title, inputText, canvasId, text, status, canvasFileName, canvas: canvas.current, imageSrc })
 
     const saveContent = async () => {
         try {
@@ -120,61 +121,105 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
         })
     }
 
-    const init = async () => {
-        console.log('Editor', 'init', 'start', canvas.current)
-
-        setLoading(true)
-
-        if (!canvasId) {
-            console.log('Editor', 'init', 'end', 'no canvas')
-            setLoading(false)
-            return
-        }
-
-        if (!canvas.current) {
-            console.log('Editor', 'init', 'end', 'no canvas ref')
-            setLoading(false)
-            return
-        }
+    const getCanvas = async () => {
+        console.log('getCanvas', 'start')
 
         const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(canvasId)
-        console.log('res', res)
+        console.log('getCanvas', 'res', res)
+
         if (res.code !== 200 || !res.data) {
-            publish(RESULT_EVENT_NAME, {
-                severity: 'error',
-                message: t('failedToUploadCanvas')
-            })
-            console.log('Editor', 'init', 'end')
-            setLoading(false)
+            console.log('getCanvas', 'end')
             return
         }
 
-        publish(RESULT_EVENT_NAME, {
-            severity: 'success',
-            message: t('successfullyUploadedCanvas')
-        })
-
-        const uint8ClampedArray = new Uint8ClampedArray((res.data.data as any).data)
-        console.log('Editor', 'uint8ClampedArray', uint8ClampedArray)
-
-        const image = new ImageData(uint8ClampedArray, res.data.width, res.data.height, { colorSpace: res.data.colorSpace })
-        console.log('Editor', 'image', image)
-
-        canvas.current.getContext('2d', { willReadFrequently: true }).putImageData(image, 0, 0)
-
-        setLoading(false)
-        console.log('Editor', 'init', 'end')
+        console.log('getCanvas', 'end')
+        return res.data
     }
 
-    const hasInitCalled = useRef<boolean>()
     useEffect(() => {
-        console.log('Editor', 'useEffect', 'start', canvas.current)
-        if (status === 'drawing' && canvas.current && !hasInitCalled.current) {
-            hasInitCalled.current = true
-            init().then(() => console.log('Editor', 'useEffect', 'end'))
+        console.log('Editor', 'useEffect', 'start', { status, canvas: canvas.current })
+        if (status === 'showing') {
+            setLoading(true)
+
+            if (!canvasId) {
+                console.log('Editor', 'useEffect', 'end', 'no canvas id')
+                setLoading(false)
+                return
+            }
+
+            getCanvas().then(async (data) => {
+                if (!data) {
+                    publish(RESULT_EVENT_NAME, {
+                        severity: 'error',
+                        message: t('failedToUploadCanvas')
+                    })
+                    console.log('Editor', 'useEffect', 'end')
+                    setLoading(false)
+                    return
+                }
+
+                publish(RESULT_EVENT_NAME, {
+                    severity: 'success',
+                    message: t('successfullyUploadedCanvas')
+                })
+
+                if (!imageSrc) {
+                    const buffer = (data.data as any).data
+                    let binary = '';
+                    const bytes = [].slice.call(new Uint8ClampedArray(buffer));
+                    bytes.forEach((b: number) => binary += String.fromCharCode(b));
+                    const str = btoa(binary);
+                    // const str = btoa(String.fromCharCode(...new Uint8ClampedArray((data.data as any).data)));
+                    setImageSrc('data:image/png;base64,' + str)
+                }
+
+                setLoading(false)
+                console.log('Editor', 'useEffect', 'end')
+            })
         }
-        else
-            console.log('Editor', 'useEffect', 'end')
+        else if (status === 'drawing' && canvas.current) {
+            setLoading(true)
+
+            if (!canvasId) {
+                console.log('Editor', 'useEffect', 'end', 'no canvas id')
+                setLoading(false)
+                return
+            }
+
+            if (!canvas.current) {
+                console.log('Editor', 'useEffect', 'end', 'no canvas ref')
+                setLoading(false)
+                return
+            }
+
+            getCanvas().then((data) => {
+                if (!data) {
+                    publish(RESULT_EVENT_NAME, {
+                        severity: 'error',
+                        message: t('failedToUploadCanvas')
+                    })
+                    console.log('Editor', 'useEffect', 'end')
+                    setLoading(false)
+                    return
+                }
+
+                publish(RESULT_EVENT_NAME, {
+                    severity: 'success',
+                    message: t('successfullyUploadedCanvas')
+                })
+
+                const uint8ClampedArray = new Uint8ClampedArray((data.data as any).data)
+                console.log('Editor', 'useEffect', 'uint8ClampedArray', uint8ClampedArray)
+
+                const image = new ImageData(uint8ClampedArray, data.width, data.height, { colorSpace: data.colorSpace })
+                console.log('Editor', 'useEffect', 'image', image)
+
+                canvas.current.getContext('2d', { willReadFrequently: true }).putImageData(image, 0, 0)
+
+                setLoading(false)
+                console.log('Editor', 'useEffect', 'end')
+            })
+        }
     }, [status, canvas.current])
 
     return <>
@@ -192,7 +237,9 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
                     {title}
                 </Typography>
                 <Stack direction='row' justifyContent='end' alignContent='center'>
-                    <IconButton onClick={() => setStatus('showing')}>
+                    <IconButton onClick={() => {
+                        setStatus('showing')
+                    }}>
                         <RemoveRedEyeOutlined />
                     </IconButton>
                     <IconButton onClick={() => setStatus('typing')}>
@@ -211,9 +258,21 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
 
             {status === 'showing'
                 &&
-                <Typography variant='body1'>
-                    {text}
-                </Typography>
+                <Stack direction='column' spacing={1} sx={{ width: '100%', height: '100%' }}>
+                    <Typography variant='h5'>
+                        {t('description')}
+                    </Typography>
+
+                    <Divider />
+
+                    <Typography variant='body1'>
+                        {text}
+                    </Typography>
+
+                    <Box sx={{ flexGrow: 2 }}>
+                        <img src={imageSrc} />
+                    </Box>
+                </Stack>
             }
 
             {status === 'typing'
@@ -268,9 +327,24 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
             }
 
             <div style={{ display: 'none' }}>
-                <img ref={imageRef} style={{ width: '100%', height: '500px' }} />
+                <img ref={imageRef} />
             </div>
         </Stack >
     </>
 }
 
+function _arrayBufferToBase64(buffer: any): Promise<string> {
+    // var binary = '';
+    // var bytes = new Uint8Array(buffer);
+    // var len = bytes.byteLength;
+    // for (var i = 0; i < len; i++) {
+    //     binary += String.fromCharCode(bytes[i]);
+    // }
+    // return window.btoa(binary);
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onloadend = () => resolve(reader.result as string)
+        reader.onerror = reject
+        reader.readAsDataURL(new Blob([buffer]))
+    })
+}

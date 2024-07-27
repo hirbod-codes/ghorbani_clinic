@@ -33,6 +33,7 @@ export function Canvas({ canvasRef, onChange }: CanvasProps) {
             const rect = parentRef.current.getBoundingClientRect();
             canvasRef.current.width = rect.width
             canvasRef.current.height = rect.height
+            canvasRef.current.style.backgroundColor = canvasBackground
         }
     }, [parentRef.current, canvasRef.current])
 
@@ -100,7 +101,7 @@ export function Canvas({ canvasRef, onChange }: CanvasProps) {
 
                 <Divider variant='middle' />
 
-                <Paper elevation={2} sx={{ flexGrow: 2, width: '100%', height: '100%', p: 0, m: 0, backgroundColor: canvasBackground }} ref={parentRef}>
+                <Paper elevation={2} sx={{ flexGrow: 2, width: '100%', height: '100%', p: 0, m: 0 }} ref={parentRef}>
                     <canvas
                         ref={canvasRef}
                         onMouseDown={onDown}
