@@ -1,5 +1,6 @@
 import { ObjectId } from "mongodb";
 import { InferType, array, mixed, number, object, string } from "yup";
+import { contentSchema } from "./Content";
 
 export const collectionName = 'visits'
 
@@ -8,7 +9,8 @@ export const visitSchema = object().required().shape({
     _id: mixed<string | ObjectId>().optional(),
     patientId: mixed<string | ObjectId>().optional().required(),
     due: number().required(),
-    diagnosis: array().default([]).of(string().required()),
+    diagnosis: contentSchema,
+    treatments: contentSchema,
     createdAt: number().optional(),
     updatedAt: number().optional(),
 })
@@ -21,6 +23,7 @@ export const fields: (keyof Visit)[] = [
     'patientId',
     'due',
     'diagnosis',
+    'treatments',
     'createdAt',
     'updatedAt',
 ]

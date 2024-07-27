@@ -105,9 +105,16 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
 
                 for (const visit of visits) {
                     visit.patientId = id
-                    const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.createVisit(visit);
-                    if (res.code !== 200 || !res.data.acknowledged || res.data.insertedId.toString() === '')
-                        throw new Error(t('failedToRegisterPatientVisits'))
+                    if (visit._id) {
+                        const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.updateVisit(visit);
+                        if (res.code !== 200 || !res.data.acknowledged)
+                            throw new Error(t('failedToRegisterPatientVisits'))
+                    }
+                    else {
+                        const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.createVisit(visit);
+                        if (res.code !== 200 || !res.data.acknowledged || res.data.insertedId.toString() === '')
+                            throw new Error(t('failedToRegisterPatientVisits'))
+                    }
                 }
             }
 
@@ -265,12 +272,20 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
 
                                             <Grid item xs={5}>
                                                 <Stack direction='column' spacing={1}>
+                                                    {/* Phone Number */}
+                                                    <Stack direction='row' justifyContent='space-between' alignItems='center'>
+                                                        <Typography variant='body1'>
+                                                            {t('phoneNumber')}
+                                                        </Typography>
+                                                        <TextField variant='standard' value={patient?.phoneNumber ?? ''} sx={{ width: '7rem' }} />
+                                                    </Stack>
+
                                                     {/* Age */}
                                                     <Stack direction='row' justifyContent='space-between' alignItems='center'>
                                                         <Typography variant='body1'>
                                                             {t('age')}
                                                         </Typography>
-                                                        <TextField variant='standard' id='age' value={patient?.age ?? ''} sx={{ width: '7rem' }} disabled />
+                                                        <TextField variant='standard' value={patient?.age ?? ''} sx={{ width: '7rem' }} disabled />
                                                     </Stack>
 
                                                     {/* Birth Date */}
@@ -309,15 +324,15 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                 </Stack>
                                             </Grid>
 
-                                            <Grid item xs={12}>
+                                            <Grid item xs={11}>
                                             </Grid>
 
                                             {/* Manage Visits */}
-                                            <Grid item xs={12}>
+                                            <Grid item xs={11}>
                                                 <ManageVisits onChange={(visits: Visit[]) => setVisits(visits)} defaultVisits={visits} />
                                             </Grid>
 
-                                            <Grid item xs={12}>
+                                            <Grid item xs={11}>
                                                 {/* Submit */}
                                                 <Button
                                                     variant="contained"
@@ -331,7 +346,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                     {t('done')}
                                                 </Button>
                                             </Grid>
-                                            <Grid item xs={12}>
+                                            <Grid item xs={11}>
                                             </Grid>
                                         </Grid>
 

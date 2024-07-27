@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Modal, Paper, Slide, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from "@mui/material"
+import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from "@mui/material"
 import { t } from "i18next";
 import { Editor, EditorProps } from "./Editor";
+import { Modal } from "../Modal";
 
 export type TextEditorModalProps = EditorProps & {
     open: boolean;
@@ -46,24 +47,16 @@ export function EditorModal({ open, onClose, title, text, canvasId, canvasFileNa
                         onClose(dialog.e, dialog.r)
                 }}
                 open={open}
-                closeAfterTransition
-                disableAutoFocus
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
-                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
             >
-                <Slide direction={open ? 'up' : 'down'} in={open} timeout={250}>
-                    <Paper sx={{ width: '80%', height: '90%', padding: '0.5rem 1rem', overflow: 'auto' }}>
-                        <Editor
-                            title={title}
-                            text={text}
-                            canvasId={canvasId}
-                            canvasFileName={canvasFileName}
-                            setHasUnsavedChanges={setHasUnsavedChanges}
-                            onSave={onSave}
-                            onChange={onChange}
-                        />
-                    </Paper>
-                </Slide>
+                <Editor
+                    title={title}
+                    text={text}
+                    canvasId={canvasId}
+                    canvasFileName={canvasFileName}
+                    setHasUnsavedChanges={setHasUnsavedChanges}
+                    onSave={onSave}
+                    onChange={onChange}
+                />
             </Modal>
 
             <Dialog open={dialog.open} onClose={closeDialog} >

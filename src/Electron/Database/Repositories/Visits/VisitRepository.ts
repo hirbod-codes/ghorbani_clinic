@@ -114,7 +114,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
 
         visit.updatedAt = DateTime.utc().toUnixInteger();
 
-        return (await (await this.getVisitsCollection()).updateOne({ _id: new ObjectId(id) }, { $set: { ...visit } }, { upsert: false }))
+        return (await (await this.getVisitsCollection()).updateOne({ _id: new ObjectId(id) }, { $set: { ...visit } }, { upsert: true }))
     }
 
     async deleteVisit(id: string): Promise<DeleteResult> {

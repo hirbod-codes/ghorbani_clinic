@@ -11,6 +11,7 @@ import { Visit } from "../../Electron/Database/Models/Visit";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish } from "../Lib/Events";
 import { configAPI } from "../../Electron/Configuration/renderer/configAPI";
+import { EditorModal } from "../Components/Editor/EditorModal";
 
 export function Visits() {
     const configuration = useContext(ConfigurationContext)
@@ -21,9 +22,10 @@ export function Visits() {
     const [hiddenColumns, setHiddenColumns] = useState<string[]>(['_id'])
 
     // ID of the visit that is taken for its diagnosis representation
-    const [showingDiagnosis, setShowingDiagnosis] = useState<string | undefined>(undefined)
+    const [showDiagnosis, setShowDiagnosis] = useState<string | undefined>(undefined)
+    const [showTreatments, setShowTreatments] = useState<string | undefined>(undefined)
 
-    console.log('Visits', { configuration, visits, showingDiagnosis })
+    console.log('Visits', { configuration, visits, showingDiagnosis: showDiagnosis })
 
     const init = async (offset: number, limit: number) => {
         setLoading(true)
@@ -70,7 +72,7 @@ export function Visits() {
             field: 'diagnosis',
             type: 'actions',
             width: 120,
-            renderCell: (params: GridRenderCellParams<any, Date>) => (params.row.diagnosis && params.row.diagnosis.length !== 0 ? <Button onClick={() => setShowingDiagnosis(visits.find(v => v._id === params.row._id)._id as string)}>{t('Show')}</Button> : null)
+            renderCell: (params: GridRenderCellParams<any, Date>) => (params.row.diagnosis && params.row.diagnosis.length !== 0 ? <Button onClick={() => setShowDiagnosis(visits.find(v => v._id === params.row._id)._id as string)}>{t('Show')}</Button> : null)
         },
         {
             field: 'due',
@@ -113,25 +115,61 @@ export function Visits() {
                 </Grid>
             </Grid>
 
-            <Modal
-                onClose={() => setShowingDiagnosis(undefined)}
-                open={showingDiagnosis !== undefined}
+            <EditorModal
+                open={showDiagnosis !== undefined}
+                onClose={() => {
+                    setShowDiagnosis(undefined)
+                }}
+                text={visits.find(f => f._id === showDiagnosis).diagnosis.text}
+                canvasId={visits.find(f => f._id === showDiagnosis).diagnosis.canvas as string}
+                canvasFileName={`diagnosis-${showDiagnosis}.png`}
+                title={t('diagnosis')}
+                onSave={async (diagnosis, canvasId) => {
+                    console.log('ManageVisits', 'diagnosis', 'onChange', diagnosis, canvasId)
+
+                    visits.find(f => f._id === showDiagnosis).diagnosis = { text: diagnosis, canvas: canvasId }
+
+                    onChange([...visits])
+                    setVisits([...visits])
+                }}
+            />
+            <EditorModal
+                open={showTreatments !== undefined}
+                onClose={() => {
+                    setShowTreatments(undefined)
+                }}
+                text={visits.find(f => f._id === showTreatments).treatments.text}
+                canvasId={visits.find(f => f._id === showTreatments).treatments.canvas as string}
+                canvasFileName={`treatments-${showTreatments}.png`}
+                title={t('treatments')}
+                onSave={async (treatments, canvasId) => {
+                    console.log('ManageVisits', 'treatments', 'onChange', treatments, canvasId)
+
+                    visits.find(f => f._id === showTreatments).treatments = { text: treatments, canvas: canvasId }
+
+                    onChange([...visits])
+                    setVisits([...visits])
+                }}
+            />
+            {/* <Modal
+                onClose={() => setShowDiagnosis(undefined)}
+                open={showDiagnosis !== undefined}
                 closeAfterTransition
                 disableEscapeKeyDown
                 disableAutoFocus
                 sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
                 slotProps={{ backdrop: { sx: { top: '2rem' } } }}
             >
-                <Slide direction={showingDiagnosis !== undefined ? 'up' : 'down'} in={showingDiagnosis !== undefined} timeout={250}>
+                <Slide direction={showDiagnosis !== undefined ? 'up' : 'down'} in={showDiagnosis !== undefined} timeout={250}>
                     <Paper sx={{ width: '60%', overflowY: 'auto', height: '80%', padding: '0.5rem 2rem' }}>
-                        {showingDiagnosis && visits.find(f => f._id === showingDiagnosis).diagnosis?.map((str, i) =>
+                        {showDiagnosis && visits.find(f => f._id === showDiagnosis).diagnosis?.map((str, i) =>
                             <Typography key={i} variant='body1'>
                                 {str}
                             </Typography>
                         )}
                     </Paper>
                 </Slide>
-            </Modal>
+            </Modal> */}
         </>
     )
 }
