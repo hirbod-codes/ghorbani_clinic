@@ -42,7 +42,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
 
             const bucket = await this.getCanvasBucket();
 
-            const upload = bucket.openUploadStream(fileName, { metadata: { colorSpace: canvas.colorSpace, width: canvas.width, height: canvas.height } });
+            const upload = bucket.openUploadStream(fileName, { metadata: { colorSpace: canvas.colorSpace, width: canvas.width, height: canvas.height, dataStr: canvas.dataStr } });
 
             upload.on('finish', () => {
                 console.log("Upload Finish.");
@@ -121,7 +121,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
                     chunks.push(chunk)
                 })
                 .on('end', () => {
-                    res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data: Buffer.concat(chunks) })
+                    res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data: Buffer.concat(chunks), dataStr: f[0].metadata.dataStr })
                     console.log('downloadCanvas', 'finished downloading.')
                 })
                 .on('error', (err) => {

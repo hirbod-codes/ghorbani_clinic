@@ -87,9 +87,20 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
             try {
                 canvas.current?.toBlob(async (b) => {
                     const imageData = canvas.current?.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, canvas.current?.width, canvas.current?.height)
-                    const data = imageData.data.buffer
+                    // const data = imageData.data.buffer
+                    const data = await b.arrayBuffer()
 
-                    const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(canvasFileName, { width: canvas.current?.width, height: canvas.current?.height, colorSpace: 'srgb', data })
+                    console.log('saveCanvas', 'data', data)
+
+                    const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(
+                        canvasFileName,
+                        {
+                            width: canvas.current?.width,
+                            height: canvas.current?.height,
+                            colorSpace: 'srgb',
+                            data,
+                            dataStr: canvas.current?.toDataURL()
+                        })
                     console.log('res', res)
                     if (res.code !== 200 || !res.data) {
                         publish(RESULT_EVENT_NAME, {
@@ -113,7 +124,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
 
                     setCanvasHasUnsavedChanges(false)
                     resolve()
-                })
+                }, 'image/png')
             }
             finally {
                 setLoading(false)
@@ -147,7 +158,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
                 return
             }
 
-            getCanvas().then(async (data) => {
+            getCanvas().then(async (data: any) => {
                 if (!data) {
                     publish(RESULT_EVENT_NAME, {
                         severity: 'error',
@@ -165,12 +176,26 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
 
                 if (!imageSrc) {
                     const buffer = (data.data as any).data
-                    let binary = '';
-                    const bytes = [].slice.call(new Uint8ClampedArray(buffer));
-                    bytes.forEach((b: number) => binary += String.fromCharCode(b));
-                    const str = btoa(binary);
+                    // let binary = '';
+                    // const bytes = new Uint8Array(buffer)
+                    // const bytes = [].slice.call(buffer);
+                    // bytes.forEach((b: number) => binary += String.fromCharCode(b));
+                    // const str = btoa(binary);
+
+                    // Buffer.from(buffer).toString('base64')
                     // const str = btoa(String.fromCharCode(...new Uint8ClampedArray((data.data as any).data)));
-                    setImageSrc('data:image/png;base64,' + str)
+                    // const str = data.data as string
+                    // const str = await _arrayBufferToBase64(buffer)
+                    // const str = data.dataStr
+                    // const str = btoa(unescape(encodeURIComponent(buffer)));
+                    const str = URL.createObjectURL(new Blob([buffer], { type: 'image/png' }));
+                    console.log('Editor', 'useEffect', { str })
+                    setImageSrc(
+                        'data:image/png;base64,'
+                        +
+                        str
+                        // .replace('data:application/octet-stream;base64,', 'data:image/png;base64,')
+                    )
                 }
 
                 setLoading(false)
@@ -259,19 +284,27 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
             {status === 'showing'
                 &&
                 <Stack direction='column' spacing={1} sx={{ width: '100%', height: '100%' }}>
-                    <Typography variant='h5'>
-                        {t('description')}
-                    </Typography>
+                    {text &&
+                        <>
+                            <Typography variant='h5'>
+                                {t('description')}
+                            </Typography>
 
-                    <Divider />
+                            <Divider />
 
-                    <Typography variant='body1'>
-                        {text}
-                    </Typography>
+                            <Typography variant='body1'>
+                                {text}
+                            </Typography>
 
-                    <Box sx={{ flexGrow: 2 }}>
-                        <img src={imageSrc} />
-                    </Box>
+                            <Divider />
+                        </>
+                    }
+
+                    {imageSrc &&
+                        <Box sx={{ flexGrow: 2 }}>
+                            <img src={imageSrc} />
+                        </Box>
+                    }
                 </Stack>
             }
 
@@ -345,6 +378,12 @@ function _arrayBufferToBase64(buffer: any): Promise<string> {
         const reader = new FileReader()
         reader.onloadend = () => resolve(reader.result as string)
         reader.onerror = reject
-        reader.readAsDataURL(new Blob([buffer]))
+        reader.readAsDataURL(new Blob([buffer], { type: 'image/png' }))
     })
+}
+
+function b64EncodeUnicode(str: string) {
+    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (match, p1) {
+        return String.fromCharCode(parseInt(p1, 16))
+    }))
 }

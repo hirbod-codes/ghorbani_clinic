@@ -28,14 +28,20 @@ export function Canvas({ canvasRef, onChange }: CanvasProps) {
 
     const parentRef = useRef<HTMLDivElement>()
 
+    const [canvasBackground, setCanvasBackground] = useState(theme.palette.common.white)
+
     useEffect(() => {
-        if (parentRef.current) {
+        if (parentRef.current && canvasRef.current) {
             const rect = parentRef.current.getBoundingClientRect();
             canvasRef.current.width = rect.width
             canvasRef.current.height = rect.height
-            canvasRef.current.style.backgroundColor = canvasBackground
         }
     }, [parentRef.current, canvasRef.current])
+
+    useEffect(() => {
+        if (canvasRef.current)
+            canvasRef.current.style.backgroundColor = canvasBackground
+    }, [canvasBackground])
 
     console.log('Canvas', { anchorEl, color, lineWidth, radius, parentRef, canvasRef })
 
@@ -57,8 +63,6 @@ export function Canvas({ canvasRef, onChange }: CanvasProps) {
         ctx.fill()
     }
 
-    const [canvasBackground, setCanvasBackground] = useState(theme.palette.common.white)
-
     const init = async (background?: string) => {
         if (background) {
             const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig();
@@ -68,10 +72,8 @@ export function Canvas({ canvasRef, onChange }: CanvasProps) {
         }
 
         background = (await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()).configuration?.canvas?.backgroundColor
-        setCanvasBackground(background)
-
         if (background)
-            return
+            setCanvasBackground(background)
     }
 
     useEffect(() => {
