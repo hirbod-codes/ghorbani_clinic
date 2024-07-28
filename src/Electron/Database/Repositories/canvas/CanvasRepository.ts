@@ -1,7 +1,7 @@
 import { GridFSFile, ObjectId } from "mongodb";
 import { ICanvasRepository } from "../../dbAPI";
 import { MongoDB } from "../../mongodb";
-import { app, ipcMain, shell } from "electron";
+import { ipcMain, shell } from "electron";
 import { authRepository, privilegesRepository } from "../../handleDbEvents";
 import { Unauthenticated } from "../../Unauthenticated";
 import { Unauthorized } from "../../Unauthorized";
@@ -10,7 +10,7 @@ import path from "path";
 import fs from 'fs';
 import { Canvas, canvasSchema } from "../../Models/Canvas";
 import { DOWNLOADS_DIRECTORY } from "../../../../directories";
-import { Stream } from "stream";
+import { toByteArray, fromByteArray } from 'base64-js';
 
 export class CanvasRepository extends MongoDB implements ICanvasRepository {
     async handleEvents(): Promise<void> {
@@ -42,13 +42,13 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
 
             const bucket = await this.getCanvasBucket();
 
-            const upload = bucket.openUploadStream(fileName, { metadata: { colorSpace: canvas.colorSpace, width: canvas.width, height: canvas.height, dataStr: canvas.dataStr } });
+            const upload = bucket.openUploadStream(fileName, { metadata: { colorSpace: canvas.colorSpace, width: canvas.width, height: canvas.height, type: canvas.type } });
 
             upload.on('finish', () => {
                 console.log("Upload Finish.");
             });
 
-            upload.write(Buffer.from(canvas.data as ArrayBuffer), (err) => {
+            upload.write(Buffer.from(toByteArray(canvas.data)), (err) => {
                 if (err)
                     rej(err)
             })
@@ -121,7 +121,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
                     chunks.push(chunk)
                 })
                 .on('end', () => {
-                    res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, data: Buffer.concat(chunks), dataStr: f[0].metadata.dataStr })
+                    res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, type: f[0].metadata.type, data: fromByteArray(Buffer.concat(chunks)) })
                     console.log('downloadCanvas', 'finished downloading.')
                 })
                 .on('error', (err) => {

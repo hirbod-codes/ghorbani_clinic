@@ -1,5 +1,5 @@
 import { styled } from '@mui/material/styles';
-import { Grid, Button, Stack, TextField, Select, MenuItem, InputLabel, FormControl, Divider, DialogTitle, DialogContent, DialogContentText, DialogActions, Dialog, Typography, Modal, Slide, Paper } from '@mui/material';
+import { Grid, Button, Stack, TextField, Select, MenuItem, FormControl, Divider, DialogTitle, DialogContent, DialogContentText, DialogActions, Dialog, Typography, Modal, Slide, Paper } from '@mui/material';
 import { useState, useContext, useEffect } from 'react';
 import { DateTime } from 'luxon'
 
@@ -372,4 +372,3 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
         </>
     )
 }
-

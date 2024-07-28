@@ -9,8 +9,6 @@ import { TextEditor } from "../TextEditor/TextEditor";
 import { Canvas } from "../Canvas/Canvas";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { useReactToPrint } from "react-to-print";
-// import { fromByteArray } from 'base64-js'
-import * as base from 'js-base64';
 
 export type EditorProps = {
     title?: string;
@@ -36,7 +34,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
         setCanvasId(inputCanvasId);
     }, [inputCanvasId])
 
-    const imageRef = useRef<HTMLCanvasElement>(undefined)
+    const [imageSrc, setImageSrc] = useState<string>()
     const [status, setStatus] = useState<string>('showing')
 
     const [contentHasUnsavedChanges, setContentHasUnsavedChangesState] = useState<boolean>(false)
@@ -87,9 +85,9 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
 
         return new Promise<void>(async (resolve, reject) => {
             try {
-                const imageData = canvas.current?.getContext('2d', { willReadFrequently: true }).getImageData(0, 0, canvas.current?.width, canvas.current?.height)
-                const data = imageData.data.buffer
-
+                const dataUrl = canvas.current?.toDataURL()
+                const type = dataUrl.split(',')[0].replace(';base64', '').replace('data:', '')
+                const data = dataUrl.split(',')[1]
                 console.log('saveCanvas', 'data', data)
 
                 const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(
@@ -98,8 +96,8 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
                         width: canvas.current?.width,
                         height: canvas.current?.height,
                         colorSpace: 'srgb',
+                        type,
                         data,
-                        dataStr: canvas.current?.toDataURL()
                     })
                 console.log('res', res)
                 if (res.code !== 200 || !res.data) {
@@ -148,7 +146,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
 
     useEffect(() => {
         console.log('Editor', 'useEffect', 'start', { status, canvas: canvas.current })
-        if (status === 'showing' && imageRef.current) {
+        if (status === 'showing') {
             setLoading(true)
 
             if (!canvasId) {
@@ -157,7 +155,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
                 return
             }
 
-            getCanvas().then(async (data: any) => {
+            getCanvas().then(async (data) => {
                 if (!data) {
                     publish(RESULT_EVENT_NAME, {
                         severity: 'error',
@@ -173,39 +171,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
                     message: t('successfullyUploadedCanvas')
                 })
 
-                // const uint8ClampedArray = new Uint8ClampedArray((data.data as any).data)
-                // const image = new ImageData(uint8ClampedArray, data.width, data.height, { colorSpace: data.colorSpace })
-                // const buffer = (data.data as any).data
-                // const buffer = (data.data as any).data
-                // let binary = '';
-                // const bytes = new Uint8Array(buffer)
-                // const bytes = [].slice.call(buffer);
-                // bytes.forEach((b: number) => binary += String.fromCharCode(b));
-                // const str = btoa(binary);
-
-                // Buffer.from(buffer).toString('base64')
-                // const str = btoa(String.fromCharCode(...new Uint8ClampedArray((data.data as any).data)));
-                // const str = data.data as string
-                // const str = await _arrayBufferToBase64(buffer)
-                // const str = data.dataStr
-                // const str = btoa(unescape(encodeURIComponent(buffer)));
-                // const str = URL.createObjectURL(new Blob([buffer], { type: 'image/png' }));
-                // const str = base.btoa(binary)
-                // console.log('Editor', 'useEffect', { str })
-                // const img = new Image()
-                // img.onload = () => {
-                //     console.log('Editor', 'useEffect', 'onload')
-                // }
-                // img.src = str
-                // setImageSrc(str);
-
-                const uint8ClampedArray = new Uint8ClampedArray((data.data as any).data)
-                console.log('Editor', 'useEffect', 'uint8ClampedArray', uint8ClampedArray)
-
-                const image = new ImageData(uint8ClampedArray, data.width, data.height, { colorSpace: data.colorSpace })
-                console.log('Editor', 'useEffect', 'image', image)
-
-                imageRef.current?.getContext('2d').putImageData(image, 0, 0)
+                setImageSrc(`data:${data.type};base64,${data.data}`);
 
                 setLoading(false)
                 console.log('Editor', 'useEffect', 'end')
@@ -242,19 +208,15 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
                     message: t('successfullyUploadedCanvas')
                 })
 
-                const uint8ClampedArray = new Uint8ClampedArray((data.data as any).data)
-                console.log('Editor', 'useEffect', 'uint8ClampedArray', uint8ClampedArray)
-
-                const image = new ImageData(uint8ClampedArray, data.width, data.height, { colorSpace: data.colorSpace })
-                console.log('Editor', 'useEffect', 'image', image)
-
-                canvas.current.getContext('2d', { willReadFrequently: true }).putImageData(image, 0, 0)
+                const image = new Image()
+                image.onload = () => canvas.current.getContext('2d', { willReadFrequently: true }).drawImage(image, 0, 0)
+                image.src = 'data:image/png;base64,' + data.data
 
                 setLoading(false)
                 console.log('Editor', 'useEffect', 'end')
             })
         }
-    }, [status, canvas.current, imageRef.current])
+    }, [status, canvas.current])
 
     return <>
         {
@@ -309,15 +271,11 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
                         </>
                     }
 
-                    {/* {imageSrc && */}
-                    <Box sx={{ flexGrow: 2 }}>
-                        <canvas
-                            ref={imageRef}
-                            style={{ width: '100%', height: '100%' }}
-                        // src={imageSrc}
-                        />
-                    </Box>
-                    {/* } */}
+                    {imageSrc &&
+                        <Box sx={{ flexGrow: 2 }}>
+                            <img src={imageSrc} />
+                        </Box>
+                    }
                 </Stack>
             }
 
@@ -376,26 +334,4 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
             </div>
         </Stack >
     </>
-}
-
-function _arrayBufferToBase64(buffer: any): Promise<string> {
-    // var binary = '';
-    // var bytes = new Uint8Array(buffer);
-    // var len = bytes.byteLength;
-    // for (var i = 0; i < len; i++) {
-    //     binary += String.fromCharCode(bytes[i]);
-    // }
-    // return window.btoa(binary);
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader()
-        reader.onloadend = () => resolve(reader.result as string)
-        reader.onerror = reject
-        reader.readAsDataURL(new Blob([buffer], { type: 'image/png' }))
-    })
-}
-
-function b64EncodeUnicode(str: string) {
-    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (match, p1) {
-        return String.fromCharCode(parseInt(p1, 16))
-    }))
 }

@@ -9,9 +9,7 @@ import { ConfigurationContext } from '../../../react/Contexts/ConfigurationConte
 import { fromUnixToFormat, fromDateTimeParts, fromUnix } from '../../../react/Lib/DateTime/date-time-helpers';
 import { DateTimeField } from '../DateTime/DateTimeField';
 import { t } from 'i18next';
-import { Modal } from '../Modal';
 import { EditorModal } from '../Editor/EditorModal';
-
 
 export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId?: string; defaultVisits?: Visit[]; onChange?: (visits: Visit[]) => void; }) {
     const locale = useContext(ConfigurationContext).get.locale;
@@ -47,14 +45,15 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                 onClose={() => {
                     setShowDiagnosis(false)
                 }}
-                text={visits[activeVisitIndex].diagnosis.text}
-                canvasId={visits[activeVisitIndex].diagnosis.canvas as string}
+                text={visits[activeVisitIndex]?.diagnosis.text}
+                canvasId={visits[activeVisitIndex]?.diagnosis.canvas as string}
                 canvasFileName={`diagnosis-${activeVisitIndex}.png`}
                 title={t('diagnosis')}
                 onSave={async (diagnosis, canvasId) => {
                     console.log('ManageVisits', 'diagnosis', 'onChange', diagnosis, canvasId)
 
-                    visits[activeVisitIndex].diagnosis = { text: diagnosis, canvas: canvasId }
+                    if (visits[activeVisitIndex].diagnosis)
+                        visits[activeVisitIndex].diagnosis = { text: diagnosis, canvas: canvasId }
 
                     onChange([...visits])
                     setVisits([...visits])
@@ -65,14 +64,15 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                 onClose={() => {
                     setShowTreatments(false)
                 }}
-                text={visits[activeVisitIndex].treatments.text}
-                canvasId={visits[activeVisitIndex].treatments.canvas as string}
+                text={visits[activeVisitIndex]?.treatments.text}
+                canvasId={visits[activeVisitIndex]?.treatments.canvas as string}
                 canvasFileName={`treatments-${activeVisitIndex}.png`}
                 title={t('treatments')}
                 onSave={async (treatments, canvasId) => {
                     console.log('ManageVisits', 'treatments', 'onChange', treatments, canvasId)
 
-                    visits[activeVisitIndex].treatments = { text: treatments, canvas: canvasId }
+                    if (visits[activeVisitIndex].treatments)
+                        visits[activeVisitIndex].treatments = { text: treatments, canvas: canvasId }
 
                     onChange([...visits])
                     setVisits([...visits])

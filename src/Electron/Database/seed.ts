@@ -121,7 +121,12 @@ export async function seedPatientsVisits(patientCount: number, patientsCollectio
                             schemaVersion: 'v0.0.1',
                             patientId: ObjectId.createFromHexString(id),
                             due: visitCreatedAt.plus({ days: faker.number.int({ min: 0, max: 30 }) }).toUnixInteger(),
-                            diagnosis: faker.helpers.maybe(() => Array.from({ length: faker.number.int({ min: 1, max: 4 }) }, () => faker.lorem.lines(faker.number.int({ min: 1, max: 10 }))), { probability: 0.5 }),
+                            diagnosis: {
+                                text: faker.lorem.lines(faker.number.int({ min: 1, max: 10 })),
+                            },
+                            treatments: {
+                                text: faker.lorem.lines(faker.number.int({ min: 1, max: 10 })),
+                            },
                             updatedAt: visitCreatedAt.toUnixInteger(),
                             createdAt: visitCreatedAt.toUnixInteger(),
                         } as Visit
