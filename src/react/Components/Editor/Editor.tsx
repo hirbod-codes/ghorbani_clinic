@@ -13,13 +13,12 @@ export type EditorProps = {
     title?: string;
     text?: string | undefined;
     canvasId?: string;
-    canvasFileName?: string;
     setHasUnsavedChanges?: (state: boolean) => void
     onSave?: (text: string, canvasId?: string) => void | Promise<void>;
     onChange?: () => void | Promise<void>;
 }
 
-export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvasFileName, onSave, onChange, setHasUnsavedChanges: setHasUnsavedChangesProperty }: EditorProps) {
+export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave, onChange, setHasUnsavedChanges: setHasUnsavedChangesProperty }: EditorProps) {
     const theme = useContext(ConfigurationContext).get.theme
     const [loading, setLoading] = useState<boolean>(false)
 
@@ -61,7 +60,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
 
     const canvas = useRef<HTMLCanvasElement>()
 
-    console.log('Editor', { title, inputText, canvasId, text, status, canvasFileName, canvas: canvas.current })
+    console.log('Editor', { title, inputText, canvasId, text, status, canvas: canvas.current })
 
     const saveContent = async () => {
         try {
@@ -88,7 +87,6 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
                 console.log('saveCanvas', 'data', data)
 
                 const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(
-                    canvasFileName,
                     {
                         width: canvas.current?.width,
                         height: canvas.current?.height,
@@ -239,12 +237,9 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
                         <IconButton onClick={() => setStatus('typing')}>
                             <TypeSpecimenOutlined />
                         </IconButton>
-                        {canvasFileName
-                            &&
-                            <IconButton onClick={() => setStatus('drawing')}>
-                                <DrawOutlined />
-                            </IconButton>
-                        }
+                        <IconButton onClick={() => setStatus('drawing')}>
+                            <DrawOutlined />
+                        </IconButton>
                     </Stack>
                 </Stack>
 
@@ -298,7 +293,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
                 }
 
                 {
-                    canvasFileName && status === 'drawing'
+                    status === 'drawing'
                     &&
                     <>
                         <Stack direction='row' justifyContent='start' alignContent='center'>

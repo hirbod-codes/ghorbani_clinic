@@ -14,7 +14,7 @@ import { toByteArray, fromByteArray } from 'base64-js';
 
 export class CanvasRepository extends MongoDB implements ICanvasRepository {
     async handleEvents(): Promise<void> {
-        ipcMain.handle('upload-canvas', async (_e, { fileName, canvas }: { fileName: string; canvas: Canvas; }) => await this.handleErrors(async () => await this.uploadCanvas(fileName, canvas)))
+        ipcMain.handle('upload-canvas', async (_e, { canvas }: { canvas: Canvas; }) => await this.handleErrors(async () => await this.uploadCanvas(canvas)))
         ipcMain.handle('retrieve-canvases', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.retrieveCanvases(id)))
         ipcMain.handle('download-canvas', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.downloadCanvas(id)))
         ipcMain.handle('download-canvases', async (_e, { ids }: { ids: string[] }) => await this.handleErrors(async () => await this.downloadCanvases(ids)))
@@ -22,7 +22,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
         ipcMain.handle('delete-canvases', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.deleteCanvases(id)))
     }
 
-    uploadCanvas(fileName: string, canvas: Canvas): Promise<string> {
+    uploadCanvas(canvas: Canvas): Promise<string> {
         return new Promise(async (res, rej) => {
             const authenticated = await authRepository.getAuthenticatedUser()
             if (authenticated == null)
@@ -42,7 +42,8 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
 
             const bucket = await this.getCanvasBucket();
 
-            const upload = bucket.openUploadStream(fileName, { metadata: { colorSpace: canvas.colorSpace, width: canvas.width, height: canvas.height, type: canvas.type } });
+            const id = new ObjectId()
+            const upload = bucket.openUploadStreamWithId(id, id.toString() + '.' + (canvas.type.split('/')[1].toLowerCase()), { metadata: { colorSpace: canvas.colorSpace, width: canvas.width, height: canvas.height, type: canvas.type } });
 
             upload.on('finish', () => {
                 console.log("Upload Finish.");
