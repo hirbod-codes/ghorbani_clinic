@@ -1,4 +1,4 @@
-import { DrawOutlined, PrintOutlined, RemoveRedEyeOutlined, SaveAltOutlined, TypeSpecimenOutlined } from "@mui/icons-material"
+import { DrawOutlined, RemoveRedEyeOutlined, SaveAltOutlined, TypeSpecimenOutlined } from "@mui/icons-material"
 import { Backdrop, Box, CircularProgress, Divider, IconButton, Stack, Typography } from "@mui/material"
 import { t } from "i18next";
 import { useState, useRef, useEffect, useContext } from "react"
@@ -8,7 +8,6 @@ import { publish } from "../../Lib/Events";
 import { TextEditor } from "../TextEditor/TextEditor";
 import { Canvas } from "../Canvas/Canvas";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
-import { useReactToPrint } from "react-to-print";
 
 export type EditorProps = {
     title?: string;
@@ -61,8 +60,6 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
     }
 
     const canvas = useRef<HTMLCanvasElement>()
-    const printRef = useRef<HTMLImageElement>()
-    const print = useReactToPrint({ onAfterPrint: () => { setLoading(false); printRef.current.src = null } })
 
     console.log('Editor', { title, inputText, canvasId, text, status, canvasFileName, canvas: canvas.current })
 
@@ -218,120 +215,111 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, canvas
         }
     }, [status, canvas.current])
 
-    return <>
-        {
-            loading
-            &&
-            <Backdrop sx={{ zIndex: theme.zIndex.drawer + 1 }} open={loading}>
-                <CircularProgress />
-            </Backdrop >
-        }
-
-        <Stack direction='column' spacing={1} sx={{ width: '100%', height: '100%' }}>
-            <Stack direction='row' justifyContent='space-between' alignContent='center'>
-                <Typography variant='h5'>
-                    {title}
-                </Typography>
-                <Stack direction='row' justifyContent='end' alignContent='center'>
-                    <IconButton onClick={() => {
-                        setStatus('showing')
-                    }}>
-                        <RemoveRedEyeOutlined />
-                    </IconButton>
-                    <IconButton onClick={() => setStatus('typing')}>
-                        <TypeSpecimenOutlined />
-                    </IconButton>
-                    {canvasFileName
-                        &&
-                        <IconButton onClick={() => setStatus('drawing')}>
-                            <DrawOutlined />
-                        </IconButton>
-                    }
-                </Stack>
-            </Stack>
-
-            <Divider />
-
-            {status === 'showing'
-                &&
-                <Stack direction='column' spacing={1} sx={{ width: '100%', height: '100%' }}>
-                    {text &&
-                        <>
-                            <Typography variant='h5'>
-                                {t('description')}
-                            </Typography>
-
-                            <Divider />
-
-                            <Typography variant='body1'>
-                                {text}
-                            </Typography>
-
-                            <Divider />
-                        </>
-                    }
-
-                    {imageSrc &&
-                        <Box sx={{ flexGrow: 2 }}>
-                            <img src={imageSrc} />
-                        </Box>
-                    }
-                </Stack>
-            }
-
-            {status === 'typing'
-                &&
-                <>
-                    <Stack direction='row' justifyContent='start' alignContent='center'>
-                        <IconButton onClick={saveContent} color={contentHasUnsavedChanges ? 'warning' : 'default'}>
-                            <SaveAltOutlined />
-                        </IconButton>
-                    </Stack>
-                    <TextEditor
-                        text={inputText}
-                        onChange={async (t) => {
-                            setContentHasUnsavedChanges(true)
-                            setText(t)
-                            if (onChange)
-                                await onChange()
-                        }}
-                    />
-                </>
-            }
-
+    return (
+        <>
             {
-                canvasFileName && status === 'drawing'
+                loading
                 &&
-                <>
-                    <Stack direction='row' justifyContent='start' alignContent='center'>
-                        <IconButton onClick={saveCanvas} color={canvasHasUnsavedChanges ? 'warning' : 'default'}>
-                            <SaveAltOutlined />
-                        </IconButton>
-                        <IconButton onClick={() => {
-                            printRef.current.src = canvas.current.toDataURL()
-                            setLoading(true)
-                            print(null, () => printRef.current);
-                        }}>
-                            <PrintOutlined />
-                        </IconButton>
-                    </Stack>
+                <Backdrop sx={{ zIndex: theme.zIndex.drawer + 1 }} open={loading}>
+                    <CircularProgress />
+                </Backdrop >
+            }
 
-                    <Box sx={{ flexGrow: 2, overflow: 'hidden' }}>
-                        <Canvas
-                            canvasRef={canvas}
-                            onChange={async () => {
-                                setCanvasHasUnsavedChanges(true);
+            <Stack direction='column' spacing={1} sx={{ width: '100%', height: '100%' }}>
+                <Stack direction='row' justifyContent='space-between' alignContent='center'>
+                    <Typography variant='h5'>
+                        {title}
+                    </Typography>
+                    <Stack direction='row' justifyContent='end' alignContent='center'>
+                        <IconButton onClick={() => {
+                            setStatus('showing')
+                        }}>
+                            <RemoveRedEyeOutlined />
+                        </IconButton>
+                        <IconButton onClick={() => setStatus('typing')}>
+                            <TypeSpecimenOutlined />
+                        </IconButton>
+                        {canvasFileName
+                            &&
+                            <IconButton onClick={() => setStatus('drawing')}>
+                                <DrawOutlined />
+                            </IconButton>
+                        }
+                    </Stack>
+                </Stack>
+
+                <Divider />
+
+                {status === 'showing'
+                    &&
+                    <Stack direction='column' spacing={1} sx={{ width: '100%', height: '100%' }}>
+                        {text &&
+                            <>
+                                <Typography variant='h5'>
+                                    {t('description')}
+                                </Typography>
+
+                                <Divider />
+
+                                <Typography variant='body1'>
+                                    {text}
+                                </Typography>
+
+                                <Divider />
+                            </>
+                        }
+
+                        {imageSrc &&
+                            <Box sx={{ flexGrow: 2 }}>
+                                <img src={imageSrc} />
+                            </Box>
+                        }
+                    </Stack>
+                }
+
+                {status === 'typing'
+                    &&
+                    <>
+                        <Stack direction='row' justifyContent='start' alignContent='center'>
+                            <IconButton onClick={saveContent} color={contentHasUnsavedChanges ? 'warning' : 'default'}>
+                                <SaveAltOutlined />
+                            </IconButton>
+                        </Stack>
+                        <TextEditor
+                            text={inputText}
+                            onChange={async (t) => {
+                                setContentHasUnsavedChanges(true)
+                                setText(t)
                                 if (onChange)
                                     await onChange()
                             }}
                         />
-                    </Box>
-                </>
-            }
+                    </>
+                }
 
-            <div style={{ display: 'none' }}>
-                <img ref={printRef} />
-            </div>
-        </Stack >
-    </>
+                {
+                    canvasFileName && status === 'drawing'
+                    &&
+                    <>
+                        <Stack direction='row' justifyContent='start' alignContent='center'>
+                            <IconButton onClick={saveCanvas} color={canvasHasUnsavedChanges ? 'warning' : 'default'}>
+                                <SaveAltOutlined />
+                            </IconButton>
+                        </Stack>
+
+                        <Box sx={{ flexGrow: 2, overflow: 'hidden' }}>
+                            <Canvas
+                                canvasRef={canvas}
+                                onChange={async () => {
+                                    setCanvasHasUnsavedChanges(true);
+                                    if (onChange)
+                                        await onChange()
+                                }}
+                            />
+                        </Box>
+                    </>
+                }
+            </Stack >
+        </>
+    )
 }
