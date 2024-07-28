@@ -1,4 +1,4 @@
-import { CloudDoneOutlined, CloudUploadOutlined, DrawOutlined, RemoveRedEyeOutlined, SaveAltOutlined, TypeSpecimenOutlined } from "@mui/icons-material"
+import { CloudDoneOutlined, CloudUploadOutlined, DarkModeOutlined, DrawOutlined, LightModeOutlined, RemoveRedEyeOutlined, SaveAltOutlined, TypeSpecimenOutlined } from "@mui/icons-material"
 import { Backdrop, Box, CircularProgress, Divider, IconButton, Stack, Typography } from "@mui/material"
 import { t } from "i18next";
 import { useState, useRef, useEffect, useContext } from "react"
@@ -8,6 +8,7 @@ import { publish } from "../../Lib/Events";
 import { TextEditor } from "../TextEditor/TextEditor";
 import { Canvas } from "../Canvas/Canvas";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
+import { configAPI } from "../../../Electron/Configuration/renderer/configAPI";
 
 export type EditorProps = {
     title?: string;
@@ -133,38 +134,41 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
     }
 
     const getCanvas = async () => {
-        console.log('getCanvas', 'start')
+        try {
+            console.group('Editor', 'getCanvas')
 
-        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(canvasId)
-        console.log('getCanvas', 'res', res)
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(canvasId)
+            console.log({ res })
 
-        if (res.code !== 200 || !res.data) {
-            console.log('getCanvas', 'end')
-            return
+            if (res.code !== 200 || !res.data) 
+                return
+
+            return res.data
         }
-
-        console.log('getCanvas', 'end')
-        return res.data
+        finally { console.groupEnd() }
     }
 
-    useEffect(() => {
-        console.log('Editor', 'useEffect', 'start', { status, canvas: canvas.current })
-        if (status === 'showing') {
-            setLoading(true)
+    const init = async () => {
+        try {
+            console.group('Editor', 'init')
 
-            if (!canvasId) {
-                console.log('Editor', 'useEffect', 'end', 'no canvas id')
-                setLoading(false)
-                return
-            }
+            console.log({ status, canvas: canvas.current })
+            if (status === 'showing') {
+                setLoading(true)
 
-            getCanvas().then(async (data) => {
+                if (!canvasId) {
+                    console.log('no canvas id')
+                    setLoading(false)
+                    return
+                }
+
+                const data = await getCanvas()
                 if (!data) {
                     publish(RESULT_EVENT_NAME, {
                         severity: 'error',
                         message: t('failedToUploadCanvas')
                     })
-                    console.log('Editor', 'useEffect', 'end')
+
                     setLoading(false)
                     return
                 }
@@ -177,31 +181,29 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                 setImageSrc(`data:${data.type};base64,${data.data}`);
 
                 setLoading(false)
-                console.log('Editor', 'useEffect', 'end')
-            })
-        }
-        else if (status === 'drawing' && canvas.current) {
-            setLoading(true)
-
-            if (!canvasId) {
-                console.log('Editor', 'useEffect', 'end', 'no canvas id')
-                setLoading(false)
-                return
             }
+            else if (status === 'drawing' && canvas.current) {
+                setLoading(true)
 
-            if (!canvas.current) {
-                console.log('Editor', 'useEffect', 'end', 'no canvas ref')
-                setLoading(false)
-                return
-            }
+                if (!canvasId) {
+                    console.log('no canvas id')
+                    setLoading(false)
+                    return
+                }
 
-            getCanvas().then((data) => {
+                if (!canvas.current) {
+                    console.log('no canvas ref')
+                    setLoading(false)
+                    return
+                }
+
+                const data = await getCanvas()
                 if (!data) {
                     publish(RESULT_EVENT_NAME, {
                         severity: 'error',
                         message: t('failedToUploadCanvas')
                     })
-                    console.log('Editor', 'useEffect', 'end')
+
                     setLoading(false)
                     return
                 }
@@ -216,10 +218,47 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                 image.src = 'data:image/png;base64,' + data.data
 
                 setLoading(false)
-                console.log('Editor', 'useEffect', 'end')
-            })
+            }
         }
+        finally { console.groupEnd() }
+    }
+
+    useEffect(() => {
+        try {
+            console.group('Editor', 'useEffect')
+
+            init()
+                .finally(() => console.groupEnd())
+        }
+        finally { console.groupEnd() }
     }, [status, canvas.current])
+
+    const [canvasBackground, setCanvasBackground] = useState(theme.palette.common.white)
+
+    const initBackground = async (background?: string) => {
+        try {
+            console.group('Editor', 'initBackground')
+
+            if (background) {
+                const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig();
+                (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig({ ...c, configuration: { ...c.configuration, canvas: { backgroundColor: background } } })
+
+                console.log({ background })
+                setCanvasBackground(background)
+                return
+            }
+
+            background = (await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()).configuration?.canvas?.backgroundColor
+            console.log({ background })
+            if (background)
+                setCanvasBackground(background)
+        }
+        finally { console.groupEnd() }
+    }
+
+    useEffect(() => {
+        initBackground()
+    }, [])
 
     return (
         <>
@@ -274,7 +313,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
 
                         {imageSrc &&
                             <Box sx={{ flexGrow: 2 }}>
-                                <img src={imageSrc} />
+                                <img src={imageSrc} style={{ backgroundColor: canvasBackground }} />
                             </Box>
                         }
                     </Stack>
@@ -308,11 +347,19 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                             <IconButton onClick={saveCanvas} color={canvasHasUnsavedChanges ? 'warning' : 'default'}>
                                 {canvasHasUnsavedChanges ? <CloudUploadOutlined color='warning' /> : <CloudDoneOutlined color='success' />}
                             </IconButton>
+                            <IconButton
+                                onClick={async () => {
+                                    await initBackground(canvasBackground === theme.palette.common.black ? theme.palette.common.white : theme.palette.common.black)
+                                }}
+                            >
+                                {canvasBackground === theme.palette.common.white ? <LightModeOutlined /> : <DarkModeOutlined />}
+                            </IconButton>
                         </Stack>
 
                         <Box sx={{ flexGrow: 2, overflow: 'hidden' }}>
                             <Canvas
                                 canvasRef={canvas}
+                                canvasBackground={canvasBackground}
                                 onChange={async () => {
                                     setCanvasHasUnsavedChanges(true);
                                     if (onChange)

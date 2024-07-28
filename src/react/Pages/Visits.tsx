@@ -75,6 +75,12 @@ export function Visits() {
             renderCell: (params: GridRenderCellParams<any, Date>) => (params.row?.diagnosis && params.row?.diagnosis.length !== 0 ? <Button onClick={() => setShowDiagnosis(visits.find(v => v._id === params.row._id)._id as string)}>{t('Show')}</Button> : null)
         },
         {
+            field: 'treatments',
+            type: 'actions',
+            width: 120,
+            renderCell: (params: GridRenderCellParams<any, Date>) => (params.row?.diagnosis && params.row?.diagnosis.length !== 0 ? <Button onClick={() => setShowTreatments(visits.find(v => v._id === params.row._id)._id as string)}>{t('Show')}</Button> : null)
+        },
+        {
             field: 'due',
             type: 'number',
             valueFormatter: (createdAt: number) => fromUnixToFormat(configuration.get.locale, createdAt, DATE),

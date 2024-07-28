@@ -14,9 +14,10 @@ import { useReactToPrint } from "react-to-print";
 export type CanvasProps = {
     canvasRef?: MutableRefObject<HTMLCanvasElement>,
     onChange?: (empty?: boolean) => void | Promise<void>
+    canvasBackground?: string
 }
 
-export function Canvas({ canvasRef, onChange }: CanvasProps) {
+export function Canvas({ canvasRef, canvasBackground = 'white', onChange }: CanvasProps) {
     let theme = useContext(ConfigurationContext).get.theme
     const [loading, setLoading] = useState<boolean>(false)
 
@@ -30,8 +31,6 @@ export function Canvas({ canvasRef, onChange }: CanvasProps) {
 
     const parentRef = useRef<HTMLDivElement>()
 
-    const [canvasBackground, setCanvasBackground] = useState(theme.palette.common.white)
-
     const printRef = useRef<HTMLImageElement>()
     const print = useReactToPrint({ onAfterPrint: () => { setLoading(false); printRef.current.src = undefined } })
 
@@ -44,8 +43,11 @@ export function Canvas({ canvasRef, onChange }: CanvasProps) {
     }, [parentRef.current, canvasRef.current])
 
     useEffect(() => {
-        if (canvasRef.current)
+        if (canvasRef.current) {
+            if (canvasBackground !== canvasRef.current.style.backgroundColor)
+                onChange(empty)
             canvasRef.current.style.backgroundColor = canvasBackground
+        }
     }, [canvasBackground])
 
     console.log('Canvas', { anchorEl, color, lineWidth, radius, parentRef, canvasRef })
@@ -68,23 +70,6 @@ export function Canvas({ canvasRef, onChange }: CanvasProps) {
         ctx.fill()
     }
 
-    const init = async (background?: string) => {
-        if (background) {
-            const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig();
-            (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig({ ...c, configuration: { ...c.configuration, canvas: { backgroundColor: background } } })
-            setCanvasBackground(background)
-            return
-        }
-
-        background = (await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()).configuration?.canvas?.backgroundColor
-        if (background)
-            setCanvasBackground(background)
-    }
-
-    useEffect(() => {
-        init()
-    }, [])
-
     return (
         <>
             {
@@ -104,15 +89,6 @@ export function Canvas({ canvasRef, onChange }: CanvasProps) {
                         print(null, () => printRef.current);
                     }}>
                         <PrintOutlined />
-                    </IconButton>
-                    <IconButton
-                        size='medium'
-                        color='inherit'
-                        onClick={async () => {
-                            await init(canvasBackground === theme.palette.common.black ? theme.palette.common.white : theme.palette.common.black)
-                        }}
-                    >
-                        {canvasBackground === theme.palette.common.white ? <LightModeOutlined fontSize='inherit' /> : <DarkModeOutlined fontSize='inherit' />}
                     </IconButton>
                     <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
                         <ColorLensOutlined />
