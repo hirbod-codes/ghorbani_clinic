@@ -210,11 +210,11 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                                     <Grid item xs={11}>
                                         <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3 }}>
                                             <Editor
+                                                title={t('medicalHistory')}
                                                 text={medicalHistory?.description?.text}
                                                 canvasId={medicalHistory?.description?.canvas as string}
                                                 onSave={(content, canvasId) => setMedicalHistory({ ...medicalHistory, description: { text: content, canvas: canvasId } })}
                                                 setHasUnsavedChanges={setHasUnsavedChanges}
-                                                title={t('address')}
                                             />
                                         </Paper>
                                     </Grid>

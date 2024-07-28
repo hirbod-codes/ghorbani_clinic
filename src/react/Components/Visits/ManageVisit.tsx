@@ -47,7 +47,6 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                 }}
                 text={visits[activeVisitIndex]?.diagnosis.text}
                 canvasId={visits[activeVisitIndex]?.diagnosis.canvas as string}
-                canvasFileName={`diagnosis-${activeVisitIndex}.png`}
                 title={t('diagnosis')}
                 onSave={async (diagnosis, canvasId) => {
                     console.log('ManageVisits', 'diagnosis', 'onChange', diagnosis, canvasId)
@@ -66,7 +65,6 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                 }}
                 text={visits[activeVisitIndex]?.treatments.text}
                 canvasId={visits[activeVisitIndex]?.treatments.canvas as string}
-                canvasFileName={`treatments-${activeVisitIndex}.png`}
                 title={t('treatments')}
                 onSave={async (treatments, canvasId) => {
                     console.log('ManageVisits', 'treatments', 'onChange', treatments, canvasId)

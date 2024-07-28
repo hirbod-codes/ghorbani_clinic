@@ -1,4 +1,4 @@
-import { DrawOutlined, RemoveRedEyeOutlined, SaveAltOutlined, TypeSpecimenOutlined } from "@mui/icons-material"
+import { CloudDoneOutlined, CloudUploadOutlined, DrawOutlined, RemoveRedEyeOutlined, SaveAltOutlined, TypeSpecimenOutlined } from "@mui/icons-material"
 import { Backdrop, Box, CircularProgress, Divider, IconButton, Stack, Typography } from "@mui/material"
 import { t } from "i18next";
 import { useState, useRef, useEffect, useContext } from "react"
@@ -64,6 +64,11 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
 
     const saveContent = async () => {
         try {
+            if (!contentHasUnsavedChanges)
+                return
+
+            console.group('Editor', 'saveContent')
+
             setLoading(true)
 
             if (onSave)
@@ -73,55 +78,58 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
         }
         finally {
             setLoading(false)
+            console.groupEnd()
         }
     }
 
-    const saveCanvas = () => {
-        setLoading(true)
+    const saveCanvas = async () => {
+        try {
+            if (!canvasHasUnsavedChanges)
+                return
 
-        return new Promise<void>(async (resolve, reject) => {
-            try {
-                const dataUrl = canvas.current?.toDataURL()
-                const type = dataUrl.split(',')[0].replace(';base64', '').replace('data:', '')
-                const data = dataUrl.split(',')[1]
-                console.log('saveCanvas', 'data', data)
+            console.group('Editor', 'saveCanvas')
 
-                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(
-                    {
-                        width: canvas.current?.width,
-                        height: canvas.current?.height,
-                        colorSpace: 'srgb',
-                        type,
-                        data,
-                    })
-                console.log('res', res)
-                if (res.code !== 200 || !res.data) {
-                    publish(RESULT_EVENT_NAME, {
-                        severity: 'error',
-                        message: t('failedToUploadCanvas')
-                    })
+            setLoading(true)
 
-                    resolve()
-                    return
-                }
+            const dataUrl = canvas.current?.toDataURL()
+            const type = dataUrl.split(',')[0].replace(';base64', '').replace('data:', '')
+            const data = dataUrl.split(',')[1]
+            console.log({ dataUrl, type, data })
 
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(
+                {
+                    width: canvas.current?.width,
+                    height: canvas.current?.height,
+                    colorSpace: 'srgb',
+                    type,
+                    data,
+                })
+            console.log({ res })
+            if (res.code !== 200 || !res.data) {
                 publish(RESULT_EVENT_NAME, {
-                    severity: 'success',
-                    message: t('successfullyUploadedCanvas')
+                    severity: 'error',
+                    message: t('failedToUploadCanvas')
                 })
 
-                setCanvasId(res.data)
-
-                if (onSave)
-                    await onSave(text, res.data)
-
-                setCanvasHasUnsavedChanges(false)
-                resolve()
+                return
             }
-            finally {
-                setLoading(false)
-            }
-        })
+
+            publish(RESULT_EVENT_NAME, {
+                severity: 'success',
+                message: t('successfullyUploadedCanvas')
+            })
+
+            setCanvasId(res.data)
+
+            if (onSave)
+                await onSave(text, res.data)
+
+            setCanvasHasUnsavedChanges(false)
+        }
+        finally {
+            setLoading(false)
+            console.groupEnd()
+        }
     }
 
     const getCanvas = async () => {
@@ -277,7 +285,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                     <>
                         <Stack direction='row' justifyContent='start' alignContent='center'>
                             <IconButton onClick={saveContent} color={contentHasUnsavedChanges ? 'warning' : 'default'}>
-                                <SaveAltOutlined />
+                                {contentHasUnsavedChanges ? <CloudUploadOutlined color='warning' /> : <CloudDoneOutlined color='success' />}
                             </IconButton>
                         </Stack>
                         <TextEditor
@@ -298,7 +306,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                     <>
                         <Stack direction='row' justifyContent='start' alignContent='center'>
                             <IconButton onClick={saveCanvas} color={canvasHasUnsavedChanges ? 'warning' : 'default'}>
-                                <SaveAltOutlined />
+                                {canvasHasUnsavedChanges ? <CloudUploadOutlined color='warning' /> : <CloudDoneOutlined color='success' />}
                             </IconButton>
                         </Stack>
 

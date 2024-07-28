@@ -206,7 +206,6 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                         onClose={() => setShowAddress(false)}
                                                         text={patient?.address?.text}
                                                         canvasId={patient?.address?.canvas as string}
-                                                        canvasFileName={`address-${patient?._id}.png`}
                                                         onSave={(address, canvasId) => setPatient({ ...patient, address: { text: address, canvas: canvasId } })}
                                                         title={t('address')}
                                                     />

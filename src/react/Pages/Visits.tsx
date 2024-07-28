@@ -122,7 +122,6 @@ export function Visits() {
                 }}
                 text={visits.find(f => f._id === showDiagnosis)?.diagnosis.text}
                 canvasId={visits.find(f => f._id === showDiagnosis)?.diagnosis.canvas as string}
-                canvasFileName={`diagnosis-${showDiagnosis}.png`}
                 title={t('diagnosis')}
                 onSave={async (diagnosis, canvasId) => {
                     console.log('ManageVisits', 'diagnosis', 'onChange', diagnosis, canvasId)
@@ -140,7 +139,6 @@ export function Visits() {
                 }}
                 text={visits.find(f => f._id === showTreatments)?.treatments.text}
                 canvasId={visits.find(f => f._id === showTreatments)?.treatments.canvas as string}
-                canvasFileName={`treatments-${showTreatments}.png`}
                 title={t('treatments')}
                 onSave={async (treatments, canvasId) => {
                     console.log('ManageVisits', 'treatments', 'onChange', treatments, canvasId)

@@ -51,36 +51,42 @@ export function Patients() {
     })
 
     const init = async (offset: number, limit: number) => {
-        setLoading(true)
-        console.log('Patients', 'init', 'start');
-        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPatients(offset, limit)
-        console.log('Patients', 'fetchPatients', 'res', res)
-        setLoading(false)
+        try {
+            console.group('Patients', 'init');
 
-        if (res.code !== 200 || !res.data) {
+            setLoading(true)
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPatients(offset, limit)
+            console.log({ res })
+            setLoading(false)
+
+            if (res.code !== 200 || !res.data) {
+                publish(RESULT_EVENT_NAME, {
+                    severity: 'error',
+                    message: t('failedToFetchPatients')
+                })
+
+                return
+            }
+
             publish(RESULT_EVENT_NAME, {
-                severity: 'error',
-                message: t('failedToFetchPatients')
+                severity: 'success',
+                message: t('successfullyFetchedPatients')
             })
-
-            return
+            setPatients(res.data)
         }
-
-        publish(RESULT_EVENT_NAME, {
-            severity: 'success',
-            message: t('successfullyFetchedPatients')
-        })
-        setPatients(res.data)
-
-        console.log('Patients', 'init', 'end');
+        finally { console.groupEnd() }
     }
 
     useEffect(() => {
-        console.log('Patients', 'useEffect', 'start');
-        if (!auth || !auth.user || !auth.accessControl)
-            return
+        try {
+            console.group('Patients', 'useEffect');
+            if (!auth || !auth.user || !auth.accessControl)
+                return
 
-        init(page.offset, page.limit).then(() => console.log('Patients', 'useEffect', 'end'))
+            init(page.offset, page.limit)
+                .finally(() => console.groupEnd())
+        }
+        finally { console.groupEnd() }
     }, [page, auth])
 
     useEffect(() => {
@@ -169,24 +175,31 @@ export function Patients() {
                                     align: 'center',
                                     width: 120,
                                     getActions: ({ row }) => [
-                                        updatesPatient ? <GridActionsCellItem icon={editingPatientId === row._id ? <CircularProgress size={20} /> : <EditOutlined />} onClick={() => setEditingPatientId(patients.find(p => p._id === row._id)?._id as string)} label={t('edit')} /> : null,
+                                        updatesPatient ? <GridActionsCellItem icon={editingPatientId === row._id ? <CircularProgress size={20} /> : <EditOutlined />} onClick={() => {
+                                            setEditingPatientId(patients.find(p => p._id === row._id)?._id as string)
+                                        }} label={t('edit')} /> : null,
                                         deletesPatient ? <GridActionsCellItem icon={deletingPatientId === row._id ? <CircularProgress size={20} /> : <DeleteOutline />} onClick={async () => {
-                                            setDeletingPatientId(row._id)
-                                            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deletePatient(row._id)
-                                            setDeletingPatientId(undefined)
+                                            try {
+                                                console.group('Patients', 'deletesPatient', 'onClick')
 
-                                            if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1)
+                                                setDeletingPatientId(row._id)
+                                                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deletePatient(row._id)
+                                                setDeletingPatientId(undefined)
+
+                                                if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1)
+                                                    publish(RESULT_EVENT_NAME, {
+                                                        severity: 'error',
+                                                        message: t('failedToDeletePatient')
+                                                    })
+
+                                                await init(page.offset, page.limit)
+
                                                 publish(RESULT_EVENT_NAME, {
-                                                    severity: 'error',
-                                                    message: t('failedToDeletePatient')
+                                                    severity: 'success',
+                                                    message: t('successfullyDeletedPatient')
                                                 })
-
-                                            await init(page.offset, page.limit)
-
-                                            publish(RESULT_EVENT_NAME, {
-                                                severity: 'success',
-                                                message: t('successfullyDeletedPatient')
-                                            })
+                                            }
+                                            finally { console.groupEnd() }
                                         }} label={t('delete')} /> : null,
                                     ]
                                 },
@@ -210,34 +223,38 @@ export function Patients() {
                 }}
                 text={patients.find(f => f._id === activePatientId)?.address?.text}
                 canvasId={patients.find(f => f._id === activePatientId)?.address?.canvas as string}
-                canvasFileName={`address-${activePatientId}.png`}
                 title={t('address')}
                 onSave={async (address, canvasId) => {
-                    console.log('Patients', 'Address', 'onChange', address, canvasId)
+                    try {
+                        console.group('Patients', 'Address', 'onSave')
+                        console.log({ address, canvasId })
 
-                    const p = patients.find(f => f._id === activePatientId)
-                    if (!p)
-                        return
+                        const p = patients.find(f => f._id === activePatientId)
+                        if (!p)
+                            return
 
-                    const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updatePatient({ ...p, address: { text: address, canvas: canvasId } })
-                    if (res.code !== 200 || !res.data.acknowledged || res.data.matchedCount !== 1) {
+                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updatePatient({ ...p, address: { text: address, canvas: canvasId } })
+                        console.log({ res })
+                        if (res.code !== 200 || !res.data.acknowledged || res.data.matchedCount !== 1) {
+                            publish(RESULT_EVENT_NAME, {
+                                severity: 'error',
+                                message: t('failedToUpdatePatientAddress')
+                            })
+
+                            return
+                        }
+
                         publish(RESULT_EVENT_NAME, {
-                            severity: 'error',
-                            message: t('failedToUpdatePatientAddress')
+                            severity: 'success',
+                            message: t('successfullyUpdatedPatientAddress')
                         })
 
-                        return
+                        setActivePatientId(undefined)
+                        setShowingMH(false)
+
+                        await init(page.offset, page.limit)
                     }
-
-                    publish(RESULT_EVENT_NAME, {
-                        severity: 'success',
-                        message: t('successfullyUpdatedPatientAddress')
-                    })
-
-                    setActivePatientId(undefined)
-                    setShowingMH(false)
-
-                    await init(page.offset, page.limit)
+                    finally { console.groupEnd() }
                 }}
             />
 
@@ -246,11 +263,16 @@ export function Patients() {
                 open={showingMH}
                 onChange={async (mh) => {
                     try {
+                        console.group('Patients', 'MedicalHistory', 'onChange')
+
+                        console.log({ mh })
+
                         const p = patients.find(f => f._id === activePatientId)
                         if (!p)
                             return
 
                         const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updatePatient({ ...p, medicalHistory: mh })
+                        console.log({ res })
                         if (res.code !== 200 || !res.data.acknowledged || res.data.matchedCount !== 1) {
                             publish(RESULT_EVENT_NAME, {
                                 severity: 'error',
@@ -267,14 +289,10 @@ export function Patients() {
 
                         setActivePatientId(undefined)
                         setShowingMH(false)
-                    } catch (error) {
-                        publish(RESULT_EVENT_NAME, {
-                            severity: 'error',
-                            message: t('failedToUpdatePatientMedicalHistory')
-                        })
 
-                        throw error
+                        await init(page.offset, page.limit)
                     }
+                    finally { console.groupEnd() }
                 }}
             />
         </>
