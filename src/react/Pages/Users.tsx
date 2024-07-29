@@ -269,35 +269,35 @@ export function Users() {
                                 orderedColumnsFields={['actions']}
                                 storeColumnVisibilityModel
                                 hiddenColumns={hiddenColumns}
-                                additionalColumns={(deletesUser || updatesUser) ? [{
-                                    field: 'actions',
-                                    headerName: '',
-                                    headerAlign: 'center',
-                                    align: 'center',
-                                    type: 'actions',
-                                    width: 120,
-                                    getActions: (params) => [
-                                        updatesUser
-                                            ? <GridActionsCellItem
-                                                label={t('editUser')}
-                                                icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
-                                                onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === params.row._id)) }}
-                                            />
-                                            : null,
-                                        deletesUser
-                                            ? <GridActionsCellItem
-                                                label={t('deleteUser')}
-                                                icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
-                                                onClick={async () => {
-                                                    await deleteUser(params.row._id);
-                                                    await updateRows(role)
-                                                    if (auth.user._id === params.row.id)
-                                                        await auth.logout()
-                                                }}
-                                            />
-                                            : null,
-                                    ].filter(a => a != null)
-                                }] : undefined}
+                                // additionalColumns={(deletesUser || updatesUser) ? [{
+                                //     field: 'actions',
+                                //     headerName: '',
+                                //     headerAlign: 'center',
+                                //     align: 'center',
+                                //     type: 'actions',
+                                //     width: 120,
+                                //     getActions: (params) => [
+                                //         updatesUser
+                                //             ? <GridActionsCellItem
+                                //                 label={t('editUser')}
+                                //                 icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
+                                //                 onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === params.row._id)) }}
+                                //             />
+                                //             : null,
+                                //         deletesUser
+                                //             ? <GridActionsCellItem
+                                //                 label={t('deleteUser')}
+                                //                 icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
+                                //                 onClick={async () => {
+                                //                     await deleteUser(params.row._id);
+                                //                     await updateRows(role)
+                                //                     if (auth.user._id === params.row.id)
+                                //                         await auth.logout()
+                                //                 }}
+                                //             />
+                                //             : null,
+                                //     ].filter(a => a != null)
+                                // }] : undefined}
                                 customToolbar={[
                                     <Button onClick={async () => await fetchUsers()} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
                                     createsUser && <Button onClick={() => setOpenManageUserModal(true)} startIcon={<AddOutlined />}>{t('Create')}</Button>,
