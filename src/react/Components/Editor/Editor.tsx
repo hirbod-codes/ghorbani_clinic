@@ -140,7 +140,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(canvasId)
             console.log({ res })
 
-            if (res.code !== 200 || !res.data) 
+            if (res.code !== 200 || !res.data)
                 return
 
             return res.data
@@ -235,25 +235,37 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
 
     const [canvasBackground, setCanvasBackground] = useState(theme.palette.common.white)
 
+    const isFirstInit = useRef<boolean>(true)
     const initBackground = async (background?: string) => {
         try {
             console.group('Editor', 'initBackground')
+
 
             if (background) {
                 const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig();
                 (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig({ ...c, configuration: { ...c.configuration, canvas: { backgroundColor: background } } })
 
                 console.log({ background })
-                setCanvasBackground(background)
+                if (!isFirstInit.current && canvasBackground !== background)
+                    setCanvasHasUnsavedChanges(true)
+
+                if (canvasBackground !== background)
+                    setCanvasBackground(background)
                 return
             }
 
             background = (await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()).configuration?.canvas?.backgroundColor
             console.log({ background })
-            if (background)
+            if (background && canvasBackground !== background) {
                 setCanvasBackground(background)
+                if (!isFirstInit.current)
+                    setCanvasHasUnsavedChanges(true)
+            }
         }
-        finally { console.groupEnd() }
+        finally {
+            console.groupEnd()
+            isFirstInit.current = false
+        }
     }
 
     useEffect(() => {
@@ -329,11 +341,13 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                         </Stack>
                         <TextEditor
                             text={inputText}
-                            onChange={async (t) => {
+                            onChange={async () => {
                                 setContentHasUnsavedChanges(true)
-                                setText(t)
                                 if (onChange)
                                     await onChange()
+                            }}
+                            onSave={async (t) => {
+                                setText(t)
                             }}
                         />
                     </>

@@ -1,12 +1,11 @@
-import { Backdrop, CircularProgress, Divider, IconButton, Menu, PaletteMode, Paper, Stack, TextField } from "@mui/material";
+import { Backdrop, CircularProgress, Divider, IconButton, Menu, Paper, Stack, TextField } from "@mui/material";
 import { MutableRefObject, useContext, useEffect, useRef, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
-import { configAPI } from "../../../Electron/Configuration/renderer/configAPI";
 import { Draw } from "./types";
 import { useDraw } from "./useDraw";
 
 import './styles.css'
-import { ColorLensOutlined, DarkModeOutlined, LightModeOutlined, PrintOutlined } from "@mui/icons-material";
+import { ColorLensOutlined, PrintOutlined } from "@mui/icons-material";
 import { t } from "i18next";
 import { HexAlphaColorPicker } from "react-colorful";
 import { useReactToPrint } from "react-to-print";
@@ -17,8 +16,10 @@ export type CanvasProps = {
     canvasBackground?: string
 }
 
-export function Canvas({ canvasRef, canvasBackground = 'white', onChange }: CanvasProps) {
+export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
     let theme = useContext(ConfigurationContext).get.theme
+    if (!canvasBackground)
+        canvasBackground = theme.palette.common.white
     const [loading, setLoading] = useState<boolean>(false)
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -43,11 +44,8 @@ export function Canvas({ canvasRef, canvasBackground = 'white', onChange }: Canv
     }, [parentRef.current, canvasRef.current])
 
     useEffect(() => {
-        if (canvasRef.current) {
-            if (canvasBackground !== canvasRef.current.style.backgroundColor)
-                onChange(empty)
+        if (canvasRef.current)
             canvasRef.current.style.backgroundColor = canvasBackground
-        }
     }, [canvasBackground])
 
     console.log('Canvas', { anchorEl, color, lineWidth, radius, parentRef, canvasRef })

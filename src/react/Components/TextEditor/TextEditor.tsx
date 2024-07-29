@@ -28,11 +28,12 @@ function fileListToImageFiles(fileList: FileList): File[] {
 
 export type TextEditorProps = {
     text?: string;
-    onChange?: (content?: string) => void | Promise<void>;
+    onSave?: (content?: string) => void | Promise<void>;
+    onChange?: () => void | Promise<void>;
     placeholder?: string;
 }
 
-export function TextEditor({ text, onChange, placeholder = "Add your own content here..." }: TextEditorProps) {
+export function TextEditor({ text, onSave, onChange, placeholder = "Add your own content here..." }: TextEditorProps) {
     const extensions = useExtensions({ placeholder });
     const rteRef = useRef<RichTextEditorRef>(null);
     const [isEditable, setIsEditable] = useState<boolean>(true);
@@ -138,6 +139,10 @@ export function TextEditor({ text, onChange, placeholder = "Add your own content
                     className="editor"
                     extensions={extensions}
                     content={text}
+                    onUpdate={async () => {
+                        if (onChange)
+                            await onChange()
+                    }}
                     editable={isEditable}
                     editorProps={{
                         handleDrop: handleDrop,
@@ -196,8 +201,8 @@ export function TextEditor({ text, onChange, placeholder = "Add your own content
                                     onClick={() => {
                                         try {
                                             setSaving(true)
-                                            if (onChange)
-                                                onChange(rteRef.current?.editor?.getHTML())
+                                            if (onSave)
+                                                onSave(rteRef.current?.editor?.getHTML())
                                             setSaving(false)
                                         }
                                         catch (err) {

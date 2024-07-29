@@ -12,7 +12,7 @@ export type TextEditorModalProps = TextEditorProps & {
     onSave: (text: string) => void | Promise<void>;
 }
 
-export function TextEditorModal({ open, onClose, onChange, onSave, placeholder, text: inputText }: TextEditorModalProps) {
+export function TextEditorModal({ open, onClose, onSave: onChange, onSave, placeholder, text: inputText }: TextEditorModalProps) {
     const [text, setText] = useState(inputText)
     useEffect(() => {
         setText(inputText)
@@ -70,7 +70,7 @@ export function TextEditorModal({ open, onClose, onChange, onSave, placeholder, 
                             <TextEditor
                                 placeholder={placeholder}
                                 text={text}
-                                onChange={(t) => {
+                                onSave={(t) => {
                                     setHasUnsavedChanges(true)
                                     setText(t)
                                     if (onChange)
