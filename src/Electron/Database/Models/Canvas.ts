@@ -4,6 +4,7 @@ export const collectionName = 'canvas'
 
 export const canvasSchema = object().required().shape({
     colorSpace: mixed<PredefinedColorSpace>().required(),
+    backgroundColor: string().optional().default('white'),
     width: number().required(),
     height: number().required(),
     type: string().required(),

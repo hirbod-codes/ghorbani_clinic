@@ -59,9 +59,10 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                 setHasUnsavedChangesProperty(canvasHasUnsavedChanges)
     }
 
+    const [canvasBackground, setCanvasBackground] = useState<string>(theme.palette.common.white)
     const canvas = useRef<HTMLCanvasElement>()
 
-    console.log('Editor', { title, inputText, canvasId, text, status, canvas: canvas.current })
+    console.log('Editor', { title, loading, inputText, canvasId, text, status, canvas: canvas.current, imageSrc, contentHasUnsavedChanges, canvasHasUnsavedChanges, canvasBackground })
 
     const saveContent = async () => {
         try {
@@ -102,6 +103,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                     width: canvas.current?.width,
                     height: canvas.current?.height,
                     colorSpace: 'srgb',
+                    backgroundColor: canvasBackground,
                     type,
                     data,
                 })
@@ -180,6 +182,8 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
 
                 setImageSrc(`data:${data.type};base64,${data.data}`);
 
+                setCanvasBackground(data.backgroundColor ?? theme.palette.common.white)
+
                 setLoading(false)
             }
             else if (status === 'drawing' && canvas.current) {
@@ -213,6 +217,8 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                     message: t('successfullyUploadedCanvas')
                 })
 
+                setCanvasBackground(data.backgroundColor ?? theme.palette.common.white)
+
                 const image = new Image()
                 image.onload = () => canvas.current.getContext('2d', { willReadFrequently: true }).drawImage(image, 0, 0)
                 image.src = 'data:image/png;base64,' + data.data
@@ -232,45 +238,6 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
         }
         finally { console.groupEnd() }
     }, [status, canvas.current])
-
-    const [canvasBackground, setCanvasBackground] = useState(theme.palette.common.white)
-
-    const isFirstInit = useRef<boolean>(true)
-    const initBackground = async (background?: string) => {
-        try {
-            console.group('Editor', 'initBackground')
-
-
-            if (background) {
-                const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig();
-                (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig({ ...c, configuration: { ...c.configuration, canvas: { backgroundColor: background } } })
-
-                console.log({ background })
-                if (!isFirstInit.current && canvasBackground !== background)
-                    setCanvasHasUnsavedChanges(true)
-
-                if (canvasBackground !== background)
-                    setCanvasBackground(background)
-                return
-            }
-
-            background = (await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()).configuration?.canvas?.backgroundColor
-            console.log({ background })
-            if (background && canvasBackground !== background) {
-                setCanvasBackground(background)
-                if (!isFirstInit.current)
-                    setCanvasHasUnsavedChanges(true)
-            }
-        }
-        finally {
-            console.groupEnd()
-            isFirstInit.current = false
-        }
-    }
-
-    useEffect(() => {
-        initBackground()
-    }, [])
 
     return (
         <>
@@ -362,8 +329,9 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                                 {canvasHasUnsavedChanges ? <CloudUploadOutlined color='warning' /> : <CloudDoneOutlined color='success' />}
                             </IconButton>
                             <IconButton
-                                onClick={async () => {
-                                    await initBackground(canvasBackground === theme.palette.common.black ? theme.palette.common.white : theme.palette.common.black)
+                                onClick={() => {
+                                    setCanvasBackground(canvasBackground === theme.palette.common.black ? theme.palette.common.white : theme.palette.common.black)
+                                    setCanvasHasUnsavedChanges(true)
                                 }}
                             >
                                 {canvasBackground === theme.palette.common.white ? <LightModeOutlined /> : <DarkModeOutlined />}

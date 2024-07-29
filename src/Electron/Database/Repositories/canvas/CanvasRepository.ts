@@ -43,16 +43,24 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
             const bucket = await this.getCanvasBucket();
 
             const id = new ObjectId()
-            const upload = bucket.openUploadStreamWithId(id, id.toString() + '.' + (canvas.type.split('/')[1].toLowerCase()), { metadata: { colorSpace: canvas.colorSpace, width: canvas.width, height: canvas.height, type: canvas.type } });
+            const upload = bucket.openUploadStreamWithId(
+                id,
+                id.toString() + '.' + (canvas.type.split('/')[1].toLowerCase()),
+                {
+                    metadata:
+                    {
+                        colorSpace: canvas.colorSpace,
+                        width: canvas.width,
+                        height: canvas.height,
+                        type: canvas.type,
+                        backgroundColor: canvas.backgroundColor
+                    }
+                }
+            );
 
-            upload.on('finish', () => {
-                console.log("Upload Finish.");
-            });
+            upload.on('finish', () => console.log("Upload Finish."));
 
-            upload.write(Buffer.from(toByteArray(canvas.data)), (err) => {
-                if (err)
-                    rej(err)
-            })
+            upload.write(Buffer.from(toByteArray(canvas.data)), (err) => err ? rej(err) : undefined)
 
             console.log('finished uploading.');
 
@@ -122,7 +130,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
                     chunks.push(chunk)
                 })
                 .on('end', () => {
-                    res({ colorSpace: f[0].metadata.colorSpace, width: f[0].metadata.width, height: f[0].metadata.height, type: f[0].metadata.type, data: fromByteArray(Buffer.concat(chunks)) })
+                    res({ ...f[0].metadata, data: fromByteArray(Buffer.concat(chunks)) })
                     console.log('downloadCanvas', 'finished downloading.')
                 })
                 .on('error', (err) => {
