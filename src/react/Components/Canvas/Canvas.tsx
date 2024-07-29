@@ -23,7 +23,7 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
     const [loading, setLoading] = useState<boolean>(false)
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-    const [color, setColor] = useState<string>(theme.palette.text.primary)
+    const [color, setColor] = useState<string>(theme.palette.common.black)
 
     const [lineWidth, setLineWidth] = useState<string>('1.2')
     const [radius, setRadius] = useState<string>('0.3')
