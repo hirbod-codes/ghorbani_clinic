@@ -37,6 +37,7 @@ async function getVisits(patientId?: string): Promise<Visit[] | undefined> {
         return undefined
 
     const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getVisits(patientId)
+    console.log({ res })
     if (res.code !== 200)
         return undefined
 

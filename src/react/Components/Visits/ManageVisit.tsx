@@ -1,4 +1,4 @@
-import { useState, useContext, useRef } from 'react';
+import { useState, useContext, useRef, useEffect } from 'react';
 
 import { Stack, Divider, IconButton, Accordion, AccordionSummary, Typography, AccordionDetails, Button } from '@mui/material';
 import { AddOutlined, Close, ExpandMore } from '@mui/icons-material';
@@ -27,16 +27,11 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
     const [showDiagnosis, setShowDiagnosis] = useState<boolean>(false)
     const [showTreatments, setShowTreatments] = useState<boolean>(false)
     const [activeVisitIndex, setActiveVisitIndex] = useState<number>();
-    const [visits, setVisits] = useState<Visit[]>([getDefaultVisit()]);
+    const [visits, setVisits] = useState<Visit[]>([]);
 
-    const isDefaultSet = useRef(false)
-    if (!isDefaultSet.current && defaultVisits) {
+    useEffect(() => {
         setVisits([...defaultVisits]);
-        isDefaultSet.current = true
-    }
-
-    if (visits.length === 0)
-        setVisits([getDefaultVisit()])
+    }, [defaultVisits])
 
     return (
         <>

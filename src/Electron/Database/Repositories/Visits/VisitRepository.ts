@@ -82,7 +82,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
 
         let visits: Visit[]
         if (patientIdOffset === undefined || typeof patientIdOffset === 'string')
-            visits = await (await this.getVisitsCollection()).find(patientIdOffset ? { patientId: patientIdOffset as string } : undefined).sort('due', -1).toArray()
+            visits = await (await this.getVisitsCollection()).find(patientIdOffset ? { patientId: new ObjectId(patientIdOffset as string) } : undefined).sort('due', -1).toArray()
         else if (typeof patientIdOffset === 'number' || typeof patientIdOffset === 'bigint')
             visits = await (await this.getVisitsCollection()).find().limit(count).skip(patientIdOffset * count).sort('due', -1).toArray()
         else
