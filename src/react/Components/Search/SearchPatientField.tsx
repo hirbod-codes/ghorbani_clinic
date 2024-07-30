@@ -49,6 +49,7 @@ export function SearchPatientField() {
                 type="text"
                 variant="standard"
                 value={socialId ?? ''}
+                placeholder={t('socialId')}
                 onChange={onSocialIdChange}
                 error={socialId !== undefined && socialId.length !== 10}
                 helperText={socialId !== undefined && socialId.length !== 10 ? t('InvalidSocialId') : (!loading && socialId && socialId.length === 10 && !patient ? t('patientNotFound') : '')}

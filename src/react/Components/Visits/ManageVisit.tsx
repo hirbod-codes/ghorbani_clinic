@@ -45,8 +45,8 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                 onClose={() => {
                     setShowDiagnosis(false)
                 }}
-                text={visits[activeVisitIndex]?.diagnosis.text}
-                canvasId={visits[activeVisitIndex]?.diagnosis.canvas as string}
+                text={visits[activeVisitIndex]?.diagnosis?.text}
+                canvasId={visits[activeVisitIndex]?.diagnosis?.canvas as string}
                 title={t('diagnosis')}
                 onSave={async (diagnosis, canvasId) => {
                     console.log('ManageVisits', 'diagnosis', 'onChange', diagnosis, canvasId)
@@ -63,8 +63,8 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                 onClose={() => {
                     setShowTreatments(false)
                 }}
-                text={visits[activeVisitIndex]?.treatments.text}
-                canvasId={visits[activeVisitIndex]?.treatments.canvas as string}
+                text={visits[activeVisitIndex]?.treatments?.text}
+                canvasId={visits[activeVisitIndex]?.treatments?.canvas as string}
                 title={t('treatments')}
                 onSave={async (treatments, canvasId) => {
                     console.log('ManageVisits', 'treatments', 'onChange', treatments, canvasId)
@@ -98,14 +98,12 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                                         defaultTime={fromUnix(locale, visits[i].due).time}
                                     />
 
-                                    <Stack direction='row' alignItems='center' justifyContent='space-evenly'>
-                                        <Button variant='outlined' onClick={() => setShowDiagnosis(true)}>
+                                    <Stack direction='row' alignItems='center' justifyContent='space-evenly' divider={<Divider orientation='horizontal' variant='middle' flexItem />} sx={{ width: '100%' }}>
+                                        <Button variant='outlined' onClick={() => { setActiveVisitIndex(i); setShowDiagnosis(true) }}>
                                             {t('diagnosis')}
                                         </Button>
 
-                                        <Divider orientation='vertical' variant='middle' />
-
-                                        <Button variant='outlined' onClick={() => setShowTreatments(true)}>
+                                        <Button variant='outlined' onClick={() => { setActiveVisitIndex(i); setShowTreatments(true) }}>
                                             {t('treatments')}
                                         </Button>
                                     </Stack>

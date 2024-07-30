@@ -8,7 +8,6 @@ import { publish } from "../../Lib/Events";
 import { TextEditor } from "../TextEditor/TextEditor";
 import { Canvas } from "../Canvas/Canvas";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
-import { configAPI } from "../../../Electron/Configuration/renderer/configAPI";
 
 export type EditorProps = {
     title?: string;

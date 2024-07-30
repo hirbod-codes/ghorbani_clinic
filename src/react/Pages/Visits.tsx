@@ -2,9 +2,9 @@ import { useState, useContext, useEffect } from "react";
 import { DataGrid } from "../Components/DataGrid/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
 import { t } from "i18next";
-import { Button, Grid, Paper } from "@mui/material";
+import { Button, CircularProgress, Grid, Paper } from "@mui/material";
 import LoadingScreen from "../Components/LoadingScreen";
-import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { GridActionsCellItem, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../Contexts/ConfigurationContext";
 import { Visit } from "../../Electron/Database/Models/Visit";
@@ -12,18 +12,25 @@ import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish } from "../Lib/Events";
 import { configAPI } from "../../Electron/Configuration/renderer/configAPI";
 import { EditorModal } from "../Components/Editor/EditorModal";
+import { resources } from "../../Electron/Database/Repositories/Auth/resources";
+import { AuthContext } from "../Contexts/AuthContext";
+import { DeleteOutline, RefreshOutlined } from "@mui/icons-material";
 
 export function Visits() {
+    const auth = useContext(AuthContext)
     const configuration = useContext(ConfigurationContext)
+
+    const [page, setPage] = useState({ offset: 0, limit: 25 })
+    const [hiddenColumns, setHiddenColumns] = useState<string[]>(['_id'])
 
     const [loading, setLoading] = useState<boolean>(true)
     const [visits, setVisits] = useState<Visit[]>([])
 
-    const [hiddenColumns, setHiddenColumns] = useState<string[]>(['_id'])
-
     // ID of the visit that is taken for its diagnosis representation
     const [showDiagnosis, setShowDiagnosis] = useState<string | undefined>(undefined)
     const [showTreatments, setShowTreatments] = useState<string | undefined>(undefined)
+
+    const [deletingVisitId, setDeletingVisitId] = useState<string>()
 
     console.log('Visits', { configuration, visits, showingDiagnosis: showDiagnosis })
 
@@ -53,8 +60,8 @@ export function Visits() {
 
     useEffect(() => {
         console.log('Visits', 'useEffect', 'start');
-        init(0, 25).then(() => console.log('useEffect', 'end'))
-    }, [])
+        init(page.offset, page.limit).then(() => console.log('useEffect', 'end'))
+    }, [page, auth])
 
     useEffect(() => {
         (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
@@ -63,6 +70,8 @@ export function Visits() {
                     setHiddenColumns(Object.entries(c.columnVisibilityModels.visits).filter(f => f[1] === false).map(arr => arr[0]))
             })
     }, [])
+
+    const deletesVisit = auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.VISIT)
 
     if (!visits || visits.length === 0)
         return (<LoadingScreen />)
@@ -112,10 +121,51 @@ export function Visits() {
                             overWriteColumns={columns}
                             loading={loading}
                             serverSidePagination
-                            onPaginationModelChange={async (m, d) => await init(m.page, m.pageSize)}
+                            onPaginationModelChange={(m, d) => setPage({ offset: m.page, limit: m.pageSize })}
                             orderedColumnsFields={['actions', 'patientId', 'due']}
                             storeColumnVisibilityModel
                             hiddenColumns={hiddenColumns}
+                            customToolbar={[
+                                <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
+                            ]}
+                            additionalColumns={[
+                                {
+                                    field: 'actions',
+                                    type: 'actions',
+                                    headerName: t('actions'),
+                                    headerAlign: 'center',
+                                    align: 'center',
+                                    width: 120,
+                                    getActions: ({ row }) => [
+                                        deletesVisit ? <GridActionsCellItem icon={deletingVisitId === row._id ? <CircularProgress size={20} /> : <DeleteOutline />} onClick={async () => {
+                                            try {
+                                                console.group('Visits', 'deletesVisit', 'onClick')
+
+                                                setDeletingVisitId(row._id)
+                                                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteVisit(row._id)
+                                                setDeletingVisitId(undefined)
+
+                                                if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1) {
+                                                    publish(RESULT_EVENT_NAME, {
+                                                        severity: 'error',
+                                                        message: t('failedToDeleteVisit')
+                                                    })
+
+                                                    return
+                                                }
+
+                                                publish(RESULT_EVENT_NAME, {
+                                                    severity: 'success',
+                                                    message: t('successfullyDeletedVisit')
+                                                })
+
+                                                await init(page.offset, page.limit)
+                                            }
+                                            finally { console.groupEnd() }
+                                        }} label={t('delete')} /> : null,
+                                    ]
+                                },
+                            ]}
                         />
                     </Paper>
                 </Grid>
