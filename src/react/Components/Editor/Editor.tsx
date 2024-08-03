@@ -281,9 +281,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
 
                                 <Divider />
 
-                                <Typography variant='body1'>
-                                    {text}
-                                </Typography>
+                                <div dangerouslySetInnerHTML={{ __html: text }} />
 
                                 <Divider />
                             </>

@@ -68,8 +68,6 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
         setMedicalHistory(inputMedicalHistory ?? { description: { text: '', canvas: undefined }, histories: [] })
     }, [inputMedicalHistory])
 
-    console.log('MedicalHistory', { openDrawer, medicalHistory, fetchedHistories })
-
     const toggleHistory = (v: boolean, fh: string) => {
         if (v && medicalHistory.histories?.find(f => f === fh) === undefined) {
             medicalHistory.histories?.push(fh)
@@ -80,6 +78,8 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
     }
 
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+
+    console.log('MedicalHistory', { openDrawer, medicalHistory, fetchedHistories, hasUnsavedChanges })
 
     const initDialog: any = {
         open: false,
@@ -95,6 +95,7 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
         <>
             <Modal
                 onClose={(e, r) => {
+                    console.log({ e, r })
                     if (hasUnsavedChanges)
                         setDialog({
                             open: true,

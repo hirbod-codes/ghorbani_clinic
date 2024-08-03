@@ -261,6 +261,10 @@ export function Patients() {
             <MedicalHistory
                 inputMedicalHistory={patients.find(f => f._id === activePatientId)?.medicalHistory}
                 open={showingMH}
+                onClose={() => {
+                    setActivePatientId(undefined)
+                    setShowingMH(false)
+                }}
                 onChange={async (mh) => {
                     try {
                         console.group('Patients', 'MedicalHistory', 'onChange')
