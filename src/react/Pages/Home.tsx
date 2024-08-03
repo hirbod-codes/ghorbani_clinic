@@ -1,16 +1,25 @@
-import { useContext } from "react";
-import { ConfigurationContext } from "../Contexts/ConfigurationContext";
-import { fromDateTimeToFormat } from "../Lib/DateTime/date-time-helpers";
-import { DateTime } from "luxon";
-import { t } from "i18next";
+import { Box, Button, Grid } from "@mui/material";
+import { SearchPatientField } from "../Components/Search/SearchPatientField";
+import { Analytics } from "../Components/Home/Analytics";
 
 export function Home() {
-    const conf = useContext(ConfigurationContext)
-
     return (
         <>
-            <h1>{t('home')}</h1>
-            <h3>{fromDateTimeToFormat(conf.get.locale, 'Gregorian', DateTime.utc())}</h3>
+            <Grid container spacing={1} p={1}>
+                <Grid item xs={0} sm={3}></Grid>
+                <Grid item xs={12} sm={6}>
+                    <SearchPatientField />
+                </Grid>
+                <Grid item xs={0} sm={3}></Grid>
+
+                <Grid item xs={12}>
+                    <Box mb={10}></Box>
+                </Grid>
+
+                <Grid item xs={12}>
+                    <Analytics />
+                </Grid>
+            </Grid>
         </>
     )
 }

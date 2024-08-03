@@ -15,6 +15,7 @@ import { getFields } from "../../Models/helpers";
 export class PatientRepository extends MongoDB implements IPatientRepository {
     async handleEvents() {
         ipcMain.handle('create-patient', async (_e, { patient }: { patient: Patient; }) => await this.handleErrors(async () => await this.createPatient(patient)))
+        ipcMain.handle('get-patients-estimated-count', async () => await this.handleErrors(async () => await this.getPatientsEstimatedCount()))
         ipcMain.handle('get-patient-with-visits', async (_e, { socialId }: { socialId: string; }) => await this.handleErrors(async () => await this.getPatientWithVisits(socialId)))
         ipcMain.handle('get-patients-with-visits', async (_e, { offset, count }: { offset: number; count: number; }) => await this.handleErrors(async () => await this.getPatientsWithVisits(offset, count)))
         ipcMain.handle('get-patient', async (_e, { socialId }: { socialId: string; }) => await this.handleErrors(async () => await this.getPatient(socialId)))
@@ -40,6 +41,17 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         patient.updatedAt = DateTime.utc().toUnixInteger();
 
         return await (await this.getPatientsCollection()).insertOne(patient)
+    }
+
+    async getPatientsEstimatedCount(): Promise<number> {
+        const user = await authRepository.getAuthenticatedUser()
+        if (!user)
+            throw new Unauthenticated();
+
+        if (!(await privilegesRepository.getAccessControl()).can(user.roleName).read(resources.PATIENT).granted)
+            throw new Unauthorized()
+
+        return await (await this.getPatientsCollection()).estimatedDocumentCount()
     }
 
     async getPatientWithVisits(socialId: string): Promise<Patient & { visits: Visit[] }> {

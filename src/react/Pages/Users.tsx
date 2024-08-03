@@ -11,14 +11,15 @@ import { ConfigurationContext } from '../Contexts/ConfigurationContext';
 import { AuthContext } from "../Contexts/AuthContext";
 import ManageUser from "../Components/ManageUser";
 import { ManageRole } from "../Components/ManageRole";
-import { ResultContext } from "../Contexts/ResultContext";
 import { NavigationContext } from "../Contexts/NavigationContext";
 import { DataGrid } from "../Components/DataGrid/DataGrid";
 import { GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
 import { Home } from "./Home";
+import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
+import { publish } from "../Lib/Events";
+import { configAPI } from "../../Electron/Configuration/renderer/configAPI";
 
 export function Users() {
-    const setResult = useContext(ResultContext).setResult
     const configuration = useContext(ConfigurationContext)
     const auth = useContext(AuthContext)
     const nav = useContext(NavigationContext)
@@ -42,6 +43,8 @@ export function Users() {
 
     const [rows, setRows] = useState([])
     const [loading, setLoading] = useState(true)
+
+    const [hiddenColumns, setHiddenColumns] = useState<string[]>(['_id'])
 
     const fetchRoles = async (): Promise<string[] | undefined | null> => {
         setLoading(true)
@@ -91,27 +94,35 @@ export function Users() {
         refresh()
     }, [])
 
+    useEffect(() => {
+        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+            .then((c) => {
+                if (c?.columnVisibilityModels?.users)
+                    setHiddenColumns(Object.entries(c.columnVisibilityModels.users).filter(f => f[1] === false).map(arr => arr[0]))
+            })
+    }, [])
+
     const deleteUser = async (id: string) => {
         try {
             setDeletingUser(id)
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteUser(id)
             setDeletingUser(undefined)
             if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1) {
-                setResult({
+                publish(RESULT_EVENT_NAME, {
                     severity: 'error',
                     message: t('failedToDelete'),
                 })
                 return
             }
 
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'success',
                 message: t('successfullyDeleted'),
             })
         } catch (error) {
             console.error(error)
 
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'error',
                 message: t('failedToDelete'),
             })
@@ -124,21 +135,21 @@ export function Users() {
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteRole(roleName)
             setDeletingRole(undefined)
             if (res.code !== 200) {
-                setResult({
+                publish(RESULT_EVENT_NAME, {
                     severity: 'error',
                     message: t('failedToDelete'),
                 })
                 return
             }
 
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'success',
                 message: t('successfullyDeleted'),
             })
         } catch (error) {
             console.error(error)
 
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'error',
                 message: t('failedToDelete'),
             })
@@ -251,40 +262,42 @@ export function Users() {
                     <Grid item xs={readsRole ? 8 : 12} sm={readsRole ? 10 : 12}>
                         <Paper sx={{ p: 1, height: '100%' }}>
                             <DataGrid
+                                name='users'
                                 data={rows}
                                 overWriteColumns={columns}
-                                orderedColumnsFields={['actions']}
                                 loading={loading}
-                                hiddenColumns={['_id']}
-                                additionalColumns={(deletesUser || updatesUser) ? [{
-                                    field: 'actions',
-                                    headerName: '',
-                                    headerAlign: 'center',
-                                    align: 'center',
-                                    type: 'actions',
-                                    width: 120,
-                                    getActions: (params) => [
-                                        updatesUser
-                                            ? <GridActionsCellItem
-                                                label={t('editUser')}
-                                                icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
-                                                onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === params.row._id)) }}
-                                            />
-                                            : null,
-                                        deletesUser
-                                            ? <GridActionsCellItem
-                                                label={t('deleteUser')}
-                                                icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
-                                                onClick={async () => {
-                                                    await deleteUser(params.row._id);
-                                                    await updateRows(role)
-                                                    if (auth.user._id === params.row.id)
-                                                        await auth.logout()
-                                                }}
-                                            />
-                                            : null,
-                                    ].filter(a => a != null)
-                                }] : undefined}
+                                orderedColumnsFields={['actions']}
+                                storeColumnVisibilityModel
+                                hiddenColumns={hiddenColumns}
+                                // additionalColumns={(deletesUser || updatesUser) ? [{
+                                //     field: 'actions',
+                                //     headerName: '',
+                                //     headerAlign: 'center',
+                                //     align: 'center',
+                                //     type: 'actions',
+                                //     width: 120,
+                                //     getActions: (params) => [
+                                //         updatesUser
+                                //             ? <GridActionsCellItem
+                                //                 label={t('editUser')}
+                                //                 icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
+                                //                 onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === params.row._id)) }}
+                                //             />
+                                //             : null,
+                                //         deletesUser
+                                //             ? <GridActionsCellItem
+                                //                 label={t('deleteUser')}
+                                //                 icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
+                                //                 onClick={async () => {
+                                //                     await deleteUser(params.row._id);
+                                //                     await updateRows(role)
+                                //                     if (auth.user._id === params.row.id)
+                                //                         await auth.logout()
+                                //                 }}
+                                //             />
+                                //             : null,
+                                //     ].filter(a => a != null)
+                                // }] : undefined}
                                 customToolbar={[
                                     <Button onClick={async () => await fetchUsers()} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
                                     createsUser && <Button onClick={() => setOpenManageUserModal(true)} startIcon={<AddOutlined />}>{t('Create')}</Button>,

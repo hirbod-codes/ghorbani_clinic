@@ -3,9 +3,10 @@ import fs from 'fs'
 import path from 'path'
 import type { Config } from './types'
 import { v4 as uuidV4 } from 'uuid';
+import { CONFIGURATION_DIRECTORY } from '../../directories';
 
 export function readConfig(): Config | null | undefined {
-    const configFile = path.join(app.getPath('appData'), app.getName(), 'Configuration', 'config.json')
+    const configFile = path.join(CONFIGURATION_DIRECTORY, 'config.json')
 
     if (!fs.existsSync(configFile))
         writeConfigSync({ appIdentifier: 'clinic', appName: `clinic-${uuidV4()}.local`, port: 3001 })
@@ -23,7 +24,7 @@ export function readConfig(): Config | null | undefined {
 }
 
 export function writeConfig(config: Config): void {
-    const configFolder = path.join(app.getPath('appData'), app.getName(), 'Configuration')
+    const configFolder = path.join(CONFIGURATION_DIRECTORY)
     const configFile = path.join(configFolder, 'config.json')
 
     if (!fs.existsSync(configFolder))
@@ -33,7 +34,7 @@ export function writeConfig(config: Config): void {
 }
 
 export function writeConfigSync(config: Config): void {
-    const configFolder = path.join(app.getPath('appData'), app.getName(), 'Configuration')
+    const configFolder = path.join(CONFIGURATION_DIRECTORY)
     const configFile = path.join(configFolder, 'config.json')
 
     if (!fs.existsSync(configFolder))

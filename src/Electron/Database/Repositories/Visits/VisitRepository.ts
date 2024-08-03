@@ -14,6 +14,9 @@ import { getFields } from "../../Models/helpers";
 export class VisitRepository extends MongoDB implements IVisitRepository {
     async handleEvents(): Promise<void> {
         ipcMain.handle('create-visit', async (_e, { visit }: { visit: Visit }) => await this.handleErrors(async () => await this.createVisit(visit)))
+        ipcMain.handle('get-visits-estimated-count', async () => await this.handleErrors(async () => await this.getVisitsEstimatedCount()))
+        ipcMain.handle('get-expired-visits-count', async () => await this.handleErrors(async () => await this.getExpiredVisitsCount()))
+        ipcMain.handle('get-expired-visits', async () => await this.handleErrors(async () => await this.getExpiredVisits()))
         ipcMain.handle('get-visits', async (_e, { patientIdOffset, count }: { patientIdOffset?: string | number, count?: number }) => await this.handleErrors(async () => await this.getVisits(patientIdOffset as any, count)))
         ipcMain.handle('update-visit', async (_e, { visit }: { visit: Visit }) => await this.handleErrors(async () => await this.updateVisit(visit)))
         ipcMain.handle('delete-visit', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.deleteVisit(id)))
@@ -38,6 +41,33 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         return await (await this.getVisitsCollection()).insertOne(visit)
     }
 
+    async getVisitsEstimatedCount(): Promise<number> {
+        const user = await authRepository.getAuthenticatedUser()
+        if (!user)
+            throw new Unauthenticated();
+
+        if (!(await privilegesRepository.getAccessControl()).can(user.roleName).read(resources.VISIT).granted)
+            throw new Unauthorized()
+
+        return await (await this.getVisitsCollection()).estimatedDocumentCount()
+    }
+
+    async getExpiredVisitsCount(): Promise<number> {
+        const user = await authRepository.getAuthenticatedUser()
+        if (!user)
+            throw new Unauthenticated();
+
+        if (!(await privilegesRepository.getAccessControl()).can(user.roleName).read(resources.VISIT).granted)
+            throw new Unauthorized()
+
+        return (await this.getExpiredVisits()).length
+    }
+
+    async getExpiredVisits(): Promise<Visit[]> {
+        const nowTs = DateTime.utc().toUnixInteger()
+        return (await (await this.getVisitsCollection()).find({ due: { $lt: nowTs } }).toArray())
+    }
+
     async getVisits(): Promise<Visit[]>
     async getVisits(patientId: string): Promise<Visit[]>
     async getVisits(offset: number, count: number): Promise<Visit[]>
@@ -52,7 +82,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
 
         let visits: Visit[]
         if (patientIdOffset === undefined || typeof patientIdOffset === 'string')
-            visits = await (await this.getVisitsCollection()).find(patientIdOffset ? { patientId: patientIdOffset as string } : undefined).sort('due', -1).toArray()
+            visits = await (await this.getVisitsCollection()).find(patientIdOffset ? { patientId: new ObjectId(patientIdOffset as string) } : undefined).sort('due', -1).toArray()
         else if (typeof patientIdOffset === 'number' || typeof patientIdOffset === 'bigint')
             visits = await (await this.getVisitsCollection()).find().limit(count).skip(patientIdOffset * count).sort('due', -1).toArray()
         else
@@ -84,7 +114,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
 
         visit.updatedAt = DateTime.utc().toUnixInteger();
 
-        return (await (await this.getVisitsCollection()).updateOne({ _id: new ObjectId(id) }, { $set: { ...visit } }, { upsert: false }))
+        return (await (await this.getVisitsCollection()).updateOne({ _id: new ObjectId(id) }, { $set: { ...visit } }, { upsert: true }))
     }
 
     async deleteVisit(id: string): Promise<DeleteResult> {

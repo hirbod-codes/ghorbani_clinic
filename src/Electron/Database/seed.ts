@@ -7,6 +7,51 @@ import { User } from "./Models/User";
 import { Privilege } from "./Models/Privilege";
 import { privileges } from "./Repositories/Auth/dev-permissions";
 import { users } from "./Repositories/Auth/dev-users";
+import { MedicalHistory, medicalHistorySchema } from "./Models/MedicalHistory";
+
+export async function seedMedicalHistories(medicalHistoriesCollection: Collection<MedicalHistory>): Promise<void> {
+    try {
+        await medicalHistoriesCollection.deleteMany()
+
+        const medicalHistoriesCount = faker.number.int({ min: 20, max: 60 })
+
+        for (let i = 0; i < medicalHistoriesCount; i++) {
+            let tryCount = 0
+            while (tryCount < 3)
+                try {
+                    const medicalHistoryCreatedAt = DateTime.fromISO(faker.date.between({ from: '2019-01-01T00:00:00.000Z', to: '2024-01-01T00:00:00.000Z' }).toISOString())
+
+                    let medicalHistory: MedicalHistory = {
+                        schemaVersion: 'v0.0.1',
+                        name: faker.string.alpha({ length: { min: 10, max: 50 } }),
+                        updatedAt: medicalHistoryCreatedAt.toUnixInteger(),
+                        createdAt: medicalHistoryCreatedAt.toUnixInteger(),
+                    }
+
+                    if (!medicalHistorySchema.isValidSync(medicalHistory))
+                        throw new Error('seeder failed to create a medicalHistory document.')
+
+                    medicalHistory = medicalHistorySchema.cast(medicalHistory);
+
+                    (await medicalHistoriesCollection.insertOne(medicalHistory)).insertedId.toString()
+
+                    break
+                } catch (error) {
+                    tryCount++
+                    console.error('error', error)
+                    console.log('i', i)
+                    if (tryCount >= 3) {
+                        console.log('The retry limit exceeded, terminating...')
+                        return
+                    }
+                }
+        }
+    }
+    catch (err) {
+        console.error(err)
+        console.error(new Error('Failure while trying to seed Medical histories'))
+    }
+}
 
 export async function seedUsersRoles(usersCollection: Collection<User>, privilegesCollection: Collection<Privilege>): Promise<void> {
     try {
@@ -46,10 +91,18 @@ export async function seedPatientsVisits(patientCount: number, patientsCollectio
                         firstName: faker.person.firstName(gender),
                         lastName: faker.person.lastName(gender),
                         socialId: faker.string.numeric(10),
-                        address: `${faker.location.country()}-${faker.location.city()}-${faker.location.streetAddress()}`,
+                        phoneNumber: '0' + faker.string.numeric({ length: 10, allowLeadingZeros: false }),
+                        address: {
+                            text: `${faker.location.country()}-${faker.location.city()}-${faker.location.streetAddress()}`
+                        },
                         age: age,
                         gender: gender,
-                        medicalHistory: Array.from({ length: faker.number.int({ min: 0, max: 7 }) }, () => faker.lorem.lines(3)),
+                        medicalHistory: faker.datatype.boolean(0.3) ? undefined : {
+                            description: {
+                                text: faker.lorem.lines(5),
+                            },
+                            histories: Array.from({ length: faker.number.int({ min: 0, max: 7 }) }, () => faker.string.alpha(10))
+                        },
                         birthDate: DateTime.utc().minus({ years: age }).toUnixInteger(),
                         updatedAt: patientCreatedAt.toUnixInteger(),
                         createdAt: patientCreatedAt.toUnixInteger(),
@@ -68,7 +121,12 @@ export async function seedPatientsVisits(patientCount: number, patientsCollectio
                             schemaVersion: 'v0.0.1',
                             patientId: ObjectId.createFromHexString(id),
                             due: visitCreatedAt.plus({ days: faker.number.int({ min: 0, max: 30 }) }).toUnixInteger(),
-                            diagnosis: faker.helpers.maybe(() => Array.from({ length: faker.number.int({ min: 1, max: 4 }) }, () => faker.lorem.lines(faker.number.int({ min: 1, max: 10 }))), { probability: 0.5 }),
+                            diagnosis: {
+                                text: faker.lorem.lines(faker.number.int({ min: 1, max: 10 })),
+                            },
+                            treatments: {
+                                text: faker.lorem.lines(faker.number.int({ min: 1, max: 10 })),
+                            },
                             updatedAt: visitCreatedAt.toUnixInteger(),
                             createdAt: visitCreatedAt.toUnixInteger(),
                         } as Visit

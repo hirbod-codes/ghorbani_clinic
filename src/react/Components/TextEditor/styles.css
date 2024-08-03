@@ -1,0 +1,8 @@
+.editor {
+    height: 100%;
+}
+
+.menuControlsContainer {
+    max-height: 3.5rem;
+    overflow: auto;
+}

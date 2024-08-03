@@ -5,18 +5,18 @@ import { User } from '../../Electron/Database/Models/User';
 import { AuthContext } from './AuthContext';
 import { NavigationContext } from './NavigationContext';
 import { AccessControl } from 'accesscontrol';
-import { ResultContext } from './ResultContext';
 import { ConfigurationContext } from './ConfigurationContext';
 import { Home } from '../Pages/Home';
 import { Modal, Paper, Slide } from '@mui/material';
 import { LoginForm } from '../Components/Auth/LoginForm';
+import { RESULT_EVENT_NAME } from './ResultWrapper';
+import { publish } from '../Lib/Events';
 
 export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
     const { t, i18n } = useTranslation();
 
     const configuration = useContext(ConfigurationContext)
     const setContent = useContext(NavigationContext)?.setContent;
-    const setResult = useContext(ResultContext)?.setResult ?? ((o: any) => { });
 
     const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
     const [auth, setAuth] = useState<{ user: User | undefined; ac: AccessControl | undefined; }>({ user: undefined, ac: undefined });
@@ -60,14 +60,14 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
             const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.login(username, password);
             console.log('login', 'res', res);
             if (res.code !== 200 || res.data !== true) {
-                setResult({
+                publish(RESULT_EVENT_NAME, {
                     severity: 'error',
                     message: t('failedToAuthenticate'),
                 });
                 return;
             }
 
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'success',
                 message: t('successfullyAuthenticated'),
             });
@@ -76,7 +76,7 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
         } catch (error) {
             console.error(error);
 
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'error',
                 message: t('failedToAuthenticate'),
             });
@@ -89,7 +89,7 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
             const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.logout();
             console.log('logout', 'res', res);
             if (res.code !== 200) {
-                setResult({
+                publish(RESULT_EVENT_NAME, {
                     severity: 'error',
                     message: t('failedToLogout'),
                 });
@@ -97,7 +97,7 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
             }
 
             if (res.data !== true) {
-                setResult({
+                publish(RESULT_EVENT_NAME, {
                     severity: 'error',
                     message: t('failedToLogout'),
                 });
@@ -106,14 +106,14 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
 
             setAuth({ user: undefined, ac: undefined });
             setContent(<Home />);
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'success',
                 message: t('successfullyToLogout'),
             });
         } catch (error) {
             console.error(error);
 
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'error',
                 message: t('failedToLogout'),
             });
@@ -129,7 +129,7 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
             if (!u) {
                 if (isAuthLoading)
                     setIsAuthLoading(false);
-                setResult({
+                publish(RESULT_EVENT_NAME, {
                     severity: 'error',
                     message: t('failedToAuthenticate')
                 });
@@ -139,7 +139,7 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
             if (!accessControl) {
                 if (isAuthLoading)
                     setIsAuthLoading(false);
-                setResult({
+                publish(RESULT_EVENT_NAME, {
                     severity: 'error',
                     message: t('failedToAuthenticate')
                 });
@@ -153,7 +153,7 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
 
             if (isAuthLoading)
                 setIsAuthLoading(false);
-            setResult({
+            publish(RESULT_EVENT_NAME, {
                 severity: 'error',
                 message: t('failedToAuthenticate')
             });

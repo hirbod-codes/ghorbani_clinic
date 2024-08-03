@@ -1,7 +1,9 @@
 import { ClientSession, Collection, Db, GridFSBucket, MongoClient } from "mongodb";
 import { type Patient, collectionName as patientsCollectionName } from "./Models/Patient";
+import { type MedicalHistory, collectionName as patientsMedicalHistoriesCollectionName } from "./Models/MedicalHistory";
 import { Visit, collectionName as visitsCollectionName } from "./Models/Visit";
-import { collectionName as filesCollectionName } from "./Models/File";
+import { collectionName as patientsDocumentsCollectionName } from "./Models/PatientsDocuments";
+import { collectionName as canvasCollectionName } from "./Models/Canvas";
 import { collectionName as privilegesCollectionName } from "./Models/Privilege";
 import { collectionName as usersCollectionName } from "./Models/User";
 import type { dbAPI } from "./dbAPI";
@@ -162,6 +164,7 @@ export class MongoDB implements dbAPI {
         await this.addUsersCollection()
         await this.addPrivilegesCollection()
         await this.addPatientsCollection()
+        await this.addMedicalHistoriesCollection()
         await this.addVisitsCollection()
     }
 
@@ -210,6 +213,21 @@ export class MongoDB implements dbAPI {
             await db.createIndex(patientsCollectionName, { updatedAt: 1 }, { name: 'updated-at' })
     }
 
+    private async addMedicalHistoriesCollection() {
+        const db = await this.getDb();
+
+        if (!(await db.listCollections().toArray()).map(e => e.name).includes(patientsMedicalHistoriesCollectionName))
+            await db.createCollection(patientsMedicalHistoriesCollectionName)
+
+        const indexes = await db.collection(patientsMedicalHistoriesCollectionName).indexes()
+
+        if (indexes.find(i => i.name === 'patientId') === undefined)
+            await db.createIndex(visitsCollectionName, { patientId: 1 }, { name: 'patientId' })
+
+        if (indexes.find(i => i.name === 'unique-name') === undefined)
+            await db.createIndex(patientsMedicalHistoriesCollectionName, { name: 1 }, { unique: true, name: 'unique-name' })
+    }
+
     private async addVisitsCollection() {
         const db = await this.getDb();
 
@@ -243,24 +261,37 @@ export class MongoDB implements dbAPI {
         return (db ?? (await this.getDb(client))).collection<Patient>(patientsCollectionName)
     }
 
+    async getMedicalHistoriesCollection(client?: MongoClient, db?: Db): Promise<Collection<MedicalHistory>> {
+        return (db ?? (await this.getDb(client))).collection<MedicalHistory>(patientsMedicalHistoriesCollectionName)
+    }
+
     async getVisitsCollection(client?: MongoClient, db?: Db): Promise<Collection<Visit>> {
         return (db ?? (await this.getDb(client))).collection<Visit>(visitsCollectionName)
     }
 
-    async getBucket(client?: MongoClient, db?: Db): Promise<GridFSBucket> {
-        return new GridFSBucket(db ?? (await this.getDb(client)), { bucketName: filesCollectionName });
+    async getPatientsDocumentsBucket(client?: MongoClient, db?: Db): Promise<GridFSBucket> {
+        return new GridFSBucket(db ?? (await this.getDb(client)), { bucketName: patientsDocumentsCollectionName });
     }
 
-    async handleErrors(callback: () => Promise<unknown>): Promise<string> {
+    async getCanvasBucket(client?: MongoClient, db?: Db): Promise<GridFSBucket> {
+        return new GridFSBucket(db ?? (await this.getDb(client)), { bucketName: canvasCollectionName });
+    }
+
+    async handleErrors(callback: () => Promise<unknown> | unknown, jsonStringify = true): Promise<string | any> {
         try {
-            return JSON.stringify({
+            const response = {
                 code: 200,
                 data: await callback()
-            })
+            }
+            if (jsonStringify)
+                return JSON.stringify(response)
+            else
+                return response
         }
         catch (error) {
             console.error('error in main process')
-            console.error(error)
+            console.error('error', error)
+            console.error('error json', JSON.stringify(error, undefined, 4))
             if (error instanceof Unauthorized)
                 return JSON.stringify({ code: 403 })
             else if (error instanceof Unauthenticated)

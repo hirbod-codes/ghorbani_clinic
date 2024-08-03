@@ -3,14 +3,14 @@ import { User } from "../../Electron/Database/Models/User";
 import { FormControl, InputLabel, Select, MenuItem, Stack, Grid, TextField, Button, Typography, Divider } from '@mui/material';
 import { t } from 'i18next';
 import { RendererDbAPI } from '../../Electron/Database/handleDbRendererEvents';
-import { ResultContext } from '../Contexts/ResultContext';
 import { CheckOutlined } from '@mui/icons-material';
 import { AuthContext } from '../Contexts/AuthContext';
 import { resources } from '../../Electron/Database/Repositories/Auth/resources';
+import { RESULT_EVENT_NAME } from '../Contexts/ResultWrapper';
+import { publish } from '../Lib/Events';
 
 export default function ManageUser({ roles, defaultUser, onFinish }: { roles: string[], defaultUser?: User, onFinish?: () => Promise<void> | void }) {
     const auth = useContext(AuthContext)
-    const setResult = useContext(ResultContext).setResult
 
     const [user, setUser] = useState<User | undefined>(undefined)
 
@@ -69,14 +69,14 @@ export default function ManageUser({ roles, defaultUser, onFinish }: { roles: st
                         const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updateUser(Object.fromEntries(Object.entries(user).filter(arr => arr[1] !== '')))
                         console.log('updateUser', 'res', res)
                         if (res.code !== 200 || !res.data.acknowledged || res.data.matchedCount !== 1 || res.data.modifiedCount !== 1) {
-                            setResult({
+                            publish(RESULT_EVENT_NAME, {
                                 severity: 'error',
                                 message: t('failedToUpdateUser'),
                             })
                             return
                         }
 
-                        setResult({
+                        publish(RESULT_EVENT_NAME, {
                             severity: 'success',
                             message: t('successfullyUpdatedUser'),
                         })
@@ -88,14 +88,14 @@ export default function ManageUser({ roles, defaultUser, onFinish }: { roles: st
                         const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createUser(user)
                         console.log('createUser', 'res', res)
                         if (res.code !== 200 || !res.data.acknowledged) {
-                            setResult({
+                            publish(RESULT_EVENT_NAME, {
                                 severity: 'error',
                                 message: t('failedToRegisterUser'),
                             })
                             return
                         }
 
-                        setResult({
+                        publish(RESULT_EVENT_NAME, {
                             severity: 'success',
                             message: t('successfullyRegisteredUser'),
                         })

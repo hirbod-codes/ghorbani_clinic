@@ -5,6 +5,8 @@ import { Patient } from "./Models/Patient"
 import { Visit } from "./Models/Visit"
 import { MongodbConfig } from "../Configuration/types"
 import { User } from "./Models/User"
+import { MedicalHistory } from "./Models/MedicalHistory"
+import { Canvas } from "./Models/Canvas"
 
 export type dbAPI = {
     getConfig: () => Promise<MongodbConfig>;
@@ -44,6 +46,7 @@ export type IPatientRepository = dbAPI & {
     handleEvents(): Promise<void>;
     createPatient(patient: Patient): Promise<InsertOneResult>;
     getPatientWithVisits(socialId: string): Promise<Patient & { visits: Visit[] }>;
+    getPatientsEstimatedCount(): Promise<number>;
     getPatient(socialId: string): Promise<Patient | null>;
     getPatients(offset: number, count: number): Promise<Patient[]>;
     getPatientsWithVisits(offset: number, count: number): Promise<(Patient & { visits: Visit[] })[]>;
@@ -51,9 +54,21 @@ export type IPatientRepository = dbAPI & {
     deletePatient(id: string): Promise<DeleteResult>
 }
 
+export type IMedicalHistoryRepository = dbAPI & {
+    handleEvents(): Promise<void>;
+    createMedicalHistory(medicalHistory: MedicalHistory): Promise<InsertOneResult>;
+    getMedicalHistories(): Promise<MedicalHistory[]>;
+    getMedicalHistory(name: string): Promise<MedicalHistory>;
+    deleteMedicalHistoryById(id: string): Promise<DeleteResult>;
+    deleteMedicalHistoryByName(name: string): Promise<DeleteResult>;
+}
+
 export type IVisitRepository = dbAPI & {
     handleEvents(): Promise<void>;
     createVisit(visit: Visit): Promise<InsertOneResult>;
+    getVisitsEstimatedCount(): Promise<number>;
+    getExpiredVisitsCount(): Promise<number>;
+    getExpiredVisits(): Promise<Visit[]>;
     getVisits(): Promise<Visit[]>;
     getVisits(offset: number, count: number): Promise<Visit[]>;
     getVisits(patientId: string): Promise<Visit[]>;
@@ -61,7 +76,7 @@ export type IVisitRepository = dbAPI & {
     deleteVisit(id: string): Promise<DeleteResult>;
 }
 
-export type IFileRepository = dbAPI & {
+export type IPatientsDocumentsRepository = dbAPI & {
     handleEvents(): Promise<void>;
     uploadFiles(patientId: string, files: { fileName: string; bytes: Buffer | Uint8Array; }[]): Promise<boolean>;
     retrieveFiles(patientId: string): Promise<GridFSFile[]>;
@@ -69,4 +84,14 @@ export type IFileRepository = dbAPI & {
     downloadFiles(patientId: string): Promise<string[]>;
     openFile(patientId: string, fileName: string): Promise<void>;
     deleteFiles(patientId: string): Promise<boolean>;
+}
+
+export type ICanvasRepository = dbAPI & {
+    handleEvents(): Promise<void>;
+    uploadCanvas(canvas: Canvas): Promise<string>;
+    retrieveCanvases(id: string): Promise<GridFSFile[]>;
+    downloadCanvas(id: string): Promise<Canvas>;
+    downloadCanvases(ids: string[]): Promise<Canvas[]>;
+    openCanvas(id: string): Promise<void>;
+    deleteCanvases(id: string): Promise<boolean>;
 }

@@ -38,7 +38,7 @@ export default function App() {
     return (
         <>
             <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)}>
-                <List>
+                <List sx={{ pt: 3 }}>
                     <ListItemButton onClick={() => { setContent(<Home />); setOpenDrawer(false) }}>
                         <ListItemIcon>
                             <HomeOutlined />

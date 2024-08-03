@@ -1,21 +1,24 @@
 import { app } from "electron";
 import { PatientRepository } from "./Repositories/Patients/PatientRepository";
+import { MedicalHistoryRepository } from "./Repositories/MedicalHistories/MedicalHistoryRepository";
 import { VisitRepository } from "./Repositories/Visits/VisitRepository";
-import { FileRepository } from "./Repositories/Files/FileRepository";
+import { PatientsDocumentsRepository } from "./Repositories/PatientsDocuments/PatientsDocumentsRepository";
 import { MongoDB } from "./mongodb";
-import { seedPatientsVisits, seedUsersRoles } from "./seed";
+import { seedMedicalHistories, seedPatientsVisits, seedUsersRoles } from "./seed";
 import { UsersRepository } from "./Repositories/Users/UsersRepository";
 import { PrivilegesRepository } from "./Repositories/Privileges/PrivilegesRepository";
-import { readConfig, writeConfigSync } from "../Configuration/configuration";
 import { AuthRepository } from "./Repositories/Auth/AuthRepository";
+import { CanvasRepository } from "./Repositories/canvas/CanvasRepository";
 
 export const db = new MongoDB();
 export const authRepository = new AuthRepository();
 export const usersRepository = new UsersRepository();
 export const privilegesRepository = new PrivilegesRepository();
 export const patientRepository = new PatientRepository();
+export const medicalHistoryRepository = new MedicalHistoryRepository();
 export const visitRepository = new VisitRepository();
-export const fileRepository = new FileRepository()
+export const fileRepository = new PatientsDocumentsRepository()
+export const canvasRepository = new CanvasRepository()
 
 export async function handleDbEvents() {
     try { await db.initializeDb() }
@@ -26,12 +29,15 @@ export async function handleDbEvents() {
     await usersRepository.handleEvents()
     await privilegesRepository.handleEvents()
     await patientRepository.handleEvents()
+    await medicalHistoryRepository.handleEvents()
     await visitRepository.handleEvents()
     await fileRepository.handleEvents()
+    await canvasRepository.handleEvents()
 
     if (app.isPackaged)
         return
 
+    await seedMedicalHistories(await db.getMedicalHistoriesCollection())
     await seedUsersRoles(await db.getUsersCollection(), await db.getPrivilegesCollection())
     await seedPatientsVisits(50, await db.getPatientsCollection(), await db.getVisitsCollection());
 }

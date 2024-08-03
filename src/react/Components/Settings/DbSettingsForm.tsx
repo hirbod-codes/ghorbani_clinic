@@ -1,18 +1,37 @@
 import { Stack, TextField, Button, Checkbox, FormControlLabel, FormGroup, Typography } from '@mui/material';
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { t } from 'i18next';
 import { configAPI } from '../../../Electron/Configuration/renderer/configAPI';
 import { appAPI } from '../../../Electron/handleAppRendererEvents';
-import { ResultContext } from '../../../react/Contexts/ResultContext';
+import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
+import { publish } from '../../Lib/Events';
 
 export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean }) {
-    const setResult = useContext(ResultContext)?.setResult ?? ((o: any) => { })
 
     const [username, setUsername] = useState<string>('')
     const [password, setPassword] = useState<string>('')
     const [supportsTransaction, setSupportsTransaction] = useState<boolean>(false)
     const [url, setUrl] = useState<string>('')
     const [databaseName, setDatabaseName] = useState<string>('')
+
+    const init = async () => {
+        console.group('init')
+
+        const config = await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig();
+        console.log({ c: config })
+
+        setUsername(config.mongodb?.auth?.username ?? '')
+        setPassword(config.mongodb?.auth?.password ?? '')
+        setSupportsTransaction(config.mongodb?.supportsTransaction ?? false)
+        setUrl(config.mongodb?.url ?? '')
+        setDatabaseName(config.mongodb?.databaseName ?? '')
+
+        console.groupEnd()
+    }
+
+    useEffect(() => {
+        init()
+    }, [])
 
     return (
         <>
@@ -26,7 +45,7 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                 <TextField variant='standard' type='text' value={username} onChange={(e) => setUsername(e.target.value)} label={t('username')} />
                 <TextField variant='standard' type='password' value={password} onChange={(e) => setPassword(e.target.value)} label={t('password')} />
 
-                <TextField variant='standard' type='text' value={url} onChange={(e) => setUrl(e.target.value)} label={t('url')} />
+                <TextField variant='standard' type='text' value={url.replace('mongodb://', '')} placeholder={t('ip:port')} onChange={(e) => setUrl('mongodb://' + e.target.value)} label={t('url')} />
                 <TextField variant='standard' type='text' value={databaseName} onChange={(e) => setDatabaseName(e.target.value)} label={t('databaseName')} />
 
                 <FormGroup>
@@ -37,7 +56,7 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                     const settings = { url, databaseName, supportsTransaction, auth: { username, password } }
 
                     if (!settings.auth || !settings.auth.username || !settings.auth.password || !settings.databaseName || !settings.url) {
-                        setResult({
+                        publish(RESULT_EVENT_NAME, {
                             severity: 'error',
                             message: t('invalidSettingsProvided')
                         })
@@ -49,7 +68,14 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                         mongodb: settings
                     });
 
-                    (window as typeof window & { appAPI: appAPI }).appAPI.reLaunch()
+                    publish(RESULT_EVENT_NAME, {
+                        severity: 'success',
+                        message: t('restartingIn2Seconds')
+                    })
+
+                    setTimeout(() => {
+                        (window as typeof window & { appAPI: appAPI }).appAPI.reLaunch()
+                    }, 2000)
                 }}>
                     {t('done')}
                 </Button>

@@ -6,7 +6,10 @@ import { Locale } from "../Lib/Localization";
 
 export type ConfigurationStorableData = {
     locale: Locale,
-    themeMode: PaletteMode
+    themeMode: PaletteMode,
+    canvas?: {
+        backgroundColor: string
+    }
 }
 
 export type ConfigurationData = ConfigurationStorableData & { theme: Theme }

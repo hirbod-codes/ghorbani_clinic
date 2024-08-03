@@ -7,13 +7,12 @@ import { Privilege } from "../../Electron/Database/Models/Privilege";
 import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
 import LoadingScreen from "./LoadingScreen";
 import { getAttributes } from "../../Electron/Database/Repositories/Auth/resources";
-import { ResultContext } from "../Contexts/ResultContext";
+import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
+import { publish } from "../Lib/Events";
 
 type Resource = { name: string, index: number, create?: boolean, read?: string[] | undefined, update?: string[] | undefined, delete?: boolean }
 
 export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, onFinish?: () => Promise<void> | void }) {
-    const setResult = useContext(ResultContext).setResult
-
     const [fetchRoleFailed, setFetchRoleFailed] = useState<boolean>(false)
     const [finishing, setFinishing] = useState<boolean>(false)
     const [loading, setLoading] = useState<boolean>(true)
@@ -114,14 +113,14 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
 
                 // const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updateRole(privileges)
                 // if (res.code !== 200 || res.data !== true) {
-                //     setResult({
+                //     publish(RESULT_EVENT_NAME, {
                 //         severity: 'error',
                 //         message: t('roleUpdateFailure')
                 //     })
                 //     return
                 // }
 
-                // setResult({
+                // publish(RESULT_EVENT_NAME, {
                 //     severity: 'success',
                 //     message: t('roleUpdateSuccessful')
                 // })
@@ -129,14 +128,14 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
             else {
                 const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createRole(privileges)
                 if (res.code !== 200 || !res.data.acknowledged || res.data.insertedCount <= 0) {
-                    setResult({
+                    publish(RESULT_EVENT_NAME, {
                         severity: 'error',
                         message: t('roleCreateFailure')
                     })
                     return
                 }
 
-                setResult({
+                publish(RESULT_EVENT_NAME, {
                     severity: 'success',
                     message: t('roleCreateSuccessful')
                 })

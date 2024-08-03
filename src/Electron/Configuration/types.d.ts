@@ -28,5 +28,6 @@ export type Config = {
     appName?: string,
     isMaster?: boolean,
     port?: number,
-    ip?: string
+    ip?: string,
+    columnVisibilityModels?: { [k: string]: GridColumnVisibilityModel }
 }
