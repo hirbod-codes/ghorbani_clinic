@@ -9,6 +9,7 @@ import { MedicalHistory } from "./Models/MedicalHistory"
 import { Canvas } from "./Models/Canvas"
 
 export type dbAPI = {
+    initializeDb: (config: MongodbConfig) => Promise<void>;
     getConfig: () => Promise<MongodbConfig>;
     updateConfig: (config: MongodbConfig) => Promise<boolean>;
 }
