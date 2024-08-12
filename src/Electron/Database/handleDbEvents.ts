@@ -9,6 +9,7 @@ import { UsersRepository } from "./Repositories/Users/UsersRepository";
 import { PrivilegesRepository } from "./Repositories/Privileges/PrivilegesRepository";
 import { AuthRepository } from "./Repositories/Auth/AuthRepository";
 import { CanvasRepository } from "./Repositories/canvas/CanvasRepository";
+import { readConfig } from "../Configuration/configuration";
 
 export const db = new MongoDB();
 export const authRepository = new AuthRepository();
@@ -34,7 +35,7 @@ export async function handleDbEvents() {
     await fileRepository.handleEvents()
     await canvasRepository.handleEvents()
 
-    if (app.isPackaged)
+    if (app.isPackaged || readConfig().mongodb === undefined)
         return
 
     await seedMedicalHistories(await db.getMedicalHistoriesCollection())

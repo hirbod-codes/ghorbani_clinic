@@ -4,7 +4,7 @@ export type MongodbConfig = {
     supportsTransaction: boolean;
     url: string;
     databaseName: string;
-    auth: {
+    auth?: {
         username: string;
         password: string;
     };

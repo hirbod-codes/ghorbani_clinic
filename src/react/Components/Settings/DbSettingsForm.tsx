@@ -5,6 +5,7 @@ import { configAPI } from '../../../Electron/Configuration/renderer/configAPI';
 import { appAPI } from '../../../Electron/handleAppRendererEvents';
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
 import { publish } from '../../Lib/Events';
+import { dbAPI } from '../../../Electron/Database/dbAPI';
 
 export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean }) {
 
@@ -53,29 +54,37 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                 </FormGroup>
 
                 <Button onClick={async () => {
-                    const settings = { url, databaseName, supportsTransaction, auth: { username, password } }
+                    const settings = {
+                        url,
+                        databaseName,
+                        supportsTransaction,
+                        auth: (username && password) ? { username, password } : undefined
+                    }
 
-                    if (!settings.auth || !settings.auth.username || !settings.auth.password || !settings.databaseName || !settings.url) {
+                    if (!settings.databaseName || !settings.url) {
                         publish(RESULT_EVENT_NAME, {
                             severity: 'error',
                             message: t('invalidSettingsProvided')
                         })
                         return
                     }
-                    const c = await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig();
-                    (window as typeof window & { configAPI: configAPI }).configAPI.writeConfig({
-                        ...c,
-                        mongodb: settings
-                    });
+                    const result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.updateConfig(settings)
+                    if (!result) {
+                        publish(RESULT_EVENT_NAME, {
+                            severity: 'error',
+                            message: t('failure')
+                        })
+                        return
+                    }
 
                     publish(RESULT_EVENT_NAME, {
                         severity: 'success',
-                        message: t('restartingIn2Seconds')
+                        message: t('restartingIn3Seconds')
                     })
 
                     setTimeout(() => {
                         (window as typeof window & { appAPI: appAPI }).appAPI.reLaunch()
-                    }, 2000)
+                    }, 3000)
                 }}>
                     {t('done')}
                 </Button>

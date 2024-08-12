@@ -108,10 +108,12 @@ export class MongoDB implements dbAPI {
         return new MongoClient(c.mongodb.url, {
             directConnection: true,
             authMechanism: "DEFAULT",
-            auth: {
-                username: c.mongodb.auth.username,
-                password: c.mongodb.auth.password,
-            }
+            auth: c.mongodb.auth
+                ? {
+                    username: c.mongodb.auth.username,
+                    password: c.mongodb.auth.password,
+                }
+                : undefined
         });
     }
 
