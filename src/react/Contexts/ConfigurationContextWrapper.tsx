@@ -1,4 +1,4 @@
-import { CssBaseline, Modal, PaletteMode, Paper, Slide, ThemeProvider, createTheme, useMediaQuery } from '@mui/material';
+import { CssBaseline, Modal, PaletteMode, Paper, Slide, Theme, ThemeProvider, createTheme, useMediaQuery } from '@mui/material';
 import { useState, useRef, ReactNode } from 'react';
 import { Localization, enUS } from '@mui/material/locale';
 import { useTranslation } from "react-i18next";
@@ -50,6 +50,13 @@ export function ConfigurationContextWrapper({ children }: { children?: ReactNode
         const config = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig();
         (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig({ ...config, configuration: data });
     };
+    const updateThemeCore = (theme: Theme) => {
+        setConfiguration({
+            ...configuration,
+            themeMode: theme.palette.mode,
+            theme: theme
+        });
+    }
     const updateTheme = (mode: PaletteMode, direction: 'rtl' | 'ltr', locale: Localization) => {
         setConfiguration({
             ...configuration,
@@ -149,7 +156,7 @@ export function ConfigurationContextWrapper({ children }: { children?: ReactNode
     return (
         <>
             {hasFetchedConfig &&
-                <ConfigurationContext.Provider value={{ get: configuration, set: { updateTheme, updateLocale, updateTimeZone }, showDbConfigurationModal, hasFetchedConfig: hasFetchedConfig.current }}>
+                <ConfigurationContext.Provider value={{ get: configuration, set: { updateTheme, updateThemeCore, updateLocale, updateTimeZone }, showDbConfigurationModal, hasFetchedConfig: hasFetchedConfig.current }}>
                     <CacheProvider value={configuration.locale.direction === 'rtl' ? rtlCache : ltrCache}>
                         <ThemeProvider theme={configuration.theme}>
                             <CssBaseline enableColorScheme />

@@ -16,6 +16,7 @@ export type ConfigurationData = ConfigurationStorableData & { theme: Theme }
 
 export type ConfigurationSetter = {
     updateTheme: (mode: PaletteMode, direction: 'rtl' | 'ltr', locale: Localization) => void,
+    updateThemeCore: (theme: Theme) => void,
     updateLocale: (calendar: Calendar, direction: 'rtl' | 'ltr', reactLocale: Localization) => void,
     updateTimeZone: (zone: TimeZone) => void,
 }

@@ -17,6 +17,7 @@ import { ThemeContext } from '@emotion/react'
 import { ConfigurationContext } from './Contexts/ConfigurationContext'
 import { getReactLocale } from './Lib/helpers'
 import { NavigationContext } from './Contexts/NavigationContext'
+import { ThemeSettings } from './Pages/Settings/ThemeSettings'
 
 export default function App() {
     const nav = useContext(NavigationContext)
@@ -92,6 +93,12 @@ export default function App() {
                                     <StorageOutlined />
                                 </ListItemIcon>
                                 <ListItemText primary={t("Db")} />
+                            </ListItemButton>
+                            <ListItemButton sx={{ pl: 4 }} onClick={() => { setContent(<ThemeSettings />); setOpenDrawer(false) }}>
+                                <ListItemIcon>
+                                    <StorageOutlined />
+                                </ListItemIcon>
+                                <ListItemText primary={t("Theme")} />
                             </ListItemButton>
                         </List>
                     </Collapse>
