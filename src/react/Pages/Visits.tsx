@@ -1,6 +1,6 @@
 import { useState, useContext, useEffect } from "react";
 import { DataGrid } from "../Components/DataGrid/DataGrid";
-import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
+import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { t } from "i18next";
 import { Button, CircularProgress, Grid, Paper } from "@mui/material";
 import LoadingScreen from "../Components/LoadingScreen";

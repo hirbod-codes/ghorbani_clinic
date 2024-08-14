@@ -1,7 +1,7 @@
 import { useContext, useState, ChangeEvent } from "react";
 import { t } from "i18next";
 import { CircularProgress, InputAdornment, Modal, Paper, Slide, TextField } from "@mui/material";
-import { RendererDbAPI } from "../../../Electron/Database/handleDbRendererEvents";
+import { RendererDbAPI } from "../../../Electron/Database/renderer";
 import { SearchOutlined } from "@mui/icons-material";
 import { Patient } from "../../../Electron/Database/Models/Patient";
 import { ManagePatient } from "../Patients/ManagePatient";

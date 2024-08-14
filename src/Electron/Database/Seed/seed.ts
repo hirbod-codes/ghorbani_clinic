@@ -1,13 +1,16 @@
 import { Collection, ObjectId } from "mongodb";
-import { Patient, patientSchema } from "./Models/Patient";
-import { Visit, visitSchema } from "./Models/Visit";
+import { Patient, patientSchema } from "../Models/Patient";
+import { Visit, visitSchema } from "../Models/Visit";
 import { faker } from '@faker-js/faker'
 import { DateTime } from "luxon";
-import { User } from "./Models/User";
-import { Privilege } from "./Models/Privilege";
-import { privileges } from "./Repositories/Auth/dev-permissions";
-import { users } from "./Repositories/Auth/dev-users";
-import { MedicalHistory, medicalHistorySchema } from "./Models/MedicalHistory";
+import { User } from "../Models/User";
+import { Privilege } from "../Models/Privilege";
+import { privileges } from "../Repositories/Auth/dev-permissions";
+import { users } from "../Repositories/Auth/dev-users";
+import { MedicalHistory, medicalHistorySchema } from "../Models/MedicalHistory";
+import { readConfig } from "../../../Electron/Configuration/main";
+import { ipcMain } from "electron";
+import { db } from "../main";
 
 export async function seedMedicalHistories(medicalHistoriesCollection: Collection<MedicalHistory>): Promise<void> {
     try {
@@ -154,4 +157,29 @@ export async function seedPatientsVisits(patientCount: number, patientsCollectio
         console.error(err)
         console.error(new Error('Failure while trying to seed users and privileges'))
     }
+}
+
+export async function seed(): Promise<boolean> {
+    if (readConfig()?.mongodb === undefined)
+        return false
+
+    await seedMedicalHistories(await db.getMedicalHistoriesCollection())
+    await seedUsersRoles(await db.getUsersCollection(), await db.getPrivilegesCollection())
+    await seedPatientsVisits(50, await db.getPatientsCollection(), await db.getVisitsCollection());
+
+    return true
+}
+
+export async function truncateDb(): Promise<boolean> {
+    return false
+}
+
+export function handleSeedEvents() {
+    ipcMain.handle('seed', async () => {
+        return await seed()
+    })
+
+    ipcMain.handle('truncate-db', async () => {
+        return await truncateDb()
+    })
 }

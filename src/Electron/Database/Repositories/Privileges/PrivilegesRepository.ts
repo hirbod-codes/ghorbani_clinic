@@ -2,14 +2,14 @@ import { DeleteResult, InsertManyResult, InsertOneResult, ObjectId, UpdateResult
 import { Privilege, privilegeSchema, updatableFields } from "../../Models/Privilege";
 import { IPrivilegesRepository } from "../../dbAPI";
 import { MongoDB } from "../../mongodb";
-import { Unauthenticated } from "../../Unauthenticated";
+import { Unauthenticated } from "../../Exceptions/Unauthenticated";
 import { AccessControl } from "accesscontrol";
 import { roles } from "../Auth/dev-permissions";
 import { resources } from "../Auth/resources";
-import { Unauthorized } from "../../Unauthorized";
+import { Unauthorized } from "../../Exceptions/Unauthorized";
 import { DateTime } from "luxon";
 import { ipcMain } from "electron";
-import { authRepository } from "../../handleDbEvents";
+import { authRepository } from "../../main";
 
 export class PrivilegesRepository extends MongoDB implements IPrivilegesRepository {
     async handleEvents(): Promise<void> {

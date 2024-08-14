@@ -14,7 +14,7 @@ import { fromUnix } from '../../../react/Lib/DateTime/date-time-helpers';
 import { ManageVisits } from '../Visits/ManageVisit';
 import LoadingScreen from '../LoadingScreen';
 import { t } from 'i18next';
-import { RendererDbAPI } from '../../../Electron/Database/handleDbRendererEvents';
+import { RendererDbAPI } from '../../../Electron/Database/renderer';
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
 import { publish } from '../../Lib/Events';
 import { MedicalHistory } from './MedicalHistory';

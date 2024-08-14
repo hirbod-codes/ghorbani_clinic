@@ -4,7 +4,7 @@ import { ExpandMoreOutlined } from "@mui/icons-material";
 import { resources as staticResources } from "../../Electron/Database/Repositories/Auth/resources";
 import { t } from "i18next";
 import { Privilege } from "../../Electron/Database/Models/Privilege";
-import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
+import { RendererDbAPI } from "../../Electron/Database/renderer";
 import LoadingScreen from "./LoadingScreen";
 import { getAttributes } from "../../Electron/Database/Repositories/Auth/resources";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";

@@ -1,14 +1,14 @@
 import { DeleteResult, Document, InsertOneResult, ObjectId, UpdateResult } from "mongodb";
 import { patientSchema, type Patient, updatableFields, readableFields as patientReadableFields } from "../../Models/Patient";
 import { Visit, readableFields as visitReadableFields, collectionName as visitsCollectionName } from "../../Models/Visit";
-import { Unauthorized } from "../../Unauthorized";
+import { Unauthorized } from "../../Exceptions/Unauthorized";
 import { DateTime } from "luxon";
 import type { IPatientRepository } from "../../dbAPI";
 import { extractKeys, extractKeysRecursive } from "../../helpers";
 import { MongoDB } from "../../mongodb";
 import { ipcMain } from "electron";
-import { Unauthenticated } from "../../Unauthenticated";
-import { authRepository, privilegesRepository } from "../../handleDbEvents";
+import { Unauthenticated } from "../../Exceptions/Unauthenticated";
+import { authRepository, privilegesRepository } from "../../main";
 import { resources } from "../Auth/resources";
 import { getFields } from "../../Models/helpers";
 

@@ -3,9 +3,9 @@ import { IMedicalHistoryRepository } from "../../dbAPI";
 import { MongoDB } from "../../mongodb";
 import { ipcMain } from "electron";
 import { MedicalHistory, medicalHistorySchema } from "../../Models/MedicalHistory";
-import { authRepository, privilegesRepository } from "../../handleDbEvents";
-import { Unauthenticated } from "../../Unauthenticated";
-import { Unauthorized } from "../../Unauthorized";
+import { authRepository, privilegesRepository } from "../../main";
+import { Unauthenticated } from "../../Exceptions/Unauthenticated";
+import { Unauthorized } from "../../Exceptions/Unauthorized";
 import { resources } from "../Auth/resources";
 import { DateTime } from "luxon";
 

@@ -1,11 +1,55 @@
 import { app, ipcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
-import type { Config } from './types'
 import { v4 as uuidV4 } from 'uuid';
 import { CONFIGURATION_DIRECTORY } from '../../directories';
+import type { ConfigurationStorableData } from "../../react/Contexts/ConfigurationContext"
+import { GridColumnVisibilityModel } from '@mui/x-data-grid';
+import { User } from '../Database/Models/User';
 
-export function readConfig(): Config | null | undefined {
+export type MongodbConfig = {
+    supportsTransaction: boolean;
+    url: string;
+    databaseName: string;
+    auth?: {
+        username: string;
+        password: string;
+    };
+};
+
+export type AuthConfig = { users: User[] }
+
+export type Peer = {
+    isMaster: boolean,
+    hostName: string,
+    port: number,
+    ip: string
+}
+
+export type Config = {
+    configuration?: ConfigurationStorableData,
+    mongodb?: MongodbConfig,
+    auth?: AuthConfig,
+    peers?: Peer[],
+    appIdentifier?: string,
+    appName?: string,
+    isMaster?: boolean,
+    port?: number,
+    ip?: string,
+    columnVisibilityModels?: { [k: string]: GridColumnVisibilityModel }
+}
+
+export function handleConfigEvents() {
+    ipcMain.handle('read-config', () => {
+        return readConfig()
+    })
+
+    ipcMain.on('write-config', (_e, { config }: { config: Config }) => {
+        writeConfigSync(config)
+    })
+}
+
+export function readConfig(): Config {
     const configFile = path.join(CONFIGURATION_DIRECTORY, 'config.json')
 
     if (!fs.existsSync(configFile))
@@ -41,14 +85,4 @@ export function writeConfigSync(config: Config): void {
         fs.mkdirSync(configFolder, { recursive: true })
 
     fs.writeFileSync(configFile, JSON.stringify(config))
-}
-
-export function handleConfigEvents() {
-    ipcMain.handle('read-config', () => {
-        return readConfig()
-    })
-
-    ipcMain.on('write-config', (_e, { config }: { config: Config }) => {
-        writeConfigSync(config)
-    })
 }

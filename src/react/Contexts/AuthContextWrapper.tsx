@@ -1,6 +1,6 @@
 import { useState, useRef, ReactNode, useContext } from 'react';
 import { useTranslation } from "react-i18next";
-import { RendererDbAPI } from '../../Electron/Database/handleDbRendererEvents';
+import { RendererDbAPI } from '../../Electron/Database/renderer';
 import { User } from '../../Electron/Database/Models/User';
 import { AuthContext } from './AuthContext';
 import { NavigationContext } from './NavigationContext';

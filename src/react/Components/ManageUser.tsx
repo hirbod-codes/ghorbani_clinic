@@ -2,7 +2,7 @@ import { useState, useEffect, useContext } from 'react'
 import { User } from "../../Electron/Database/Models/User";
 import { FormControl, InputLabel, Select, MenuItem, Stack, Grid, TextField, Button, Typography, Divider } from '@mui/material';
 import { t } from 'i18next';
-import { RendererDbAPI } from '../../Electron/Database/handleDbRendererEvents';
+import { RendererDbAPI } from '../../Electron/Database/renderer';
 import { CheckOutlined } from '@mui/icons-material';
 import { AuthContext } from '../Contexts/AuthContext';
 import { resources } from '../../Electron/Database/Repositories/Auth/resources';

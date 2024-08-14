@@ -1,13 +1,13 @@
 import { Visit, readableFields, updatableFields, visitSchema } from "../../Models/Visit";
 import { MongoDB } from "../../mongodb";
 import type { IVisitRepository } from "../../dbAPI";
-import { Unauthorized } from "../../Unauthorized";
+import { Unauthorized } from "../../Exceptions/Unauthorized";
 import { DateTime } from "luxon";
 import { extractKeysRecursive } from "../../helpers";
 import { ipcMain } from "electron";
 import { DeleteResult, InsertOneResult, ObjectId, UpdateResult } from "mongodb";
-import { Unauthenticated } from "../../Unauthenticated";
-import { authRepository, privilegesRepository } from "../../handleDbEvents";
+import { Unauthenticated } from "../../Exceptions/Unauthenticated";
+import { authRepository, privilegesRepository } from "../../main";
 import { resources } from "../Auth/resources";
 import { getFields } from "../../Models/helpers";
 

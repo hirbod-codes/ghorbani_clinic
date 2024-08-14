@@ -4,7 +4,7 @@ import { Modal, Slide, Grid, List, ListItemButton, ListItemText, ListItemIcon, P
 import { t } from "i18next";
 import { roles as staticRoles } from "../../Electron/Database/Repositories/Auth/dev-permissions";
 import { resources } from "../../Electron/Database/Repositories/Auth/resources";
-import { RendererDbAPI } from "../../Electron/Database/handleDbRendererEvents";
+import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { User } from '../../Electron/Database/Models/User';
 import { DATE, fromUnixToFormat } from '../Lib/DateTime/date-time-helpers';
 import { ConfigurationContext } from '../Contexts/ConfigurationContext';

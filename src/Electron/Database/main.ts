@@ -1,15 +1,12 @@
-import { app } from "electron";
 import { PatientRepository } from "./Repositories/Patients/PatientRepository";
 import { MedicalHistoryRepository } from "./Repositories/MedicalHistories/MedicalHistoryRepository";
 import { VisitRepository } from "./Repositories/Visits/VisitRepository";
 import { PatientsDocumentsRepository } from "./Repositories/PatientsDocuments/PatientsDocumentsRepository";
 import { MongoDB } from "./mongodb";
-import { seedMedicalHistories, seedPatientsVisits, seedUsersRoles } from "./seed";
 import { UsersRepository } from "./Repositories/Users/UsersRepository";
 import { PrivilegesRepository } from "./Repositories/Privileges/PrivilegesRepository";
 import { AuthRepository } from "./Repositories/Auth/AuthRepository";
 import { CanvasRepository } from "./Repositories/canvas/CanvasRepository";
-import { readConfig } from "../Configuration/configuration";
 
 export const db = new MongoDB();
 export const authRepository = new AuthRepository();
@@ -34,11 +31,4 @@ export async function handleDbEvents() {
     await visitRepository.handleEvents()
     await fileRepository.handleEvents()
     await canvasRepository.handleEvents()
-
-    if (app.isPackaged || readConfig().mongodb === undefined)
-        return
-
-    await seedMedicalHistories(await db.getMedicalHistoriesCollection())
-    await seedUsersRoles(await db.getUsersCollection(), await db.getPrivilegesCollection())
-    await seedPatientsVisits(50, await db.getPatientsCollection(), await db.getVisitsCollection());
 }

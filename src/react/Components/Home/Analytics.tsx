@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { t } from "i18next";
 import { Button, CircularProgress, Grid, Stack, Typography } from "@mui/material";
-import { RendererDbAPI } from "../../../Electron/Database/handleDbRendererEvents";
+import { RendererDbAPI } from "../../../Electron/Database/renderer";
 import { RefreshOutlined } from "@mui/icons-material";
 import { AnimatedCircularProgressBar } from "../ProgressBars/AnimatedCircularProgressBar";
 import { AnimatedCounter } from "../Counters/AnimatedCounter";

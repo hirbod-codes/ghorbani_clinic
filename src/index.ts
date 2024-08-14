@@ -1,8 +1,8 @@
 import os from 'os'
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { handleMenuEvents } from './Electron/Menu/menu';
-import { handleConfigEvents, readConfig, writeConfigSync } from './Electron/Configuration/configuration';
-import { handleDbEvents } from './Electron/Database/handleDbEvents';
+import { handleConfigEvents, readConfig, writeConfigSync } from './Electron/Configuration/main';
+import { handleDbEvents } from './Electron/Database/main';
 
 const c = readConfig()
 

@@ -4,10 +4,10 @@ import path from 'path';
 import fs from 'fs';
 import { MongoDB } from "../../mongodb";
 import type { IPatientsDocumentsRepository } from "../../dbAPI";
-import { Unauthorized } from "../../Unauthorized";
-import { Unauthenticated } from "../../Unauthenticated";
+import { Unauthorized } from "../../Exceptions/Unauthorized";
+import { Unauthenticated } from "../../Exceptions/Unauthenticated";
 import { resources } from "../Auth/resources";
-import { authRepository, privilegesRepository } from "../../handleDbEvents";
+import { authRepository, privilegesRepository } from "../../main";
 import { DOWNLOADS_DIRECTORY } from "../../../../directories";
 
 export class PatientsDocumentsRepository extends MongoDB implements IPatientsDocumentsRepository {

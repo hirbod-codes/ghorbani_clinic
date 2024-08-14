@@ -2,9 +2,9 @@ import { DeleteResult, Document, InsertOneResult, ObjectId, UpdateResult } from 
 import { MongoDB } from "../../mongodb";
 import { User, readableFields, updatableFields, userSchema } from "../../Models/User";
 import { IUsersRepository } from "../../dbAPI";
-import { Unauthenticated } from "../../Unauthenticated";
-import { Unauthorized } from "../../Unauthorized";
-import { authRepository, privilegesRepository } from "../../handleDbEvents";
+import { Unauthenticated } from "../../Exceptions/Unauthenticated";
+import { Unauthorized } from "../../Exceptions/Unauthorized";
+import { authRepository, privilegesRepository } from "../../main";
 import { roles } from "../Auth/dev-permissions";
 import { resources } from "../Auth/resources";
 import { DateTime } from "luxon";

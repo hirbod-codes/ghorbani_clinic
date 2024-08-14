@@ -7,7 +7,7 @@ import { type RendererEvents as MedicalHistoryRendererEvents, handleRendererEven
 import { type RendererEvents as VisitRendererEvents, handleRendererEvents as handleVisitRendererEvents } from './Repositories/Visits/VisitRenderer';
 import { type RendererEvents as FileRendererEvents, handleRendererEvents as handleFileRendererEvents } from './Repositories/PatientsDocuments/PatientsDocumentsRenderer';
 import { type RendererEvents as CanvasRendererEvents, handleRendererEvents as handleCanvasRendererEvents } from './Repositories/canvas/CanvasRenderer';
-import { MongodbConfig } from "../Configuration/types";
+import { MongodbConfig } from "../Configuration/main";
 
 export type RendererDbAPI =
     AuthRendererEvents &

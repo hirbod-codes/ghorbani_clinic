@@ -3,10 +3,10 @@ import { Privilege } from "./Models/Privilege"
 import { DeleteResult, GridFSFile, InsertManyResult, InsertOneResult, UpdateResult } from "mongodb"
 import { Patient } from "./Models/Patient"
 import { Visit } from "./Models/Visit"
-import { MongodbConfig } from "../Configuration/types"
 import { User } from "./Models/User"
 import { MedicalHistory } from "./Models/MedicalHistory"
 import { Canvas } from "./Models/Canvas"
+import { MongodbConfig } from "../Configuration/main"
 
 export type dbAPI = {
     initializeDb: (config: MongodbConfig) => Promise<void>;

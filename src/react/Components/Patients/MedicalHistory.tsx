@@ -6,7 +6,7 @@ import { useSpring, animated, easings } from 'react-spring';
 import useMeasure from 'react-use-measure'
 import { PatientsMedicalHistory } from "../../../Electron/Database/Models/Patient";
 import LoadingScreen from "../LoadingScreen";
-import { RendererDbAPI } from "../../../Electron/Database/handleDbRendererEvents";
+import { RendererDbAPI } from "../../../Electron/Database/renderer";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 import { AddOutlined, DeleteOutlined } from "@mui/icons-material";

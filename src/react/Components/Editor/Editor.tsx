@@ -2,7 +2,7 @@ import { CloudDoneOutlined, CloudUploadOutlined, DarkModeOutlined, DrawOutlined,
 import { Backdrop, Box, CircularProgress, Divider, IconButton, Stack, Typography } from "@mui/material"
 import { t } from "i18next";
 import { useState, useRef, useEffect, useContext } from "react"
-import { RendererDbAPI } from "../../../Electron/Database/handleDbRendererEvents";
+import { RendererDbAPI } from "../../../Electron/Database/renderer";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 import { TextEditor } from "../TextEditor/TextEditor";

@@ -8,10 +8,9 @@ import { collectionName as privilegesCollectionName } from "./Models/Privilege";
 import { collectionName as usersCollectionName } from "./Models/User";
 import type { dbAPI } from "./dbAPI";
 import { ipcMain } from "electron";
-import { Unauthorized } from "./Unauthorized";
-import { Unauthenticated } from "./Unauthenticated";
-import { MongodbConfig } from "../Configuration/types";
-import { readConfig, writeConfigSync } from "../Configuration/configuration";
+import { Unauthorized } from "./Exceptions/Unauthorized";
+import { Unauthenticated } from "./Exceptions/Unauthenticated";
+import { MongodbConfig, readConfig, writeConfigSync } from "../Configuration/main";
 import { Privilege } from "./Models/Privilege";
 import { User } from "./Models/User";
 
