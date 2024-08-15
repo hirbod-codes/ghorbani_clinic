@@ -108,28 +108,36 @@ export class MongoDB implements dbAPI {
 
     async searchForDbService(databaseName?: string, supportsTransaction: boolean = false, auth?: { username: string, password: string }): Promise<boolean> {
         return new Promise((resolve, reject) => {
-            setTimeout(() => {
-                try {
-                    const browser = bonjour.findOne({ type: 'mongodb', name: 'clinic-db', protocol: 'tcp' }, 5000)
+            console.group('searchForDbService')
 
-                    browser.on('up', (s: Service) => {
-                        const c = readConfig()
-                        writeConfigSync({
-                            ...c,
-                            mongodb: {
-                                url: `mongodb://${s.referer.address}:${s.port}`,
-                                databaseName: databaseName ?? 'primaryDb',
-                                supportsTransaction: supportsTransaction,
-                                auth
-                            }
-                        })
-                        resolve(true)
-                    })
-                } catch (error) {
-                    console.error(error)
+            try {
+                const browser = bonjour.findOne({ type: 'mongodb', name: 'clinic-db', protocol: 'tcp' }, 10000, () => {
+                    console.log('times out')
                     resolve(false)
-                }
-            }, 5000)
+                })
+
+                browser.on('up', (s: Service) => {
+                    console.log('found service')
+
+                    const c = readConfig()
+                    writeConfigSync({
+                        ...c,
+                        mongodb: {
+                            url: `mongodb://${s.referer.address}:${s.port}`,
+                            databaseName: databaseName ?? 'primaryDb',
+                            supportsTransaction: supportsTransaction,
+                            auth
+                        }
+                    })
+
+                    resolve(true)
+                })
+            } catch (error) {
+                console.error(error)
+                resolve(false)
+            } finally {
+                console.groupEnd()
+            }
         })
     }
 
@@ -188,6 +196,7 @@ export class MongoDB implements dbAPI {
             this.addCollections()
         } catch (error) {
             console.error(error);
+            throw error
         }
     }
 

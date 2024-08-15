@@ -95,9 +95,7 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                                 message: t('restartingIn3Seconds')
                             })
 
-                            setTimeout(() => {
-                                (window as typeof window & { appAPI: appAPI }).appAPI.reLaunch()
-                            }, 3000)
+                            await (window as typeof window & { dbAPI: dbAPI }).dbAPI.initializeDb()
                         }}>
                             {loading ? <CircularProgress /> : t('done')}
                         </Button>
@@ -145,9 +143,7 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                                     message: t('restartingIn3Seconds')
                                 })
 
-                                setTimeout(() => {
-                                    (window as typeof window & { appAPI: appAPI }).appAPI.reLaunch()
-                                }, 3000)
+                                await (window as typeof window & { dbAPI: dbAPI }).dbAPI.initializeDb()
                             }}>
                             {loading ? <CircularProgress /> : t('search')}
                         </Button>

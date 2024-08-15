@@ -158,20 +158,15 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
     };
 
     useEffect(() => {
-        // if (!configuration?.showDbConfigurationModal && configuration?.hasFetchedConfig)
-        init().then(() => {
-            console.log('AuthContextWrapper if', { auth, isAuthLoading, showModal })
-            if (!showModal && (!auth.user || !auth.ac)) {
+        if (!configuration?.showDbConfigurationModal && configuration?.hasFetchedConfig)
+            init().then(() => {
                 console.log('AuthContextWrapper if', { auth, isAuthLoading, showModal })
-                setShowModal(true)
-            }
-        });
+                if (!showModal && (!auth.user || !auth.ac)) {
+                    console.log('AuthContextWrapper if', { auth, isAuthLoading, showModal })
+                    setShowModal(true)
+                }
+            });
     }, [])
-
-    // const hasInit = useRef<boolean>(false);
-    // if (!configuration?.showDbConfigurationModal && configuration?.hasFetchedConfig && !hasInit.current) {
-    //     hasInit.current = true;
-    // }
 
     console.log('AuthContextWrapper', { configuration, auth, isAuthLoading, showModal })
 

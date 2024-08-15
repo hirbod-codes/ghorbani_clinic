@@ -64,13 +64,13 @@ app.on('ready', async () => {
 
     handleMenuEvents()
 
+    await handleDbEvents()
+
     createWindow()
 
     const c = readConfig()
     if (app.isPackaged && !c.mongodb)
         return
-
-    await handleDbEvents()
 
     try { await db.initializeDb() }
     catch (err) { console.error(err) }

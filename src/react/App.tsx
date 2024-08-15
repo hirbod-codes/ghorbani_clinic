@@ -19,7 +19,7 @@ import { getReactLocale } from './Lib/helpers'
 import { NavigationContext } from './Contexts/NavigationContext'
 import { ThemeSettings } from './Pages/Settings/ThemeSettings'
 
-export default function App() {
+export function App() {
     const nav = useContext(NavigationContext)
     const auth = useContext(AuthContext)
     const theme = useContext(ThemeContext) as Theme
