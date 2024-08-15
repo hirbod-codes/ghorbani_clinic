@@ -20,6 +20,7 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
 
     const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
     const [auth, setAuth] = useState<{ user: User | undefined; ac: AccessControl | undefined; }>({ user: undefined, ac: undefined });
+    const [showModal, setShowModal] = useState<boolean>(false)
 
     const getAccessControl = async (): Promise<AccessControl | undefined> => {
         try {
@@ -124,7 +125,7 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
 
     const init = async () => {
         try {
-            console.log('init', 'start');
+            console.group('AuthContextWrapper', 'init', 'start');
             const u = await fetchUser();
             if (!u) {
                 if (isAuthLoading)
@@ -157,17 +158,22 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
                 severity: 'error',
                 message: t('failedToAuthenticate')
             });
-        } finally { console.log('init', 'end'); }
+        } finally {
+            console.groupEnd();
+        }
     };
 
     const hasInit = useRef<boolean>(false);
 
     if (!configuration?.showDbConfigurationModal && configuration?.hasFetchedConfig && !hasInit.current) {
         hasInit.current = true;
-        init();
+        init().then(() => {
+            if (!isAuthLoading && (!auth.user || !auth.ac))
+                setShowModal(true)
+        });
     }
 
-    console.log('AuthContextWrapper', { auth, isAuthLoading })
+    console.log('AuthContextWrapper', { auth, isAuthLoading, showModal })
 
     return (
         <>
@@ -175,8 +181,16 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
                 {children}
             </AuthContext.Provider>
 
-            <Modal open={!isAuthLoading && (!auth.user || !auth.ac)} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
-                <Slide direction={!isAuthLoading && (!auth.user || !auth.ac) ? 'up' : 'down'} in={!isAuthLoading && (!auth.user || !auth.ac)} timeout={250}>
+            <Modal
+                open={showModal}
+                onClose={() => setShowModal(false)}
+                closeAfterTransition
+                disableEscapeKeyDown
+                disableAutoFocus
+                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
+                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
+            >
+                <Slide direction={showModal ? 'up' : 'down'} in={showModal} timeout={250}>
                     <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
                         <LoginForm onFinish={login} />
                     </Paper>

@@ -6,12 +6,12 @@ import type { Locale } from '../Lib/Localization';
 import type { Calendar, TimeZone } from '../Lib/DateTime';
 import { ConfigurationContext, ConfigurationData, ConfigurationStorableData } from './ConfigurationContext';
 import { getLocale, getReactLocale } from '../Lib/helpers';
-import type { configAPI } from '../../Electron/Configuration/renderer/configAPI';
 import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
 import { prefixer } from 'stylis';
 import rtlPlugin from 'stylis-plugin-rtl';
 import DbSettingsForm from '../Components/Settings/DbSettingsForm';
+import { configAPI } from '../../Electron/Configuration/renderer';
 
 // Create rtl cache
 const rtlCache = createCache({
