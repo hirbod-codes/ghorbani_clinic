@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react'
 
-import { HomeOutlined, PersonOutlined, SettingsOutlined, MenuOutlined, LogoutOutlined, LightModeOutlined, DarkModeOutlined, ExpandLess, ExpandMore, DisplaySettingsOutlined, StorageOutlined, MasksOutlined, AccessTimeOutlined, } from '@mui/icons-material'
+import { HomeOutlined, PersonOutlined, SettingsOutlined, MenuOutlined, LogoutOutlined, LightModeOutlined, DarkModeOutlined, ExpandLess, ExpandMore, DisplaySettingsOutlined, StorageOutlined, MasksOutlined, AccessTimeOutlined, LoginOutlined, } from '@mui/icons-material'
 import { AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Collapse, CircularProgress, Grid, Theme } from '@mui/material'
 
 import { AuthContext } from './Contexts/AuthContext'
@@ -127,6 +127,16 @@ export default function App() {
                                         auth?.isAuthLoading
                                             ? <CircularProgress size='small' />
                                             : <LogoutOutlined />
+                                    }
+                                </IconButton>
+                            }
+                            {
+                                !auth.isAuthLoading && !auth.user &&
+                                <IconButton size='medium' color='inherit' onClick={() => auth.showModal()}>
+                                    {
+                                        auth?.isAuthLoading
+                                            ? <CircularProgress size='small' />
+                                            : <LoginOutlined />
                                     }
                                 </IconButton>
                             }

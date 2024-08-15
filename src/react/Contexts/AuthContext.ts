@@ -8,4 +8,5 @@ export const AuthContext = createContext<{
     isAuthLoading?: boolean,
     fetchUser: () => void | Promise<void>,
     logout: () => void | Promise<void>,
+    showModal: () => void;
 } | undefined>(undefined);
