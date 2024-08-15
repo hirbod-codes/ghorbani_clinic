@@ -13,14 +13,17 @@ import { Unauthenticated } from "./Exceptions/Unauthenticated";
 import { MongodbConfig, readConfig, writeConfigSync } from "../Configuration/main";
 import { Privilege } from "./Models/Privilege";
 import { User } from "./Models/User";
+import { bonjour } from '../BonjourService';
+import { Service } from 'bonjour-service'
 
 export class MongoDB implements dbAPI {
     private static db: Db | null = null
 
     async handleEvents(): Promise<void> {
-        ipcMain.handle('initialize-db', async (_e, { config }: { config: MongodbConfig }) => await this.initializeDb(config))
+        ipcMain.handle('initialize-db', async () => await this.initializeDb())
         ipcMain.handle('get-config', async () => await this.getConfig())
-        ipcMain.handle('update-config', async (_e, { config }: { config: MongodbConfig }) => await this.updateConfig(config) != null)
+        ipcMain.handle('update-config', async (_e, { config }: { config: MongodbConfig }) => await this.updateConfig(config))
+        ipcMain.handle('search-for-db-service', async (_e, { databaseName, supportsTransaction = false, auth }: { databaseName?: string, supportsTransaction: boolean, auth?: { username: string, password: string } }) => await this.searchForDbService(databaseName, supportsTransaction, auth))
     }
 
     async getConfig(): Promise<MongodbConfig> {
@@ -93,9 +96,41 @@ export class MongoDB implements dbAPI {
         try {
             const c = readConfig()
             c.mongodb = config
+
             writeConfigSync(c)
+
+            if (config.url.includes('localhost') || config.url.includes('127.0.0.1'))
+                bonjour.publish({ name: 'clinic-db', type: 'mongodb', protocol: 'tcp', port: Number(process.env.PORT), disableIPv6: true })
+
             return readConfig()?.mongodb != null
         } catch (error) { return false }
+    }
+
+    async searchForDbService(databaseName?: string, supportsTransaction: boolean = false, auth?: { username: string, password: string }): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            setTimeout(() => {
+                try {
+                    const browser = bonjour.findOne({ type: 'mongodb', name: 'clinic-db', protocol: 'tcp' }, 5000)
+
+                    browser.on('up', (s: Service) => {
+                        const c = readConfig()
+                        writeConfigSync({
+                            ...c,
+                            mongodb: {
+                                url: `mongodb://${s.referer.address}:${s.port}`,
+                                databaseName: databaseName ?? 'primaryDb',
+                                supportsTransaction: supportsTransaction,
+                                auth
+                            }
+                        })
+                        resolve(true)
+                    })
+                } catch (error) {
+                    console.error(error)
+                    resolve(false)
+                }
+            }, 5000)
+        })
     }
 
     getClient(): MongoClient {
@@ -148,13 +183,8 @@ export class MongoDB implements dbAPI {
         return db
     }
 
-    async initializeDb(config?: MongodbConfig) {
+    async initializeDb() {
         try {
-            if (config) {
-                const c = readConfig()
-                writeConfigSync({ ...c, mongodb: config })
-            }
-
             this.addCollections()
         } catch (error) {
             console.error(error);

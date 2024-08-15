@@ -14,7 +14,7 @@ import { resources } from "../../Electron/Database/Repositories/Auth/resources";
 import { ManagePatient } from "../Components/Patients/ManagePatient";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish } from "../Lib/Events";
-import { configAPI } from "../../Electron/Configuration/renderer/configAPI";
+import { configAPI } from '../../Electron/Configuration/renderer';
 import { MedicalHistory } from "../Components/Patients/MedicalHistory";
 import { EditorModal } from "../Components/Editor/EditorModal";
 

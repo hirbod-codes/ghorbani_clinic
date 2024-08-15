@@ -9,9 +9,10 @@ import { Canvas } from "./Models/Canvas"
 import { MongodbConfig } from "../Configuration/main"
 
 export type dbAPI = {
-    initializeDb: (config: MongodbConfig) => Promise<void>;
+    initializeDb: () => Promise<void>;
     getConfig: () => Promise<MongodbConfig>;
     updateConfig: (config: MongodbConfig) => Promise<boolean>;
+    searchForDbService: (databaseName?: string, supportsTransaction?: boolean, auth?: { username: string, password: string }) => Promise<boolean>;
 }
 
 export type IAuthRepository = dbAPI & {

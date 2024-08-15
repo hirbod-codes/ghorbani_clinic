@@ -19,20 +19,24 @@ export type RendererDbAPI =
     FileRendererEvents &
     CanvasRendererEvents &
     {
-        initializeDb: (config: MongodbConfig) => Promise<boolean>,
+        initializeDb: () => Promise<boolean>,
         getConfig: () => Promise<MongodbConfig>,
         updateConfig: (config: MongodbConfig) => Promise<boolean>,
+        searchForDbService: (databaseName?: string, supportsTransaction?: boolean, auth?: { username: string, password: string }) => Promise<boolean>;
     }
 
 export function handleDbRendererEvents(): RendererDbAPI {
     return {
         ...{
-            initializeDb: async (config: MongodbConfig): Promise<boolean> => await ipcRenderer.invoke('initialize-db', { config }),
+            initializeDb: async (): Promise<boolean> => await ipcRenderer.invoke('initialize-db'),
             getConfig: async (): Promise<MongodbConfig> => {
                 return await ipcRenderer.invoke('get-config');
             },
             updateConfig: async (config: MongodbConfig): Promise<boolean> => {
                 return await ipcRenderer.invoke('update-config', { config });
+            },
+            searchForDbService: async (databaseName?: string, supportsTransaction?: boolean, auth?: { username: string, password: string }): Promise<boolean> => {
+                return await ipcRenderer.invoke('search-for-db-service', { databaseName, supportsTransaction, auth });
             },
         },
         ...handleAuthRendererEvents(),

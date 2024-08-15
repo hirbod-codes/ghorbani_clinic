@@ -19,9 +19,6 @@ export const fileRepository = new PatientsDocumentsRepository()
 export const canvasRepository = new CanvasRepository()
 
 export async function handleDbEvents() {
-    try { await db.initializeDb() }
-    catch (err) { console.error(err) }
-
     await db.handleEvents()
     await authRepository.handleEvents()
     await usersRepository.handleEvents()

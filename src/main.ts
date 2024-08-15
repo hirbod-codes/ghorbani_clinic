@@ -2,7 +2,8 @@ import os from 'os'
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { handleMenuEvents } from './Electron/Menu/menu';
 import { handleConfigEvents, readConfig, writeConfigSync } from './Electron/Configuration/main';
-import { handleDbEvents } from './Electron/Database/main';
+import { db, handleDbEvents } from './Electron/Database/main';
+import path from 'path';
 
 const c = readConfig()
 
@@ -31,24 +32,23 @@ writeConfigSync({
     ip
 })
 
-declare const MAIN_WINDOW_WEBPACK_ENTRY: string;
-declare const MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY: string;
-
-if (require('electron-squirrel-startup')) app.quit();
+if (require('electron-squirrel-startup'))
+    app.quit();
 
 const createWindow = (): void => {
     const mainWindow = new BrowserWindow({
-        // height: 900,
-        // width: 1200,
-        // center: true,
         fullscreen: true,
         frame: false,
         webPreferences: {
-            preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
+            preload: path.join(__dirname, 'preload.js'),
         },
     });
 
-    mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
+    if (MAIN_WINDOW_VITE_DEV_SERVER_URL)
+        mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
+    else
+        mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
+
 
     if (!app.isPackaged)
         mainWindow.webContents.openDevTools({ mode: 'detach' });
@@ -62,14 +62,18 @@ app.on('ready', async () => {
 
     handleConfigEvents()
 
+    handleMenuEvents()
+
     createWindow()
 
     const c = readConfig()
     if (app.isPackaged && !c.mongodb)
         return
 
-    handleMenuEvents()
     await handleDbEvents()
+
+    try { await db.initializeDb() }
+    catch (err) { console.error(err) }
 })
 
 app.on('window-all-closed', () => {
