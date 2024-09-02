@@ -74,7 +74,7 @@ export function writeConfig(config: Config): void {
     if (!fs.existsSync(configFolder))
         fs.mkdirSync(configFolder, { recursive: true })
 
-    fs.writeFile(configFile, JSON.stringify(config), (err) => err ? console.error(err) : null)
+    fs.writeFile(configFile, JSON.stringify(config, undefined, 4), (err) => err ? console.error(err) : null)
 }
 
 export function writeConfigSync(config: Config): void {

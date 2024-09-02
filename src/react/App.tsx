@@ -38,7 +38,7 @@ export function App() {
 
     return (
         <>
-            <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)}>
+            <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)} >
                 <List sx={{ pt: 3 }}>
                     <ListItemButton onClick={() => { setContent(<Home />); setOpenDrawer(false) }}>
                         <ListItemIcon>
