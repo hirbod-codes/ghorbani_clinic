@@ -1,6 +1,6 @@
 import { useContext, useState } from 'react'
 
-import { HomeOutlined, PersonOutlined, SettingsOutlined, MenuOutlined, LogoutOutlined, LightModeOutlined, DarkModeOutlined, ExpandLess, ExpandMore, DisplaySettingsOutlined, StorageOutlined, MasksOutlined, AccessTimeOutlined, LoginOutlined, } from '@mui/icons-material'
+import { HomeOutlined, PersonOutlined, SettingsOutlined, MenuOutlined, LogoutOutlined, LightModeOutlined, DarkModeOutlined, ExpandLess, ExpandMore, DisplaySettingsOutlined, StorageOutlined, MasksOutlined, AccessTimeOutlined, LoginOutlined, FormatPaintOutlined, } from '@mui/icons-material'
 import { AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Collapse, CircularProgress, Grid, Theme } from '@mui/material'
 
 import { AuthContext } from './Contexts/AuthContext'
@@ -96,7 +96,7 @@ export function App() {
                             </ListItemButton>
                             <ListItemButton sx={{ pl: 4 }} onClick={() => { setContent(<ThemeSettings />); setOpenDrawer(false) }}>
                                 <ListItemIcon>
-                                    <StorageOutlined />
+                                    <FormatPaintOutlined />
                                 </ListItemIcon>
                                 <ListItemText primary={t("Theme")} />
                             </ListItemButton>
