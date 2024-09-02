@@ -1,7 +1,6 @@
 import { Stack, TextField, Button, Checkbox, FormControlLabel, FormGroup, Typography, Box, Tabs, Tab, CircularProgress } from '@mui/material';
-import { useState, useContext, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { t } from 'i18next';
-import { appAPI } from '../../../Electron/handleAppRendererEvents';
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
 import { publish } from '../../Lib/Events';
 import { dbAPI } from '../../../Electron/Database/dbAPI';
