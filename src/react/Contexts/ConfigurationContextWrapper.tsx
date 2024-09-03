@@ -116,7 +116,8 @@ export function ConfigurationContextWrapper({ children }: { children?: ReactNode
                         setShowDbConfigurationModal(true);
 
                     if (c && c.configuration) {
-                        document.dir = c.configuration.locale.direction;
+                        document.dir = c.configuration.locale.direction
+                        c.configuration.themeOptions.direction = c.configuration.locale.direction
                         setConfiguration({
                             ...c.configuration,
                             theme: createTheme(c.configuration.themeOptions, getReactLocale(c.configuration.locale.code))
