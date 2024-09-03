@@ -1,7 +1,7 @@
 import { useContext, useState } from 'react'
 
-import { HomeOutlined, PersonOutlined, SettingsOutlined, MenuOutlined, LogoutOutlined, LightModeOutlined, DarkModeOutlined, ExpandLess, ExpandMore, DisplaySettingsOutlined, StorageOutlined, MasksOutlined, AccessTimeOutlined, LoginOutlined, FormatPaintOutlined, } from '@mui/icons-material'
-import { AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Collapse, CircularProgress, Grid, Theme } from '@mui/material'
+import { HomeOutlined, PersonOutlined, SettingsOutlined, MenuOutlined, LogoutOutlined, LightModeOutlined, DarkModeOutlined, ExpandLess, ExpandMore, DisplaySettingsOutlined, StorageOutlined, MasksOutlined, AccessTimeOutlined, LoginOutlined, FormatPaintOutlined, DeleteOutline, RepeatOutlined, } from '@mui/icons-material'
+import { AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Collapse, CircularProgress, Grid, Theme, colors, Dialog, DialogTitle, DialogActions, Button } from '@mui/material'
 
 import { AuthContext } from './Contexts/AuthContext'
 import { resources } from '../Electron/Database/Repositories/Auth/resources'
@@ -18,6 +18,9 @@ import { ConfigurationContext } from './Contexts/ConfigurationContext'
 import { getReactLocale } from './Lib/helpers'
 import { NavigationContext } from './Contexts/NavigationContext'
 import { ThemeSettings } from './Pages/Settings/ThemeSettings'
+import { dbAPI } from '../Electron/Database/dbAPI'
+import { publish } from './Lib/Events'
+import { RESULT_EVENT_NAME } from './Contexts/ResultWrapper'
 
 export function App() {
     const nav = useContext(NavigationContext)
@@ -29,6 +32,14 @@ export function App() {
     // Navigation
     const [openDrawer, setOpenDrawer] = useState(false)
     const [openSettingsList, setOpenSettingsList] = useState(false)
+    const [openDbList, setOpenDbList] = useState(false)
+
+    // DB Questions
+    const [openSeedQuestion, setOpenSeedQuestion] = useState<boolean>(false)
+    const [openTruncateDbQuestion, setOpenTruncateDbQuestion] = useState<boolean>(false)
+
+    const [seeding, setSeeding] = useState<boolean>(false)
+    const [truncating, setTruncating] = useState<boolean>(false)
 
     const readsUsers = auth.accessControl && auth.user && auth.accessControl.can(auth.user.roleName).read(resources.USER).granted
     const readsPatients = auth.accessControl && auth.user && auth.accessControl.can(auth.user.roleName).read(resources.PATIENT).granted
@@ -88,12 +99,35 @@ export function App() {
                                 </ListItemIcon>
                                 <ListItemText primary={t("general")} />
                             </ListItemButton>
-                            <ListItemButton sx={{ pl: 4 }} onClick={() => { setContent(<DbSettings />); setOpenDrawer(false) }}>
+                            <ListItemButton sx={{ pl: 4 }} onClick={() => { setOpenDbList(!openDbList) }}>
                                 <ListItemIcon>
                                     <StorageOutlined />
                                 </ListItemIcon>
                                 <ListItemText primary={t("Db")} />
+                                {openDbList ? <ExpandLess /> : <ExpandMore />}
                             </ListItemButton>
+                            <Collapse in={openDbList} timeout="auto" unmountOnExit>
+                                <List component="div" disablePadding>
+                                    <ListItemButton sx={{ pl: 8 }} onClick={() => { setContent(<DbSettings />); setOpenDrawer(false) }}>
+                                        <ListItemIcon>
+                                            <SettingsOutlined />
+                                        </ListItemIcon>
+                                        <ListItemText primary={t("Settings")} />
+                                    </ListItemButton>
+                                    <ListItemButton sx={{ pl: 8 }} onClick={() => setOpenSeedQuestion(true)}>
+                                        <ListItemIcon>
+                                            <RepeatOutlined />
+                                        </ListItemIcon>
+                                        <ListItemText primary={t("Seed")} />
+                                    </ListItemButton>
+                                    <ListItemButton sx={{ pl: 8, color: colors.red[400] }} onClick={() => setOpenTruncateDbQuestion(true)}>
+                                        <ListItemIcon>
+                                            <DeleteOutline />
+                                        </ListItemIcon>
+                                        <ListItemText primary={t("Truncate")} />
+                                    </ListItemButton>
+                                </List>
+                            </Collapse>
                             <ListItemButton sx={{ pl: 4 }} onClick={() => { setContent(<ThemeSettings />); setOpenDrawer(false) }}>
                                 <ListItemIcon>
                                     <FormatPaintOutlined />
@@ -104,6 +138,72 @@ export function App() {
                     </Collapse>
                 </List>
             </Drawer>
+
+            <Dialog
+                open={openSeedQuestion}
+                onClose={() => setOpenSeedQuestion(false)}
+            >
+                <DialogTitle>
+                    {t('doYouWantToSeedDB')}
+                </DialogTitle>
+                <DialogActions>
+                    <Button
+                        onClick={async () => {
+                            try {
+                                setSeeding(true)
+                                const result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.seed()
+                                setSeeding(false)
+
+                                if (result === true)
+                                    setOpenSeedQuestion(false)
+                                else
+                                    publish(RESULT_EVENT_NAME, {
+                                        severity: 'error',
+                                        message: t('failedToSeedDB')
+                                    })
+                            } catch (error) {
+                                console.error(error)
+                                setSeeding(false)
+                            }
+                        }}
+                    >
+                        {seeding ? <CircularProgress size={35} /> : t('yes')}
+                    </Button>
+                    <Button onClick={() => setOpenSeedQuestion(false)}>{t('no')}</Button>
+                </DialogActions>
+            </Dialog >
+
+            <Dialog
+                open={openTruncateDbQuestion}
+                onClose={() => setOpenTruncateDbQuestion(false)}
+            >
+                <DialogTitle>
+                    {t('doYouWantToTruncateDB')}
+                </DialogTitle>
+                <DialogActions>
+                    <Button color='error' onClick={async () => {
+                        try {
+                            setTruncating(true)
+                            const result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.truncate()
+                            setTruncating(false)
+
+                            if (result === true)
+                                setOpenTruncateDbQuestion(false)
+                            else
+                                publish(RESULT_EVENT_NAME, {
+                                    severity: 'error',
+                                    message: t('failedToSeedDB')
+                                })
+                        } catch (error) {
+                            console.error(error)
+                            setTruncating(false)
+                        }
+                    }}>
+                        {truncating ? <CircularProgress size={35} /> : t('yes')}
+                    </Button>
+                    <Button onClick={() => setOpenTruncateDbQuestion(false)}>{t('no')}</Button>
+                </DialogActions>
+            </Dialog >
 
             <Grid container sx={{ height: '100%' }}>
                 <Grid item xs={12}>

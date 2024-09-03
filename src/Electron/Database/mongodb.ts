@@ -15,6 +15,7 @@ import { Privilege } from "./Models/Privilege";
 import { User } from "./Models/User";
 import { bonjour } from '../BonjourService';
 import { Service } from 'bonjour-service'
+import { seed } from "./Seed/seed";
 
 export class MongoDB implements dbAPI {
     private static db: Db | null = null
@@ -191,12 +192,32 @@ export class MongoDB implements dbAPI {
         return db
     }
 
-    async initializeDb() {
+    async truncate(): Promise<boolean> {
         try {
-            this.addCollections()
+            const db = await this.getDb()
+            return db.dropDatabase()
         } catch (error) {
             console.error(error);
-            throw error
+            return false
+        }
+    }
+
+    async seed(): Promise<boolean> {
+        try {
+            return await seed()
+        } catch (error) {
+            console.error(error);
+            return false
+        }
+    }
+
+    async initializeDb(): Promise<boolean> {
+        try {
+            this.addCollections()
+            return true
+        } catch (error) {
+            console.error(error);
+            return false
         }
     }
 

@@ -9,7 +9,9 @@ import { Canvas } from "./Models/Canvas"
 import { MongodbConfig } from "../Configuration/main"
 
 export type dbAPI = {
-    initializeDb: () => Promise<void>;
+    truncate: () => Promise<boolean>,
+    seed: () => Promise<boolean>,
+    initializeDb: () => Promise<boolean>,
     getConfig: () => Promise<MongodbConfig>;
     updateConfig: (config: MongodbConfig) => Promise<boolean>;
     searchForDbService: (databaseName?: string, supportsTransaction?: boolean, auth?: { username: string, password: string }) => Promise<boolean>;

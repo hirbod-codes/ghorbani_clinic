@@ -1,4 +1,4 @@
-import { darken, lighten, styled, ThemeOptions } from '@mui/material/styles';
+import { darken, lighten, ThemeOptions } from '@mui/material/styles';
 import { ColorLensOutlined, ExpandMoreOutlined } from "@mui/icons-material"
 import { Accordion, AccordionDetails, AccordionSummary, Button, IconButton, Menu, Stack } from "@mui/material"
 import { useContext, useState } from "react";

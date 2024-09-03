@@ -19,6 +19,8 @@ export type RendererDbAPI =
     FileRendererEvents &
     CanvasRendererEvents &
     {
+        truncate: () => Promise<boolean>,
+        seed: () => Promise<boolean>,
         initializeDb: () => Promise<boolean>,
         getConfig: () => Promise<MongodbConfig>,
         updateConfig: (config: MongodbConfig) => Promise<boolean>,
@@ -28,6 +30,8 @@ export type RendererDbAPI =
 export function handleDbRendererEvents(): RendererDbAPI {
     return {
         ...{
+            truncate: async (): Promise<boolean> => await ipcRenderer.invoke('truncate'),
+            seed: async (): Promise<boolean> => await ipcRenderer.invoke('seed'),
             initializeDb: async (): Promise<boolean> => await ipcRenderer.invoke('initialize-db'),
             getConfig: async (): Promise<MongodbConfig> => {
                 return await ipcRenderer.invoke('get-config');
