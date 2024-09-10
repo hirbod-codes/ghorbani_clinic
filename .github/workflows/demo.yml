@@ -25,7 +25,7 @@ jobs:
                         sleep 5s
 
             -
-                uses: hirbod-codes/secret_creator_github_action@v1.2.21
+                uses: hirbod-codes/secret_creator_github_action@v1.2.22
                 with:
                     swarm-secrets-prefix: 'SWARM_'
                     ssh-server-address: ${{ secrets.SSH_SERVER_ADDRESS }}
