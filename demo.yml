@@ -1,0 +1,53 @@
+networks:
+    clients_ghorbani_clinic_demo
+
+secrets:
+    demo_manager_password
+
+services:
+    demo_proxy:
+        image: ghcr.io/hirbod-codes/demo_proxy/demo_proxy:latest
+        ports:
+            1503:3000
+        environment:
+            port: 3000
+            demo_manager_port: ${demo_manager_port}
+            demo_manager_address: ${demo_manager_address}
+            destination_port: 27017
+            destination_address: mongodb
+        secrets:
+            - demo_manager_password
+        deploy:
+            resources:
+                limits:
+                    cpus: '0.25'
+                    memory: 300mb
+            restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 8
+                window: 60s
+        networks:
+            demo_manager_password
+
+    mongodb:
+        image: ghcr.io/hirbod-codes/mongo:latest
+        environment:
+            db_name: primaryDB
+        secrets:
+            - db_username
+            - db_password
+        volumes:
+            - ./mongodb/data:/data/db
+        deploy:
+            resources:
+                limits:
+                    cpus: '0.5'
+                    memory: 300mb
+            restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 8
+                window: 60s
+        networks:
+            - demo_manager_password
