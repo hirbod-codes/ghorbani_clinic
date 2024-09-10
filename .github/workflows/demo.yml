@@ -36,6 +36,9 @@ jobs:
                     secrets-json: ${{ toJson(secrets) }}
 
             -
+                uses: actions/checkout@v4
+        
+            -
                 uses: appleboy/scp-action@v0.1.7
                 with:
                     host: ${{ secrets.SSH_SERVER_ADDRESS }}
