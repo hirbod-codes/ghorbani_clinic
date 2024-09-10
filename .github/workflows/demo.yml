@@ -32,8 +32,8 @@ jobs:
                     password: ${{ secrets.SSH_SERVER_PASSWORD }}
                     script: |
                         mkdir -p swarm/clients/Ghorbani/mongodb/data
-                        docker stack down demo_manager
-                        docker stack rm demo_manager
+                        docker stack down clients_ghorbani_clinic_demo
+                        docker stack rm clients_ghorbani_clinic_demo
 
             -
                 uses: appleboy/scp-action@v0.1.7
@@ -55,7 +55,7 @@ jobs:
                     script: |
                         cd swarm/clients/Ghorbani/
                         docker image rm -f ghcr.io/hirbod-codes/demo_proxy/demo_proxy:latest
-                        docker stack down demo_manager
-                        docker stack rm demo_manager
-                        demo_manager_port=1502 demo_manager_address=${{ secrets.SSH_SERVER_ADDRESS }} docker stack deploy --with-registry-auth -c swarm.yml demo_manager
+                        docker stack down clients_ghorbani_clinic_demo
+                        docker stack rm clients_ghorbani_clinic_demo
+                        demo_manager_port=1502 demo_manager_address=${{ secrets.SSH_SERVER_ADDRESS }} docker stack deploy --with-registry-auth -c swarm.yml clients_ghorbani_clinic_demo
 
