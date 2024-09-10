@@ -8,7 +8,7 @@ services:
     demo_proxy:
         image: ghcr.io/hirbod-codes/demo_proxy/demo_proxy:latest
         ports:
-            1503:3000
+            - 1503:3000
         environment:
             port: 3000
             demo_manager_port: ${demo_manager_port}
