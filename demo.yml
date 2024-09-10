@@ -2,11 +2,11 @@ networks:
     clients_ghorbani_clinic_demo:
 
 secrets:
-    demo_manager_password:
+    clients_ghorbani_clinic_demo_demo_manager_password:
         external: true
-    db_username:
+    clients_ghorbani_clinic_demo_db_username:
         external: true
-    db_password:
+    clients_ghorbani_clinic_demo_db_password:
         external: true
 
 services:
@@ -21,7 +21,7 @@ services:
             destination_port: 27017
             destination_address: mongodb
         secrets:
-            - demo_manager_password
+            - clients_ghorbani_clinic_demo_demo_manager_password
         deploy:
             resources:
                 limits:
@@ -40,8 +40,8 @@ services:
         environment:
             db_name: primaryDB
         secrets:
-            - db_username
-            - db_password
+            - clients_ghorbani_clinic_demo_db_username
+            - clients_ghorbani_clinic_demo_db_password
         volumes:
             - ./mongodb/data:/data/db
         deploy:
