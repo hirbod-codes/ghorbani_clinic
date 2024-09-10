@@ -15,6 +15,7 @@ services:
         ports:
             - 1503:3000
         environment:
+            secret_prefix: clients_ghorbani_clinic_demo_
             port: 3000
             demo_manager_port: ${demo_manager_port}
             demo_manager_address: ${demo_manager_address}
@@ -38,6 +39,7 @@ services:
     mongodb:
         image: ghcr.io/hirbod-codes/mongo:latest
         environment:
+            secret_prefix: clients_ghorbani_clinic_demo_
             db_name: primaryDB
         secrets:
             - clients_ghorbani_clinic_demo_db_username
