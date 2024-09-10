@@ -4,6 +4,10 @@ networks:
 secrets:
     demo_manager_password:
         external: true
+    db_username:
+        external: true
+    db_password:
+        external: true
 
 services:
     demo_proxy:
@@ -29,7 +33,7 @@ services:
                 max_attempts: 8
                 window: 60s
         networks:
-            - demo_manager_password
+            - clients_ghorbani_clinic_demo
 
     mongodb:
         image: ghcr.io/hirbod-codes/mongo:latest
@@ -51,4 +55,4 @@ services:
                 max_attempts: 8
                 window: 60s
         networks:
-            - demo_manager_password
+            - clients_ghorbani_clinic_demo
