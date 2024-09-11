@@ -40,7 +40,7 @@ services:
                 max_attempts: 8
                 window: 60s
         networks:
-            - demo_network
+            - demo_manager
             - clients_ghorbani_clinic_demo
 
     mongodb:
