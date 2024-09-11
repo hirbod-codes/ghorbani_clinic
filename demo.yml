@@ -1,4 +1,7 @@
 networks:
+    demo_manager:
+        name: demo_manager
+        external: true
     clients_ghorbani_clinic_demo:
 
 secrets:
@@ -20,8 +23,8 @@ services:
         environment:
             secret_prefix: clients_ghorbani_clinic_demo_
             port: 3000
-            demo_manager_port: ${demo_manager_port}
-            demo_manager_address: ${demo_manager_address}
+            demo_manager_port: 3000
+            demo_manager_address: demo_manager
             destination_port: 27017
             destination_address: mongodb
         secrets:
@@ -37,6 +40,7 @@ services:
                 max_attempts: 8
                 window: 60s
         networks:
+            - demo_network
             - clients_ghorbani_clinic_demo
 
     mongodb:
