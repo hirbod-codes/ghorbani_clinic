@@ -16,13 +16,14 @@ services:
     demo_proxy:
         image: ghcr.io/hirbod-codes/demo_proxy/demo_proxy:latest
         ports:
-            - target: 3000
+            - target: 1503
               published: 1503
               protocol: tcp
               mode: host
         environment:
             secret_prefix: clients_ghorbani_clinic_demo_
-            port: 3000
+            port: 1503
+            hostIpAddress: ${hostIpAddress}
             demo_manager_port: 3000
             demo_manager_address: demo_manager
             destination_port: 27017

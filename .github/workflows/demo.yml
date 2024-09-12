@@ -58,5 +58,5 @@ jobs:
                         cd swarm/clients/Ghorbani/
                         docker image rm -f ghcr.io/hirbod-codes/demo_proxy/demo_proxy:latest
                         docker stack rm clients_ghorbani_clinic_demo
-                        docker stack deploy --detach=true --with-registry-auth -c demo.yml clients_ghorbani_clinic_demo
+                        hostIpAddress=${{ secrets.SSH_SERVER_ADDRESS }} docker stack deploy --detach=true --with-registry-auth -c demo.yml clients_ghorbani_clinic_demo
 
