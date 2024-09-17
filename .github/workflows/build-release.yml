@@ -67,7 +67,7 @@ jobs:
                     node-version: 20
 
             # because of this bug in npm (https://github.com/npm/cli/issues/4828)
-            - run: del /q package-lock.json
+            - run: del /q ".\package-lock.json"
             
             - run: npm install
             
