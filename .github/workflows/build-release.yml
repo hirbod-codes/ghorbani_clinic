@@ -38,6 +38,9 @@ jobs:
                 uses: actions/setup-node@master
                 with:
                     node-version: 20
+
+            # because of this bug in npm (https://github.com/npm/cli/issues/4828)
+            - run: rm -fr node_modules/ package-lock.json
             
             - run: npm install
             
@@ -62,6 +65,8 @@ jobs:
                 uses: actions/setup-node@master
                 with:
                     node-version: 20
+
+            - run: rm -fr node_modules/ package-lock.json
             
             - run: npm install
             
