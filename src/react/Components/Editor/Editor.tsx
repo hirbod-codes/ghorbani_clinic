@@ -167,7 +167,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                 if (!data) {
                     publish(RESULT_EVENT_NAME, {
                         severity: 'error',
-                        message: t('failedToUploadCanvas')
+                        message: t('failedToDownloadCanvas')
                     })
 
                     setLoading(false)
@@ -176,7 +176,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
 
                 publish(RESULT_EVENT_NAME, {
                     severity: 'success',
-                    message: t('successfullyUploadedCanvas')
+                    message: t('successfullyDownloadedCanvas')
                 })
 
                 setImageSrc(`data:${data.type};base64,${data.data}`);
