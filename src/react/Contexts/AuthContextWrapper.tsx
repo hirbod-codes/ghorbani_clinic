@@ -1,4 +1,4 @@
-import { useState, useRef, ReactNode, useContext, useEffect } from 'react';
+import { useState, ReactNode, useContext, useEffect, useRef } from 'react';
 import { useTranslation } from "react-i18next";
 import { RendererDbAPI } from '../../Electron/Database/renderer';
 import { User } from '../../Electron/Database/Models/User';
@@ -13,12 +13,12 @@ import { RESULT_EVENT_NAME } from './ResultWrapper';
 import { publish } from '../Lib/Events';
 
 export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
-    const { t, i18n } = useTranslation();
+    const { t } = useTranslation();
 
     const configuration = useContext(ConfigurationContext)
-    const setContent = useContext(NavigationContext)?.setContent;
+    const nav = useContext(NavigationContext);
 
-    const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
+    const [isAuthLoading, setIsAuthLoading] = useState<boolean>(false);
     const [auth, setAuth] = useState<{ user: User | undefined; ac: AccessControl | undefined; }>({ user: undefined, ac: undefined });
     const [showModal, setShowModal] = useState<boolean>(false)
 
@@ -75,6 +75,7 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
             });
 
             await init();
+            nav?.setContent(<Home />);
         } catch (error) {
             console.error(error);
 
@@ -100,11 +101,12 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
             }
 
             setAuth({ user: undefined, ac: undefined });
-            setContent(<Home />);
+            nav?.setContent(<Home />);
             publish(RESULT_EVENT_NAME, {
                 severity: 'success',
                 message: t('successfullyToLogout'),
             });
+            window.location.reload();
         } catch (error) {
             console.error(error);
 
@@ -119,56 +121,55 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
 
     const init = async () => {
         try {
-            console.groupCollapsed('AuthContextWrapper', 'init');
+            console.groupCollapsed('AuthContextWrapper', 'init')
+
             const u = await fetchUser();
-            if (!u) {
-                if (isAuthLoading)
-                    setIsAuthLoading(false);
-                publish(RESULT_EVENT_NAME, {
-                    severity: 'error',
-                    message: t('failedToAuthenticate')
-                });
-            }
-
             const accessControl = await getAccessControl();
-            if (!accessControl) {
-                if (isAuthLoading)
-                    setIsAuthLoading(false);
+
+            if (!u || !accessControl) {
+                if (!showModal)
+                    setShowModal(true)
+
+                setAuth({ user: undefined, ac: undefined });
+
                 publish(RESULT_EVENT_NAME, {
                     severity: 'error',
                     message: t('failedToAuthenticate')
                 });
             }
 
-            if (isAuthLoading)
-                setIsAuthLoading(false);
-            setAuth({ user: u, ac: accessControl });
+            if (u && accessControl)
+                setAuth({ user: u, ac: accessControl })
         } catch (error) {
-            console.error('error', error);
+            console.error('error', error)
 
-            if (isAuthLoading)
-                setIsAuthLoading(false);
             publish(RESULT_EVENT_NAME, {
                 severity: 'error',
                 message: t('failedToAuthenticate')
-            });
+            })
         } finally {
-            console.groupEnd();
+            if (isAuthLoading)
+                setIsAuthLoading(false)
+            console.groupEnd()
         }
-    };
+    }
 
+    const [hasInitialized, setHasInitialized] = useState<boolean>(false);
     useEffect(() => {
-        if (!configuration?.showDbConfigurationModal && configuration?.hasFetchedConfig)
-            init().then(() => {
-                console.log('AuthContextWrapper if', { auth, isAuthLoading, showModal })
-                if (!showModal && (!auth.user || !auth.ac)) {
-                    console.log('AuthContextWrapper if', { auth, isAuthLoading, showModal })
-                    setShowModal(true)
-                }
-            });
+        console.log('useEffect out', { auth, isAuthLoading, showModal, hasInitialized, configuration })
+        if (!hasInitialized && !isAuthLoading && configuration?.hasFetchedConfig && !configuration?.showDbConfigurationModal && (!auth.user || !auth.ac)) {
+            console.log('useEffect in', { auth, isAuthLoading, showModal, hasInitialized, configuration })
+            setIsAuthLoading(true)
+            setHasInitialized(true)
+        }
     }, [])
 
-    console.log('AuthContextWrapper', { configuration, auth, isAuthLoading, showModal })
+    useEffect(() => {
+        console.log('useEffect init', { auth, isAuthLoading, showModal, hasInitialized, configuration })
+        init()
+    }, [isAuthLoading])
+
+    console.group('AuthContextWrapper', { auth, isAuthLoading, showModal, hasInitialized, configuration })
 
     return (
         <>
@@ -187,7 +188,7 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
             >
                 <Slide direction={showModal ? 'up' : 'down'} in={showModal} timeout={250}>
                     <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
-                        <LoginForm onFinish={login} />
+                        <LoginForm onFinish={async (username, password) => { await login(username, password); setShowModal(false); }} />
                     </Paper>
                 </Slide>
             </Modal>

@@ -4,6 +4,7 @@ import { readableFields as patientReadableFields, updatableFields as patientUpda
 import { readableFields as visitReadableFields, updatableFields as visitUpdatableFields } from "../../Models/Visit"
 
 export const resources = {
+    DB: 'db',
     USER: 'user',
     PATIENT: 'patient',
     VISIT: 'visit',

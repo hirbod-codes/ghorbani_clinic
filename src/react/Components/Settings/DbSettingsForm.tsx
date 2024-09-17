@@ -57,7 +57,7 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                         <TextField variant='standard' type='text' value={username} onChange={(e) => setUsername(e.target.value)} label={t('username')} />
                         <TextField variant='standard' type='password' value={password} onChange={(e) => setPassword(e.target.value)} label={t('password')} />
 
-                        <TextField variant='standard' type='text' value={url.replace('mongodb://', '')} placeholder={t('ip:port')} onChange={(e) => setUrl('mongodb://' + e.target.value)} label={t('url')} />
+                        <TextField variant='standard' type='text' value={url.replace('mongodb://', '')} placeholder={t('ip:port')} onChange={(e) => setUrl('mongodb://' + e.target.value.replace('mongodb://', ''))} label={t('url')} />
                         <TextField variant='standard' type='text' value={databaseName} onChange={(e) => setDatabaseName(e.target.value)} label={t('databaseName')} />
 
                         <FormGroup>
@@ -80,21 +80,35 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                                 return
                             }
                             setLoading(true)
-                            const result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.updateConfig(settings)
+                            let result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.updateConfig(settings)
                             if (!result) {
                                 publish(RESULT_EVENT_NAME, {
                                     severity: 'error',
-                                    message: t('failure')
+                                    message: t('configUpdateFailed')
                                 })
                                 return
                             }
 
                             publish(RESULT_EVENT_NAME, {
                                 severity: 'success',
-                                message: t('restartingIn3Seconds')
+                                message: t('configUpdated')
                             })
 
-                            await (window as typeof window & { dbAPI: dbAPI }).dbAPI.initializeDb()
+                            result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.initializeDb()
+                            if (!result) {
+                                publish(RESULT_EVENT_NAME, {
+                                    severity: 'error',
+                                    message: t('databaseInitializationFailed')
+                                })
+                                return
+                            }
+
+                            publish(RESULT_EVENT_NAME, {
+                                severity: 'success',
+                                message: t('databaseInitialized')
+                            })
+
+                            setLoading(false)
                         }}>
                             {loading ? <CircularProgress /> : t('done')}
                         </Button>

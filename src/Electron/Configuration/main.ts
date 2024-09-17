@@ -1,4 +1,4 @@
-import { app, ipcMain } from 'electron'
+import { ipcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
 import { v4 as uuidV4 } from 'uuid';

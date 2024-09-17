@@ -160,26 +160,32 @@ export async function seedPatientsVisits(patientCount: number, patientsCollectio
 }
 
 export async function seed(): Promise<boolean> {
-    if (readConfig()?.mongodb === undefined)
+    try {
+        console.group('seed')
+
+        if (readConfig()?.mongodb === undefined)
+            return false
+
+        console.log('Seeding medical histories...')
+        await seedMedicalHistories(await db.getMedicalHistoriesCollection())
+
+        console.log('Seeding users roles...')
+        await seedUsersRoles(await db.getUsersCollection(), await db.getPrivilegesCollection())
+
+        console.log('Seeding patients visits...')
+        await seedPatientsVisits(50, await db.getPatientsCollection(), await db.getVisitsCollection());
+
+        return true
+    } catch (error) {
+        console.error(error);
         return false
-
-    await seedMedicalHistories(await db.getMedicalHistoriesCollection())
-    await seedUsersRoles(await db.getUsersCollection(), await db.getPrivilegesCollection())
-    await seedPatientsVisits(50, await db.getPatientsCollection(), await db.getVisitsCollection());
-
-    return true
-}
-
-export async function truncateDb(): Promise<boolean> {
-    return false
+    } finally {
+        console.groupEnd()
+    }
 }
 
 export function handleSeedEvents() {
-    ipcMain.handle('seed', async () => {
-        return await seed()
-    })
+    ipcMain.handle('seed', async () => await seed())
 
-    ipcMain.handle('truncate-db', async () => {
-        return await truncateDb()
-    })
+    ipcMain.handle('truncate-db', async () => await db.truncate())
 }
