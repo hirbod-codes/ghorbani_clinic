@@ -45,7 +45,7 @@ export function App() {
     const readsPatients = auth.accessControl && auth.user && auth.accessControl.can(auth.user.roleName).read(resources.PATIENT).granted
     const readsVisits = auth.accessControl && auth.user && auth.accessControl.can(auth.user.roleName).read(resources.VISIT).granted
 
-    console.log('App', { nav, auth, theme, configuration, setContent, openDrawer, openSettingsList })
+    console.group('App', { nav, auth, theme, configuration, setContent, openDrawer, openSettingsList })
 
     return (
         <>
@@ -187,8 +187,11 @@ export function App() {
                             const result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.truncate()
                             setTruncating(false)
 
-                            if (result === true)
+                            if (result === true) {
                                 setOpenTruncateDbQuestion(false)
+                                await auth.logout()
+                                window.location.reload();
+                            }
                             else
                                 publish(RESULT_EVENT_NAME, {
                                     severity: 'error',
@@ -255,4 +258,3 @@ export function App() {
         </>
     )
 }
-

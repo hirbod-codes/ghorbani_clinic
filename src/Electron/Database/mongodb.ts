@@ -16,11 +16,17 @@ import { User } from "./Models/User";
 import { bonjour } from '../BonjourService';
 import { Service } from 'bonjour-service'
 import { seed } from "./Seed/seed";
+import { ConfigurationError } from "../Configuration/Exceptions/ConfigurationError";
+import { ConnectionError } from "./Exceptions/ConnectionError";
+import { authRepository, privilegesRepository } from "./main";
+import { resources } from "./Repositories/Auth/resources";
 
 export class MongoDB implements dbAPI {
     private static db: Db | null = null
 
     async handleEvents(): Promise<void> {
+        ipcMain.handle('truncate', async () => await this.truncate())
+        ipcMain.handle('seed', async () => await this.seed())
         ipcMain.handle('initialize-db', async () => await this.initializeDb())
         ipcMain.handle('get-config', async () => await this.getConfig())
         ipcMain.handle('update-config', async (_e, { config }: { config: MongodbConfig }) => await this.updateConfig(config))
@@ -95,16 +101,29 @@ export class MongoDB implements dbAPI {
 
     async updateConfig(config: MongodbConfig): Promise<boolean> {
         try {
+            console.group('updateConfig')
+
+            console.log({ config })
+
             const c = readConfig()
             c.mongodb = config
 
             writeConfigSync(c)
 
-            if (config.url.includes('localhost') || config.url.includes('127.0.0.1'))
-                bonjour.publish({ name: 'clinic-db', type: 'mongodb', protocol: 'tcp', port: Number(process.env.PORT), disableIPv6: true })
+            if (config.url.includes('localhost') || config.url.includes('127.0.0.1') || config.url.includes('0.0.0.0'))
+                bonjour.unpublishAll(() => {
+                    console.log('bonjour service unpublished all of the previous services.')
 
+                    bonjour.publish({ name: 'clinic-db', type: 'mongodb', protocol: 'tcp', port: Number(c.mongodb.url.split('://')[1]?.split(':')[1]), disableIPv6: true })
+                    console.log('new bonjour service has published.')
+                })
+
+            console.groupEnd()
             return readConfig()?.mongodb != null
-        } catch (error) { return false }
+        } catch (error) {
+            console.error(error)
+            return false
+        }
     }
 
     async searchForDbService(databaseName?: string, supportsTransaction: boolean = false, auth?: { username: string, password: string }): Promise<boolean> {
@@ -143,28 +162,37 @@ export class MongoDB implements dbAPI {
     }
 
     getClient(): MongoClient {
-        const c = readConfig()
+        try {
+            const c = readConfig()
 
-        if (!c || !c.mongodb)
-            throw new Error('Mongodb configuration not found.')
+            if (!c || !c.mongodb)
+                throw new Error('Mongodb configuration not found.')
 
-        return new MongoClient(c.mongodb.url, {
-            directConnection: true,
-            authMechanism: "DEFAULT",
-            auth: c.mongodb.auth
-                ? {
-                    username: c.mongodb.auth.username,
-                    password: c.mongodb.auth.password,
-                }
-                : undefined
-        });
+            return new MongoClient(c.mongodb.url, {
+                directConnection: true,
+                authMechanism: "DEFAULT",
+                auth: c.mongodb.auth
+                    ? {
+                        username: c.mongodb.auth.username,
+                        password: c.mongodb.auth.password,
+                    }
+                    : undefined
+            })
+        } catch (error) {
+            console.error(error)
+
+            if (error instanceof ConfigurationError)
+                throw error
+            else
+                throw new ConnectionError()
+        }
     }
 
     async getDb(client?: MongoClient, persist = true): Promise<Db | null> {
         const c = readConfig()
 
         if (!c || !c.mongodb)
-            throw new Error('Mongodb configuration not found.')
+            throw new ConfigurationError()
 
         let db
         if (!client) {
@@ -185,7 +213,7 @@ export class MongoDB implements dbAPI {
             db.command({ ping: 1 })
         } catch (error) {
             console.error(error);
-            await client.close()
+            await client?.close()
             throw error
         }
 
@@ -194,6 +222,13 @@ export class MongoDB implements dbAPI {
 
     async truncate(): Promise<boolean> {
         try {
+            const user = await authRepository.getAuthenticatedUser()
+            if (!user)
+                throw new Unauthenticated();
+
+            if (!(await privilegesRepository.getAccessControl()).can(user.roleName).create(resources.DB).granted)
+                throw new Unauthorized()
+
             const db = await this.getDb()
             return db.dropDatabase()
         } catch (error) {
@@ -204,10 +239,31 @@ export class MongoDB implements dbAPI {
 
     async seed(): Promise<boolean> {
         try {
+            console.group('seed')
+
+            let db
+            try { db = await this.getDb() }
+            catch (err) { }
+
+            console.log({ db })
+
+            if (db && (await (await this.getPatientsCollection(undefined, db)).estimatedDocumentCount()) > 0) {
+                const user = await authRepository.getAuthenticatedUser()
+                if (!user)
+                    throw new Unauthenticated();
+
+                if (!(await privilegesRepository.getAccessControl()).can(user.roleName).create(resources.DB).granted)
+                    throw new Unauthorized()
+
+                console.log({ user })
+            }
+
             return await seed()
         } catch (error) {
             console.error(error);
             return false
+        } finally {
+            console.groupEnd()
         }
     }
 
@@ -357,6 +413,10 @@ export class MongoDB implements dbAPI {
                 return JSON.stringify({ code: 403 })
             else if (error instanceof Unauthenticated)
                 return JSON.stringify({ code: 401 })
+            else if (error instanceof ConnectionError)
+                return JSON.stringify({ code: 500, message: 'ConnectionError' })
+            else if (error instanceof ConfigurationError)
+                return JSON.stringify({ code: 500, message: 'ConfigurationError' })
             else
                 return JSON.stringify({ code: 500 })
         }
