@@ -103,44 +103,6 @@ export function ConfigurationContextWrapper({ children }: { children?: ReactNode
         persistConfigurationData({ locale: { ...configuration.locale, zone: configuration.locale.zone }, themeOptions: configuration.themeOptions, canvas: configuration.canvas });
     };
 
-    // const hasFetchedConfig = useRef(false);
-    // if (!hasFetchedConfig.current) {
-    //     console.group('hasFetchedConfig-readConfig');
-    //     (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-    //         .then((c) => {
-    //             console.log('hasFetchedConfig-readConfig', 'c', c);
-
-    //             try {
-    //                 if (c && !c.mongodb)
-    //                     setShowDbConfigurationModal(true);
-
-    //                 if (c && c.configuration) {
-    //                     document.dir = c.configuration.locale.direction
-    //                     c.configuration.themeOptions.direction = c.configuration.locale.direction
-    //                     setConfiguration({
-    //                         ...c.configuration,
-    //                         theme: createTheme(c.configuration.themeOptions, getReactLocale(c.configuration.locale.code))
-    //                     });
-    //                     i18n.changeLanguage(c.configuration.locale.code);
-    //                 } else {
-    //                     setConfiguration(defaultConfiguration);
-    //                     persistConfigurationData({ locale: defaultConfiguration.locale, themeOptions: defaultConfiguration.themeOptions, canvas: defaultConfiguration.canvas });
-    //                 }
-    //             } catch (error) {
-    //                 console.error(error);
-    //             }
-
-    //             hasFetchedConfig.current = true;
-    //             console.groupEnd()
-    //         })
-    //         .catch((err) => {
-    //             console.error('hasFetchedConfig-readConfig', 'err', err);
-
-    //             setConfiguration(defaultConfiguration);
-    //             persistConfigurationData({ locale: defaultConfiguration.locale, themeOptions: defaultConfiguration.themeOptions, canvas: defaultConfiguration.canvas });
-    //         });
-    // }
-
     const [hasFetchedConfig, setHasFetchedConfig] = useState<boolean>(false);
     useEffect(() => {
         if (!hasFetchedConfig) {
