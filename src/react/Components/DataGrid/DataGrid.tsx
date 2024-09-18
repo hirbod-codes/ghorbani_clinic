@@ -2,7 +2,7 @@ import { GridAutosizeOptions, GridPaginationMeta, GridCallbackDetails, GridColDe
 import { useState, useEffect, ReactNode } from 'react'
 import LoadingScreen from '../LoadingScreen'
 import { getColumns } from './helpers'
-import { configAPI } from '../../../Electron/Configuration/renderer/configAPI';
+import { configAPI } from 'src/Electron/Configuration/renderer';
 
 export type DataGridProps = DataGridCoreProps & {
     name?: string;

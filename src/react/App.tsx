@@ -1,7 +1,7 @@
 import { useContext, useState } from 'react'
 
 import { HomeOutlined, PersonOutlined, SettingsOutlined, MenuOutlined, LogoutOutlined, LightModeOutlined, DarkModeOutlined, ExpandLess, ExpandMore, DisplaySettingsOutlined, StorageOutlined, MasksOutlined, AccessTimeOutlined, LoginOutlined, FormatPaintOutlined, DeleteOutline, RepeatOutlined, } from '@mui/icons-material'
-import { AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Collapse, CircularProgress, Grid, Theme, colors, Dialog, DialogTitle, DialogActions, Button } from '@mui/material'
+import { AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Collapse, CircularProgress, Grid, Theme, colors, Dialog, DialogTitle, DialogActions, Button, Box } from '@mui/material'
 
 import { AuthContext } from './Contexts/AuthContext'
 import { resources } from '../Electron/Database/Repositories/Auth/resources'
@@ -209,7 +209,7 @@ export function App() {
             </Dialog >
 
             <Grid container sx={{ height: '100%' }}>
-                <Grid item xs={12}>
+                <Grid item xs={12} height={'2rem'}>
                     <MenuBar backgroundColor={theme.palette.background.default} />
                 </Grid>
 
@@ -251,7 +251,7 @@ export function App() {
                 </Grid>
 
                 {/* MenuBar ==> 2rem, AppBar ==> 3rem */}
-                <Grid item xs={12} sx={{ height: 'calc(100% - 5rem)', overflowY: 'auto' }}>
+                <Grid item xs={12} sx={{ height: 'calc(100% - 5rem)', overflowY: 'auto'}}>
                     {nav?.content}
                 </Grid>
             </Grid>

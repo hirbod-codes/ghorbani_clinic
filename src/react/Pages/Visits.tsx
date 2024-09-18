@@ -10,11 +10,11 @@ import { ConfigurationContext } from "../Contexts/ConfigurationContext";
 import { Visit } from "../../Electron/Database/Models/Visit";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish } from "../Lib/Events";
-import { configAPI } from "../../Electron/Configuration/renderer/configAPI";
-import { EditorModal } from "../Components/Editor/EditorModal";
 import { resources } from "../../Electron/Database/Repositories/Auth/resources";
 import { AuthContext } from "../Contexts/AuthContext";
 import { DeleteOutline, RefreshOutlined } from "@mui/icons-material";
+import { configAPI } from "../../Electron/Configuration/renderer";
+import { EditorModal } from "../Components/Editor/EditorModal";
 
 export function Visits() {
     const auth = useContext(AuthContext)
@@ -33,6 +33,35 @@ export function Visits() {
     const [deletingVisitId, setDeletingVisitId] = useState<string>()
 
     console.log('Visits', { configuration, visits, showingDiagnosis: showDiagnosis })
+
+    const updateVisit = async (visit: Visit) => {
+        try {
+            console.groupCollapsed('updateVisit')
+
+            if(!visit)
+                throw new Error('no visit provided to update.')
+
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updateVisit(visit)
+            console.log({ res })
+
+            if (res.code !== 200 || !res.data) {
+                publish(RESULT_EVENT_NAME, {
+                    severity: 'error',
+                    message: t('failedToFetchVisits')
+                })
+                return
+            }
+
+            publish(RESULT_EVENT_NAME, {
+                severity: 'success',
+                message: t('successfullyFetchedVisits')
+            })
+        } catch (error) {
+            console.error(error)
+        } finally {
+            console.groupEnd()
+        }
+    }
 
     const init = async (offset: number, limit: number) => {
         setLoading(true)
@@ -185,7 +214,7 @@ export function Visits() {
                     if (visits.find(f => f._id === showDiagnosis).diagnosis)
                         visits.find(f => f._id === showDiagnosis).diagnosis = { text: diagnosis, canvas: canvasId }
 
-                    setVisits([...visits])
+                    updateVisit(visits.find(f => f._id === showDiagnosis))
                 }}
             />
             <EditorModal
@@ -202,7 +231,7 @@ export function Visits() {
                     if (visits.find(f => f._id === showTreatments).treatments)
                         visits.find(f => f._id === showTreatments).treatments = { text: treatments, canvas: canvasId }
 
-                    setVisits([...visits])
+                    updateVisit(visits.find(f => f._id === showTreatments))
                 }}
             />
         </>

@@ -72,7 +72,8 @@ export function Patients() {
                 severity: 'success',
                 message: t('successfullyFetchedPatients')
             })
-            setPatients(res.data)
+
+            setPatients(res.data.splice(0, 10))
         }
         finally { console.groupEnd() }
     }
