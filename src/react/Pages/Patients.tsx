@@ -116,8 +116,6 @@ export function Patients() {
         },
         {
             field: '_id',
-            hideable: false,
-
         },
         {
             field: 'medicalHistory',

@@ -37,7 +37,7 @@ if (require('electron-squirrel-startup'))
 
 const createWindow = (): void => {
     const mainWindow = new BrowserWindow({
-        fullscreen: true,
+        fullscreen: false,
         frame: false,
         webPreferences: {
             preload: path.join(__dirname, 'preload.js'),
@@ -51,7 +51,7 @@ const createWindow = (): void => {
 
 
     if (!app.isPackaged)
-        mainWindow.webContents.openDevTools({ mode: 'detach' });
+        mainWindow.webContents.openDevTools({ mode: 'right' });
 };
 
 app.on('ready', async () => {
