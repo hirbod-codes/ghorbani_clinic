@@ -10,7 +10,7 @@ import { publish } from "../../Lib/Events";
 
 
 export function Analytics() {
-    const initialized = useRef<boolean>(false);
+    const [initialized, setInitialized] = useState<boolean>(false);
     const [initLoading, setInitLoading] = useState<boolean>(true);
     const [initFailed, setInitFailed] = useState<boolean>(false);
 
@@ -98,9 +98,9 @@ export function Analytics() {
     };
 
     useEffect(() => {
-        if (!initialized.current)
+        if (!initialized)
             initProgressBars()
-                .then(() => (initialized.current = true));
+                .then(() => (setInitialized(true)));
     }, []);
 
     return (

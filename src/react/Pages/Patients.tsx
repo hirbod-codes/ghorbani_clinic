@@ -73,7 +73,7 @@ export function Patients() {
                 message: t('successfullyFetchedPatients')
             })
 
-            setPatients(res.data.splice(0, 10))
+            setPatients(res.data)
         }
         finally { console.groupEnd() }
     }
