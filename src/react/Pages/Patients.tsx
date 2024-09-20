@@ -73,7 +73,7 @@ export function Patients() {
                 message: t('successfullyFetchedPatients')
             })
 
-            setPatients(res.data.splice(0, 10))
+            setPatients(res.data)
         }
         finally { console.groupEnd() }
     }
@@ -116,8 +116,6 @@ export function Patients() {
         },
         {
             field: '_id',
-            hideable: false,
-
         },
         {
             field: 'medicalHistory',

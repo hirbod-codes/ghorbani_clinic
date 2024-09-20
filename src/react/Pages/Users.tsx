@@ -17,7 +17,7 @@ import { GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
 import { Home } from "./Home";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish } from "../Lib/Events";
-import { configAPI } from "../../Electron/Configuration/renderer/configAPI";
+import { configAPI } from "src/Electron/Configuration/renderer";
 
 export function Users() {
     const configuration = useContext(ConfigurationContext)

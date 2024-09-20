@@ -18,13 +18,12 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
     const configuration = useContext(ConfigurationContext)
     const nav = useContext(NavigationContext);
 
-    const [isAuthLoading, setIsAuthLoading] = useState<boolean>(false);
     const [auth, setAuth] = useState<{ user: User | undefined; ac: AccessControl | undefined; }>({ user: undefined, ac: undefined });
     const [showModal, setShowModal] = useState<boolean>(false)
 
     const getAccessControl = async (): Promise<AccessControl | undefined> => {
         try {
-            console.groupCollapsed('AuthContextWrapper', 'getAccessControl');
+            console.log('AuthContextWrapper', 'getAccessControl');
             const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.getPrivileges();
             console.log({ res });
             if (res.code !== 200)
@@ -34,13 +33,11 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
         } catch (error) {
             console.error(error);
             // throw error;
-        } finally {
-            console.groupEnd();
         }
     };
     const fetchUser = async (): Promise<User | undefined> => {
         try {
-            console.groupCollapsed('AuthContextWrapper', 'fetchUser')
+            console.log('AuthContextWrapper', 'fetchUser')
             const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.getAuthenticatedUser();
             console.log({ res });
             if (res.code !== 200)
@@ -50,13 +47,11 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
         } catch (error) {
             console.error(error);
             // throw error;
-        } finally {
-            console.groupEnd();
         }
     };
     const login = async (username: string, password: string) => {
         try {
-            console.groupCollapsed('AuthContextWrapper', 'login')
+            console.log('AuthContextWrapper', 'login')
 
             console.log({ username, password });
             const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.login(username, password);
@@ -83,13 +78,11 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
                 severity: 'error',
                 message: t('failedToAuthenticate'),
             });
-        } finally {
-            console.groupEnd();
         }
     };
     const logout = async () => {
         try {
-            console.groupCollapsed('AuthContextWrapper', 'logout')
+            console.log('AuthContextWrapper', 'logout')
             const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.logout();
             console.log({ res });
             if (res.code !== 200 || res.data !== true) {
@@ -114,28 +107,35 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
                 severity: 'error',
                 message: t('failedToLogout'),
             });
-        } finally {
-            console.groupEnd();
         }
     };
 
+    const hasInitialized = useRef<boolean>(false);
+    const isAuthLoading = useRef<boolean>(false);
+
+    console.log('AuthContextWrapper', { auth, isAuthLoading: isAuthLoading.current, showModal, hasInitialized: hasInitialized.current, configuration })
+
     const init = async () => {
         try {
-            console.groupCollapsed('AuthContextWrapper', 'init')
+            console.group('AuthContextWrapper', 'init')
+
+            console.log('should end?', hasInitialized.current || isAuthLoading.current || !configuration?.hasFetchedConfig || configuration?.showDbConfigurationModal || auth.user || auth.ac)
+            if (hasInitialized.current || isAuthLoading.current || !configuration?.hasFetchedConfig || configuration?.showDbConfigurationModal || auth.user || auth.ac)
+                return
+
+            isAuthLoading.current = true
+            hasInitialized.current = true
 
             const u = await fetchUser();
             const accessControl = await getAccessControl();
 
-            if (!u || !accessControl) {
-                if (!showModal)
-                    setShowModal(true)
+            console.log({ user: u, accessControl })
 
+            if (!u || !accessControl) {
                 setAuth({ user: undefined, ac: undefined });
 
-                publish(RESULT_EVENT_NAME, {
-                    severity: 'error',
-                    message: t('failedToAuthenticate')
-                });
+                if (!showModal)
+                    setShowModal(true)
             }
 
             if (u && accessControl)
@@ -148,33 +148,20 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
                 message: t('failedToAuthenticate')
             })
         } finally {
-            if (isAuthLoading)
-                setIsAuthLoading(false)
+            if (isAuthLoading.current)
+                isAuthLoading.current = false
             console.groupEnd()
         }
     }
 
-    const [hasInitialized, setHasInitialized] = useState<boolean>(false);
     useEffect(() => {
-        console.log('useEffect out', { auth, isAuthLoading, showModal, hasInitialized, configuration })
-        if (!hasInitialized && !isAuthLoading && configuration?.hasFetchedConfig && !configuration?.showDbConfigurationModal && (!auth.user || !auth.ac)) {
-            console.log('useEffect in', { auth, isAuthLoading, showModal, hasInitialized, configuration })
-            setIsAuthLoading(true)
-            setHasInitialized(true)
-        }
-    }, [])
-
-    useEffect(() => {
-        console.log('useEffect init', { auth, isAuthLoading, showModal, hasInitialized, configuration })
         init()
-    }, [isAuthLoading])
-
-    console.group('AuthContextWrapper', { auth, isAuthLoading, showModal, hasInitialized, configuration })
+    }, [])
 
     return (
         <>
-            <AuthContext.Provider value={{ user: auth.user, accessControl: auth.ac, isAuthLoading, logout, showModal: () => setShowModal(true), fetchUser: async () => { await fetchUser() } }}>
-                {children}
+            <AuthContext.Provider value={{ user: auth.user, accessControl: auth.ac, isAuthLoading: isAuthLoading.current, logout, showModal: () => setShowModal(true), fetchUser: async () => { await fetchUser() } }}>
+                {!isAuthLoading.current && children}
             </AuthContext.Provider>
 
             <Modal

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { t } from "i18next";
-import { Button, CircularProgress, Grid, Stack, Typography } from "@mui/material";
+import { Box, Button, CircularProgress, Grid, Stack, Typography } from "@mui/material";
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
 import { RefreshOutlined } from "@mui/icons-material";
 import { AnimatedCircularProgressBar } from "../ProgressBars/AnimatedCircularProgressBar";
@@ -10,13 +10,13 @@ import { publish } from "../../Lib/Events";
 
 
 export function Analytics() {
-    const initialized = useRef<boolean>(false);
+    const [initialized, setInitialized] = useState<boolean>(false);
     const [initLoading, setInitLoading] = useState<boolean>(true);
     const [initFailed, setInitFailed] = useState<boolean>(false);
 
-    const [visitsCount, setVisitsCount] = useState<number | undefined>();
-    const [expiredVisitsCount, setExpiredVisitsCount] = useState<number | undefined>();
-    const [patientsCount, setPatientsCount] = useState<number | undefined>();
+    const [visitsCount, setVisitsCount] = useState<number | undefined>(undefined);
+    const [expiredVisitsCount, setExpiredVisitsCount] = useState<number | undefined>(undefined);
+    const [patientsCount, setPatientsCount] = useState<number | undefined>(undefined);
 
     console.log('Analytics', { initLoading, initFailed, visitsCount, expiredVisitsCount, patientsCount });
 
@@ -98,9 +98,9 @@ export function Analytics() {
     };
 
     useEffect(() => {
-        if (!initialized.current)
+        if (!initialized)
             initProgressBars()
-                .then(() => (initialized.current = true));
+                .then(() => (setInitialized(true)));
     }, []);
 
     return (
@@ -117,55 +117,60 @@ export function Analytics() {
                     </>
                     :
                     (
-                        initLoading
-                            ?
-                            <>
-                                <Grid item xs={12}>
-                                    <Stack direction='row' justifyContent='center'>
-                                        <CircularProgress size={80} />
-                                    </Stack>
-                                </Grid>
-                            </>
-                            :
-                            <>
-                                <Grid item xs={6} container justifyContent='center'>
-                                    {visitsCount
-                                        ?
+                        <>
+                            <Grid item xs={6} container justifyContent='center'>
+                                {visitsCount
+                                    ?
+                                    <Box>
                                         <AnimatedCircularProgressBar start={0} end={70}>
                                             <Typography variant='h4'>
                                                 <AnimatedCounter start={0} end={visitsCount} />
                                             </Typography>
                                         </AnimatedCircularProgressBar>
-                                        :
-                                        <CircularProgress />}
-                                </Grid>
+                                        <Typography variant="body1" textAlign='center' sx={{ position: 'relative', top: '-3rem' }}>
+                                            {t('visits')}
+                                        </Typography>
+                                    </Box>
+                                    :
+                                    <CircularProgress />}
+                            </Grid>
 
-                                <Grid item xs={6} container justifyContent='center' alignContent='center'>
-                                    {expiredVisitsCount
-                                        ?
+                            <Grid item xs={6} container justifyContent='center' alignContent='center'>
+                                {expiredVisitsCount
+                                    ?
+                                    <Box>
                                         <AnimatedCircularProgressBar start={0} end={70}>
                                             <Typography variant='h4'>
                                                 <AnimatedCounter start={0} end={expiredVisitsCount} />
                                             </Typography>
                                         </AnimatedCircularProgressBar>
-                                        :
-                                        <CircularProgress />}
-                                </Grid>
+                                        <Typography variant="body1" textAlign='center' sx={{ position: 'relative', top: '-3rem' }}>
+                                            {t('expiredVisits')}
+                                        </Typography>
+                                    </Box>
+                                    :
+                                    <CircularProgress />}
+                            </Grid>
 
-                                <Grid item xs={3}></Grid>
-                                <Grid item xs={6} container justifyContent='center'>
-                                    {patientsCount
-                                        ?
+                            <Grid item xs={3}></Grid>
+                            <Grid item xs={6} container justifyContent='center'>
+                                {patientsCount
+                                    ?
+                                    <Box>
                                         <AnimatedCircularProgressBar start={0} end={70}>
                                             <Typography variant='h4'>
                                                 <AnimatedCounter start={0} end={patientsCount} />
                                             </Typography>
                                         </AnimatedCircularProgressBar>
-                                        :
-                                        <CircularProgress />}
-                                </Grid>
-                                <Grid item xs={3}></Grid>
-                            </>
+                                        <Typography variant="body1" textAlign='center' sx={{ position: 'relative', top: '-3rem' }}>
+                                            {t('patients')}
+                                        </Typography>
+                                    </Box>
+                                    :
+                                    <CircularProgress />}
+                            </Grid>
+                            <Grid item xs={3}></Grid>
+                        </>
                     )}
             </Grid>
         </>
