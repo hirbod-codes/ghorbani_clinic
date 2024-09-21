@@ -256,7 +256,7 @@ export function App() {
                     </Toolbar>
                 </AppBar>
 
-                <Box sx={{ overflow: 'hidden', height: '100%', width: '100%' }}>
+                <Box sx={{ overflow: 'hidden', flexGrow: 1, width: '100%' }}>
                     <PageSlider page={nav?.content} />
                 </Box>
             </Stack>
