@@ -1,15 +1,24 @@
-import { useSpring, animated, easings } from 'react-spring';
+import { animate } from "framer-motion";
+import { useEffect, useRef } from "react";
+import { circularProgressBarVariantsTransition } from "../ProgressBars/AnimatedCircularProgressBar";
 
-export function AnimatedCounter({ start, end }: { start: number; end: number; }) {
-    const progress = useSpring({
-        from: { percentComplete: start },
-        to: { percentComplete: end },
-        config: { easing: easings.easeInBack }
-    });
+export function AnimatedCounter({ start = 0, end }: { start?: number; end: number; }) {
+    const nodeRef = useRef<HTMLParagraphElement>();
+
+    useEffect(() => {
+        const controls = animate(start, end, {
+            ...(circularProgressBarVariantsTransition as any),
+            onUpdate(value) {
+                if (nodeRef.current)
+                    nodeRef.current.textContent = value.toFixed(0);
+            },
+        });
+
+        return () => controls.stop()
+    }, [])
 
     return (
-        <animated.div>
-            {progress.percentComplete.to((e) => e.toFixed(0))}
-        </animated.div>
-    );
+        <div ref={nodeRef} />
+    )
 }
+
