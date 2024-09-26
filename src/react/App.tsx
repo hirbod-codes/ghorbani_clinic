@@ -1,7 +1,7 @@
 import { useContext, useState } from 'react'
 
 import { HomeOutlined, PersonOutlined, SettingsOutlined, MenuOutlined, LogoutOutlined, LightModeOutlined, DarkModeOutlined, ExpandLess, ExpandMore, DisplaySettingsOutlined, StorageOutlined, MasksOutlined, AccessTimeOutlined, LoginOutlined, FormatPaintOutlined, DeleteOutline, RepeatOutlined, } from '@mui/icons-material'
-import { AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Collapse, CircularProgress, Theme, colors, Dialog, DialogTitle, DialogActions, Button, Stack, Box } from '@mui/material'
+import { AppBar, Drawer, IconButton, List, ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Collapse, CircularProgress, Theme, colors, Dialog, DialogTitle, DialogActions, Button, Stack, Box, alpha } from '@mui/material'
 
 import { AuthContext } from './Contexts/AuthContext'
 import { resources } from '../Electron/Database/Repositories/Auth/resources'
@@ -21,7 +21,8 @@ import { ThemeSettings } from './Pages/Settings/ThemeSettings'
 import { dbAPI } from '../Electron/Database/dbAPI'
 import { publish } from './Lib/Events'
 import { RESULT_EVENT_NAME } from './Contexts/ResultWrapper'
-import { PageSlider } from './PageSlider'
+import { PageSlider } from './Pages/PageSlider'
+import { GradientBackground } from './Pages/GradientBackground'
 
 export function App() {
     const nav = useContext(NavigationContext)
@@ -55,6 +56,10 @@ export function App() {
     }
 
     console.log('App', { nav, auth, theme, configuration, setContent, openDrawer, openSettingsList })
+
+    const appBarBorderColor = theme.palette.mode === 'dark' ? '#fff' : '#000'
+    const appBarGradientColor = alpha(theme.palette.mode === 'dark' ? theme.palette.common.white : theme.palette.common.black, 0.5)
+    const backDropColor = alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0.7)
 
     return (
         <>
@@ -217,49 +222,72 @@ export function App() {
                 </DialogActions>
             </Dialog >
 
-            <Stack direction='column' sx={{ overflow: 'hidden', height: '100%', width: '100%' }}>
-                <MenuBar backgroundColor={theme.palette.background.default} />
+            <Box sx={{ position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }}>
+                <GradientBackground key={nav?.content.type.name} />
+                <Box sx={{ backgroundColor: backDropColor, position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }} />
+            </Box>
 
-                {/* top margin is 2rem, because menu bar has a height of 2rem and is positioned fixed */}
-                <AppBar position='relative' sx={{ mt: '2rem' }}>
-                    <Toolbar variant="dense">
-                        <IconButton size='large' color='inherit' onClick={() => setOpenDrawer(true)} sx={{ mr: 2 }}>
-                            <MenuOutlined fontSize='inherit' />
-                        </IconButton>
-                        <Typography variant='h6' component='div' sx={{ flexGrow: 1 }}>
-                            {/* Title */}
-                            {auth.user?.username}
-                        </Typography>
-                        {
-                            auth.user &&
-                            <IconButton size='medium' color='inherit' onClick={async () => await auth.logout()}>
-                                {
-                                    auth?.isAuthLoading
-                                        ? <CircularProgress size='small' />
-                                        : <LogoutOutlined />
-                                }
-                            </IconButton>
-                        }
-                        {
-                            !auth.isAuthLoading && !auth.user &&
-                            <IconButton size='medium' color='inherit' onClick={() => auth.showModal()}>
-                                {
-                                    auth?.isAuthLoading
-                                        ? <CircularProgress size='small' />
-                                        : <LoginOutlined />
-                                }
-                            </IconButton>
-                        }
-                        <IconButton size='medium' color='inherit' onClick={() => configuration.set.updateTheme(theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.get.locale.direction, getReactLocale(configuration.get.locale.code))}>
-                            {theme.palette.mode == 'light' ? <LightModeOutlined fontSize='inherit' /> : <DarkModeOutlined fontSize='inherit' />}
-                        </IconButton>
-                    </Toolbar>
-                </AppBar>
+            <Box sx={{ position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }}>
 
-                <Box sx={{ overflow: 'hidden', flexGrow: 1, width: '100%' }}>
-                    <PageSlider page={nav?.content} />
-                </Box>
-            </Stack>
+                <Stack direction='column' spacing={0} sx={{ overflow: 'hidden', height: '100%', width: '100%' }}>
+                    <Stack
+                        direction='column'
+                        spacing={0}
+                        sx={{
+                            position: 'relative',
+                            overflow: 'hidden',
+                            width: '100%',
+                            background: `radial-gradient(ellipse farthest-side at top, ${appBarGradientColor}, 1%, transparent)`
+                        }}
+                    >
+                        <MenuBar backgroundColor={theme.palette.background.default} />
+
+                        {/* top margin is 2rem, because menu bar has a height of 2rem and is positioned fixed */}
+                        <AppBar position='relative' sx={{ mt: '2rem', borderBottom: 0, boxShadow: '0', background: '#00000000' }}>
+                            <Toolbar>
+                                <IconButton size='medium' onClick={() => setOpenDrawer(true)} sx={{ mr: 2 }}>
+                                    <MenuOutlined fontSize='inherit' />
+                                </IconButton>
+                                <Typography color={theme.palette.text.primary} variant='h6' component='div' sx={{ flexGrow: 1 }}>
+                                    {/* Title */}
+                                    {auth.user?.username}
+                                </Typography>
+                                {
+                                    auth.user &&
+                                    <IconButton size='medium' onClick={async () => await auth.logout()}>
+                                        {
+                                            auth?.isAuthLoading
+                                                ? <CircularProgress size='small' />
+                                                : <LogoutOutlined fontSize='inherit' />
+                                        }
+                                    </IconButton>
+                                }
+                                {
+                                    !auth.isAuthLoading && !auth.user &&
+                                    <IconButton size='medium' onClick={() => auth.showModal()}>
+                                        {
+                                            auth?.isAuthLoading
+                                                ? <CircularProgress size='small' />
+                                                : <LoginOutlined fontSize='inherit' />
+                                        }
+                                    </IconButton>
+                                }
+                                <IconButton size='medium' onClick={() => configuration.set.updateTheme(theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.get.locale.direction, getReactLocale(configuration.get.locale.code))}>
+                                    {theme.palette.mode == 'light' ? <LightModeOutlined fontSize='inherit' /> : <DarkModeOutlined fontSize='inherit' />}
+                                </IconButton>
+                            </Toolbar>
+                        </AppBar>
+                    </Stack>
+
+                    <div style={{ height: '2px', background: `radial-gradient(ellipse farthest-side at center, ${appBarBorderColor}, transparent)`, margin: '0 1rem' }} />
+
+                    <Box sx={{ overflow: 'hidden', flexGrow: 1, width: '100%', position: 'relative', mt: 3 }}>
+                        <Box sx={{ position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }}>
+                            <PageSlider page={nav?.content} />
+                        </Box>
+                    </Box>
+                </Stack>
+            </Box>
         </>
     )
 }

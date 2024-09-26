@@ -38,21 +38,22 @@ export function AnimatedCircularProgressBar({ end, start = 0, size = 50, transit
     if (!colors)
         colors = {
             progress: theme.palette.primary[theme.palette.mode],
-            base: theme.palette.background.default,
+            base: 'transparent',
         };
     const radius = (size - strokeWidth) / 2;
     const circumference = radius * 2 * Math.PI;
 
     return (
         <>
-            <Box width={size + 'px'} height={size + 'px'} overflow={'visible'}>
+            <Box width={size + 'px'} height={size + 'px'} overflow={'visible'} sx={{ background: 'transparent' }}>
                 <svg
                     viewBox={`0 0 ${size} ${size}`}
                     width={size + 'px'}
                     height={size + 'px'}
                     style={{
                         transform: 'rotate(145deg)',
-                        position: 'absolute'
+                        position: 'absolute',
+                        background: 'transparent'
                     }}
                 >
                     <circle
@@ -71,6 +72,7 @@ export function AnimatedCircularProgressBar({ end, start = 0, size = 50, transit
                         animate='progress'
                         custom={{ end, circumference, transition }}
                         strokeWidth={strokeWidth}
+                        strokeLinecap={'round'}
                         r={radius}
                         cx={'50%'}
                         cy={'50%'}
