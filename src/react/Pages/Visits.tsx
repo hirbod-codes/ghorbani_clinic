@@ -15,8 +15,11 @@ import { AuthContext } from "../Contexts/AuthContext";
 import { DeleteOutline, RefreshOutlined } from "@mui/icons-material";
 import { configAPI } from "../../Electron/Configuration/renderer";
 import { EditorModal } from "../Components/Editor/EditorModal";
+import { NavigationContext } from "../Contexts/NavigationContext";
 
 export function Visits() {
+    const nav = useContext(NavigationContext)
+
     const auth = useContext(AuthContext)
     const configuration = useContext(ConfigurationContext)
 
@@ -38,7 +41,7 @@ export function Visits() {
         try {
             console.groupCollapsed('updateVisit')
 
-            if(!visit)
+            if (!visit)
                 throw new Error('no visit provided to update.')
 
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updateVisit(visit)
@@ -88,22 +91,33 @@ export function Visits() {
     }
 
     useEffect(() => {
-        console.log('Visits', 'useEffect', 'start');
-        init(page.offset, page.limit).then(() => console.log('useEffect', 'end'))
-    }, [page, auth])
+        console.log('Visits', 'useEffect1', 'start', 'pageHasLoaded', nav?.pageHasLoaded)
+        if (nav?.pageHasLoaded)
+            init(page.offset, page.limit).then(() => console.log('useEffect', 'end'))
+    }, [page, auth, nav?.pageHasLoaded])
 
     useEffect(() => {
-        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-            .then((c) => {
-                if (c?.columnVisibilityModels?.visits)
-                    setHiddenColumns(Object.entries(c.columnVisibilityModels.visits).filter(f => f[1] === false).map(arr => arr[0]))
-            })
-    }, [])
+        console.log('Visits', 'useEffect2', 'start', 'pageHasLoaded', nav?.pageHasLoaded)
+        if (nav?.pageHasLoaded)
+            (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+                .then((c) => {
+                    if (c?.columnVisibilityModels?.visits)
+                        setHiddenColumns(Object.entries(c.columnVisibilityModels.visits).filter(f => f[1] === false).map(arr => arr[0]))
+                })
+    }, [nav?.pageHasLoaded])
 
     const deletesVisit = auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.VISIT)
 
     if (!visits || visits.length === 0)
-        return (<LoadingScreen />)
+        return (
+            <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
+                <Grid item xs={12} height={'100%'}>
+                    <Paper sx={{ p: 1, height: '100%' }}>
+                        <LoadingScreen />
+                    </Paper>
+                </Grid>
+            </Grid>
+        )
 
     const columns: GridColDef<any>[] = [
         {

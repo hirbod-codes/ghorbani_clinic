@@ -59,7 +59,7 @@ export function App() {
 
     const appBarBorderColor = theme.palette.mode === 'dark' ? '#fff' : '#000'
     const appBarGradientColor = alpha(theme.palette.mode === 'dark' ? theme.palette.common.white : theme.palette.common.black, 0.5)
-    const backDropColor = alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0.7)
+    const backDropColor = alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0.3)
 
     return (
         <>
@@ -223,7 +223,7 @@ export function App() {
             </Dialog >
 
             <Box sx={{ position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }}>
-                <GradientBackground key={nav?.content.type.name} />
+                <GradientBackground name={nav?.content.type.name} />
                 <Box sx={{ backgroundColor: backDropColor, position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }} />
             </Box>
 

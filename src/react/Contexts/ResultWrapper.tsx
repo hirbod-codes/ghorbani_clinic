@@ -14,7 +14,7 @@ export function ResultWrapper({ children }: { children?: ReactNode; }) {
 
     subscribe(RESULT_EVENT_NAME, (e?: CustomEvent) => updateResult(e?.detail))
 
-    console.log('ResultContextWrapper', { result })
+    console.log('-------------ResultContextWrapper', { result })
 
     return (
         <>

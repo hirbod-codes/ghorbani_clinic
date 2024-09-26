@@ -91,16 +91,20 @@ export function Users() {
     }
 
     useEffect(() => {
-        refresh()
-    }, [])
+        console.log('Users', 'useEffect', 'start', 'pageHasLoaded', nav?.pageHasLoaded)
+        if (nav?.pageHasLoaded)
+            refresh()
+    }, [nav?.pageHasLoaded])
 
     useEffect(() => {
-        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-            .then((c) => {
-                if (c?.columnVisibilityModels?.users)
-                    setHiddenColumns(Object.entries(c.columnVisibilityModels.users).filter(f => f[1] === false).map(arr => arr[0]))
-            })
-    }, [])
+        console.log('Users', 'useEffect2', 'start', 'pageHasLoaded', nav?.pageHasLoaded)
+        if (nav?.pageHasLoaded)
+            (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+                .then((c) => {
+                    if (c?.columnVisibilityModels?.users)
+                        setHiddenColumns(Object.entries(c.columnVisibilityModels.users).filter(f => f[1] === false).map(arr => arr[0]))
+                })
+    }, [nav?.pageHasLoaded])
 
     const deleteUser = async (id: string) => {
         try {

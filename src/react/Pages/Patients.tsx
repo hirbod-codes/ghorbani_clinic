@@ -17,8 +17,11 @@ import { publish } from "../Lib/Events";
 import { configAPI } from '../../Electron/Configuration/renderer';
 import { MedicalHistory } from "../Components/Patients/MedicalHistory";
 import { EditorModal } from "../Components/Editor/EditorModal";
+import { NavigationContext } from "../Contexts/NavigationContext";
 
 export function Patients() {
+    const nav = useContext(NavigationContext)
+
     const auth = useContext(AuthContext)
     const configuration = useContext(ConfigurationContext)
 
@@ -79,24 +82,22 @@ export function Patients() {
     }
 
     useEffect(() => {
-        try {
-            console.group('Patients', 'useEffect');
-            if (!auth || !auth.user || !auth.accessControl)
-                return
+        console.log('Patients', 'useEffect1', !(!auth || !auth.user || !auth.accessControl || !nav?.pageHasLoaded));
+        if (!auth || !auth.user || !auth.accessControl || !nav?.pageHasLoaded)
+            return
 
-            init(page.offset, page.limit)
-                .finally(() => console.groupEnd())
-        }
-        finally { console.groupEnd() }
-    }, [page, auth])
+        init(page.offset, page.limit)
+    }, [page, auth, nav?.pageHasLoaded])
 
     useEffect(() => {
-        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-            .then((c) => {
-                if (c?.columnVisibilityModels?.patients)
-                    setHiddenColumns(Object.entries(c.columnVisibilityModels.patients).filter(f => f[1] === false).map(arr => arr[0]))
-            })
-    }, [])
+        console.log('Patients', 'useEffect2', 'start', 'pageHasLoaded', nav?.pageHasLoaded)
+        if (nav?.pageHasLoaded)
+            (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+                .then((c) => {
+                    if (c?.columnVisibilityModels?.patients)
+                        setHiddenColumns(Object.entries(c.columnVisibilityModels.patients).filter(f => f[1] === false).map(arr => arr[0]))
+                })
+    }, [nav?.pageHasLoaded])
 
     if (!auth || !auth.user || !auth.accessControl)
         return (<LoadingScreen />)
@@ -143,13 +144,21 @@ export function Patients() {
     ]
 
     if (!patients || patients.length === 0)
-        return (<LoadingScreen />)
+        return (
+            <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
+                <Grid item xs={12} height={'100%'}>
+                    <Paper style={{ padding: '1rem', height: '100%' }}>
+                        <LoadingScreen />
+                    </Paper>
+                </Grid>
+            </Grid>
+        )
 
     return (
         <>
             <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
                 <Grid item xs={12} height={'100%'}>
-                    <Paper sx={{ p: 1, height: '100%' }}>
+                    <Paper style={{ padding: '1rem', height: '100%' }}>
                         <DataGrid
                             name='patients'
                             data={patients}

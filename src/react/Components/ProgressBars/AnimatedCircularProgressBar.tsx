@@ -5,7 +5,7 @@ import { Transition, Variants, motion } from "framer-motion";
 export const circularProgressBarVariantsTransition: Transition = {
     type: 'spring',
     bounce: 0.4,
-    damping: 50
+    damping: 30
 }
 
 type circularProgressBarVariantsCustomProps = { start?: number, end: number, circumference: number, transition?: Transition; }

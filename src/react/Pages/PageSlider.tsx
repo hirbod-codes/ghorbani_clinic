@@ -1,27 +1,33 @@
-import { Box, useTheme } from '@mui/material';
 import { AnimatePresence, motion } from 'framer-motion';
+import { circularProgressBarVariantsTransition } from '../Components/ProgressBars/AnimatedCircularProgressBar';
+import { useContext, useEffect } from 'react';
+import { NavigationContext } from '../Contexts/NavigationContext';
 
 const xOffset = 100;
 const variants = {
     enter: {
-        left: -xOffset,
-        opacity: 0,
-        transition: { delay: 0, ease: 'anticipate' }
+        name: 'enter',
+        x: -xOffset.toString() + '%',
+        transition: circularProgressBarVariantsTransition
     },
     active: {
-        left: 0,
-        opacity: 1,
-        transition: { delay: 0.4, ease: 'anticipate', duration: 0.5 }
+        name: 'active',
+        x: 0,
+        transition: { ...circularProgressBarVariantsTransition, delay: 0.5 }
     },
     exit: {
-        left: xOffset,
-        opacity: 0,
-        transition: { delay: 0, ease: 'anticipate', duration: 0.5 }
+        name: 'exit',
+        x: xOffset.toString() + '%',
+        transition: circularProgressBarVariantsTransition
     }
 };
 
 export function PageSlider({ page }: { page: JSX.Element; }) {
-    const theme = useTheme()
+    const nav = useContext(NavigationContext)
+
+    useEffect(() => {
+        nav?.setPageHasLoaded(false)
+    }, [page])
 
     return (
         <div style={{ overflow: 'hidden', position: 'relative', height: '100%' }}>
@@ -34,18 +40,14 @@ export function PageSlider({ page }: { page: JSX.Element; }) {
                     initial='enter'
                     animate='active'
                     exit='exit'
+                    onAnimationComplete={(definition) => {
+                        console.log('ON_ANIMATION_COMPLETE------------------------------------------------------------------------------------', { definition })
+                        if (definition === 'active')
+                            nav?.setPageHasLoaded(true)
+                    }}
                 >
                     {page}
                 </motion.div>
-                {/* <motion.div
-                    layout
-                    key={page.type.name + '1'}
-                    style={{ overflow: 'hidden', backgroundColor: theme.palette.primary[theme.palette.mode], height: '100%', left: '-100%', width: '100%', position: 'absolute' }}
-                    initial={false}
-                    animate={false}
-                    exit={{ left: '500%', scaleX: 5 }}
-                    transition={{ delay: 0.2, duration: 1, ease: 'easeIn' }}
-                /> */}
             </AnimatePresence>
         </div>
     );

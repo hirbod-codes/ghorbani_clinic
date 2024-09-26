@@ -113,7 +113,7 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
     const hasInitialized = useRef<boolean>(false);
     const isAuthLoading = useRef<boolean>(false);
 
-    console.log('AuthContextWrapper', { auth, isAuthLoading: isAuthLoading.current, showModal, hasInitialized: hasInitialized.current, configuration })
+    console.log('-------------AuthContextWrapper', { auth, isAuthLoading: isAuthLoading.current, showModal, hasInitialized: hasInitialized.current, configuration })
 
     const init = async () => {
         try {
