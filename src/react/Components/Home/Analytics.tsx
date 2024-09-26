@@ -129,7 +129,14 @@ export function Analytics() {
                                 <Grid item xs={6} container justifyContent='center'>
                                     {visitsCount
                                         ?
-                                        <motion.div initial={{ x: -150, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ ease: 'easeInOut', duration: 1 }}>
+                                        <motion.div
+                                            initial={{ x: -150, opacity: 0 }}
+                                            animate={{ x: 0, opacity: 1 }}
+                                            transition={{
+                                                x: { ease: 'easeInOut', duration: 1 },
+                                                opacity: { ease: 'easeInOut', duration: 0.5 }
+                                            }}
+                                        >
                                             <AnimatedCircularProgressBar size={200} end={70}>
                                                 <Typography variant='h4'>
                                                     <AnimatedCounter start={0} end={visitsCount} />
@@ -146,7 +153,14 @@ export function Analytics() {
                                 <Grid item xs={6} container justifyContent='center' alignContent='center'>
                                     {expiredVisitsCount
                                         ?
-                                        <motion.div initial={{ x: 150, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ ease: 'easeInOut', duration: 1 }}>
+                                        <motion.div
+                                            initial={{ x: 150, opacity: 0 }}
+                                            animate={{ x: 0, opacity: 1 }}
+                                            transition={{
+                                                x: { ease: 'easeInOut', duration: 1 },
+                                                opacity: { ease: 'easeInOut', duration: 0.5 }
+                                            }}
+                                        >
                                             <AnimatedCircularProgressBar size={200} end={70}>
                                                 <Typography variant='h4'>
                                                     <AnimatedCounter start={0} end={expiredVisitsCount} />
@@ -164,7 +178,14 @@ export function Analytics() {
                                 <Grid item xs={6} container justifyContent='center'>
                                     {patientsCount
                                         ?
-                                        <motion.div initial={{ y: 150, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ ease: 'easeInOut', duration: 1 }}>
+                                        <motion.div
+                                            initial={{ y: 150, opacity: 0 }}
+                                            animate={{ y: 0, opacity: 1 }}
+                                            transition={{
+                                                y: { ease: 'easeInOut', duration: 1 },
+                                                opacity: { ease: 'easeInOut', duration: 0.5 }
+                                            }}
+                                        >
                                             <AnimatedCircularProgressBar size={200} end={70}>
                                                 <Typography variant='h4'>
                                                     <AnimatedCounter start={0} end={patientsCount} />
@@ -180,7 +201,7 @@ export function Analytics() {
                                 <Grid item xs={3}></Grid>
                             </>
                     )}
-            </Grid>
+            </Grid >
         </>
     );
 }

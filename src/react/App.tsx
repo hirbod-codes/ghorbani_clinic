@@ -63,94 +63,97 @@ export function App() {
 
     return (
         <>
-            <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)} >
-                <List sx={{ pt: 3 }}>
-                    <ListItemButton onClick={() => changePage(<Home />)}>
-                        <ListItemIcon>
-                            <HomeOutlined />
-                        </ListItemIcon>
-                        <ListItemText primary={t('home')} />
-                    </ListItemButton>
-                    {
-                        readsUsers &&
-                        <ListItemButton onClick={() => changePage(<Users />)}>
+            <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)} PaperProps={{ sx: { background: 'transparent', boxShadow: '0' } }}>
+                <Stack direction={'row'} alignItems='center' sx={{ height: '100%', background: `linear-gradient(to right, ${appBarGradientColor}, 1%, transparent)` }}>
+                    <List sx={{ pt: 3, overflow: 'auto', height: '60%' }}>
+                        <ListItemButton onClick={() => changePage(<Home />)} sx={{ mb: 4 }}>
                             <ListItemIcon>
-                                <PersonOutlined />
+                                <HomeOutlined />
                             </ListItemIcon>
-                            <ListItemText primary={t('users')} />
+                            <ListItemText primary={t('home')} />
                         </ListItemButton>
-                    }
-                    {
-                        readsPatients &&
-                        <ListItemButton onClick={() => changePage(<Patients />)}>
+                        {
+                            readsUsers &&
+                            <ListItemButton onClick={() => changePage(<Users />)} sx={{ mb: 4 }}>
+                                <ListItemIcon>
+                                    <PersonOutlined />
+                                </ListItemIcon>
+                                <ListItemText primary={t('users')} />
+                            </ListItemButton>
+                        }
+                        {
+                            readsPatients &&
+                            <ListItemButton onClick={() => changePage(<Patients />)} sx={{ mb: 4 }}>
+                                <ListItemIcon>
+                                    <MasksOutlined />
+                                </ListItemIcon>
+                                <ListItemText primary={t('patients')} />
+                            </ListItemButton>
+                        }
+                        {
+                            readsVisits &&
+                            <ListItemButton onClick={() => changePage(<Visits />)} sx={{ mb: 4 }}>
+                                <ListItemIcon>
+                                    <AccessTimeOutlined />
+                                </ListItemIcon>
+                                <ListItemText primary={t('visits')} />
+                            </ListItemButton>
+                        }
+                        <ListItemButton onClick={() => setOpenSettingsList(!openSettingsList)} sx={{ mb: 4 }}>
                             <ListItemIcon>
-                                <MasksOutlined />
+                                <SettingsOutlined />
                             </ListItemIcon>
-                            <ListItemText primary={t('patients')} />
+                            <ListItemText primary={t('settings')} />
+                            {openSettingsList ? <ExpandLess /> : <ExpandMore />}
                         </ListItemButton>
-                    }
-                    {
-                        readsVisits &&
-                        <ListItemButton onClick={() => changePage(<Visits />)}>
-                            <ListItemIcon>
-                                <AccessTimeOutlined />
-                            </ListItemIcon>
-                            <ListItemText primary={t('visits')} />
-                        </ListItemButton>
-                    }
-                    <ListItemButton onClick={() => setOpenSettingsList(!openSettingsList)}>
-                        <ListItemIcon>
-                            <SettingsOutlined />
-                        </ListItemIcon>
-                        <ListItemText primary={t('settings')} />
-                        {openSettingsList ? <ExpandLess /> : <ExpandMore />}
-                    </ListItemButton>
-                    <Collapse in={openSettingsList} timeout="auto" unmountOnExit>
-                        <List component="div" disablePadding>
-                            <ListItemButton sx={{ pl: 4 }} onClick={() => changePage(<General />)}>
-                                <ListItemIcon>
-                                    <DisplaySettingsOutlined />
-                                </ListItemIcon>
-                                <ListItemText primary={t("general")} />
-                            </ListItemButton>
-                            <ListItemButton sx={{ pl: 4 }} onClick={() => { setOpenDbList(!openDbList) }}>
-                                <ListItemIcon>
-                                    <StorageOutlined />
-                                </ListItemIcon>
-                                <ListItemText primary={t("Db")} />
-                                {openDbList ? <ExpandLess /> : <ExpandMore />}
-                            </ListItemButton>
-                            <Collapse in={openDbList} timeout="auto" unmountOnExit>
-                                <List component="div" disablePadding>
-                                    <ListItemButton sx={{ pl: 8 }} onClick={() => changePage(<DbSettings />)}>
-                                        <ListItemIcon>
-                                            <SettingsOutlined />
-                                        </ListItemIcon>
-                                        <ListItemText primary={t("Settings")} />
-                                    </ListItemButton>
-                                    <ListItemButton sx={{ pl: 8 }} onClick={() => setOpenSeedQuestion(true)}>
-                                        <ListItemIcon>
-                                            <RepeatOutlined />
-                                        </ListItemIcon>
-                                        <ListItemText primary={t("Seed")} />
-                                    </ListItemButton>
-                                    <ListItemButton sx={{ pl: 8, color: colors.red[400] }} onClick={() => setOpenTruncateDbQuestion(true)}>
-                                        <ListItemIcon>
-                                            <DeleteOutline />
-                                        </ListItemIcon>
-                                        <ListItemText primary={t("Truncate")} />
-                                    </ListItemButton>
-                                </List>
-                            </Collapse>
-                            <ListItemButton sx={{ pl: 4 }} onClick={() => changePage(<ThemeSettings />)}>
-                                <ListItemIcon>
-                                    <FormatPaintOutlined />
-                                </ListItemIcon>
-                                <ListItemText primary={t("Theme")} />
-                            </ListItemButton>
-                        </List>
-                    </Collapse>
-                </List>
+                        <Collapse in={openSettingsList} timeout="auto" unmountOnExit>
+                            <List component="div" disablePadding>
+                                <ListItemButton sx={{ pl: 4 }} onClick={() => changePage(<General />)}>
+                                    <ListItemIcon>
+                                        <DisplaySettingsOutlined />
+                                    </ListItemIcon>
+                                    <ListItemText primary={t("general")} />
+                                </ListItemButton>
+                                <ListItemButton sx={{ pl: 4 }} onClick={() => { setOpenDbList(!openDbList) }}>
+                                    <ListItemIcon>
+                                        <StorageOutlined />
+                                    </ListItemIcon>
+                                    <ListItemText primary={t("Db")} />
+                                    {openDbList ? <ExpandLess /> : <ExpandMore />}
+                                </ListItemButton>
+                                <Collapse in={openDbList} timeout="auto" unmountOnExit>
+                                    <List component="div" disablePadding>
+                                        <ListItemButton sx={{ pl: 8 }} onClick={() => changePage(<DbSettings />)}>
+                                            <ListItemIcon>
+                                                <SettingsOutlined />
+                                            </ListItemIcon>
+                                            <ListItemText primary={t("Settings")} />
+                                        </ListItemButton>
+                                        <ListItemButton sx={{ pl: 8 }} onClick={() => setOpenSeedQuestion(true)}>
+                                            <ListItemIcon>
+                                                <RepeatOutlined />
+                                            </ListItemIcon>
+                                            <ListItemText primary={t("Seed")} />
+                                        </ListItemButton>
+                                        <ListItemButton sx={{ pl: 8, color: colors.red[400] }} onClick={() => setOpenTruncateDbQuestion(true)}>
+                                            <ListItemIcon>
+                                                <DeleteOutline />
+                                            </ListItemIcon>
+                                            <ListItemText primary={t("Truncate")} />
+                                        </ListItemButton>
+                                    </List>
+                                </Collapse>
+                                <ListItemButton sx={{ pl: 4 }} onClick={() => changePage(<ThemeSettings />)}>
+                                    <ListItemIcon>
+                                        <FormatPaintOutlined />
+                                    </ListItemIcon>
+                                    <ListItemText primary={t("Theme")} />
+                                </ListItemButton>
+                            </List>
+                        </Collapse>
+                    </List>
+                    <Box sx={{ height: '100%', width: '2px', background: `radial-gradient(ellipse farthest-side at center, ${appBarBorderColor}, transparent)` }} />
+                </Stack>
             </Drawer>
 
             <Dialog
