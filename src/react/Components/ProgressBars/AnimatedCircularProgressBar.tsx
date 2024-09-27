@@ -1,12 +1,9 @@
 import { Box, Stack, useTheme } from "@mui/material";
 import { ReactNode } from 'react';
 import { Transition, Variants, motion } from "framer-motion";
+import { mainTransition } from "../../Styles/animations";
 
-export const circularProgressBarVariantsTransition: Transition = {
-    type: 'spring',
-    bounce: 0.4,
-    damping: 50
-}
+export const circularProgressBarVariantsTransition: Transition = mainTransition
 
 type circularProgressBarVariantsCustomProps = { start?: number, end: number, circumference: number, transition?: Transition; }
 

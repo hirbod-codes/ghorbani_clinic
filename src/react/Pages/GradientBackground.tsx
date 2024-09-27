@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { ValueAnimationTransition, animate, motion, useMotionTemplate, useMotionValue } from 'framer-motion';
-import { circularProgressBarVariantsTransition } from '../Components/ProgressBars/AnimatedCircularProgressBar';
+import { mainTransition } from '../Styles/animations';
 
 export function GradientBackground({ name }: { name?: string }) {
     const position1X = useMotionValue(Math.random() * 100);
@@ -25,8 +25,7 @@ export function GradientBackground({ name }: { name?: string }) {
     const b3 = useMotionValue(Math.random() * 225);
 
     useEffect(() => {
-        // const t = { ease: 'anticipate', duration: 1.3 } as ValueAnimationTransition<number>
-        const t = circularProgressBarVariantsTransition as ValueAnimationTransition<number>
+        const t = mainTransition as ValueAnimationTransition<number>
         animate(position1X, Math.random() * 100, t);
         animate(position2X, Math.random() * 100, t);
         animate(position3X, Math.random() * 100, t);

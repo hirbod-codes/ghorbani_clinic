@@ -1,13 +1,31 @@
 import { darken, lighten, ThemeOptions } from '@mui/material/styles';
 import { ColorLensOutlined, ExpandMoreOutlined } from "@mui/icons-material"
-import { Accordion, AccordionDetails, AccordionSummary, Button, IconButton, Menu, Stack } from "@mui/material"
+import { Accordion, AccordionDetails, AccordionSummary, Button, Checkbox, CircularProgress, FormControlLabel, FormGroup, IconButton, Menu, Stack, Switch } from "@mui/material"
 import { useContext, useState } from "react";
 import { ConfigurationContext } from '../../Contexts/ConfigurationContext';
 import { HexAlphaColorPicker } from 'react-colorful';
 import { t } from 'i18next';
+import { configAPI } from 'src/Electron/Configuration/renderer';
 
 export function ThemeSettings() {
     const c = useContext(ConfigurationContext)
+
+    const [showGradientBackground, setShowGradientBackground] = useState<boolean>(c.get.showGradientBackground ?? false)
+    const [loadingGradientBackground, setLoadingGradientBackground] = useState(false)
+
+    const updateShowGradientBackground = async (v: boolean) => {
+        setLoadingGradientBackground(true)
+
+        const conf = await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig()
+
+        conf.configuration.showGradientBackground = v;
+
+        await (window as typeof window & { configAPI: configAPI }).configAPI.writeConfig(conf)
+        setLoadingGradientBackground(false)
+
+        c.set.setShowGradientBackground(v)
+        setShowGradientBackground(v)
+    }
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
@@ -25,6 +43,14 @@ export function ThemeSettings() {
     return (
         <>
             <Stack sx={{ width: '100%', p: 3 }} direction='column' spacing={2}>
+
+                <FormGroup>
+                    <FormControlLabel
+                        control={<Switch checked={showGradientBackground} onChange={async (e) => await updateShowGradientBackground(e.target.checked)} />}
+                        label={t('showThemeOptions')}
+                    />
+                </FormGroup>
+
                 <Accordion defaultExpanded>
                     <AccordionSummary sx={{ color: primaryColor }} expandIcon={<ExpandMoreOutlined />}>
                         {t('primaryColor')}

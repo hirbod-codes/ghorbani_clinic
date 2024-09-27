@@ -102,6 +102,9 @@ export function ConfigurationContextWrapper({ children }: { children?: ReactNode
             });
         persistConfigurationData({ locale: { ...configuration.locale, zone: configuration.locale.zone }, themeOptions: configuration.themeOptions, canvas: configuration.canvas });
     };
+    const setShowGradientBackground = (v: boolean) => {
+        setConfiguration({ ...configuration, showGradientBackground: v })
+    };
 
     const [hasFetchedConfig, setHasFetchedConfig] = useState<boolean>(false);
     useEffect(() => {
@@ -148,7 +151,7 @@ export function ConfigurationContextWrapper({ children }: { children?: ReactNode
     return (
         <>
             {hasFetchedConfig &&
-                <ConfigurationContext.Provider value={{ get: configuration, set: { replaceTheme, updateTheme, updateLocale, updateTimeZone }, showDbConfigurationModal, hasFetchedConfig }}>
+                <ConfigurationContext.Provider value={{ get: configuration, set: { replaceTheme, updateTheme, updateLocale, updateTimeZone, setShowGradientBackground }, showDbConfigurationModal, hasFetchedConfig }}>
                     <CacheProvider value={configuration.locale.direction === 'rtl' ? rtlCache : ltrCache}>
                         <ThemeProvider theme={configuration.theme}>
                             <CssBaseline enableColorScheme />

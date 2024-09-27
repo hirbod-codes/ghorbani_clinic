@@ -1,39 +1,34 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { circularProgressBarVariantsTransition } from '../Components/ProgressBars/AnimatedCircularProgressBar';
-import { useContext, useEffect } from 'react';
-import { NavigationContext } from '../Contexts/NavigationContext';
+import { publish } from '../Lib/Events';
+import { mainTransition } from '../Styles/animations';
+
+export const PAGE_SLIDER_ANIMATION_END_EVENT_NAME = 'pageSliderAnimationEnd'
 
 const xOffset = 100;
 const variants = {
     enter: {
         name: 'enter',
         x: -xOffset.toString() + '%',
-        transition: circularProgressBarVariantsTransition
+        transition: mainTransition
     },
     active: {
         name: 'active',
         x: 0,
-        transition: { ...circularProgressBarVariantsTransition, delay: 0.5 }
+        transition: { ...mainTransition, delay: 0.5 }
     },
     exit: {
         name: 'exit',
         x: xOffset.toString() + '%',
-        transition: circularProgressBarVariantsTransition
+        transition: mainTransition
     }
 };
 
 export function PageSlider({ page }: { page: JSX.Element; }) {
-    const nav = useContext(NavigationContext)
-
-    useEffect(() => {
-        nav?.setPageHasLoaded(false)
-    }, [page])
-
     return (
         <div style={{ overflow: 'hidden', position: 'relative', height: '100%' }}>
             <AnimatePresence mode='sync' initial={false}>
                 <motion.div
-                    layout
+                    layoutScroll
                     key={page.type.name}
                     style={{ overflow: 'hidden', height: '100%', width: '100%', position: 'absolute' }}
                     variants={variants}
@@ -43,7 +38,7 @@ export function PageSlider({ page }: { page: JSX.Element; }) {
                     onAnimationComplete={(definition) => {
                         console.log('ON_ANIMATION_COMPLETE------------------------------------------------------------------------------------', { definition })
                         if (definition === 'active')
-                            nav?.setPageHasLoaded(true)
+                            publish(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, page.type.name)
                     }}
                 >
                     {page}

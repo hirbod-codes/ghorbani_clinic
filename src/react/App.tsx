@@ -23,6 +23,8 @@ import { publish } from './Lib/Events'
 import { RESULT_EVENT_NAME } from './Contexts/ResultWrapper'
 import { PageSlider } from './Pages/PageSlider'
 import { GradientBackground } from './Pages/GradientBackground'
+import { AnimatePresence, motion } from 'framer-motion'
+import { circularProgressBarVariantsTransition } from './Components/ProgressBars/AnimatedCircularProgressBar'
 
 export function App() {
     const nav = useContext(NavigationContext)
@@ -225,10 +227,20 @@ export function App() {
                 </DialogActions>
             </Dialog >
 
-            <Box sx={{ position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }}>
-                <GradientBackground name={nav?.content.type.name} />
-                <Box sx={{ backgroundColor: backDropColor, position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }} />
-            </Box>
+            <AnimatePresence>
+                {configuration.get.showGradientBackground &&
+                    <motion.div
+                        initial={false}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={circularProgressBarVariantsTransition}
+                        style={{ position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }}
+                    >
+                        <GradientBackground name={nav?.content.type.name} />
+                        <Box sx={{ backgroundColor: backDropColor, position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }} />
+                    </motion.div>
+                }
+            </AnimatePresence>
 
             <Box sx={{ position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }}>
 

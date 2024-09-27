@@ -9,14 +9,14 @@ export function AppWrappers() {
     return (
         <>
             <ConfigurationContextWrapper>
-                <ResultWrapper>
-                    <AuthContextWrapper>
-                        <NavigationContextWrapper>
-                            <App />
-                        </NavigationContextWrapper>
-                    </AuthContextWrapper>
-                </ResultWrapper>
-            </ConfigurationContextWrapper >
+                <AuthContextWrapper>
+                    <NavigationContextWrapper>
+                        <App />
+                    </NavigationContextWrapper>
+                </AuthContextWrapper>
+                {/* </ResultWrapper> */}
+            </ConfigurationContextWrapper>
+            <ResultWrapper />
         </>
     )
 }
