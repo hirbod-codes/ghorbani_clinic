@@ -128,15 +128,15 @@ export const template: (Electron.MenuItemConstructorOptions | Electron.MenuItem)
                 { role: 'close' }
             ]
         },
-        {
-            role: 'help',
-            submenu: [
-                {
-                    label: 'Learn More',
-                    click: async () => {
-                        await shell.openExternal('https://electronjs.org')
-                    }
-                }
-            ]
-        }
+        // {
+        //     role: 'help',
+        //     submenu: [
+        //         {
+        //             label: 'Learn More',
+        //             click: async () => {
+        //                 await shell.openExternal('https://electronjs.org')
+        //             }
+        //         }
+        //     ]
+        // }
     ]

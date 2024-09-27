@@ -13,12 +13,16 @@ import { AuthContext } from "../Contexts/AuthContext";
 import { resources } from "../../Electron/Database/Repositories/Auth/resources";
 import { ManagePatient } from "../Components/Patients/ManagePatient";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
-import { publish } from "../Lib/Events";
+import { publish, subscribe } from "../Lib/Events";
 import { configAPI } from '../../Electron/Configuration/renderer';
 import { MedicalHistory } from "../Components/Patients/MedicalHistory";
 import { EditorModal } from "../Components/Editor/EditorModal";
+import { NavigationContext } from "../Contexts/NavigationContext";
+import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./PageSlider";
 
 export function Patients() {
+    const nav = useContext(NavigationContext)
+
     const auth = useContext(AuthContext)
     const configuration = useContext(ConfigurationContext)
 
@@ -79,23 +83,29 @@ export function Patients() {
     }
 
     useEffect(() => {
-        try {
-            console.group('Patients', 'useEffect');
-            if (!auth || !auth.user || !auth.accessControl)
-                return
+        console.log('Patients', 'useEffect1', !(!auth || !auth.user || !auth.accessControl || !nav?.pageHasLoaded));
+        if (!auth || !auth.user || !auth.accessControl || !nav?.pageHasLoaded)
+            return
 
-            init(page.offset, page.limit)
-                .finally(() => console.groupEnd())
-        }
-        finally { console.groupEnd() }
-    }, [page, auth])
+        init(page.offset, page.limit)
+    }, [page, auth, nav?.pageHasLoaded])
 
     useEffect(() => {
-        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-            .then((c) => {
-                if (c?.columnVisibilityModels?.patients)
-                    setHiddenColumns(Object.entries(c.columnVisibilityModels.patients).filter(f => f[1] === false).map(arr => arr[0]))
-            })
+        console.log('Patients', 'useEffect2', 'start', 'pageHasLoaded', nav?.pageHasLoaded)
+        if (nav?.pageHasLoaded)
+            (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+                .then((c) => {
+                    if (c?.columnVisibilityModels?.patients)
+                        setHiddenColumns(Object.entries(c.columnVisibilityModels.patients).filter(f => f[1] === false).map(arr => arr[0]))
+                })
+    }, [nav?.pageHasLoaded])
+
+    const [showGrid, setShowGrid] = useState(false)
+    useEffect(() => {
+        subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
+            if (e?.detail === 'Patients')
+                setShowGrid(true)
+        })
     }, [])
 
     if (!auth || !auth.user || !auth.accessControl)
@@ -143,67 +153,78 @@ export function Patients() {
     ]
 
     if (!patients || patients.length === 0)
-        return (<LoadingScreen />)
+        return (
+            <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
+                <Grid item xs={12} height={'100%'}>
+                    <Paper style={{ padding: '1rem', height: '100%' }}>
+                        <LoadingScreen />
+                    </Paper>
+                </Grid>
+            </Grid>
+        )
 
     return (
         <>
             <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
                 <Grid item xs={12} height={'100%'}>
-                    <Paper sx={{ p: 1, height: '100%' }}>
-                        <DataGrid
-                            name='patients'
-                            data={patients}
-                            hideFooter={false}
-                            overWriteColumns={columns}
-                            loading={loading}
-                            serverSidePagination
-                            onPaginationModelChange={(m, d) => setPage({ offset: m.page, limit: m.pageSize })}
-                            orderedColumnsFields={['actions']}
-                            storeColumnVisibilityModel
-                            hiddenColumns={hiddenColumns}
-                            customToolbar={[
-                                <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
-                                createsPatient && <Button onClick={() => setCreatingPatient(true)} startIcon={<AddOutlined />}>{t('Create')}</Button>,
-                            ]}
-                            additionalColumns={[
-                                {
-                                    field: 'actions',
-                                    type: 'actions',
-                                    headerName: t('actions'),
-                                    headerAlign: 'center',
-                                    align: 'center',
-                                    width: 120,
-                                    getActions: ({ row }) => [
-                                        updatesPatient ? <GridActionsCellItem icon={editingPatientId === row._id ? <CircularProgress size={20} /> : <EditOutlined />} onClick={() => {
-                                            setEditingPatientId(patients.find(p => p._id === row._id)?._id as string)
-                                        }} label={t('edit')} /> : null,
-                                        deletesPatient ? <GridActionsCellItem icon={deletingPatientId === row._id ? <CircularProgress size={20} /> : <DeleteOutline />} onClick={async () => {
-                                            try {
-                                                console.group('Patients', 'deletesPatient', 'onClick')
+                    <Paper style={{ padding: '1rem', height: '100%' }}>
+                        {!showGrid
+                            ? <CircularProgress size='medium' />
+                            : <DataGrid
+                                name='patients'
+                                data={patients}
+                                hideFooter={false}
+                                overWriteColumns={columns}
+                                loading={loading}
+                                serverSidePagination
+                                onPaginationModelChange={(m, d) => setPage({ offset: m.page, limit: m.pageSize })}
+                                orderedColumnsFields={['actions']}
+                                storeColumnVisibilityModel
+                                hiddenColumns={hiddenColumns}
+                                customToolbar={[
+                                    <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
+                                    createsPatient && <Button onClick={() => setCreatingPatient(true)} startIcon={<AddOutlined />}>{t('Create')}</Button>,
+                                ]}
+                                additionalColumns={[
+                                    {
+                                        field: 'actions',
+                                        type: 'actions',
+                                        headerName: t('actions'),
+                                        headerAlign: 'center',
+                                        align: 'center',
+                                        width: 120,
+                                        getActions: ({ row }) => [
+                                            updatesPatient ? <GridActionsCellItem icon={editingPatientId === row._id ? <CircularProgress size={20} /> : <EditOutlined />} onClick={() => {
+                                                setEditingPatientId(patients.find(p => p._id === row._id)?._id as string)
+                                            }} label={t('edit')} /> : null,
+                                            deletesPatient ? <GridActionsCellItem icon={deletingPatientId === row._id ? <CircularProgress size={20} /> : <DeleteOutline />} onClick={async () => {
+                                                try {
+                                                    console.group('Patients', 'deletesPatient', 'onClick')
 
-                                                setDeletingPatientId(row._id)
-                                                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deletePatient(row._id)
-                                                setDeletingPatientId(undefined)
+                                                    setDeletingPatientId(row._id)
+                                                    const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deletePatient(row._id)
+                                                    setDeletingPatientId(undefined)
 
-                                                if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1)
+                                                    if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1)
+                                                        publish(RESULT_EVENT_NAME, {
+                                                            severity: 'error',
+                                                            message: t('failedToDeletePatient')
+                                                        })
+
+                                                    await init(page.offset, page.limit)
+
                                                     publish(RESULT_EVENT_NAME, {
-                                                        severity: 'error',
-                                                        message: t('failedToDeletePatient')
+                                                        severity: 'success',
+                                                        message: t('successfullyDeletedPatient')
                                                     })
-
-                                                await init(page.offset, page.limit)
-
-                                                publish(RESULT_EVENT_NAME, {
-                                                    severity: 'success',
-                                                    message: t('successfullyDeletedPatient')
-                                                })
-                                            }
-                                            finally { console.groupEnd() }
-                                        }} label={t('delete')} /> : null,
-                                    ]
-                                },
-                            ]}
-                        />
+                                                }
+                                                finally { console.groupEnd() }
+                                            }} label={t('delete')} /> : null,
+                                        ]
+                                    },
+                                ]}
+                            />
+                        }
                     </Paper>
                 </Grid>
             </Grid>

@@ -16,8 +16,9 @@ import { DataGrid } from "../Components/DataGrid/DataGrid";
 import { GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
 import { Home } from "./Home";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
-import { publish } from "../Lib/Events";
+import { publish, subscribe } from "../Lib/Events";
 import { configAPI } from "src/Electron/Configuration/renderer";
+import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./PageSlider";
 
 export function Users() {
     const configuration = useContext(ConfigurationContext)
@@ -91,15 +92,27 @@ export function Users() {
     }
 
     useEffect(() => {
-        refresh()
-    }, [])
+        console.log('Users', 'useEffect', 'start', 'pageHasLoaded', nav?.pageHasLoaded)
+        if (nav?.pageHasLoaded)
+            refresh()
+    }, [nav?.pageHasLoaded])
 
     useEffect(() => {
-        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-            .then((c) => {
-                if (c?.columnVisibilityModels?.users)
-                    setHiddenColumns(Object.entries(c.columnVisibilityModels.users).filter(f => f[1] === false).map(arr => arr[0]))
-            })
+        console.log('Users', 'useEffect2', 'start', 'pageHasLoaded', nav?.pageHasLoaded)
+        if (nav?.pageHasLoaded)
+            (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+                .then((c) => {
+                    if (c?.columnVisibilityModels?.users)
+                        setHiddenColumns(Object.entries(c.columnVisibilityModels.users).filter(f => f[1] === false).map(arr => arr[0]))
+                })
+    }, [nav?.pageHasLoaded])
+
+    const [showGrid, setShowGrid] = useState(false)
+    useEffect(() => {
+        subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
+            if (e?.detail === 'Users')
+                setShowGrid(true)
+        })
     }, [])
 
     const deleteUser = async (id: string) => {
@@ -261,48 +274,51 @@ export function Users() {
                     readsUser &&
                     <Grid item xs={readsRole ? 8 : 12} sm={readsRole ? 10 : 12}>
                         <Paper sx={{ p: 1, height: '100%' }}>
-                            <DataGrid
-                                name='users'
-                                data={rows}
-                                overWriteColumns={columns}
-                                loading={loading}
-                                orderedColumnsFields={['actions']}
-                                storeColumnVisibilityModel
-                                hiddenColumns={hiddenColumns}
-                                // additionalColumns={(deletesUser || updatesUser) ? [{
-                                //     field: 'actions',
-                                //     headerName: '',
-                                //     headerAlign: 'center',
-                                //     align: 'center',
-                                //     type: 'actions',
-                                //     width: 120,
-                                //     getActions: (params) => [
-                                //         updatesUser
-                                //             ? <GridActionsCellItem
-                                //                 label={t('editUser')}
-                                //                 icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
-                                //                 onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === params.row._id)) }}
-                                //             />
-                                //             : null,
-                                //         deletesUser
-                                //             ? <GridActionsCellItem
-                                //                 label={t('deleteUser')}
-                                //                 icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
-                                //                 onClick={async () => {
-                                //                     await deleteUser(params.row._id);
-                                //                     await updateRows(role)
-                                //                     if (auth.user._id === params.row.id)
-                                //                         await auth.logout()
-                                //                 }}
-                                //             />
-                                //             : null,
-                                //     ].filter(a => a != null)
-                                // }] : undefined}
-                                customToolbar={[
-                                    <Button onClick={async () => await fetchUsers()} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
-                                    createsUser && <Button onClick={() => setOpenManageUserModal(true)} startIcon={<AddOutlined />}>{t('Create')}</Button>,
-                                ]}
-                            />
+                            {!showGrid
+                                ? <CircularProgress size='medium' />
+                                : <DataGrid
+                                    name='users'
+                                    data={rows}
+                                    overWriteColumns={columns}
+                                    loading={loading}
+                                    orderedColumnsFields={['actions']}
+                                    storeColumnVisibilityModel
+                                    hiddenColumns={hiddenColumns}
+                                    // additionalColumns={(deletesUser || updatesUser) ? [{
+                                    //     field: 'actions',
+                                    //     headerName: '',
+                                    //     headerAlign: 'center',
+                                    //     align: 'center',
+                                    //     type: 'actions',
+                                    //     width: 120,
+                                    //     getActions: (params) => [
+                                    //         updatesUser
+                                    //             ? <GridActionsCellItem
+                                    //                 label={t('editUser')}
+                                    //                 icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
+                                    //                 onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === params.row._id)) }}
+                                    //             />
+                                    //             : null,
+                                    //         deletesUser
+                                    //             ? <GridActionsCellItem
+                                    //                 label={t('deleteUser')}
+                                    //                 icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
+                                    //                 onClick={async () => {
+                                    //                     await deleteUser(params.row._id);
+                                    //                     await updateRows(role)
+                                    //                     if (auth.user._id === params.row.id)
+                                    //                         await auth.logout()
+                                    //                 }}
+                                    //             />
+                                    //             : null,
+                                    //     ].filter(a => a != null)
+                                    // }] : undefined}
+                                    customToolbar={[
+                                        <Button onClick={async () => await fetchUsers()} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
+                                        createsUser && <Button onClick={() => setOpenManageUserModal(true)} startIcon={<AddOutlined />}>{t('Create')}</Button>,
+                                    ]}
+                                />
+                            }
                         </Paper>
                     </Grid>
                 }

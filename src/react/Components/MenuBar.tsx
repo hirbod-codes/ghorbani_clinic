@@ -1,6 +1,6 @@
 import type { menuAPI } from '../../Electron/Menu/renderer/menuAPI'
 
-import { alpha } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import { IconButton, Box, Stack } from "@mui/material";
 
 import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined';
@@ -16,19 +16,38 @@ const CustomIconButtonStyle = {
 }
 
 const CustomIconButton = ({ children, onClick }: { children: React.ReactNode, onClick: React.MouseEventHandler<HTMLButtonElement> }): JSX.Element =>
-    <IconButton size="small" edge="start" color="inherit" onClick={onClick} sx={CustomIconButtonStyle} >
+    <IconButton
+        size="small"
+        edge="start"
+        color="inherit"
+        onClick={onClick}
+        sx={(theme) => ({
+            ...CustomIconButtonStyle,
+        })}
+    >
         {children}
     </IconButton>
 
 const CloseButton = ({ children, onClick }: { children: React.ReactNode, onClick: React.MouseEventHandler<HTMLButtonElement> }): JSX.Element =>
-    <IconButton size="small" edge="start" color="inherit" onClick={onClick} sx={(theme) => ({ ...CustomIconButtonStyle, ':hover': { backgroundColor: alpha(theme.palette.error.main, 0.16) } })} >
+    <IconButton
+        size="small"
+        edge="start"
+        onClick={onClick}
+        sx={(theme) => ({
+            ...CustomIconButtonStyle,
+            color: theme.palette.error.main,
+            ':hover': {
+                backgroundColor: alpha(theme.palette.error.main, 0.16)
+            }
+        })}
+    >
         {children}
     </IconButton>
 
 export function MenuBar({ backgroundColor }: { backgroundColor: any }) {
     return (
         <>
-            <Box dir='ltr' sx={{ width: '100%', height: '2rem', position: 'fixed', top: '0', left: '0', backgroundColor: backgroundColor, zIndex: 10 }}>
+            <Box dir='ltr' sx={{ width: '100%', height: '2rem', position: 'fixed', top: '0', left: '0', backgroundColor: backgroundColor, background: '#00000000', zIndex: 10 }}>
                 <Stack direction='row' justifyContent='space-between'>
                     <IconButton
                         size="small"

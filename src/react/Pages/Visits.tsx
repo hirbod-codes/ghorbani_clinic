@@ -9,14 +9,18 @@ import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../Contexts/ConfigurationContext";
 import { Visit } from "../../Electron/Database/Models/Visit";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
-import { publish } from "../Lib/Events";
+import { publish, subscribe } from "../Lib/Events";
 import { resources } from "../../Electron/Database/Repositories/Auth/resources";
 import { AuthContext } from "../Contexts/AuthContext";
 import { DeleteOutline, RefreshOutlined } from "@mui/icons-material";
 import { configAPI } from "../../Electron/Configuration/renderer";
 import { EditorModal } from "../Components/Editor/EditorModal";
+import { NavigationContext } from "../Contexts/NavigationContext";
+import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./PageSlider";
 
 export function Visits() {
+    const nav = useContext(NavigationContext)
+
     const auth = useContext(AuthContext)
     const configuration = useContext(ConfigurationContext)
 
@@ -38,7 +42,7 @@ export function Visits() {
         try {
             console.groupCollapsed('updateVisit')
 
-            if(!visit)
+            if (!visit)
                 throw new Error('no visit provided to update.')
 
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updateVisit(visit)
@@ -87,23 +91,42 @@ export function Visits() {
         console.log('init', 'end');
     }
 
+    const [showGrid, setShowGrid] = useState(false)
     useEffect(() => {
-        console.log('Visits', 'useEffect', 'start');
-        init(page.offset, page.limit).then(() => console.log('useEffect', 'end'))
-    }, [page, auth])
+        subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
+            if (e?.detail === 'Visits')
+                setShowGrid(true)
+        })
+    }, [])
 
     useEffect(() => {
-        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-            .then((c) => {
-                if (c?.columnVisibilityModels?.visits)
-                    setHiddenColumns(Object.entries(c.columnVisibilityModels.visits).filter(f => f[1] === false).map(arr => arr[0]))
-            })
-    }, [])
+        console.log('Visits', 'useEffect1', 'start', 'pageHasLoaded', nav?.pageHasLoaded)
+        if (nav?.pageHasLoaded)
+            init(page.offset, page.limit).then(() => console.log('useEffect', 'end'))
+    }, [page, auth, nav?.pageHasLoaded])
+
+    useEffect(() => {
+        console.log('Visits', 'useEffect2', 'start', 'pageHasLoaded', nav?.pageHasLoaded)
+        if (nav?.pageHasLoaded)
+            (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+                .then((c) => {
+                    if (c?.columnVisibilityModels?.visits)
+                        setHiddenColumns(Object.entries(c.columnVisibilityModels.visits).filter(f => f[1] === false).map(arr => arr[0]))
+                })
+    }, [nav?.pageHasLoaded])
 
     const deletesVisit = auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.VISIT)
 
     if (!visits || visits.length === 0)
-        return (<LoadingScreen />)
+        return (
+            <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
+                <Grid item xs={12} height={'100%'}>
+                    <Paper sx={{ p: 1, height: '100%' }}>
+                        <LoadingScreen />
+                    </Paper>
+                </Grid>
+            </Grid>
+        )
 
     const columns: GridColDef<any>[] = [
         {
@@ -143,59 +166,62 @@ export function Visits() {
             <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
                 <Grid item xs={12} height={'100%'}>
                     <Paper sx={{ p: 1, height: '100%' }}>
-                        <DataGrid
-                            name='visits'
-                            data={visits}
-                            hideFooter={false}
-                            overWriteColumns={columns}
-                            loading={loading}
-                            serverSidePagination
-                            onPaginationModelChange={(m, d) => setPage({ offset: m.page, limit: m.pageSize })}
-                            orderedColumnsFields={['actions', 'patientId', 'due']}
-                            storeColumnVisibilityModel
-                            hiddenColumns={hiddenColumns}
-                            customToolbar={[
-                                <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
-                            ]}
-                            additionalColumns={[
-                                {
-                                    field: 'actions',
-                                    type: 'actions',
-                                    headerName: t('actions'),
-                                    headerAlign: 'center',
-                                    align: 'center',
-                                    width: 120,
-                                    getActions: ({ row }) => [
-                                        deletesVisit ? <GridActionsCellItem icon={deletingVisitId === row._id ? <CircularProgress size={20} /> : <DeleteOutline />} onClick={async () => {
-                                            try {
-                                                console.group('Visits', 'deletesVisit', 'onClick')
+                        {!showGrid
+                            ? <CircularProgress size='medium' />
+                            : <DataGrid
+                                name='visits'
+                                data={visits}
+                                hideFooter={false}
+                                overWriteColumns={columns}
+                                loading={loading}
+                                serverSidePagination
+                                onPaginationModelChange={(m, d) => setPage({ offset: m.page, limit: m.pageSize })}
+                                orderedColumnsFields={['actions', 'patientId', 'due']}
+                                storeColumnVisibilityModel
+                                hiddenColumns={hiddenColumns}
+                                customToolbar={[
+                                    <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
+                                ]}
+                                additionalColumns={[
+                                    {
+                                        field: 'actions',
+                                        type: 'actions',
+                                        headerName: t('actions'),
+                                        headerAlign: 'center',
+                                        align: 'center',
+                                        width: 120,
+                                        getActions: ({ row }) => [
+                                            deletesVisit ? <GridActionsCellItem icon={deletingVisitId === row._id ? <CircularProgress size={20} /> : <DeleteOutline />} onClick={async () => {
+                                                try {
+                                                    console.group('Visits', 'deletesVisit', 'onClick')
 
-                                                setDeletingVisitId(row._id)
-                                                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteVisit(row._id)
-                                                setDeletingVisitId(undefined)
+                                                    setDeletingVisitId(row._id)
+                                                    const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteVisit(row._id)
+                                                    setDeletingVisitId(undefined)
 
-                                                if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1) {
+                                                    if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1) {
+                                                        publish(RESULT_EVENT_NAME, {
+                                                            severity: 'error',
+                                                            message: t('failedToDeleteVisit')
+                                                        })
+
+                                                        return
+                                                    }
+
                                                     publish(RESULT_EVENT_NAME, {
-                                                        severity: 'error',
-                                                        message: t('failedToDeleteVisit')
+                                                        severity: 'success',
+                                                        message: t('successfullyDeletedVisit')
                                                     })
 
-                                                    return
+                                                    await init(page.offset, page.limit)
                                                 }
-
-                                                publish(RESULT_EVENT_NAME, {
-                                                    severity: 'success',
-                                                    message: t('successfullyDeletedVisit')
-                                                })
-
-                                                await init(page.offset, page.limit)
-                                            }
-                                            finally { console.groupEnd() }
-                                        }} label={t('delete')} /> : null,
-                                    ]
-                                },
-                            ]}
-                        />
+                                                finally { console.groupEnd() }
+                                            }} label={t('delete')} /> : null,
+                                        ]
+                                    },
+                                ]}
+                            />
+                        }
                     </Paper>
                 </Grid>
             </Grid>

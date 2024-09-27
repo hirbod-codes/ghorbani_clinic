@@ -9,7 +9,8 @@ export type ConfigurationStorableData = {
     themeOptions: ThemeOptions,
     canvas?: {
         backgroundColor: string
-    }
+    },
+    showGradientBackground?: boolean,
 }
 
 export type ConfigurationData = ConfigurationStorableData & { theme: Theme }
@@ -19,6 +20,7 @@ export type ConfigurationSetter = {
     updateTheme: (mode: PaletteMode, direction: 'rtl' | 'ltr', locale: Localization) => void,
     updateLocale: (calendar: Calendar, direction: 'rtl' | 'ltr', reactLocale: Localization) => void,
     updateTimeZone: (zone: TimeZone) => void,
+    setShowGradientBackground: (v: boolean) => void
 }
 
 export type Configuration = {

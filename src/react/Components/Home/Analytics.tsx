@@ -7,6 +7,8 @@ import { AnimatedCircularProgressBar } from "../ProgressBars/AnimatedCircularPro
 import { AnimatedCounter } from "../Counters/AnimatedCounter";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
+import { animate, motion, useMotionValue, useTransform } from "framer-motion";
+import { CircularProgressBar } from "../ProgressBars/CircularProgressBar";
 
 
 export function Analytics() {
@@ -117,62 +119,89 @@ export function Analytics() {
                     </>
                     :
                     (
-                        <>
-                            <Grid item xs={6} container justifyContent='center'>
-                                {visitsCount
-                                    ?
-                                    <Box>
-                                        <AnimatedCircularProgressBar start={0} end={70}>
-                                            <Typography variant='h4'>
-                                                <AnimatedCounter start={0} end={visitsCount} />
+                        initLoading
+                            ?
+                            <Stack justifyContent='center' alignItems='center' sx={{ height: '100%', width: '100%' }}>
+                                <CircularProgress />
+                            </Stack>
+                            :
+                            <>
+                                <Grid item xs={6} container justifyContent='center'>
+                                    {visitsCount
+                                        ?
+                                        <motion.div
+                                            initial={{ x: -150, opacity: 0 }}
+                                            animate={{ x: 0, opacity: 1 }}
+                                            transition={{
+                                                x: { ease: 'easeInOut', duration: 1 },
+                                                opacity: { ease: 'easeInOut', duration: 0.5 }
+                                            }}
+                                        >
+                                            <AnimatedCircularProgressBar size={200} end={70}>
+                                                <Typography variant='h4'>
+                                                    <AnimatedCounter start={0} end={visitsCount} />
+                                                </Typography>
+                                            </AnimatedCircularProgressBar>
+                                            <Typography variant="body1" textAlign='center' sx={{ position: 'relative', top: '-3rem' }}>
+                                                {t('visits')}
                                             </Typography>
-                                        </AnimatedCircularProgressBar>
-                                        <Typography variant="body1" textAlign='center' sx={{ position: 'relative', top: '-3rem' }}>
-                                            {t('visits')}
-                                        </Typography>
-                                    </Box>
-                                    :
-                                    <CircularProgress />}
-                            </Grid>
+                                        </motion.div>
+                                        :
+                                        <CircularProgress />}
+                                </Grid>
 
-                            <Grid item xs={6} container justifyContent='center' alignContent='center'>
-                                {expiredVisitsCount
-                                    ?
-                                    <Box>
-                                        <AnimatedCircularProgressBar start={0} end={70}>
-                                            <Typography variant='h4'>
-                                                <AnimatedCounter start={0} end={expiredVisitsCount} />
+                                <Grid item xs={6} container justifyContent='center' alignContent='center'>
+                                    {expiredVisitsCount
+                                        ?
+                                        <motion.div
+                                            initial={{ x: 150, opacity: 0 }}
+                                            animate={{ x: 0, opacity: 1 }}
+                                            transition={{
+                                                x: { ease: 'easeInOut', duration: 1 },
+                                                opacity: { ease: 'easeInOut', duration: 0.5 }
+                                            }}
+                                        >
+                                            <AnimatedCircularProgressBar size={200} end={70}>
+                                                <Typography variant='h4'>
+                                                    <AnimatedCounter start={0} end={expiredVisitsCount} />
+                                                </Typography>
+                                            </AnimatedCircularProgressBar>
+                                            <Typography variant="body1" textAlign='center' sx={{ position: 'relative', top: '-3rem' }}>
+                                                {t('expiredVisits')}
                                             </Typography>
-                                        </AnimatedCircularProgressBar>
-                                        <Typography variant="body1" textAlign='center' sx={{ position: 'relative', top: '-3rem' }}>
-                                            {t('expiredVisits')}
-                                        </Typography>
-                                    </Box>
-                                    :
-                                    <CircularProgress />}
-                            </Grid>
+                                        </motion.div>
+                                        :
+                                        <CircularProgress />}
+                                </Grid>
 
-                            <Grid item xs={3}></Grid>
-                            <Grid item xs={6} container justifyContent='center'>
-                                {patientsCount
-                                    ?
-                                    <Box>
-                                        <AnimatedCircularProgressBar start={0} end={70}>
-                                            <Typography variant='h4'>
-                                                <AnimatedCounter start={0} end={patientsCount} />
+                                <Grid item xs={3}></Grid>
+                                <Grid item xs={6} container justifyContent='center'>
+                                    {patientsCount
+                                        ?
+                                        <motion.div
+                                            initial={{ y: 150, opacity: 0 }}
+                                            animate={{ y: 0, opacity: 1 }}
+                                            transition={{
+                                                y: { ease: 'easeInOut', duration: 1 },
+                                                opacity: { ease: 'easeInOut', duration: 0.5 }
+                                            }}
+                                        >
+                                            <AnimatedCircularProgressBar size={200} end={70}>
+                                                <Typography variant='h4'>
+                                                    <AnimatedCounter start={0} end={patientsCount} />
+                                                </Typography>
+                                            </AnimatedCircularProgressBar>
+                                            <Typography variant="body1" textAlign='center' sx={{ position: 'relative', top: '-3rem' }}>
+                                                {t('patients')}
                                             </Typography>
-                                        </AnimatedCircularProgressBar>
-                                        <Typography variant="body1" textAlign='center' sx={{ position: 'relative', top: '-3rem' }}>
-                                            {t('patients')}
-                                        </Typography>
-                                    </Box>
-                                    :
-                                    <CircularProgress />}
-                            </Grid>
-                            <Grid item xs={3}></Grid>
-                        </>
+                                        </motion.div>
+                                        :
+                                        <CircularProgress />}
+                                </Grid>
+                                <Grid item xs={3}></Grid>
+                            </>
                     )}
-            </Grid>
+            </Grid >
         </>
     );
 }

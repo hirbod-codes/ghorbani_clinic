@@ -113,15 +113,11 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
     const hasInitialized = useRef<boolean>(false);
     const isAuthLoading = useRef<boolean>(false);
 
-    console.log('AuthContextWrapper', { auth, isAuthLoading: isAuthLoading.current, showModal, hasInitialized: hasInitialized.current, configuration })
+    console.log('-------------AuthContextWrapper', { auth, isAuthLoading: isAuthLoading.current, showModal, hasInitialized: hasInitialized.current, configuration })
 
     const init = async () => {
         try {
             console.group('AuthContextWrapper', 'init')
-
-            console.log('should end?', hasInitialized.current || isAuthLoading.current || !configuration?.hasFetchedConfig || configuration?.showDbConfigurationModal || auth.user || auth.ac)
-            if (hasInitialized.current || isAuthLoading.current || !configuration?.hasFetchedConfig || configuration?.showDbConfigurationModal || auth.user || auth.ac)
-                return
 
             isAuthLoading.current = true
             hasInitialized.current = true
@@ -155,7 +151,9 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
     }
 
     useEffect(() => {
-        init()
+        console.log('AuthContextWrapper', 'useEffect', 'should init?', !hasInitialized.current && !isAuthLoading.current && configuration?.hasFetchedConfig && !configuration?.showDbConfigurationModal && (!auth.user || !auth.ac))
+        if (!hasInitialized.current && !isAuthLoading.current && configuration?.hasFetchedConfig && !configuration?.showDbConfigurationModal && (!auth.user || !auth.ac))
+            init()
     }, [])
 
     return (

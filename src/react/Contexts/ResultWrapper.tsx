@@ -1,4 +1,4 @@
-import { useState, useCallback, ReactNode } from 'react';
+import { useState, useCallback, ReactNode, useRef } from 'react';
 import { Result } from './ResultTypes.d';
 import { Alert, Snackbar } from '@mui/material';
 import { CheckOutlined, CloseOutlined, DangerousOutlined } from '@mui/icons-material';
@@ -7,32 +7,38 @@ import { subscribe } from '../Lib/Events';
 export const RESULT_EVENT_NAME = 'showResult'
 
 export function ResultWrapper({ children }: { children?: ReactNode; }) {
-    const [resultOpen, setResultOpen] = useState<boolean>(false);
-    const [result, setResult] = useState<Result | undefined>(undefined);
+    // const [resultOpen, setResultOpen] = useState<boolean>(false);
+    // const [result, setResult] = useState<Result | undefined>(undefined);
 
-    const updateResult = useCallback((r?: Result) => { setResult(r); setResultOpen(true) }, [])
+    // const updateResult = useCallback((r?: Result) => { setResult(r); setResultOpen(true) }, [])
 
-    subscribe(RESULT_EVENT_NAME, (e?: CustomEvent) => updateResult(e?.detail))
+    // const resultOpen = useRef<boolean>(false);
+    // const result = useRef<Result | undefined>(undefined);
 
-    console.log('ResultContextWrapper', { result })
+    // const updateResult = useCallback((r?: Result) => { result.current = r; resultOpen.current = true }, [])
+
+    // subscribe(RESULT_EVENT_NAME, (e?: CustomEvent) => updateResult(e?.detail))
+
+    console.log('-------------ResultContextWrapper', '{ result }')
 
     return (
         <>
             {children}
 
-            <Snackbar
-                open={resultOpen}
+            {/* <Snackbar
+                open={resultOpen.current}
                 autoHideDuration={7000}
-                onClose={() => { setResultOpen(false) }}
-                action={result?.action}
+                onClose={() => { resultOpen.current = false }}
+                // onClose={() => { setResultOpen(false) }}
+                action={result.current?.action}
             >
                 <Alert
-                    icon={result?.severity === 'success' ? <CheckOutlined fontSize="inherit" /> : (result?.severity === 'error' ? <CloseOutlined fontSize="inherit" /> : (result?.severity === 'warning' ? <DangerousOutlined fontSize="inherit" /> : null))}
-                    severity={result?.severity}
+                    icon={result.current?.severity === 'success' ? <CheckOutlined fontSize="inherit" /> : (result.current?.severity === 'error' ? <CloseOutlined fontSize="inherit" /> : (result.current?.severity === 'warning' ? <DangerousOutlined fontSize="inherit" /> : null))}
+                    severity={result.current?.severity}
                 >
-                    {result?.message}
+                    {result.current?.message}
                 </Alert>
-            </Snackbar>
+            </Snackbar> */}
         </>
     );
 }
