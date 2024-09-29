@@ -1,0 +1,68 @@
+networks:
+    demo_manager:
+        name: demo_manager
+        external: true
+    clients_ghorbani_clinic_demo:
+
+secrets:
+    clients_ghorbani_clinic_demo_demo_manager_password:
+        external: true
+    clients_ghorbani_clinic_demo_db_username:
+        external: true
+    clients_ghorbani_clinic_demo_db_password:
+        external: true
+
+services:
+    demo_proxy:
+        image: ghcr.io/hirbod-codes/demo_proxy/demo_proxy:latest
+        ports:
+            - target: 1503
+              published: 1503
+              protocol: tcp
+              mode: host
+        environment:
+            secret_prefix: clients_ghorbani_clinic_demo_
+            port: 1503
+            hostIpAddress: ${hostIpAddress}
+            demo_manager_port: 3000
+            demo_manager_address: demo_manager
+            destination_port: 27017
+            destination_address: mongodb
+        secrets:
+            - clients_ghorbani_clinic_demo_demo_manager_password
+        deploy:
+            resources:
+                limits:
+                    cpus: "0.25"
+                    memory: 300mb
+            restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 8
+                window: 60s
+        networks:
+            - demo_manager
+            - clients_ghorbani_clinic_demo
+
+    mongodb:
+        image: ghcr.io/hirbod-codes/mongo:latest
+        environment:
+            secret_prefix: clients_ghorbani_clinic_demo_
+            db_name: primaryDB
+        secrets:
+            - clients_ghorbani_clinic_demo_db_username
+            - clients_ghorbani_clinic_demo_db_password
+        volumes:
+            - ./mongodb/data:/data/db
+        deploy:
+            resources:
+                limits:
+                    cpus: "0.5"
+                    memory: 300mb
+            restart_policy:
+                condition: on-failure
+                delay: 5s
+                max_attempts: 8
+                window: 60s
+        networks:
+            - clients_ghorbani_clinic_demo
