@@ -80,35 +80,39 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                                 return
                             }
                             setLoading(true)
-                            let result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.updateConfig(settings)
-                            if (!result) {
+                            try {
+                                let result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.updateConfig(settings)
+                                if (!result) {
+                                    publish(RESULT_EVENT_NAME, {
+                                        severity: 'error',
+                                        message: t('configUpdateFailed')
+                                    })
+
+                                    return
+                                }
+
                                 publish(RESULT_EVENT_NAME, {
-                                    severity: 'error',
-                                    message: t('configUpdateFailed')
+                                    severity: 'success',
+                                    message: t('configUpdated')
                                 })
-                                return
-                            }
 
-                            publish(RESULT_EVENT_NAME, {
-                                severity: 'success',
-                                message: t('configUpdated')
-                            })
+                                result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.initializeDb()
+                                if (!result) {
+                                    publish(RESULT_EVENT_NAME, {
+                                        severity: 'error',
+                                        message: t('databaseInitializationFailed')
+                                    })
 
-                            result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.initializeDb()
-                            if (!result) {
+                                    return
+                                }
+
                                 publish(RESULT_EVENT_NAME, {
-                                    severity: 'error',
-                                    message: t('databaseInitializationFailed')
+                                    severity: 'success',
+                                    message: t('databaseInitialized')
                                 })
-                                return
+                            } finally {
+                                setLoading(false)
                             }
-
-                            publish(RESULT_EVENT_NAME, {
-                                severity: 'success',
-                                message: t('databaseInitialized')
-                            })
-
-                            setLoading(false)
                         }}>
                             {loading ? <CircularProgress /> : t('done')}
                         </Button>

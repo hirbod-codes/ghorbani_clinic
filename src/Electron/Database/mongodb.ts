@@ -40,7 +40,7 @@ export class MongoDB implements dbAPI {
     protected transactionClient: MongoClient | undefined = undefined
     protected session: ClientSession | undefined = undefined
 
-    startTransaction(): void {
+    async startTransaction(): Promise<void> {
         const funcName = 'startTransaction'
 
         console.log(funcName, 'called')
@@ -51,7 +51,7 @@ export class MongoDB implements dbAPI {
             return
         }
 
-        this.transactionClient = this.getClient()
+        this.transactionClient = await this.getClient()
         this.session = this.transactionClient.startSession()
 
         this.session.startTransaction()
@@ -100,9 +100,9 @@ export class MongoDB implements dbAPI {
     }
 
     async updateConfig(config: MongodbConfig): Promise<boolean> {
-        try {
-            console.group('updateConfig')
+        console.group('updateConfig')
 
+        try {
             console.log({ config })
 
             const c = readConfig()
@@ -118,11 +118,12 @@ export class MongoDB implements dbAPI {
                     console.log('new bonjour service has published.')
                 })
 
-            console.groupEnd()
             return readConfig()?.mongodb != null
         } catch (error) {
             console.error(error)
             return false
+        } finally {
+            console.groupEnd()
         }
     }
 
@@ -161,14 +162,16 @@ export class MongoDB implements dbAPI {
         })
     }
 
-    getClient(): MongoClient {
+    async getClient(): Promise<MongoClient> {
+        console.group('getClient')
+
         try {
             const c = readConfig()
 
             if (!c || !c.mongodb)
                 throw new Error('Mongodb configuration not found.')
 
-            return new MongoClient(c.mongodb.url, {
+            const client = new MongoClient(c.mongodb.url, {
                 directConnection: true,
                 authMechanism: "DEFAULT",
                 auth: c.mongodb.auth
@@ -178,6 +181,10 @@ export class MongoDB implements dbAPI {
                     }
                     : undefined
             })
+
+            await client.connect()
+
+            return client
         } catch (error) {
             console.error(error)
 
@@ -185,39 +192,49 @@ export class MongoDB implements dbAPI {
                 throw error
             else
                 throw new ConnectionError()
+        } finally {
+            console.groupEnd()
         }
     }
 
-    async getDb(client?: MongoClient, persist = true): Promise<Db | null> {
-        const c = readConfig()
-
-        if (!c || !c.mongodb)
-            throw new ConfigurationError()
-
-        let db
-        if (!client) {
-            if (MongoDB.db)
-                return MongoDB.db
-
-            client = this.getClient()
-            db = client.db(c.mongodb.databaseName)
-        }
-        else
-            db = client.db(c.mongodb.databaseName)
-
-
-        if (persist)
-            MongoDB.db = db
+    async getDb(client?: MongoClient, useCache = true): Promise<Db | null> {
+        console.group('getDb')
 
         try {
-            db.command({ ping: 1 })
-        } catch (error) {
-            console.error(error);
-            await client?.close()
-            throw error
-        }
+            console.log({ useCache, staticDbInstance: MongoDB.db, client });
 
-        return db
+            if (useCache)
+                return MongoDB.db
+
+            const c = readConfig()
+
+            if (!c || !c.mongodb)
+                throw new ConfigurationError()
+
+            let db
+            if (!client) {
+                client = await this.getClient()
+                db = client.db(c.mongodb.databaseName)
+            }
+            else
+                db = client.db(c.mongodb.databaseName)
+
+            MongoDB.db = db
+
+            try {
+                const pingResult = await db.command({ ping: 1 })
+
+                console.log({ pingResult })
+            } catch (error) {
+                console.error(error);
+                await client?.close()
+                throw error
+            }
+
+            return db
+        } finally {
+            console.groupEnd()
+        }
     }
 
     async truncate(): Promise<boolean> {
@@ -269,7 +286,8 @@ export class MongoDB implements dbAPI {
 
     async initializeDb(): Promise<boolean> {
         try {
-            this.addCollections()
+            await this.getDb(undefined, false)
+            await this.addCollections()
             return true
         } catch (error) {
             console.error(error);
