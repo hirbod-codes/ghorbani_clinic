@@ -46,7 +46,7 @@ export function ThemeSettings() {
 
                 <FormGroup>
                     <FormControlLabel
-                        control={<Switch checked={showGradientBackground} onChange={async (e) => await updateShowGradientBackground(e.target.checked)} />}
+                        control={<Switch checked={showGradientBackground} onChange={(e) => updateShowGradientBackground(e.target.checked)} />}
                         label={t('showThemeOptions')}
                     />
                 </FormGroup>

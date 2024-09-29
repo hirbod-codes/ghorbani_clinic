@@ -16,7 +16,7 @@ import { DeleteOutline, RefreshOutlined } from "@mui/icons-material";
 import { configAPI } from "../../Electron/Configuration/renderer";
 import { EditorModal } from "../Components/Editor/EditorModal";
 import { NavigationContext } from "../Contexts/NavigationContext";
-import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./PageSlider";
+import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 
 export function Visits() {
     const nav = useContext(NavigationContext)
@@ -94,26 +94,24 @@ export function Visits() {
     const [showGrid, setShowGrid] = useState(false)
     useEffect(() => {
         subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
-            if (e?.detail === 'Visits')
+            if (e?.detail === '/Visits')
                 setShowGrid(true)
         })
     }, [])
 
     useEffect(() => {
-        console.log('Visits', 'useEffect1', 'start', 'pageHasLoaded', nav?.pageHasLoaded)
-        if (nav?.pageHasLoaded)
-            init(page.offset, page.limit).then(() => console.log('useEffect', 'end'))
-    }, [page, auth, nav?.pageHasLoaded])
+        console.log('Visits', 'useEffect1', 'start', 'pageHasLoaded')
+        init(page.offset, page.limit).then(() => console.log('useEffect', 'end'))
+    }, [page, auth])
 
     useEffect(() => {
-        console.log('Visits', 'useEffect2', 'start', 'pageHasLoaded', nav?.pageHasLoaded)
-        if (nav?.pageHasLoaded)
-            (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-                .then((c) => {
-                    if (c?.columnVisibilityModels?.visits)
-                        setHiddenColumns(Object.entries(c.columnVisibilityModels.visits).filter(f => f[1] === false).map(arr => arr[0]))
-                })
-    }, [nav?.pageHasLoaded])
+        console.log('Visits', 'useEffect2', 'start', 'pageHasLoaded');
+        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+            .then((c) => {
+                if (c?.columnVisibilityModels?.visits)
+                    setHiddenColumns(Object.entries(c.columnVisibilityModels.visits).filter(f => f[1] === false).map(arr => arr[0]))
+            })
+    }, [])
 
     const deletesVisit = auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.VISIT)
 

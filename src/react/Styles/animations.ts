@@ -6,6 +6,10 @@ export const mainTransition: Transition = {
     damping: 30
 }
 
+export const gradientBackgroundTransitions: Transition = {
+    ...mainTransition
+}
+
 export const countersTransitions: Transition = {
     ...mainTransition,
     damping: 50

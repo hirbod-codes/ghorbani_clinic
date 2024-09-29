@@ -18,7 +18,7 @@ import { Home } from "./Home";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish, subscribe } from "../Lib/Events";
 import { configAPI } from "src/Electron/Configuration/renderer";
-import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./PageSlider";
+import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 
 export function Users() {
     const configuration = useContext(ConfigurationContext)
@@ -92,25 +92,23 @@ export function Users() {
     }
 
     useEffect(() => {
-        console.log('Users', 'useEffect', 'start', 'pageHasLoaded', nav?.pageHasLoaded)
-        if (nav?.pageHasLoaded)
-            refresh()
-    }, [nav?.pageHasLoaded])
+        refresh()
+    }, [])
 
     useEffect(() => {
-        console.log('Users', 'useEffect2', 'start', 'pageHasLoaded', nav?.pageHasLoaded)
-        if (nav?.pageHasLoaded)
-            (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-                .then((c) => {
-                    if (c?.columnVisibilityModels?.users)
-                        setHiddenColumns(Object.entries(c.columnVisibilityModels.users).filter(f => f[1] === false).map(arr => arr[0]))
-                })
-    }, [nav?.pageHasLoaded])
+        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+            .then((c) => {
+                if (c?.columnVisibilityModels?.users)
+                    setHiddenColumns(Object.entries(c.columnVisibilityModels.users).filter(f => f[1] === false).map(arr => arr[0]))
+            })
+    }, [])
 
     const [showGrid, setShowGrid] = useState(false)
     useEffect(() => {
         subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
-            if (e?.detail === 'Users')
+            console.log(e);
+            
+            if (e?.detail === '/Users')
                 setShowGrid(true)
         })
     }, [])

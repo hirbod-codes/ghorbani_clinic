@@ -18,7 +18,7 @@ import { configAPI } from '../../Electron/Configuration/renderer';
 import { MedicalHistory } from "../Components/Patients/MedicalHistory";
 import { EditorModal } from "../Components/Editor/EditorModal";
 import { NavigationContext } from "../Contexts/NavigationContext";
-import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./PageSlider";
+import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 
 export function Patients() {
     const nav = useContext(NavigationContext)
@@ -83,27 +83,26 @@ export function Patients() {
     }
 
     useEffect(() => {
-        console.log('Patients', 'useEffect1', !(!auth || !auth.user || !auth.accessControl || !nav?.pageHasLoaded));
-        if (!auth || !auth.user || !auth.accessControl || !nav?.pageHasLoaded)
+        console.log('Patients', 'useEffect1', !(!auth || !auth.user || !auth.accessControl));
+        if (!auth || !auth.user || !auth.accessControl)
             return
 
         init(page.offset, page.limit)
-    }, [page, auth, nav?.pageHasLoaded])
+    }, [page, auth])
 
     useEffect(() => {
-        console.log('Patients', 'useEffect2', 'start', 'pageHasLoaded', nav?.pageHasLoaded)
-        if (nav?.pageHasLoaded)
-            (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-                .then((c) => {
-                    if (c?.columnVisibilityModels?.patients)
-                        setHiddenColumns(Object.entries(c.columnVisibilityModels.patients).filter(f => f[1] === false).map(arr => arr[0]))
-                })
-    }, [nav?.pageHasLoaded])
+        console.log('Patients', 'useEffect2', 'start', 'pageHasLoaded');
+        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+            .then((c) => {
+                if (c?.columnVisibilityModels?.patients)
+                    setHiddenColumns(Object.entries(c.columnVisibilityModels.patients).filter(f => f[1] === false).map(arr => arr[0]))
+            })
+    }, [])
 
     const [showGrid, setShowGrid] = useState(false)
     useEffect(() => {
         subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
-            if (e?.detail === 'Patients')
+            if (e?.detail === '/Patients')
                 setShowGrid(true)
         })
     }, [])

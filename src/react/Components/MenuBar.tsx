@@ -1,6 +1,6 @@
 import type { menuAPI } from '../../Electron/Menu/renderer/menuAPI'
 
-import { alpha, useTheme } from '@mui/material/styles';
+import { alpha } from '@mui/material/styles';
 import { IconButton, Box, Stack } from "@mui/material";
 
 import MenuOutlinedIcon from '@mui/icons-material/MenuOutlined';
@@ -44,33 +44,31 @@ const CloseButton = ({ children, onClick }: { children: React.ReactNode, onClick
         {children}
     </IconButton>
 
-export function MenuBar({ backgroundColor }: { backgroundColor: any }) {
+export function MenuBar() {
     return (
-        <>
-            <Box dir='ltr' sx={{ width: '100%', height: '2rem', position: 'fixed', top: '0', left: '0', backgroundColor: backgroundColor, background: '#00000000', zIndex: 10 }}>
-                <Stack direction='row' justifyContent='space-between' sx={{ '-webkit-app-region': 'drag' }}>
-                    <IconButton
-                        size="small"
-                        edge="start"
-                        color="inherit"
-                        sx={{ borderRadius: 1, fontSize: "1rem", padding: '0.2rem', margin: '0.2rem', '-webkit-app-region': 'no-drag' }}
-                        onClick={(e: { movementX: number; movementY: number; }) => (window as typeof window & { menuAPI: menuAPI }).menuAPI.openMenu(e.movementX, e.movementY)}
-                    >
-                        <MenuOutlinedIcon fontSize='inherit' />
-                    </IconButton>
-                    <Stack direction='row' sx={{ '-webkit-app-region': 'no-drag' }}>
-                        <CustomIconButton onClick={() => (window as typeof window & { menuAPI: menuAPI }).menuAPI.minimize()} >
-                            <MinimizeOutlinedIcon fontSize='inherit' />
-                        </CustomIconButton>
-                        <CustomIconButton onClick={() => (window as typeof window & { menuAPI: menuAPI }).menuAPI.maxUnmax()} >
-                            <SquareOutlinedIcon fontSize='inherit' />
-                        </CustomIconButton>
-                        <CloseButton onClick={() => (window as typeof window & { menuAPI: menuAPI }).menuAPI.close()} >
-                            <CloseOutlinedIcon fontSize='inherit' />
-                        </CloseButton>
-                    </Stack>
+        <Box dir='ltr' sx={{ width: '100%', height: '2rem', position: 'absolute', top: '0', left: '0', background: '#00000000', zIndex: 10 }}>
+            <Stack direction='row' justifyContent='space-between' sx={{ WebkitAppRegion: 'drag' }}>
+                <IconButton
+                    size="small"
+                    edge="start"
+                    color="inherit"
+                    sx={{ borderRadius: 1, fontSize: "1rem", padding: '0.2rem', margin: '0.2rem', WebkitAppRegion: 'no-drag' }}
+                    onClick={(e: { movementX: number; movementY: number; }) => (window as typeof window & { menuAPI: menuAPI }).menuAPI.openMenu(e.movementX, e.movementY)}
+                >
+                    <MenuOutlinedIcon fontSize='inherit' />
+                </IconButton>
+                <Stack direction='row' sx={{ WebkitAppRegion: 'no-drag' }}>
+                    <CustomIconButton onClick={() => (window as typeof window & { menuAPI: menuAPI }).menuAPI.minimize()} >
+                        <MinimizeOutlinedIcon fontSize='inherit' />
+                    </CustomIconButton>
+                    <CustomIconButton onClick={() => (window as typeof window & { menuAPI: menuAPI }).menuAPI.maxUnmax()} >
+                        <SquareOutlinedIcon fontSize='inherit' />
+                    </CustomIconButton>
+                    <CloseButton onClick={() => (window as typeof window & { menuAPI: menuAPI }).menuAPI.close()} >
+                        <CloseOutlinedIcon fontSize='inherit' />
+                    </CloseButton>
                 </Stack>
-            </Box>
-        </>
+            </Stack>
+        </Box>
     )
 }

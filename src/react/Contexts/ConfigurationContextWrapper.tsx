@@ -102,9 +102,7 @@ export function ConfigurationContextWrapper({ children }: { children?: ReactNode
             });
         persistConfigurationData({ locale: { ...configuration.locale, zone: configuration.locale.zone }, themeOptions: configuration.themeOptions, canvas: configuration.canvas });
     };
-    const setShowGradientBackground = (v: boolean) => {
-        setConfiguration({ ...configuration, showGradientBackground: v })
-    };
+    const setShowGradientBackground = (v: boolean) => setConfiguration({ ...configuration, showGradientBackground: v })
 
     const [hasFetchedConfig, setHasFetchedConfig] = useState<boolean>(false);
     useEffect(() => {

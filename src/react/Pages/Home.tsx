@@ -1,8 +1,10 @@
-import { Box, Button, Grid } from "@mui/material";
+import { Box, Grid } from "@mui/material";
 import { SearchPatientField } from "../Components/Search/SearchPatientField";
 import { Analytics } from "../Components/Home/Analytics";
 
 export function Home() {
+    console.log('Home')
+
     return (
         <>
             <Grid container spacing={1} p={1}>

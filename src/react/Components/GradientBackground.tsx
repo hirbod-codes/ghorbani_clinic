@@ -1,8 +1,19 @@
-import { useEffect } from 'react';
-import { ValueAnimationTransition, animate, motion, useMotionTemplate, useMotionValue } from 'framer-motion';
-import { mainTransition } from '../Styles/animations';
+import { useContext, useEffect } from 'react';
+import { AnimatePresence, ValueAnimationTransition, animate, motion, useMotionTemplate, useMotionValue } from 'framer-motion';
+import { gradientBackgroundTransitions, mainTransition } from '../Styles/animations';
+import { ConfigurationContext } from '../Contexts/ConfigurationContext';
+import { Box, alpha, useTheme } from '@mui/material';
+import { useLocation } from 'react-router-dom';
 
-export function GradientBackground({ name }: { name?: string }) {
+export function GradientBackground() {
+    const c = useContext(ConfigurationContext)
+    const theme = useTheme()
+    const location = useLocation();
+
+    const backDropColor = alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0.3)
+
+    console.log('GradientBackground', { location, c })
+
     const position1X = useMotionValue(Math.random() * 100);
     const position1Y = useMotionValue(Math.random() * 100);
 
@@ -41,17 +52,33 @@ export function GradientBackground({ name }: { name?: string }) {
         animate(r3, Math.random() * 225, t);
         animate(g3, Math.random() * 225, t);
         animate(b3, Math.random() * 225, t);
-    }, [name]);
+    }, []);
 
     return (
-        <motion.div
-            style={{
-                width: '100%',
-                height: '100%',
-                background: useMotionTemplate`
+        <>
+            <AnimatePresence>
+                {c.get.showGradientBackground &&
+                    <motion.div
+                        initial={false}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        style={{ position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }}
+                    >
+                        <motion.div
+                            key={location.pathname}
+                            transition={gradientBackgroundTransitions}
+                            style={{
+                                width: '100%',
+                                height: '100%',
+                                background: useMotionTemplate`
                 radial-gradient(circle at ${position1X}% ${position1Y}%, rgba(${r1}, ${g1}, ${b1}, 1), 30%, transparent),
                 radial-gradient(circle at ${position2X}% ${position2Y}%, rgba(${r2}, ${g2}, ${b2}, 1), 30%, transparent),
                 radial-gradient(circle at ${position3X}% ${position3Y}%, rgba(${r3}, ${g3}, ${b3}, 1), 30%, transparent)`
-            }} />
+                            }} />
+                        <Box sx={{ backgroundColor: backDropColor, position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }} />
+                    </motion.div>
+                }
+            </AnimatePresence>
+        </>
     );
 }
