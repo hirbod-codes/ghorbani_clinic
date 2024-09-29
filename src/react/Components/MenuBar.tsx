@@ -48,17 +48,17 @@ export function MenuBar({ backgroundColor }: { backgroundColor: any }) {
     return (
         <>
             <Box dir='ltr' sx={{ width: '100%', height: '2rem', position: 'fixed', top: '0', left: '0', backgroundColor: backgroundColor, background: '#00000000', zIndex: 10 }}>
-                <Stack direction='row' justifyContent='space-between'>
+                <Stack direction='row' justifyContent='space-between' sx={{ '-webkit-app-region': 'drag' }}>
                     <IconButton
                         size="small"
                         edge="start"
                         color="inherit"
-                        sx={{ borderRadius: 1, fontSize: "1rem", padding: '0.2rem', margin: '0.2rem' }}
+                        sx={{ borderRadius: 1, fontSize: "1rem", padding: '0.2rem', margin: '0.2rem', '-webkit-app-region': 'no-drag' }}
                         onClick={(e: { movementX: number; movementY: number; }) => (window as typeof window & { menuAPI: menuAPI }).menuAPI.openMenu(e.movementX, e.movementY)}
                     >
                         <MenuOutlinedIcon fontSize='inherit' />
                     </IconButton>
-                    <Stack direction='row'>
+                    <Stack direction='row' sx={{ '-webkit-app-region': 'no-drag' }}>
                         <CustomIconButton onClick={() => (window as typeof window & { menuAPI: menuAPI }).menuAPI.minimize()} >
                             <MinimizeOutlinedIcon fontSize='inherit' />
                         </CustomIconButton>
