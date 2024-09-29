@@ -53,6 +53,9 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
         try {
             console.log('AuthContextWrapper', 'login')
 
+            username = username.trim()
+            password = password.trim()
+
             console.log({ username, password });
             const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.login(username, password);
             console.log({ res });
