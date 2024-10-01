@@ -50,8 +50,8 @@ export function Navigation() {
                     <Stack direction={'row'} alignItems='center' sx={{ height: '100%', background: `linear-gradient(90deg, ${drawerGradientColor1}, 50%, transparent)` }}>
                         <List sx={{ pt: 3, overflow: 'auto', height: '60%' }}>
                             <ListItemButton onClick={() => {
-                                navigate('/')
                                 setOpenDrawer(false)
+                                navigate('/')
                             }} sx={{ mb: 4 }}>
                                 <ListItemIcon>
                                     <HomeOutlined />
@@ -60,8 +60,8 @@ export function Navigation() {
                             </ListItemButton>
                             {readsUsers &&
                                 <ListItemButton onClick={() => {
-                                    navigate('Users')
                                     setOpenDrawer(false)
+                                    navigate('Users')
                                 }} sx={{ mb: 4 }}>
                                     <ListItemIcon>
                                         <PersonOutlined />
@@ -70,8 +70,8 @@ export function Navigation() {
                                 </ListItemButton>}
                             {readsPatients &&
                                 <ListItemButton onClick={() => {
-                                    navigate('/Patients')
                                     setOpenDrawer(false)
+                                    navigate('/Patients')
                                 }} sx={{ mb: 4 }}>
                                     <ListItemIcon>
                                         <MasksOutlined />
@@ -80,8 +80,8 @@ export function Navigation() {
                                 </ListItemButton>}
                             {readsVisits &&
                                 <ListItemButton onClick={() => {
-                                    navigate('/Visits')
                                     setOpenDrawer(false)
+                                    navigate('/Visits')
                                 }} sx={{ mb: 4 }}>
                                     <ListItemIcon>
                                         <AccessTimeOutlined />
@@ -98,8 +98,8 @@ export function Navigation() {
                             <Collapse in={openSettingsList} timeout="auto" unmountOnExit>
                                 <List component="div" disablePadding>
                                     <ListItemButton sx={{ pl: 4 }} onClick={() => {
-                                        navigate('/General')
                                         setOpenDrawer(false)
+                                        navigate('/General')
                                     }}>
                                         <ListItemIcon>
                                             <DisplaySettingsOutlined />
@@ -116,8 +116,8 @@ export function Navigation() {
                                     <Collapse in={openDbList} timeout="auto" unmountOnExit>
                                         <List component="div" disablePadding>
                                             <ListItemButton sx={{ pl: 8 }} onClick={() => {
-                                                navigate('/DbSettings')
                                                 setOpenDrawer(false)
+                                                navigate('/DbSettings')
                                             }}>
                                                 <ListItemIcon>
                                                     <SettingsOutlined />
@@ -139,8 +139,8 @@ export function Navigation() {
                                         </List>
                                     </Collapse>
                                     <ListItemButton sx={{ pl: 4 }} onClick={() => {
-                                        navigate('/ThemeSettings')
                                         setOpenDrawer(false)
+                                        navigate('/ThemeSettings')
                                     }}>
                                         <ListItemIcon>
                                             <FormatPaintOutlined />

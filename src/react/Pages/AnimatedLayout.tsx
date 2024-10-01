@@ -16,7 +16,7 @@ const variants = {
     active: {
         name: 'active',
         x: 0,
-        transition: { ...mainTransition }
+        transition: { ...mainTransition, delay: 0.5 }
     },
     exit: {
         name: 'exit',
@@ -37,7 +37,7 @@ export function AnimatedLayout({ children }: { children: ReactNode }): JSX.Eleme
             exit='exit'
             variants={variants}
             transition={mainTransition}
-            style={{ height: '100%', width: '100%', overflow: 'hidden' }}
+            style={{ height: '100%', width: '100%', overflow: 'hidden', position: 'absolute' }}
             onAnimationComplete={(definition) => {
                 if (definition === 'active')
                     publish(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, location.pathname)

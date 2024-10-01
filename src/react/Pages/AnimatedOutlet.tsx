@@ -1,5 +1,5 @@
 import { useLocation, useOutlet } from "react-router-dom";
-import { cloneElement } from 'react';
+import { JSXElementConstructor, cloneElement } from 'react';
 import { AnimatePresence } from 'framer-motion';
 
 export function AnimatedOutlet(): JSX.Element {
@@ -9,7 +9,7 @@ export function AnimatedOutlet(): JSX.Element {
     const outlet = useOutlet();
 
     return (
-        <AnimatePresence mode="wait" initial={false}>
+        <AnimatePresence mode='sync'>
             {outlet && cloneElement(outlet, { key: location.pathname })}
         </AnimatePresence>
     );

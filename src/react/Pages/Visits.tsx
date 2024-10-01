@@ -1,9 +1,8 @@
-import { useState, useContext, useEffect } from "react";
+import { useState, useContext, useEffect, useMemo } from "react";
 import { DataGrid } from "../Components/DataGrid/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { t } from "i18next";
 import { Button, CircularProgress, Grid, Paper } from "@mui/material";
-import LoadingScreen from "../Components/LoadingScreen";
 import { GridActionsCellItem, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../Contexts/ConfigurationContext";
@@ -13,7 +12,6 @@ import { publish, subscribe } from "../Lib/Events";
 import { resources } from "../../Electron/Database/Repositories/Auth/resources";
 import { AuthContext } from "../Contexts/AuthContext";
 import { DeleteOutline, RefreshOutlined } from "@mui/icons-material";
-import { configAPI } from "../../Electron/Configuration/renderer";
 import { EditorModal } from "../Components/Editor/EditorModal";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import { useNavigate } from "react-router-dom";
@@ -27,7 +25,6 @@ export function Visits() {
         navigate('/')
 
     const [page, setPage] = useState({ offset: 0, limit: 25 })
-    const [hiddenColumns, setHiddenColumns] = useState<string[]>(['_id'])
 
     const [loading, setLoading] = useState<boolean>(true)
     const [visits, setVisits] = useState<Visit[]>([])
@@ -69,9 +66,15 @@ export function Visits() {
         }
     }
 
-    const init = async (offset: number, limit: number) => {
-        setLoading(true)
+    const init = async (offset: number, limit: number, useCache = true) => {
         console.log('init', 'start');
+
+        if (useCache && visits && visits.length !== 0) {
+            console.log('exiting...')
+            return
+        }
+
+        setLoading(true)
         const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getVisits(offset, limit)
         console.log('fetchVisits', 'res', res)
         setLoading(false)
@@ -84,51 +87,30 @@ export function Visits() {
             return
         }
 
-        publish(RESULT_EVENT_NAME, {
-            severity: 'success',
-            message: t('successfullyFetchedVisits')
-        })
         setVisits(res.data)
 
         console.log('init', 'end');
     }
 
+    useEffect(() => {
+        console.log('Visits', 'useEffect1', 'start', 'pageHasLoaded')
+        init(page.offset, page.limit).then(() => {
+            console.log('useEffect', 'end')
+        })
+    }, [page, auth])
+
     const [showGrid, setShowGrid] = useState(false)
     useEffect(() => {
+        console.log('Visits', 'useEffect2', 'start');
         subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
             if (e?.detail === '/Visits')
                 setShowGrid(true)
         })
     }, [])
 
-    useEffect(() => {
-        console.log('Visits', 'useEffect1', 'start', 'pageHasLoaded')
-        init(page.offset, page.limit).then(() => console.log('useEffect', 'end'))
-    }, [page, auth])
+    const deletesVisit = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.VISIT), [])
 
-    useEffect(() => {
-        console.log('Visits', 'useEffect2', 'start', 'pageHasLoaded');
-        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-            .then((c) => {
-                if (c?.columnVisibilityModels?.visits)
-                    setHiddenColumns(Object.entries(c.columnVisibilityModels.visits).filter(f => f[1] === false).map(arr => arr[0]))
-            })
-    }, [])
-
-    const deletesVisit = auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.VISIT)
-
-    if (!visits || visits.length === 0)
-        return (
-            <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
-                <Grid item xs={12} height={'100%'}>
-                    <Paper sx={{ p: 1, height: '100%' }}>
-                        <LoadingScreen />
-                    </Paper>
-                </Grid>
-            </Grid>
-        )
-
-    const columns: GridColDef<any>[] = [
+    const columns: GridColDef<any>[] = useMemo(() => [
         {
             field: 'diagnosis',
             type: 'actions',
@@ -159,14 +141,14 @@ export function Visits() {
             valueFormatter: (updatedAt: number) => fromUnixToFormat(configuration.get.locale, updatedAt, DATE),
             width: 200,
         },
-    ]
+    ], [])
 
     return (
         <>
             <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
                 <Grid item xs={12} height={'100%'}>
-                    <Paper sx={{ p: 1, height: '100%' }}>
-                        {!showGrid
+                    <Paper sx={{ p: 1, height: '100%', overflow: 'auto' }}>
+                        {!visits || visits.length === 0 || !showGrid
                             ? <CircularProgress size='medium' />
                             : <DataGrid
                                 name='visits'
@@ -178,7 +160,6 @@ export function Visits() {
                                 onPaginationModelChange={(m, d) => setPage({ offset: m.page, limit: m.pageSize })}
                                 orderedColumnsFields={['actions', 'patientId', 'due']}
                                 storeColumnVisibilityModel
-                                hiddenColumns={hiddenColumns}
                                 customToolbar={[
                                     <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
                                 ]}

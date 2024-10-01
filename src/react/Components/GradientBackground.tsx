@@ -40,23 +40,28 @@ export function GradientBackground() {
                 radial-gradient(circle at ${position2X}% ${position2Y}%, rgba(${r2}, ${g2}, ${b2}, 1), 30%, transparent),
                 radial-gradient(circle at ${position3X}% ${position3Y}%, rgba(${r3}, ${g3}, ${b3}, 1), 30%, transparent)`
 
+    const scale = (number: number, inMin: number, inMax: number, outMin: number, outMax: number) => (number - inMin) * (outMax - outMin) / (inMax - inMin) + outMin
+    const toSafeInteger = (num: number) => Math.round(Math.max(Math.min(num, Number.MAX_SAFE_INTEGER), Number.MIN_SAFE_INTEGER))
+
     useEffect(() => {
         const t = mainTransition as ValueAnimationTransition<number>
-        animate(position1X, Math.random() * 100, t);
-        animate(position2X, Math.random() * 100, t);
-        animate(position3X, Math.random() * 100, t);
-        animate(position1Y, Math.random() * 100, t);
-        animate(position2Y, Math.random() * 100, t);
-        animate(position3Y, Math.random() * 100, t);
-        animate(r1, Math.random() * 225, t);
-        animate(g1, Math.random() * 225, t);
-        animate(b1, Math.random() * 225, t);
-        animate(r2, Math.random() * 225, t);
-        animate(g2, Math.random() * 225, t);
-        animate(b2, Math.random() * 225, t);
-        animate(r3, Math.random() * 225, t);
-        animate(g3, Math.random() * 225, t);
-        animate(b3, Math.random() * 225, t);
+        console.log(Math.random() * 100, scale(toSafeInteger(Math.random() * 100), 0, 100, 10, 90))
+        // Performance!!!
+        // animate(position1X, scale(toSafeInteger(Math.random() * 100), 0, 100, 10, 90), t);
+        // animate(position2X, scale(toSafeInteger(Math.random() * 100), 0, 100, 10, 90), t);
+        // animate(position3X, scale(toSafeInteger(Math.random() * 100), 0, 100, 10, 90), t);
+        // animate(position1Y, scale(toSafeInteger(Math.random() * 100), 0, 100, 10, 90), t);
+        // animate(position2Y, scale(toSafeInteger(Math.random() * 100), 0, 100, 10, 90), t);
+        // animate(position3Y, scale(toSafeInteger(Math.random() * 100), 0, 100, 10, 90), t);
+        animate(r1, scale(toSafeInteger(Math.random() * 225), 0, 225, 0, 225), t);
+        animate(g1, scale(toSafeInteger(Math.random() * 225), 0, 225, 0, 225), t);
+        animate(b1, scale(toSafeInteger(Math.random() * 225), 0, 225, 0, 225), t);
+        animate(r2, scale(toSafeInteger(Math.random() * 225), 0, 225, 0, 225), t);
+        animate(g2, scale(toSafeInteger(Math.random() * 225), 0, 225, 0, 225), t);
+        animate(b2, scale(toSafeInteger(Math.random() * 225), 0, 225, 0, 225), t);
+        animate(r3, scale(toSafeInteger(Math.random() * 225), 0, 225, 0, 225), t);
+        animate(g3, scale(toSafeInteger(Math.random() * 225), 0, 225, 0, 225), t);
+        animate(b3, scale(toSafeInteger(Math.random() * 225), 0, 225, 0, 225), t);
     }, [location]);
 
     return (

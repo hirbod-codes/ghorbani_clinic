@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useContext } from "react";
+import { useState, useRef, useEffect, useContext, useMemo } from "react";
 import { AddOutlined, DeleteOutlined, EditOutlined, RefreshOutlined, RemoveRedEyeOutlined } from '@mui/icons-material';
 import { Modal, Slide, Grid, List, ListItemButton, ListItemText, ListItemIcon, Paper, Typography, Button, Divider, Box, Stack, IconButton, Collapse, CircularProgress } from "@mui/material";
 import { t } from "i18next";
@@ -13,10 +13,8 @@ import ManageUser from "../Components/ManageUser";
 import { ManageRole } from "../Components/ManageRole";
 import { DataGrid } from "../Components/DataGrid/DataGrid";
 import { GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
-import { Home } from "./Home";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish, subscribe } from "../Lib/Events";
-import { configAPI } from "src/Electron/Configuration/renderer";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import { useNavigate } from "react-router-dom";
 
@@ -44,8 +42,7 @@ export function Users() {
 
     const [rows, setRows] = useState([])
     const [loading, setLoading] = useState(true)
-
-    const [hiddenColumns, setHiddenColumns] = useState<string[]>(['_id'])
+    const [showGrid, setShowGrid] = useState(false)
 
     const fetchRoles = async (): Promise<string[] | undefined | null> => {
         setLoading(true)
@@ -85,33 +82,6 @@ export function Users() {
         else
             setRows(fetchedUsers)
     }
-
-    const refresh = async () => {
-        const r = await fetchRoles()
-        await updateRows(r ? r[0] : undefined)
-    }
-
-    useEffect(() => {
-        refresh()
-    }, [])
-
-    useEffect(() => {
-        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-            .then((c) => {
-                if (c?.columnVisibilityModels?.users)
-                    setHiddenColumns(Object.entries(c.columnVisibilityModels.users).filter(f => f[1] === false).map(arr => arr[0]))
-            })
-    }, [])
-
-    const [showGrid, setShowGrid] = useState(false)
-    useEffect(() => {
-        subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
-            console.log(e);
-
-            if (e?.detail === '/Users')
-                setShowGrid(true)
-        })
-    }, [])
 
     const deleteUser = async (id: string) => {
         try {
@@ -167,7 +137,7 @@ export function Users() {
         }
     }
 
-    const columns: GridColDef<any>[] = [
+    const columns: GridColDef<any>[] = useMemo(() => [
         {
             field: 'roleName',
             width: 120,
@@ -184,7 +154,7 @@ export function Users() {
             valueFormatter: (updatedAt: number) => fromUnixToFormat(configuration.get.locale, updatedAt, DATE),
             width: 200,
         },
-    ]
+    ], [])
 
     const createsUser = auth.accessControl?.can(auth.user.roleName).create(resources.USER).granted ?? false
     const createsRole = auth.accessControl?.can(auth.user.roleName).create(resources.PRIVILEGE).granted ?? false
@@ -194,6 +164,24 @@ export function Users() {
     const updatesRole = auth.accessControl?.can(auth.user.roleName).update(resources.PRIVILEGE).granted ?? false
     const deletesUser = auth.accessControl?.can(auth.user.roleName).delete(resources.USER).granted ?? false
     const deletesRole = auth.accessControl?.can(auth.user.roleName).delete(resources.PRIVILEGE).granted ?? false
+
+    const refresh = async () => {
+        const r = await fetchRoles()
+        await updateRows(r ? r[0] : undefined)
+    }
+
+    useEffect(() => {
+        refresh()
+    }, [])
+
+    useEffect(() => {
+        subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
+            console.log(e);
+
+            if (e?.detail === '/Users')
+                setShowGrid(true)
+        })
+    }, [])
 
     return (
         <>
@@ -281,36 +269,35 @@ export function Users() {
                                     loading={loading}
                                     orderedColumnsFields={['actions']}
                                     storeColumnVisibilityModel
-                                    hiddenColumns={hiddenColumns}
-                                    // additionalColumns={(deletesUser || updatesUser) ? [{
-                                    //     field: 'actions',
-                                    //     headerName: '',
-                                    //     headerAlign: 'center',
-                                    //     align: 'center',
-                                    //     type: 'actions',
-                                    //     width: 120,
-                                    //     getActions: (params) => [
-                                    //         updatesUser
-                                    //             ? <GridActionsCellItem
-                                    //                 label={t('editUser')}
-                                    //                 icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
-                                    //                 onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === params.row._id)) }}
-                                    //             />
-                                    //             : null,
-                                    //         deletesUser
-                                    //             ? <GridActionsCellItem
-                                    //                 label={t('deleteUser')}
-                                    //                 icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
-                                    //                 onClick={async () => {
-                                    //                     await deleteUser(params.row._id);
-                                    //                     await updateRows(role)
-                                    //                     if (auth.user._id === params.row.id)
-                                    //                         await auth.logout()
-                                    //                 }}
-                                    //             />
-                                    //             : null,
-                                    //     ].filter(a => a != null)
-                                    // }] : undefined}
+                                    additionalColumns={(deletesUser || updatesUser) ? [{
+                                        field: 'actions',
+                                        headerName: '',
+                                        headerAlign: 'center',
+                                        align: 'center',
+                                        type: 'actions',
+                                        width: 120,
+                                        getActions: (params) => [
+                                            updatesUser
+                                                ? <GridActionsCellItem
+                                                    label={t('editUser')}
+                                                    icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
+                                                    onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === params.row._id)) }}
+                                                />
+                                                : null,
+                                            deletesUser
+                                                ? <GridActionsCellItem
+                                                    label={t('deleteUser')}
+                                                    icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
+                                                    onClick={async () => {
+                                                        await deleteUser(params.row._id);
+                                                        await updateRows(role)
+                                                        if (auth.user._id === params.row.id)
+                                                            await auth.logout()
+                                                    }}
+                                                />
+                                                : null,
+                                        ].filter(a => a != null)
+                                    }] : undefined}
                                     customToolbar={[
                                         <Button onClick={async () => await fetchUsers()} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
                                         createsUser && <Button onClick={() => setOpenManageUserModal(true)} startIcon={<AddOutlined />}>{t('Create')}</Button>,

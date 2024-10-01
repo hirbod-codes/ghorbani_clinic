@@ -1,75 +1,34 @@
-import { GridColDef, GridColumnVisibilityModel, GridPaginationModel, GridToolbarColumnsButton, GridToolbarContainer, GridToolbarDensitySelector, GridToolbarExport, GridToolbarFilterButton, DataGrid as XDataGrid, useGridApiRef, DataGridProps as XDataGridProps } from '@mui/x-data-grid';
-import { useState, useEffect } from 'react'
-import LoadingScreen from '../LoadingScreen'
+import { GridColDef, GridColumnVisibilityModel, GridPaginationModel, GridToolbarColumnsButton, GridToolbarContainer, GridToolbarDensitySelector, GridToolbarExport, GridToolbarFilterButton, DataGrid as XDataGrid, useGridApiRef, DataGridProps as XDataGridProps, GridCallbackDetails } from '@mui/x-data-grid';
+import { useState, useEffect, useMemo } from 'react'
 import { getColumns } from './helpers'
 import { configAPI } from 'src/Electron/Configuration/renderer';
+import { CircularProgress } from '@mui/material';
 
-export type DataGridProps = DataGridCoreProps & {
+export type DataGridProps = {
     name?: string;
-    storeColumnVisibilityModel?: boolean;
-}
-
-export function DataGrid({ name, storeColumnVisibilityModel, onColumnVisibilityModelChange, ...props }: DataGridProps) {
-    const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>({})
-
-    useEffect(() => {
-        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-            .then((c) => {
-                if (c?.columnVisibilityModels)
-                    setColumnVisibilityModel(c.columnVisibilityModels[name])
-            })
-    }, [])
-
-    return (
-        <DataGridCore
-            {...props}
-            columnVisibilityModel={columnVisibilityModel}
-            onColumnVisibilityModelChange={(model, details) => {
-                console.log({ model, details });
-
-                setColumnVisibilityModel(model)
-
-                if (!storeColumnVisibilityModel)
-                    return
-
-                (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-                    .then((c) => {
-                        if (!c.columnVisibilityModels)
-                            c.columnVisibilityModels = {}
-
-                        c.columnVisibilityModels[name] = model;
-
-                        (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig({ ...c })
-                    })
-            }}
-        />
-    )
-}
-
-export type DataGridCoreProps = {
     data: any[];
+    storeColumnVisibilityModel?: boolean;
     idField?: string;
     orderedColumnsFields?: string[];
     customToolbar?: React.ReactNode[];
     overWriteColumns?: GridColDef<any>[];
     additionalColumns?: GridColDef<any>[];
-    hiddenColumns?: string[];
     serverSidePagination?: boolean;
 } & Omit<XDataGridProps, 'columns'>
 
-export function DataGridCore(props: DataGridCoreProps) {
+export function DataGrid(props: DataGridProps) {
     const {
+        name,
         data,
         idField = '_id',
         orderedColumnsFields,
         overWriteColumns,
         additionalColumns,
-        hiddenColumns,
         customToolbar,
         paginationModel,
         serverSidePagination,
         onPaginationModelChange,
-        onColumnVisibilityModelChange,
+        storeColumnVisibilityModel
     } = props
 
     let autosizeOptions = props.autosizeOptions
@@ -88,68 +47,90 @@ export function DataGridCore(props: DataGridCoreProps) {
         pageSize: 25,
     });
 
-    const [columns, setColumns] = useState<GridColDef<any>[]>([])
+    const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>(undefined)
+
+    console.log('DataGrid')
+
+    const columns = useMemo(() => {
+        console.log('DataGrid', 'calculating columns...')
+        return getColumns(data, overWriteColumns, additionalColumns, orderedColumnsFields)
+    }, [])
 
     useEffect(() => {
-        setColumns(getColumns(data, overWriteColumns, additionalColumns, orderedColumnsFields))
-    }, [data, overWriteColumns, additionalColumns, orderedColumnsFields])
-
-    console.log('DataGrid', props)
-
-    if (!columns || columns?.length === 0)
-        return (<LoadingScreen />)
+        console.log('DataGrid', 'fetching Column visibility model...')
+        if (storeColumnVisibilityModel && !columnVisibilityModel)
+            (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+                .then((c) => {
+                    if (c?.columnVisibilityModels)
+                        setColumnVisibilityModel(c.columnVisibilityModels[name])
+                })
+    }, [])
 
     return (
         <div style={{ height: '100%' }}>
-            <XDataGrid
-                {...props}
-                getRowId={(r) => r[idField]}
-                columns={columns}
-                rows={data}
-                rowCount={serverSidePagination ? -1 : undefined}
-                paginationMode={serverSidePagination ? 'server' : 'client'}
-                pagination
-                rowSelection={false}
-                paginationModel={serverSidePagination ? (paginationModel ?? paginationModelState) : undefined}
-                onPaginationModelChange={serverSidePagination
-                    ? (m, d) => {
-                        console.log({ m, d });
+            {!columns || columns?.length === 0
+                ? <CircularProgress />
+                : <XDataGrid
+                    {...props}
+                    getRowId={(r) => r[idField]}
+                    columns={columns}
+                    rows={data}
+                    rowCount={serverSidePagination ? -1 : undefined}
+                    paginationMode={serverSidePagination ? 'server' : 'client'}
+                    pagination
+                    rowSelection={false}
+                    paginationModel={serverSidePagination ? (paginationModel ?? paginationModelState) : undefined}
+                    onPaginationModelChange={serverSidePagination
+                        ? (m, d) => {
+                            console.log({ m, d });
 
-                        if (!paginationModel)
-                            setPaginationModel(m);
+                            if (!paginationModel)
+                                setPaginationModel(m);
 
-                        if (onPaginationModelChange)
-                            onPaginationModelChange(m, d)
+                            if (onPaginationModelChange)
+                                onPaginationModelChange(m, d)
+                        }
+                        : undefined
                     }
-                    : undefined
-                }
-                onColumnVisibilityModelChange={(model, details) => {
-                    console.log({ model, details });
+                    onColumnVisibilityModelChange={(model: GridColumnVisibilityModel, details: GridCallbackDetails<any>) => {
+                        console.log({ model, details });
 
-                    if (onColumnVisibilityModelChange)
-                        onColumnVisibilityModelChange(model, details)
-                }}
-                initialState={{
-                    columns: {
-                        orderedFields: orderedColumnsFields,
-                        columnVisibilityModel: Object.fromEntries(hiddenColumns?.map((hc: any) => [hc, false]) ?? [])
-                    }
-                }}
-                slots={{
-                    toolbar: () => (
-                        <GridToolbarContainer>
-                            <GridToolbarColumnsButton />
-                            <GridToolbarFilterButton />
-                            <GridToolbarDensitySelector />
-                            <GridToolbarExport />
-                            {...(customToolbar ?? [])}
-                        </GridToolbarContainer>
-                    )
-                }}
+                        setColumnVisibilityModel(model)
+
+                        if (!storeColumnVisibilityModel)
+                            return
+
+                        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+                            .then((c) => {
+                                if (!c.columnVisibilityModels)
+                                    c.columnVisibilityModels = {}
+
+                                c.columnVisibilityModels[name] = model;
+
+                                (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig({ ...c })
+                            })
+                    }}
+                    initialState={{
+                        columns: {
+                            orderedFields: orderedColumnsFields,
+                            columnVisibilityModel: columnVisibilityModel
+                        }
+                    }}
+                    slots={{
+                        toolbar: () => (
+                            <GridToolbarContainer>
+                                <GridToolbarColumnsButton />
+                                <GridToolbarFilterButton />
+                                <GridToolbarDensitySelector />
+                                <GridToolbarExport />
+                                {...(customToolbar ?? [])}
+                            </GridToolbarContainer>
+                        )
+                    }}
                 autosizeOnMount
                 apiRef={apiRef}
                 autosizeOptions={autosizeOptions}
-            />
+                />}
         </div>
     )
 }
