@@ -1,5 +1,5 @@
 import { useLocation, useOutlet } from "react-router-dom";
-import { JSXElementConstructor, cloneElement } from 'react';
+import { cloneElement } from 'react';
 import { AnimatePresence } from 'framer-motion';
 
 export function AnimatedOutlet(): JSX.Element {
