@@ -11,7 +11,6 @@ import { ConfigurationContext } from '../Contexts/ConfigurationContext';
 import { AuthContext } from "../Contexts/AuthContext";
 import ManageUser from "../Components/ManageUser";
 import { ManageRole } from "../Components/ManageRole";
-import { NavigationContext } from "../Contexts/NavigationContext";
 import { DataGrid } from "../Components/DataGrid/DataGrid";
 import { GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
 import { Home } from "./Home";
@@ -19,14 +18,15 @@ import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish, subscribe } from "../Lib/Events";
 import { configAPI } from "src/Electron/Configuration/renderer";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
+import { useNavigate } from "react-router-dom";
 
 export function Users() {
     const configuration = useContext(ConfigurationContext)
     const auth = useContext(AuthContext)
-    const nav = useContext(NavigationContext)
+    const navigate = useNavigate()
 
     if (!auth.accessControl?.can(auth.user.roleName).read(resources.USER).granted)
-        nav.setContent(<Home />)
+        navigate('/')
 
     const [roles, setRoles] = useState<string[] | undefined>(undefined)
     const [role, setRole] = useState<string | undefined>(undefined)
@@ -107,7 +107,7 @@ export function Users() {
     useEffect(() => {
         subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
             console.log(e);
-            
+
             if (e?.detail === '/Users')
                 setShowGrid(true)
         })

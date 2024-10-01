@@ -17,14 +17,16 @@ import { publish, subscribe } from "../Lib/Events";
 import { configAPI } from '../../Electron/Configuration/renderer';
 import { MedicalHistory } from "../Components/Patients/MedicalHistory";
 import { EditorModal } from "../Components/Editor/EditorModal";
-import { NavigationContext } from "../Contexts/NavigationContext";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
+import { useNavigate } from "react-router-dom";
 
 export function Patients() {
-    const nav = useContext(NavigationContext)
-
     const auth = useContext(AuthContext)
     const configuration = useContext(ConfigurationContext)
+    const navigate = useNavigate()
+
+    if (!auth.accessControl?.can(auth.user.roleName).read(resources.PATIENT).granted)
+        navigate('/')
 
     const [page, setPage] = useState({ offset: 0, limit: 25 })
     const [hiddenColumns, setHiddenColumns] = useState<string[]>(['_id'])

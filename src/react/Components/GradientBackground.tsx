@@ -35,6 +35,11 @@ export function GradientBackground() {
     const g3 = useMotionValue(Math.random() * 225);
     const b3 = useMotionValue(Math.random() * 225);
 
+    const background = useMotionTemplate`
+                radial-gradient(circle at ${position1X}% ${position1Y}%, rgba(${r1}, ${g1}, ${b1}, 1), 30%, transparent),
+                radial-gradient(circle at ${position2X}% ${position2Y}%, rgba(${r2}, ${g2}, ${b2}, 1), 30%, transparent),
+                radial-gradient(circle at ${position3X}% ${position3Y}%, rgba(${r3}, ${g3}, ${b3}, 1), 30%, transparent)`
+
     useEffect(() => {
         const t = mainTransition as ValueAnimationTransition<number>
         animate(position1X, Math.random() * 100, t);
@@ -52,14 +57,14 @@ export function GradientBackground() {
         animate(r3, Math.random() * 225, t);
         animate(g3, Math.random() * 225, t);
         animate(b3, Math.random() * 225, t);
-    }, []);
+    }, [location]);
 
     return (
         <>
             <AnimatePresence>
                 {c.get.showGradientBackground &&
                     <motion.div
-                        initial={false}
+                        initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         style={{ position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }}
@@ -70,10 +75,7 @@ export function GradientBackground() {
                             style={{
                                 width: '100%',
                                 height: '100%',
-                                background: useMotionTemplate`
-                radial-gradient(circle at ${position1X}% ${position1Y}%, rgba(${r1}, ${g1}, ${b1}, 1), 30%, transparent),
-                radial-gradient(circle at ${position2X}% ${position2Y}%, rgba(${r2}, ${g2}, ${b2}, 1), 30%, transparent),
-                radial-gradient(circle at ${position3X}% ${position3Y}%, rgba(${r3}, ${g3}, ${b3}, 1), 30%, transparent)`
+                                background
                             }} />
                         <Box sx={{ backgroundColor: backDropColor, position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }} />
                     </motion.div>

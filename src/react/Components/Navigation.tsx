@@ -5,7 +5,6 @@ import { useContext, useState } from 'react';
 import { dbAPI } from 'src/Electron/Database/dbAPI';
 import { AuthContext } from '../Contexts/AuthContext';
 import { ConfigurationContext } from '../Contexts/ConfigurationContext';
-import { NavigationContext } from '../Contexts/NavigationContext';
 import { RESULT_EVENT_NAME } from '../Contexts/ResultWrapper';
 import { publish } from '../Lib/Events';
 import { resources } from '../../Electron/Database/Repositories/Auth/resources';
@@ -16,11 +15,9 @@ import { useNavigate } from 'react-router-dom';
 export function Navigation() {
     const navigate = useNavigate();
 
-    const nav = useContext(NavigationContext)
     const auth = useContext(AuthContext)
     const theme = useTheme()
     const configuration = useContext(ConfigurationContext)
-    const setContent = useContext(NavigationContext)?.setContent ?? ((o: any) => { })
 
     // Navigation
     const [openDrawer, setOpenDrawer] = useState(false)
@@ -38,7 +35,7 @@ export function Navigation() {
     const readsPatients = auth.accessControl && auth.user && auth.accessControl.can(auth.user.roleName).read(resources.PATIENT).granted
     const readsVisits = auth.accessControl && auth.user && auth.accessControl.can(auth.user.roleName).read(resources.VISIT).granted
 
-    console.log('App', { nav, auth, theme, configuration, setContent, openDrawer, openSettingsList })
+    console.log('App', { auth, theme, configuration, openDrawer, openSettingsList })
 
     const appBarBorderColor = theme.palette.mode === 'dark' ? '#fff' : '#000'
     const appBarGradientColor = alpha(theme.palette.mode === 'dark' ? theme.palette.common.white : theme.palette.common.black, 0.5)

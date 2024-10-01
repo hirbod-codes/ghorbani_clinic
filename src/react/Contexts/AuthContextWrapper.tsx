@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { RendererDbAPI } from '../../Electron/Database/renderer';
 import { User } from '../../Electron/Database/Models/User';
 import { AuthContext } from './AuthContext';
-import { NavigationContext } from './NavigationContext';
 import { AccessControl } from 'accesscontrol';
 import { ConfigurationContext } from './ConfigurationContext';
 import { Home } from '../Pages/Home';
@@ -11,12 +10,13 @@ import { Modal, Paper, Slide } from '@mui/material';
 import { LoginForm } from '../Components/Auth/LoginForm';
 import { RESULT_EVENT_NAME } from './ResultWrapper';
 import { publish } from '../Lib/Events';
+import { useNavigate } from 'react-router-dom';
 
 export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
     const { t } = useTranslation();
 
     const configuration = useContext(ConfigurationContext)
-    const nav = useContext(NavigationContext);
+    const navigate = useNavigate()
 
     const [auth, setAuth] = useState<{ user: User | undefined; ac: AccessControl | undefined; }>({ user: undefined, ac: undefined });
     const [showModal, setShowModal] = useState<boolean>(false)
@@ -73,7 +73,7 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
             });
 
             await init();
-            nav?.setContent(<Home />);
+            navigate('/')
         } catch (error) {
             console.error(error);
 
@@ -97,7 +97,7 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
             }
 
             setAuth({ user: undefined, ac: undefined });
-            nav?.setContent(<Home />);
+            navigate('/')
             publish(RESULT_EVENT_NAME, {
                 severity: 'success',
                 message: t('successfullyToLogout'),

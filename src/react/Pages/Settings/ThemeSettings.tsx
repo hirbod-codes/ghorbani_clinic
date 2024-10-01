@@ -13,6 +13,17 @@ export function ThemeSettings() {
     const [showGradientBackground, setShowGradientBackground] = useState<boolean>(c.get.showGradientBackground ?? false)
     const [loadingGradientBackground, setLoadingGradientBackground] = useState(false)
 
+    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+
+    const [focusedColor, setFocusedColor] = useState<'primary' | 'secondary' | 'success' | 'error' | 'info' | 'warning' | 'success'>('primary')
+
+    const [primaryColor, setPrimaryColor] = useState<string>(c.get.theme.palette.primary.main)
+    const [secondaryColor, setSecondaryColor] = useState<string>(c.get.theme.palette.secondary.main)
+    const [errorColor, setErrorColor] = useState<string>(c.get.theme.palette.error.main)
+    const [infoColor, setInfoColor] = useState<string>(c.get.theme.palette.info.main)
+    const [warningColor, setWarningColor] = useState<string>(c.get.theme.palette.warning.main)
+    const [successColor, setSuccessColor] = useState<string>(c.get.theme.palette.success.main)
+
     const updateShowGradientBackground = async (v: boolean) => {
         setLoadingGradientBackground(true)
 
@@ -26,17 +37,6 @@ export function ThemeSettings() {
         c.set.setShowGradientBackground(v)
         setShowGradientBackground(v)
     }
-
-    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-
-    const [focusedColor, setFocusedColor] = useState<'primary' | 'secondary' | 'success' | 'error' | 'info' | 'warning' | 'success'>('primary')
-
-    const [primaryColor, setPrimaryColor] = useState<string>(c.get.theme.palette.primary.main)
-    const [secondaryColor, setSecondaryColor] = useState<string>(c.get.theme.palette.secondary.main)
-    const [errorColor, setErrorColor] = useState<string>(c.get.theme.palette.error.main)
-    const [infoColor, setInfoColor] = useState<string>(c.get.theme.palette.info.main)
-    const [warningColor, setWarningColor] = useState<string>(c.get.theme.palette.warning.main)
-    const [successColor, setSuccessColor] = useState<string>(c.get.theme.palette.success.main)
 
     console.log('ThemeSettings', { c, primaryColor, secondaryColor, errorColor, infoColor, warningColor, successColor, anchorEl, themeJson: JSON.stringify(c.get.theme, undefined, 4) })
 

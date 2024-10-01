@@ -1,6 +1,5 @@
 import { ConfigurationContextWrapper } from '../Contexts/ConfigurationContextWrapper';
 import { AuthContextWrapper } from '../Contexts/AuthContextWrapper';
-import { NavigationContextWrapper } from '../Contexts/NavigationContextWrapper';
 import { ResultWrapper } from '../Contexts/ResultWrapper';
 import { Navigation } from '../Components/Navigation';
 import { AnimatedOutlet } from './AnimatedOutlet';
@@ -16,21 +15,19 @@ export function Layout() {
         <ConfigurationContextWrapper>
             <ResultWrapper>
                 <AuthContextWrapper>
-                    <NavigationContextWrapper>
-                        <GradientBackground />
+                    <GradientBackground />
 
-                        <Box sx={{ position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }}>
-                            <Stack direction='column' spacing={0} sx={{ overflow: 'hidden', height: '100%', width: '100%' }}>
-                                <MenuBar />
+                    <Box sx={{ position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }}>
+                        <Stack direction='column' spacing={0} sx={{ overflow: 'hidden', height: '100%', width: '100%' }}>
+                            <MenuBar />
 
-                                <Navigation />
+                            <Navigation />
 
-                                <Box sx={{ overflow: 'hidden', flexGrow: 1, width: '100%', position: 'relative', mt: 3 }}>
-                                    <AnimatedOutlet />
-                                </Box>
-                            </Stack>
-                        </Box>
-                    </NavigationContextWrapper>
+                            <Box sx={{ overflow: 'hidden', flexGrow: 1, width: '100%', position: 'relative', mt: 3 }}>
+                                <AnimatedOutlet />
+                            </Box>
+                        </Stack>
+                    </Box>
                 </AuthContextWrapper>
             </ResultWrapper>
         </ConfigurationContextWrapper>

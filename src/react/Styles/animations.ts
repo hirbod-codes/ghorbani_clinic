@@ -2,8 +2,8 @@ import { Transition } from "framer-motion";
 
 export const mainTransition: Transition = {
     type: 'spring',
-    bounce: 0.4,
-    damping: 30
+    bounce: 0.2,
+    damping: 15
 }
 
 export const gradientBackgroundTransitions: Transition = {
