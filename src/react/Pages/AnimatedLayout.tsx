@@ -32,7 +32,7 @@ export function AnimatedLayout({ children }: { children: ReactNode }): JSX.Eleme
 
     return (
         <motion.div
-            initial='enter'
+            initial={location.pathname === '/' ? false : 'enter'}
             animate='active'
             exit='exit'
             variants={variants}
