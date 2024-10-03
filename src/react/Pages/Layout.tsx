@@ -3,7 +3,7 @@ import { AuthContextWrapper } from '../Contexts/AuthContextWrapper';
 import { ResultWrapper } from '../Contexts/ResultWrapper';
 import { Navigation } from '../Components/Navigation';
 import { AnimatedOutlet } from './AnimatedOutlet';
-import { MenuBar } from '../Components/MenuBar';
+import { MenuBar } from '../Components/MenuBar/MenuBar';
 import { GradientBackground } from '../Components/GradientBackground';
 import { Box, Stack } from '@mui/material';
 

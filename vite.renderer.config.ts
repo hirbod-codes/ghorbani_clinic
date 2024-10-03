@@ -2,6 +2,7 @@ import type { ConfigEnv, UserConfig } from 'vite';
 import { defineConfig } from 'vite';
 import { pluginExposeRenderer } from './vite.base.config';
 import react from '@vitejs/plugin-react-swc'
+import svgr from 'vite-plugin-svgr'
 
 // https://vitejs.dev/config
 export default defineConfig((env) => {
@@ -16,7 +17,15 @@ export default defineConfig((env) => {
         build: {
             outDir: `.vite/renderer/${name}`,
         },
-        plugins: [react(), pluginExposeRenderer(name)],
+        plugins: [
+            react(),
+            svgr(
+                {
+                    include: "**/*.svg?react",  // allows importing any `svg` file as a React component
+                }
+            ),
+            pluginExposeRenderer(name),
+        ],
         resolve: {
             preserveSymlinks: true,
         },

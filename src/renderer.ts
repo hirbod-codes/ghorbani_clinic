@@ -26,6 +26,8 @@
  * ```
  */
 
+/// <reference types="vite-plugin-svgr/client" />
+
 import './index.css';
 
 import './react/root';

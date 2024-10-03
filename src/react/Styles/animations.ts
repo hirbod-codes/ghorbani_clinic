@@ -10,7 +10,12 @@ export const gradientBackgroundTransitions: Transition = {
     ...mainTransition
 }
 
-export const countersTransitions: Transition = {
+export const circularProgressBarTransitions: Transition = {
+    ...mainTransition,
+    damping: 50
+}
+
+export const numericCounterTransitions: Transition = {
     ...mainTransition,
     damping: 50
 }

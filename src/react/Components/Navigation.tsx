@@ -46,7 +46,7 @@ export function Navigation() {
     return (
         <>
             <Box sx={{ background: `radial-gradient(ellipse farthest-side at top, ${appBarGradientColor}, 1%, transparent)` }}>
-                <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)} PaperProps={{ sx: { background: 'transparent', boxShadow: '0' } }}>
+                <Drawer open={openDrawer} onClose={() => setOpenDrawer(false)} PaperProps={{ sx: { background: 'transparent', boxShadow: '0' } }} componentsProps={{ backdrop: { sx: { background: 'transparent' } } }}>
                     <Stack direction={'row'} alignItems='center' sx={{ height: '100%', background: `linear-gradient(90deg, ${drawerGradientColor1}, 50%, transparent)` }}>
                         <List sx={{ pt: 3, overflow: 'auto', height: '60%' }}>
                             <ListItemButton onClick={() => {
@@ -56,7 +56,7 @@ export function Navigation() {
                                 <ListItemIcon>
                                     <HomeOutlined />
                                 </ListItemIcon>
-                                <ListItemText primary={t('home')} />
+                                <ListItemText color='white' primary={t('home')} />
                             </ListItemButton>
                             {readsUsers &&
                                 <ListItemButton onClick={() => {
@@ -66,7 +66,7 @@ export function Navigation() {
                                     <ListItemIcon>
                                         <PersonOutlined />
                                     </ListItemIcon>
-                                    <ListItemText primary={t('users')} />
+                                    <ListItemText color='white' primary={t('users')} />
                                 </ListItemButton>}
                             {readsPatients &&
                                 <ListItemButton onClick={() => {
@@ -76,7 +76,7 @@ export function Navigation() {
                                     <ListItemIcon>
                                         <MasksOutlined />
                                     </ListItemIcon>
-                                    <ListItemText primary={t('patients')} />
+                                    <ListItemText color='white' primary={t('patients')} />
                                 </ListItemButton>}
                             {readsVisits &&
                                 <ListItemButton onClick={() => {
@@ -86,13 +86,13 @@ export function Navigation() {
                                     <ListItemIcon>
                                         <AccessTimeOutlined />
                                     </ListItemIcon>
-                                    <ListItemText primary={t('visits')} />
+                                    <ListItemText color='white' primary={t('visits')} />
                                 </ListItemButton>}
                             <ListItemButton onClick={() => setOpenSettingsList(!openSettingsList)} sx={{ mb: 4 }}>
                                 <ListItemIcon>
                                     <SettingsOutlined />
                                 </ListItemIcon>
-                                <ListItemText primary={t('settings')} />
+                                <ListItemText color='white' primary={t('settings')} />
                                 {openSettingsList ? <ExpandLess /> : <ExpandMore />}
                             </ListItemButton>
                             <Collapse in={openSettingsList} timeout="auto" unmountOnExit>
@@ -104,13 +104,13 @@ export function Navigation() {
                                         <ListItemIcon>
                                             <DisplaySettingsOutlined />
                                         </ListItemIcon>
-                                        <ListItemText primary={t("general")} />
+                                        <ListItemText color='white' primary={t("general")} />
                                     </ListItemButton>
                                     <ListItemButton sx={{ pl: 4 }} onClick={() => { setOpenDbList(!openDbList); }}>
                                         <ListItemIcon>
                                             <StorageOutlined />
                                         </ListItemIcon>
-                                        <ListItemText primary={t("Db")} />
+                                        <ListItemText color='white' primary={t("Db")} />
                                         {openDbList ? <ExpandLess /> : <ExpandMore />}
                                     </ListItemButton>
                                     <Collapse in={openDbList} timeout="auto" unmountOnExit>
@@ -122,19 +122,19 @@ export function Navigation() {
                                                 <ListItemIcon>
                                                     <SettingsOutlined />
                                                 </ListItemIcon>
-                                                <ListItemText primary={t("Settings")} />
+                                                <ListItemText color='white' primary={t("Settings")} />
                                             </ListItemButton>
                                             <ListItemButton sx={{ pl: 8 }} onClick={() => setOpenSeedQuestion(true)}>
                                                 <ListItemIcon>
                                                     <RepeatOutlined />
                                                 </ListItemIcon>
-                                                <ListItemText primary={t("Seed")} />
+                                                <ListItemText color='white' primary={t("Seed")} />
                                             </ListItemButton>
                                             <ListItemButton sx={{ pl: 8, color: colors.red[400] }} onClick={() => setOpenTruncateDbQuestion(true)}>
                                                 <ListItemIcon>
                                                     <DeleteOutline />
                                                 </ListItemIcon>
-                                                <ListItemText primary={t("Truncate")} />
+                                                <ListItemText color='white' primary={t("Truncate")} />
                                             </ListItemButton>
                                         </List>
                                     </Collapse>
@@ -145,7 +145,7 @@ export function Navigation() {
                                         <ListItemIcon>
                                             <FormatPaintOutlined />
                                         </ListItemIcon>
-                                        <ListItemText primary={t("Theme")} />
+                                        <ListItemText color='white' primary={t("Theme")} />
                                     </ListItemButton>
                                 </List>
                             </Collapse>
@@ -262,7 +262,7 @@ export function Navigation() {
                         </IconButton>
                     </Toolbar>
                 </AppBar>
-            </Box>
+            </Box >
 
             <div style={{ height: '2px', background: `radial-gradient(ellipse farthest-side at center, ${appBarBorderColor}, transparent)`, margin: '0 1rem' }} />
         </>

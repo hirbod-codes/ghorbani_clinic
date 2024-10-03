@@ -1,4 +1,4 @@
-import { CssBaseline, Modal, PaletteMode, Paper, SimplePaletteColorOptions, Slide, ThemeOptions, ThemeProvider, createTheme, darken, lighten, rgbToHex, useMediaQuery } from '@mui/material';
+import { CssBaseline, GlobalStyles, Modal, PaletteMode, Paper, SimplePaletteColorOptions, Slide, ThemeOptions, ThemeProvider, createTheme, darken, lighten, rgbToHex, useMediaQuery } from '@mui/material';
 import { useState, useRef, ReactNode, useEffect } from 'react';
 import { Localization, enUS } from '@mui/material/locale';
 import { useTranslation } from "react-i18next";
@@ -12,6 +12,7 @@ import { prefixer } from 'stylis';
 import rtlPlugin from 'stylis-plugin-rtl';
 import DbSettingsForm from '../Components/Settings/DbSettingsForm';
 import { configAPI } from '../../Electron/Configuration/renderer';
+import { BorderAllRounded } from '@mui/icons-material';
 
 // Create rtl cache
 const rtlCache = createCache({
@@ -152,6 +153,19 @@ export function ConfigurationContextWrapper({ children }: { children?: ReactNode
                 <ConfigurationContext.Provider value={{ get: configuration, set: { replaceTheme, updateTheme, updateLocale, updateTimeZone, setShowGradientBackground }, showDbConfigurationModal, hasFetchedConfig }}>
                     <CacheProvider value={configuration.locale.direction === 'rtl' ? rtlCache : ltrCache}>
                         <ThemeProvider theme={configuration.theme}>
+                            <GlobalStyles styles={{
+                                '*::-webkit-scrollbar': {
+                                    width: '0.4em',
+                                },
+                                '*::-webkit-scrollbar-track': {
+                                    '-webkit-box-shadow': 'inset 0 0 5px rgb(0,0,0)',
+                                },
+                                '*::-webkit-scrollbar-thumb': {
+                                    backgroundColor: 'rgba(0,0,0,.8)',
+                                    outline: '1px solid slategrey',
+                                    borderRadius: '5px'
+                                },
+                            }} />
                             <CssBaseline enableColorScheme />
 
                             {children}
