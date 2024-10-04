@@ -1,7 +1,7 @@
 import { Box, Button, Checkbox, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Grid, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Modal, Paper, Slide, Stack, TextField, Typography } from "@mui/material";
 import { t } from "i18next";
 import { useState, useEffect } from 'react'
-import { ArrowBox } from "../ArrowBox/ArrowBox";
+import { ArrowBox } from "./ArrowBox";
 import { useSpring, animated, easings } from 'react-spring';
 import useMeasure from 'react-use-measure'
 import { PatientsMedicalHistory } from "../../../Electron/Database/Models/Patient";
@@ -11,6 +11,7 @@ import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 import { AddOutlined, DeleteOutlined } from "@mui/icons-material";
 import { Editor } from "../Editor/Editor";
+import { TrashIcon } from "../Icons/TrashIcon";
 
 export type MedicalHistoryProps = {
     open: boolean;
@@ -22,7 +23,9 @@ export type MedicalHistoryProps = {
 export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }: MedicalHistoryProps) {
     const [openDrawer, setOpenDrawer] = useState<boolean>(false)
 
+    const [removingMedicalHistoryLoading, setRemovingMedicalHistoryLoading] = useState<number | undefined>(undefined)
     const [addingMedicalHistoryLoading, setAddingMedicalHistoryLoading] = useState<boolean>(false)
+
     const [addingMedicalHistory, setAddingMedicalHistory] = useState<string | undefined>(undefined)
     const [medicalHistory, setMedicalHistory] = useState<PatientsMedicalHistory | undefined>(inputMedicalHistory ?? { description: { text: '', canvas: undefined }, histories: [] })
 
@@ -69,6 +72,11 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
     }, [inputMedicalHistory])
 
     const toggleHistory = (v: boolean, fh: string) => {
+        setHasUnsavedChanges(true)
+
+        if (!medicalHistory.histories)
+            medicalHistory.histories = []
+
         if (v && medicalHistory.histories?.find(f => f === fh) === undefined) {
             medicalHistory.histories?.push(fh)
             setMedicalHistory({ ...medicalHistory })
@@ -131,15 +139,45 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                                                 }
                                             </LoadingScreen>
                                             :
-                                            <List sx={{ pt: 3 }} dense>
+                                            <List sx={{ p: 1 }} dense>
                                                 {fetchedHistories.map((fh, i) =>
                                                     <ListItem
                                                         key={i}
-                                                        disablePadding
+                                                        dense
+                                                        disableGutters
                                                         secondaryAction={
-                                                            <IconButton>
-                                                                <DeleteOutlined />
-                                                            </IconButton>
+                                                            removingMedicalHistoryLoading !== undefined && removingMedicalHistoryLoading === i
+                                                                ? <CircularProgress />
+                                                                :
+                                                                <IconButton onClick={async () => {
+                                                                    try {
+                                                                        setRemovingMedicalHistoryLoading(i)
+
+                                                                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteMedicalHistoryByName(fh)
+
+                                                                        if (res.code !== 200 || !res.data.acknowledged) {
+                                                                            publish(RESULT_EVENT_NAME, {
+                                                                                severity: 'error',
+                                                                                message: t('failedToRemoveMedicalHistory')
+                                                                            })
+
+                                                                            return
+                                                                        }
+
+                                                                        publish(RESULT_EVENT_NAME, {
+                                                                            severity: 'success',
+                                                                            message: t('successfullyRemovedMedicalHistory')
+                                                                        })
+
+                                                                        setFetchedHistories(fetchedHistories.filter((f, fi) => fi !== i))
+                                                                    } catch (error) {
+                                                                        console.error(error)
+                                                                    } finally {
+                                                                        setRemovingMedicalHistoryLoading(undefined)
+                                                                    }
+                                                                }} color='error' sx={{ ml: 2 }}>
+                                                                    <TrashIcon color="error" />
+                                                                </IconButton>
                                                         }
                                                     >
                                                         <ListItemButton
@@ -151,6 +189,7 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                                                         >
                                                             <ListItemIcon>
                                                                 <Checkbox
+                                                                    color='success'
                                                                     edge="start"
                                                                     checked={medicalHistory.histories?.find(f => f === fh) !== undefined}
                                                                     onChange={(e, v) => {
@@ -182,7 +221,7 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                             </Paper>
                         </animated.div>
 
-                        <Box sx={{ position: 'absolute', top: '50%', transform: 'translate(0, -50%)', zIndex: 9 }} onClick={() => setOpenDrawer(true)}>
+                        <Box sx={{ cursor: 'pointer', position: 'absolute', top: '50%', transform: 'translate(0, -50%)', zIndex: 9 }} onClick={() => setOpenDrawer(true)}>
                             <ArrowBox />
                         </Box>
 
