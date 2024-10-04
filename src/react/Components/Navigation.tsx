@@ -48,10 +48,10 @@ export function Navigation() {
                     componentsProps={{ backdrop: { sx: { background: 'transparent' } } }}
                 >
                     <Stack direction={'row'} alignItems='center' sx={{ height: '100%', background: `linear-gradient(90deg, ${drawerGradientColor}, 50%, transparent)` }}>
-                        <List sx={{ pt: 3, pr: 4, overflow: 'auto', height: '100%' }}>
+                        <List sx={{ overflow: 'auto', height: '100%' }}>
                             <Box sx={{ mb: 8 }} />
 
-                            <ListItemButton onClick={() => moveTo('/')}>
+                            <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/')}>
                                 <ListItemIcon>
                                     <HomeOutlined />
                                 </ListItemIcon>
@@ -61,7 +61,7 @@ export function Navigation() {
                             <Box sx={{ mb: 8 }} />
 
                             {readsUsers &&
-                                <ListItemButton onClick={() => moveTo('Users')}>
+                                <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('Users')}>
                                     <ListItemIcon>
                                         <PersonOutlined />
                                     </ListItemIcon>
@@ -71,7 +71,7 @@ export function Navigation() {
                             <Box sx={{ mb: 2 }} />
 
                             {readsPatients &&
-                                <ListItemButton onClick={() => moveTo('/Patients')}>
+                                <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/Patients')}>
                                     <ListItemIcon>
                                         <MasksOutlined />
                                     </ListItemIcon>
@@ -81,7 +81,7 @@ export function Navigation() {
                             <Box sx={{ mb: 2 }} />
 
                             {readsVisits &&
-                                <ListItemButton onClick={() => moveTo('/Visits')}>
+                                <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/Visits')}>
                                     <ListItemIcon>
                                         <AccessTimeOutlined />
                                     </ListItemIcon>
@@ -90,14 +90,14 @@ export function Navigation() {
 
                             <Box sx={{ mb: 8 }} />
 
-                            <ListItemButton onClick={() => moveTo('/General')}>
+                            <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/General')}>
                                 <ListItemIcon>
                                     <DisplaySettingsOutlined />
                                 </ListItemIcon>
                                 <ListItemText color='white' primary={t("general")} />
                             </ListItemButton>
 
-                            <ListItemButton onClick={() => moveTo('/ThemeSettings')}>
+                            <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/ThemeSettings')}>
                                 <ListItemIcon>
                                     <FormatPaintOutlined />
                                 </ListItemIcon>
@@ -106,7 +106,7 @@ export function Navigation() {
 
                             <Box sx={{ mb: 8 }} />
 
-                            <ListItemButton onClick={() => moveTo('/DbSettings')}>
+                            <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/DbSettings')}>
                                 <ListItemIcon>
                                     <StorageOutlined />
                                 </ListItemIcon>
