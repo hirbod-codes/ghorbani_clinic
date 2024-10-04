@@ -8,14 +8,12 @@ import { Visits } from './Pages/Visits';
 import { General } from './Pages/Settings/General';
 import { DbSettings } from './Pages/Settings/DbSettings';
 import { ThemeSettings } from './Pages/Settings/ThemeSettings';
-import { StrictMode } from "react";
 
 export function Main() {
     console.log('Main')
 
     return (
         <>
-            {/* <StrictMode> */}
             <BrowserRouter>
                 <Routes>
                     <Route path="/" element={<Layout />} >
@@ -29,7 +27,6 @@ export function Main() {
                     </Route>
                 </Routes>
             </BrowserRouter>
-            {/* </StrictMode> */}
         </>
     )
 }
