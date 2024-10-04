@@ -108,20 +108,31 @@ export function Visits() {
         })
     }, [])
 
-    const deletesVisit = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.VISIT), [])
+    const deletesVisit = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.VISIT), [auth])
 
-    const columns: GridColDef<any>[] = useMemo(() => [
+    const columns: GridColDef<any>[] = [
         {
             field: 'diagnosis',
             type: 'actions',
             width: 120,
-            renderCell: (params: GridRenderCellParams<any, Date>) => (params.row?.diagnosis && params.row?.diagnosis.length !== 0 ? <Button onClick={() => setShowDiagnosis(visits.find(v => v._id === params.row._id)._id as string)}>{t('Show')}</Button> : null)
+            renderCell: (params: GridRenderCellParams<any, Date>) => {
+                return (
+                    <Button
+                        onClick={() => {
+                            console.log({ params, visits })
+                            setShowDiagnosis(visits.find(v => v._id === params.row._id)?._id as string);
+                        }}
+                    >
+                        {t('Show')}
+                    </Button>
+                );
+            }
         },
         {
             field: 'treatments',
             type: 'actions',
             width: 120,
-            renderCell: (params: GridRenderCellParams<any, Date>) => (params.row?.diagnosis && params.row?.diagnosis.length !== 0 ? <Button onClick={() => setShowTreatments(visits.find(v => v._id === params.row._id)._id as string)}>{t('Show')}</Button> : null)
+            renderCell: (params: GridRenderCellParams<any, Date>) => (<Button onClick={() => setShowTreatments(visits.find(v => v._id === params.row._id)?._id as string)}>{t('Show')}</Button>)
         },
         {
             field: 'due',
@@ -141,7 +152,7 @@ export function Visits() {
             valueFormatter: (updatedAt: number) => fromUnixToFormat(configuration.get.locale, updatedAt, DATE),
             width: 200,
         },
-    ], [])
+    ]
 
     return (
         <>
@@ -161,7 +172,7 @@ export function Visits() {
                                 orderedColumnsFields={['actions', 'patientId', 'due']}
                                 storeColumnVisibilityModel
                                 customToolbar={[
-                                    <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
+                                    <Button onClick={async () => await init(page.offset, page.limit, false)} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
                                 ]}
                                 additionalColumns={[
                                     {

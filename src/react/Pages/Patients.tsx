@@ -102,7 +102,7 @@ export const Patients = memo(function Patients() {
     const updatesPatient = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).update(resources.PATIENT), [auth])
     const deletesPatient = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.PATIENT), [auth])
 
-    const columns: GridColDef<any>[] = useMemo(() => [
+    const columns: GridColDef<any>[] = [
         {
             field: 'address',
             type: 'actions',
@@ -137,10 +137,9 @@ export const Patients = memo(function Patients() {
             type: 'number',
             valueGetter: (ts: number) => fromUnixToFormat(configuration.get.locale, ts, DATE),
         },
-    ], [])
+    ]
 
-
-    const additionalColumns: GridColDef<any>[] = useMemo(() => [
+    const additionalColumns: GridColDef<any>[] = [
         {
             field: 'actions',
             type: 'actions',
@@ -177,7 +176,7 @@ export const Patients = memo(function Patients() {
                 }} label={t('delete')} /> : null,
             ]
         },
-    ], [])
+    ]
 
     return (
         <>

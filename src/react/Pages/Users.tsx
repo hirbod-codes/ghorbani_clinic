@@ -137,7 +137,7 @@ export function Users() {
         }
     }
 
-    const columns: GridColDef<any>[] = useMemo(() => [
+    const columns: GridColDef<any>[] = [
         {
             field: 'roleName',
             width: 120,
@@ -154,7 +154,7 @@ export function Users() {
             valueFormatter: (updatedAt: number) => fromUnixToFormat(configuration.get.locale, updatedAt, DATE),
             width: 200,
         },
-    ], [])
+    ]
 
     const createsUser = auth.accessControl?.can(auth.user.roleName).create(resources.USER).granted ?? false
     const createsRole = auth.accessControl?.can(auth.user.roleName).create(resources.PRIVILEGE).granted ?? false
