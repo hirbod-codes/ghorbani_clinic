@@ -1,12 +1,110 @@
-import { Box } from '@mui/material'
+import { Box, Button, CircularProgress, Dialog, DialogActions, DialogTitle, Divider, Stack } from '@mui/material'
 import DbSettingsForm from '../../../react/Components/Settings/DbSettingsForm'
+import { t } from 'i18next'
+import { useContext, useState } from 'react'
+import { publish } from '../../Lib/Events'
+import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper'
+import { dbAPI } from '../../../Electron/Database/dbAPI'
+import { AuthContext } from '../../Contexts/AuthContext'
 
 export function DbSettings() {
+    const auth = useContext(AuthContext)
+
+    // DB Questions
+    const [openSeedQuestion, setOpenSeedQuestion] = useState<boolean>(false)
+    const [openTruncateDbQuestion, setOpenTruncateDbQuestion] = useState<boolean>(false)
+
+    const [seeding, setSeeding] = useState<boolean>(false)
+    const [truncating, setTruncating] = useState<boolean>(false)
+
     return (
         <>
-            <Box m={1} p={2}>
+            <Stack p={2} spacing={2} direction='column'>
+                <Stack spacing={2} direction='row'>
+                    <Button variant='contained' onClick={() => setOpenSeedQuestion(true)}>
+                        {t("Seed")}
+                    </Button>
+
+                    <Button color='error' variant='contained' onClick={() => setOpenTruncateDbQuestion(true)}>
+                        {t("Truncate")}
+                    </Button>
+                </Stack>
+
+                <Divider />
+
                 <DbSettingsForm noTitle />
-            </Box>
+            </Stack>
+
+            <Dialog
+                open={openSeedQuestion}
+                onClose={() => setOpenSeedQuestion(false)}
+            >
+                <DialogTitle>
+                    {t('doYouWantToSeedDB')}
+                </DialogTitle>
+                <DialogActions>
+                    <Button
+                        onClick={async () => {
+                            try {
+                                setSeeding(true);
+                                const result = await (window as typeof window & { dbAPI: dbAPI; }).dbAPI.seed();
+                                setSeeding(false);
+
+                                if (result === true)
+                                    setOpenSeedQuestion(false);
+
+                                else
+                                    publish(RESULT_EVENT_NAME, {
+                                        severity: 'error',
+                                        message: t('failedToSeedDB')
+                                    });
+                            } catch (error) {
+                                console.error(error);
+                                setSeeding(false);
+                            }
+                        }}
+                    >
+                        {seeding ? <CircularProgress size={35} /> : t('yes')}
+                    </Button>
+                    <Button onClick={() => setOpenSeedQuestion(false)}>{t('no')}</Button>
+                </DialogActions>
+            </Dialog>
+
+            <Dialog
+                open={openTruncateDbQuestion}
+                onClose={() => setOpenTruncateDbQuestion(false)}
+            >
+                <DialogTitle>
+                    {t('doYouWantToTruncateDB')}
+                </DialogTitle>
+                <DialogActions>
+                    <Button color='error' onClick={async () => {
+                        try {
+                            setTruncating(true);
+                            const result = await (window as typeof window & { dbAPI: dbAPI; }).dbAPI.truncate();
+                            setTruncating(false);
+
+                            if (result === true) {
+                                setOpenTruncateDbQuestion(false);
+                                await auth.logout();
+                                window.location.reload();
+                            }
+
+                            else
+                                publish(RESULT_EVENT_NAME, {
+                                    severity: 'error',
+                                    message: t('failedToSeedDB')
+                                });
+                        } catch (error) {
+                            console.error(error);
+                            setTruncating(false);
+                        }
+                    }}>
+                        {truncating ? <CircularProgress size={35} /> : t('yes')}
+                    </Button>
+                    <Button onClick={() => setOpenTruncateDbQuestion(false)}>{t('no')}</Button>
+                </DialogActions>
+            </Dialog>
         </>
     )
 }

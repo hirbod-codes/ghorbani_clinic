@@ -1,11 +1,14 @@
 import { darken, lighten, ThemeOptions } from '@mui/material/styles';
 import { ColorLensOutlined, ExpandMoreOutlined } from "@mui/icons-material"
-import { Accordion, AccordionDetails, AccordionSummary, Button, Checkbox, CircularProgress, FormControlLabel, FormGroup, IconButton, Menu, Stack, Switch } from "@mui/material"
+import { Accordion, AccordionDetails, AccordionSummary, Button, FormControlLabel, FormGroup, IconButton, Menu, Stack, Switch, TextField } from "@mui/material"
 import { useContext, useState } from "react";
 import { ConfigurationContext } from '../../Contexts/ConfigurationContext';
 import { HexAlphaColorPicker } from 'react-colorful';
 import { t } from 'i18next';
 import { configAPI } from 'src/Electron/Configuration/renderer';
+import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
+import { publish } from '../../Lib/Events';
+import { PaletteTonalOffset } from '@mui/material/styles/createPalette';
 
 export function ThemeSettings() {
     const c = useContext(ConfigurationContext)
@@ -13,9 +16,15 @@ export function ThemeSettings() {
     const [showGradientBackground, setShowGradientBackground] = useState<boolean>(c.get.showGradientBackground ?? false)
     const [loadingGradientBackground, setLoadingGradientBackground] = useState(false)
 
+    const [colorPickerValue, setColorPickerValue] = useState<string>('#000000')
+
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
-    const [focusedColor, setFocusedColor] = useState<'primary' | 'secondary' | 'success' | 'error' | 'info' | 'warning' | 'success'>('primary')
+    const [focusedColor, setFocusedColor] = useState<'primary' | 'secondary' | 'success' | 'error' | 'info' | 'warning' | 'success' | 'background'>('primary')
+
+    // string is added so we can input float numbers in text fields
+    const [contrastThreshold, setContrastThreshold] = useState<number | string>(c.get.theme.palette.contrastThreshold)
+    const [tonalOffset, setTonalOffset] = useState<PaletteTonalOffset | string>(c.get.theme.palette.tonalOffset)
 
     const [primaryColor, setPrimaryColor] = useState<string>(c.get.theme.palette.primary.main)
     const [secondaryColor, setSecondaryColor] = useState<string>(c.get.theme.palette.secondary.main)
@@ -23,6 +32,7 @@ export function ThemeSettings() {
     const [infoColor, setInfoColor] = useState<string>(c.get.theme.palette.info.main)
     const [warningColor, setWarningColor] = useState<string>(c.get.theme.palette.warning.main)
     const [successColor, setSuccessColor] = useState<string>(c.get.theme.palette.success.main)
+    const [backgroundColor, setBackgroundColor] = useState<string>(c.get.theme.palette.background.default)
 
     const updateShowGradientBackground = async (v: boolean) => {
         setLoadingGradientBackground(true)
@@ -38,11 +48,11 @@ export function ThemeSettings() {
         setShowGradientBackground(v)
     }
 
-    console.log('ThemeSettings', { c, primaryColor, secondaryColor, errorColor, infoColor, warningColor, successColor, anchorEl, themeJson: JSON.stringify(c.get.theme, undefined, 4) })
+    console.log('ThemeSettings', { c, contrastThreshold, tonalOffset, primaryColor, secondaryColor, errorColor, infoColor, warningColor, successColor, anchorEl, themeJson: JSON.stringify(c.get.theme, undefined, 4) })
 
     return (
         <>
-            <Stack sx={{ width: '100%', p: 3 }} direction='column' spacing={2}>
+            <Stack sx={{ height: '100%', width: '100%', p: 3, overflow: 'auto' }} direction='column' spacing={2}>
 
                 <FormGroup>
                     <FormControlLabel
@@ -51,13 +61,68 @@ export function ThemeSettings() {
                     />
                 </FormGroup>
 
+                <TextField
+                    variant='standard'
+                    type='text'
+                    label={t('contrastThreshold')}
+                    value={contrastThreshold}
+                    onChange={(e) => {
+                        setContrastThreshold(e.target.value)
+                        let value
+                        try {
+                            value = Number.parseFloat(e.target.value)
+                            if (Number.isNaN(value))
+                                throw new Error()
+                        } catch (error) {
+                            publish(RESULT_EVENT_NAME, {
+                                severity: 'error',
+                                message: t('invalidNumber')
+                            })
+                            return
+                        }
+
+                        const options: ThemeOptions = c.get.themeOptions
+
+                        options.palette.contrastThreshold = value
+                        c.set.replaceTheme(options)
+
+                    }}
+                />
+
+                <TextField
+                    variant='standard'
+                    type='text'
+                    label={t('tonalOffset')}
+                    value={tonalOffset}
+                    onChange={(e) => {
+                        setTonalOffset(e.target.value)
+                        let value
+                        try {
+                            value = Number.parseFloat(e.target.value)
+                            if (Number.isNaN(value))
+                                throw new Error()
+                        } catch (error) {
+                            publish(RESULT_EVENT_NAME, {
+                                severity: 'error',
+                                message: t('invalidNumber')
+                            })
+                            return
+                        }
+
+                        const options: ThemeOptions = c.get.themeOptions
+
+                        options.palette.tonalOffset = value
+                        c.set.replaceTheme(options)
+                    }}
+                />
+
                 <Accordion defaultExpanded>
                     <AccordionSummary sx={{ color: primaryColor }} expandIcon={<ExpandMoreOutlined />}>
                         {t('primaryColor')}
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack sx={{ width: '100%', p: 3 }} direction='column' spacing={2} alignItems={'center'}>
-                            <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+                            <IconButton onClick={(e) => { setColorPickerValue(primaryColor); setFocusedColor('primary'); setAnchorEl(e.currentTarget) }}>
                                 <ColorLensOutlined />
                             </IconButton>
 
@@ -74,7 +139,7 @@ export function ThemeSettings() {
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack sx={{ width: '100%', p: 3 }} direction='column' spacing={2} alignItems={'center'}>
-                            <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+                            <IconButton onClick={(e) => { setColorPickerValue(secondaryColor); setFocusedColor('secondary'); setAnchorEl(e.currentTarget) }}>
                                 <ColorLensOutlined />
                             </IconButton>
 
@@ -92,7 +157,7 @@ export function ThemeSettings() {
                     <AccordionDetails>
                         <Stack sx={{ width: '100%', p: 3 }} direction='column' spacing={2} alignItems={'center'}>
 
-                            <IconButton onClick={(e) => { setFocusedColor('error'); setAnchorEl(e.currentTarget) }}>
+                            <IconButton onClick={(e) => { setColorPickerValue(errorColor); setFocusedColor('error'); setAnchorEl(e.currentTarget) }}>
                                 <ColorLensOutlined />
                             </IconButton>
 
@@ -109,7 +174,7 @@ export function ThemeSettings() {
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack sx={{ width: '100%', p: 3 }} direction='column' spacing={2} alignItems={'center'}>
-                            <IconButton onClick={(e) => { setFocusedColor('info'); setAnchorEl(e.currentTarget) }}>
+                            <IconButton onClick={(e) => { setColorPickerValue(infoColor); setFocusedColor('info'); setAnchorEl(e.currentTarget) }}>
                                 <ColorLensOutlined />
                             </IconButton>
 
@@ -126,7 +191,7 @@ export function ThemeSettings() {
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack sx={{ width: '100%', p: 3 }} direction='column' spacing={2} alignItems={'center'}>
-                            <IconButton onClick={(e) => { setFocusedColor('warning'); setAnchorEl(e.currentTarget) }}>
+                            <IconButton onClick={(e) => { setColorPickerValue(warningColor); setFocusedColor('warning'); setAnchorEl(e.currentTarget) }}>
                                 <ColorLensOutlined />
                             </IconButton>
 
@@ -143,13 +208,28 @@ export function ThemeSettings() {
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack sx={{ width: '100%', p: 3 }} direction='column' spacing={2} alignItems={'center'}>
-                            <IconButton onClick={(e) => { setFocusedColor('success'); setAnchorEl(e.currentTarget) }}>
+                            <IconButton onClick={(e) => { setColorPickerValue(successColor); setFocusedColor('success'); setAnchorEl(e.currentTarget) }}>
                                 <ColorLensOutlined />
                             </IconButton>
 
                             <Button fullWidth sx={{ backgroundColor: successColor }} variant='contained'>{t('main')}</Button>
                             <Button fullWidth sx={{ backgroundColor: lighten(successColor, 0.25) }} variant='contained'>{t('lightMode')}</Button>
                             <Button fullWidth sx={{ backgroundColor: darken(successColor, 0.25) }} variant='contained'>{t('darkMode')}</Button>
+                        </Stack>
+                    </AccordionDetails>
+                </Accordion>
+
+                <Accordion>
+                    <AccordionSummary expandIcon={<ExpandMoreOutlined />}>
+                        {t('backgroundColor')}
+                    </AccordionSummary>
+                    <AccordionDetails>
+                        <Stack sx={{ width: '100%', p: 3 }} direction='column' spacing={2} alignItems={'center'}>
+                            <IconButton onClick={(e) => { setColorPickerValue(backgroundColor); setFocusedColor('background'); setAnchorEl(e.currentTarget) }}>
+                                <ColorLensOutlined />
+                            </IconButton>
+
+                            <Button fullWidth sx={{ backgroundColor: backgroundColor }} variant='contained'></Button>
                         </Stack>
                     </AccordionDetails>
                 </Accordion>
@@ -171,68 +251,43 @@ export function ThemeSettings() {
                 sx={{ mt: '40px' }}
             >
                 <Stack direction='column' alignItems='start' spacing={1} sx={{ m: 0, p: 2 }}>
-                    <HexAlphaColorPicker color={primaryColor} onChange={(color) => {
+                    <HexAlphaColorPicker color={colorPickerValue} onChange={(color) => {
                         const options: ThemeOptions = c.get.themeOptions
 
                         switch (focusedColor) {
                             case 'primary':
                                 setPrimaryColor(color)
-                                options.palette = {
-                                    ...c.get.themeOptions.palette,
-                                    primary: {
-                                        main: color
-                                    }
-                                }
+                                options.palette.primary = { main: color }
                                 break;
 
                             case 'secondary':
                                 setSecondaryColor(color)
-                                options.palette = {
-                                    ...c.get.themeOptions.palette,
-                                    secondary: {
-                                        main: color
-                                    }
-                                }
+                                options.palette.secondary = { main: color }
                                 break;
 
                             case 'success':
                                 setSuccessColor(color)
-                                options.palette = {
-                                    ...c.get.themeOptions.palette,
-                                    success: {
-                                        main: color
-                                    }
-                                }
+                                options.palette.success = { main: color }
                                 break;
 
                             case 'error':
                                 setErrorColor(color)
-                                options.palette = {
-                                    ...c.get.themeOptions.palette,
-                                    error: {
-                                        main: color
-                                    }
-                                }
+                                options.palette.error = { main: color }
                                 break;
 
                             case 'info':
                                 setInfoColor(color)
-                                options.palette = {
-                                    ...c.get.themeOptions.palette,
-                                    info: {
-                                        main: color
-                                    }
-                                }
+                                options.palette.info = { main: color }
                                 break;
 
                             case 'warning':
                                 setWarningColor(color)
-                                options.palette = {
-                                    ...c.get.themeOptions.palette,
-                                    warning: {
-                                        main: color
-                                    }
-                                }
+                                options.palette.warning = { main: color }
+                                break;
+
+                            case 'background':
+                                setBackgroundColor(color)
+                                options.palette.background = { default: color, paper: color }
                                 break;
 
                             default:

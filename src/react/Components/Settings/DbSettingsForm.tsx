@@ -64,56 +64,59 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                             <FormControlLabel control={<Checkbox checked={supportsTransaction} onChange={(e) => setSupportsTransaction(e.target.checked)} />} label={t('supportsTransaction')} />
                         </FormGroup>
 
-                        <Button onClick={async () => {
-                            const settings = {
-                                url,
-                                databaseName,
-                                supportsTransaction,
-                                auth: (username && password) ? { username, password } : undefined
-                            }
-
-                            if (!settings.databaseName || !settings.databaseName.match(/[a-zA-Z]+/) || !settings.url) {
-                                publish(RESULT_EVENT_NAME, {
-                                    severity: 'error',
-                                    message: t('invalidSettingsProvided')
-                                })
-                                return
-                            }
-                            setLoading(true)
-                            try {
-                                let result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.updateConfig(settings)
-                                if (!result) {
-                                    publish(RESULT_EVENT_NAME, {
-                                        severity: 'error',
-                                        message: t('configUpdateFailed')
-                                    })
-
-                                    return
+                        <Button
+                            variant='outlined'
+                            onClick={async () => {
+                                const settings = {
+                                    url,
+                                    databaseName,
+                                    supportsTransaction,
+                                    auth: (username && password) ? { username, password } : undefined
                                 }
 
-                                publish(RESULT_EVENT_NAME, {
-                                    severity: 'success',
-                                    message: t('configUpdated')
-                                })
-
-                                result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.initializeDb()
-                                if (!result) {
+                                if (!settings.databaseName || !settings.databaseName.match(/[a-zA-Z]+/) || !settings.url) {
                                     publish(RESULT_EVENT_NAME, {
                                         severity: 'error',
-                                        message: t('databaseInitializationFailed')
+                                        message: t('invalidSettingsProvided')
                                     })
-
                                     return
                                 }
+                                setLoading(true)
+                                try {
+                                    let result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.updateConfig(settings)
+                                    if (!result) {
+                                        publish(RESULT_EVENT_NAME, {
+                                            severity: 'error',
+                                            message: t('configUpdateFailed')
+                                        })
 
-                                publish(RESULT_EVENT_NAME, {
-                                    severity: 'success',
-                                    message: t('databaseInitialized')
-                                })
-                            } finally {
-                                setLoading(false)
-                            }
-                        }}>
+                                        return
+                                    }
+
+                                    publish(RESULT_EVENT_NAME, {
+                                        severity: 'success',
+                                        message: t('configUpdated')
+                                    })
+
+                                    result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.initializeDb()
+                                    if (!result) {
+                                        publish(RESULT_EVENT_NAME, {
+                                            severity: 'error',
+                                            message: t('databaseInitializationFailed')
+                                        })
+
+                                        return
+                                    }
+
+                                    publish(RESULT_EVENT_NAME, {
+                                        severity: 'success',
+                                        message: t('databaseInitialized')
+                                    })
+                                } finally {
+                                    setLoading(false)
+                                }
+                            }}
+                        >
                             {loading ? <CircularProgress /> : t('done')}
                         </Button>
                     </Stack>
@@ -130,6 +133,7 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                         </FormGroup>
 
                         <Button
+                            variant='outlined'
                             onClick={async () => {
                                 const settings = {
                                     databaseName,
@@ -161,7 +165,8 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                                 })
 
                                 await (window as typeof window & { dbAPI: dbAPI }).dbAPI.initializeDb()
-                            }}>
+                            }}
+                        >
                             {loading ? <CircularProgress /> : t('search')}
                         </Button>
                     </Stack>

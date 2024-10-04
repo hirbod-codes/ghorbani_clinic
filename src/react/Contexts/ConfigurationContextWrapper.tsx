@@ -145,7 +145,7 @@ export function ConfigurationContextWrapper({ children }: { children?: ReactNode
         }
     }, [])
 
-    console.log('-------------ConfigurationContextWrapper', { configuration, showDbConfigurationModal, hasFetchedConfig })
+    console.log('-------------ConfigurationContextWrapper', { configuration, showDbConfigurationModal, hasFetchedConfig, defaultConfiguration })
 
     return (
         <>
