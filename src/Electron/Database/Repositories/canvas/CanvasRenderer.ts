@@ -10,8 +10,7 @@ export function handleRendererEvents(): RendererEvents {
         downloadCanvas: async (id: string): Promise<MainProcessResponse<Canvas>> => JSON.parse(await ipcRenderer.invoke('download-canvas', { id })),
         downloadCanvases: async (ids: string[]): Promise<MainProcessResponse<Canvas[]>> => JSON.parse(await ipcRenderer.invoke('download-canvases', { ids })),
         openCanvas: async (id: string): Promise<MainProcessResponse<void>> => JSON.parse(await ipcRenderer.invoke('open-canvas', { id })),
-        deleteCanvases: async (id: string): Promise<MainProcessResponse<boolean>> => JSON.parse(await ipcRenderer.invoke('delete-canvases', { id })),
-
+        deleteCanvas: async (id: string): Promise<MainProcessResponse<boolean>> => JSON.parse(await ipcRenderer.invoke('delete-canvas', { id })),
     }
 }
 
@@ -21,5 +20,5 @@ export type RendererEvents = {
     downloadCanvas(id: string): Promise<MainProcessResponse<Canvas>>,
     downloadCanvases(ids: string[]): Promise<MainProcessResponse<Canvas[]>>,
     openCanvas(id: string): Promise<MainProcessResponse<void>>,
-    deleteCanvases(id: string): Promise<MainProcessResponse<boolean>>,
+    deleteCanvas(id: string): Promise<MainProcessResponse<boolean>>,
 }

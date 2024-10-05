@@ -19,7 +19,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
         ipcMain.handle('download-canvas', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.downloadCanvas(id)))
         ipcMain.handle('download-canvases', async (_e, { ids }: { ids: string[] }) => await this.handleErrors(async () => await this.downloadCanvases(ids)))
         ipcMain.handle('open-canvas', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.openCanvas(id)))
-        ipcMain.handle('delete-canvases', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.deleteCanvases(id)))
+        ipcMain.handle('delete-canvas', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.deleteCanvas(id)))
     }
 
     uploadCanvas(canvas: Canvas): Promise<string> {
@@ -190,26 +190,29 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
         return;
     }
 
-    async deleteCanvases(id: string): Promise<boolean> {
-        const authenticated = await authRepository.getAuthenticatedUser()
-        if (authenticated == null)
-            throw new Unauthenticated();
+    async deleteCanvas(id: string): Promise<boolean> {
+        try {
+            const authenticated = await authRepository.getAuthenticatedUser()
+            if (authenticated == null)
+                throw new Unauthenticated();
 
-        const privileges = await privilegesRepository.getAccessControl();
-        const permission = privileges.can(authenticated.roleName).delete(resources.FILE);
-        if (!permission.granted)
-            throw new Unauthorized()
+            const privileges = await privilegesRepository.getAccessControl();
+            const permission = privileges.can(authenticated.roleName).delete(resources.FILE);
+            if (!permission.granted)
+                throw new Unauthorized()
 
-        if (!id || !ObjectId.isValid(id))
-            throw new Error('Invalid id provided')
+            if (!id || !ObjectId.isValid(id))
+                throw new Error('Invalid id provided')
 
-        const bucket = await this.getCanvasBucket();
+            const bucket = await this.getCanvasBucket();
 
-        const cursor = bucket.find({ _id: new ObjectId(id) });
+            await bucket.delete(new ObjectId(id));
 
-        for await (const doc of cursor)
-            await bucket.delete(new ObjectId(doc._id));
+            return true;
+        } catch (error) {
+            console.error(error);
 
-        return true;
+            return false;
+        }
     }
 }

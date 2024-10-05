@@ -8,6 +8,7 @@ import { publish } from "../../Lib/Events";
 import { TextEditor } from "../TextEditor/TextEditor";
 import { Canvas } from "../Canvas/Canvas";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
+import { SaveIcon } from "../Icons/SaveIcon";
 
 export type EditorProps = {
     title?: string;
@@ -15,7 +16,7 @@ export type EditorProps = {
     canvasId?: string;
     setHasUnsavedChanges?: (state: boolean) => void
     onSave?: (text: string, canvasId?: string) => void | Promise<void>;
-    onChange?: () => void | Promise<void>;
+    onChange?: (text?: string, canvasId?: string) => void | Promise<void>;
 }
 
 export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave, onChange, setHasUnsavedChanges: setHasUnsavedChangesProperty }: EditorProps) {
@@ -106,6 +107,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                     type,
                     data,
                 })
+
             console.log({ res })
             if (res.code !== 200 || !res.data) {
                 publish(RESULT_EVENT_NAME, {
@@ -115,6 +117,9 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
 
                 return
             }
+
+            if (canvasId)
+                await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteCanvas(canvasId)
 
             publish(RESULT_EVENT_NAME, {
                 severity: 'success',
@@ -134,11 +139,11 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
         }
     }
 
-    const getCanvas = async () => {
+    const getCanvas = async (id: string) => {
         try {
             console.group('Editor', 'getCanvas')
 
-            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(canvasId)
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(id)
             console.log({ res })
 
             if (res.code !== 200 || !res.data)
@@ -154,75 +159,68 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
             console.group('Editor', 'init')
 
             console.log({ status, canvas: canvas.current })
-            if (status === 'showing') {
-                setLoading(true)
 
-                if (!canvasId) {
-                    console.log('no canvas id')
-                    setLoading(false)
-                    return
-                }
+            setLoading(true)
 
-                const data = await getCanvas()
-                if (!data) {
-                    publish(RESULT_EVENT_NAME, {
-                        severity: 'error',
-                        message: t('failedToDownloadCanvas')
-                    })
-
-                    setLoading(false)
-                    return
-                }
-
-                publish(RESULT_EVENT_NAME, {
-                    severity: 'success',
-                    message: t('successfullyDownloadedCanvas')
-                })
-
-                setImageSrc(`data:${data.type};base64,${data.data}`);
-
-                setCanvasBackground(data.backgroundColor ?? theme.palette.common.white)
-
+            if (!canvasId) {
+                console.log('no canvas id')
                 setLoading(false)
+                return
             }
-            else if (status === 'drawing' && canvas.current) {
-                setLoading(true)
 
-                if (!canvasId) {
-                    console.log('no canvas id')
-                    setLoading(false)
-                    return
-                }
+            if (status === 'typing') {
+                setLoading(false)
+                return
+            }
 
-                if (!canvas.current) {
-                    console.log('no canvas ref')
-                    setLoading(false)
-                    return
-                }
-
-                const data = await getCanvas()
-                if (!data) {
-                    publish(RESULT_EVENT_NAME, {
-                        severity: 'error',
-                        message: t('failedToUploadCanvas')
-                    })
-
-                    setLoading(false)
-                    return
-                }
-
+            const data = await getCanvas(canvasId)
+            if (!data) {
                 publish(RESULT_EVENT_NAME, {
-                    severity: 'success',
-                    message: t('successfullyUploadedCanvas')
+                    severity: 'error',
+                    message: t('failedToUploadCanvas')
                 })
 
-                setCanvasBackground(data.backgroundColor ?? theme.palette.common.white)
-
-                const image = new Image()
-                image.onload = () => canvas.current.getContext('2d', { willReadFrequently: true }).drawImage(image, 0, 0)
-                image.src = 'data:image/png;base64,' + data.data
-
                 setLoading(false)
+                return
+            }
+
+            publish(RESULT_EVENT_NAME, {
+                severity: 'success',
+                message: t('successfullyUploadedCanvas')
+            })
+
+            switch (status) {
+                case 'showing':
+                    setImageSrc(`data:${data.type};base64,${data.data}`);
+
+                    if (data.backgroundColor)
+                        setCanvasBackground(data.backgroundColor)
+
+                    const image = new Image()
+                    image.onload = () => {
+                        canvas.current.getContext('2d', { willReadFrequently: true }).drawImage(image, 0, 0);
+                        setLoading(false)
+                    }
+                    image.src = 'data:image/png;base64,' + data.data
+
+                    setLoading(false)
+
+                    break;
+
+                case 'drawing':
+                    if (!canvas.current) {
+                        console.log('no canvas ref')
+                        setLoading(false)
+                        return
+                    }
+
+                    if (data.backgroundColor)
+                        setCanvasBackground(data.backgroundColor)
+
+                    break;
+
+                default:
+                    break;
             }
         }
         finally { console.groupEnd() }
@@ -281,7 +279,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
 
                                 <Divider />
 
-                                <div dangerouslySetInnerHTML={{ __html: text }} />
+                                <div style={{ overflow: 'auto' }} dangerouslySetInnerHTML={{ __html: text }} />
 
                                 <Divider />
                             </>
@@ -298,20 +296,20 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                 {status === 'typing'
                     &&
                     <>
-                        <Stack direction='row' justifyContent='start' alignContent='center'>
-                            <IconButton onClick={saveContent} color={contentHasUnsavedChanges ? 'warning' : 'default'}>
-                                {contentHasUnsavedChanges ? <CloudUploadOutlined color='warning' /> : <CloudDoneOutlined color='success' />}
-                            </IconButton>
-                        </Stack>
+                        {onSave &&
+                            <Stack direction='row' justifyContent='start' alignContent='center'>
+                                <IconButton onClick={saveContent} color={contentHasUnsavedChanges ? 'warning' : 'default'}>
+                                    {contentHasUnsavedChanges ? <SaveIcon color='warning' /> : <SaveIcon color='success' />}
+                                </IconButton>
+                            </Stack>
+                        }
                         <TextEditor
                             text={inputText}
-                            onChange={async () => {
+                            onChange={async (html) => {
                                 setContentHasUnsavedChanges(true)
+                                setText(html)
                                 if (onChange)
-                                    await onChange()
-                            }}
-                            onSave={async (t) => {
-                                setText(t)
+                                    await onChange(html, canvasId)
                             }}
                         />
                     </>
@@ -321,19 +319,21 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                     status === 'drawing'
                     &&
                     <>
-                        <Stack direction='row' justifyContent='start' alignContent='center'>
-                            <IconButton onClick={saveCanvas} color={canvasHasUnsavedChanges ? 'warning' : 'default'}>
-                                {canvasHasUnsavedChanges ? <CloudUploadOutlined color='warning' /> : <CloudDoneOutlined color='success' />}
-                            </IconButton>
-                            <IconButton
-                                onClick={() => {
-                                    setCanvasBackground(canvasBackground === theme.palette.common.black ? theme.palette.common.white : theme.palette.common.black)
-                                    setCanvasHasUnsavedChanges(true)
-                                }}
-                            >
-                                {canvasBackground === theme.palette.common.white ? <LightModeOutlined /> : <DarkModeOutlined />}
-                            </IconButton>
-                        </Stack>
+                        {onSave &&
+                            <Stack direction='row' justifyContent='start' alignContent='center'>
+                                <IconButton onClick={saveCanvas} color={canvasHasUnsavedChanges ? 'warning' : 'default'}>
+                                    {canvasHasUnsavedChanges ? <CloudUploadOutlined color='warning' /> : <CloudDoneOutlined color='success' />}
+                                </IconButton>
+                                <IconButton
+                                    onClick={() => {
+                                        setCanvasBackground(canvasBackground === theme.palette.common.black ? theme.palette.common.white : theme.palette.common.black)
+                                        setCanvasHasUnsavedChanges(true)
+                                    }}
+                                >
+                                    {canvasBackground === theme.palette.common.white ? <LightModeOutlined /> : <DarkModeOutlined />}
+                                </IconButton>
+                            </Stack>
+                        }
 
                         <Box sx={{ flexGrow: 2, overflow: 'hidden' }}>
                             <Canvas
@@ -342,7 +342,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                                 onChange={async () => {
                                     setCanvasHasUnsavedChanges(true);
                                     if (onChange)
-                                        await onChange()
+                                        await onChange(text, canvasId)
                                 }}
                             />
                         </Box>

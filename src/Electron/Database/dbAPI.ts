@@ -97,5 +97,5 @@ export type ICanvasRepository = dbAPI & {
     downloadCanvas(id: string): Promise<Canvas>;
     downloadCanvases(ids: string[]): Promise<Canvas[]>;
     openCanvas(id: string): Promise<void>;
-    deleteCanvases(id: string): Promise<boolean>;
+    deleteCanvas(id: string): Promise<boolean>;
 }

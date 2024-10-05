@@ -263,9 +263,9 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
 
                                 <Divider variant='middle' />
 
-                                <Button fullWidth variant='outlined' color='success' onClick={() => {
+                                <Button fullWidth variant='outlined' color='success' onClick={async () => {
                                     if (onChange)
-                                        onChange(medicalHistory)
+                                        await onChange(medicalHistory)
                                 }} >
                                     {t('done')}
                                 </Button>

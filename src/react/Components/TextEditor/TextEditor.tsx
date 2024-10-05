@@ -28,12 +28,11 @@ function fileListToImageFiles(fileList: FileList): File[] {
 
 export type TextEditorProps = {
     text?: string;
-    onSave?: (content?: string) => void | Promise<void>;
-    onChange?: () => void | Promise<void>;
+    onChange?: (html: string) => void | Promise<void>;
     placeholder?: string;
 }
 
-export function TextEditor({ text, onSave, onChange, placeholder = "Add your own content here..." }: TextEditorProps) {
+export function TextEditor({ text, onChange, placeholder = "Add your own content here..." }: TextEditorProps) {
     const extensions = useExtensions({ placeholder });
     const rteRef = useRef<RichTextEditorRef>(null);
     const [isEditable, setIsEditable] = useState<boolean>(true);
@@ -139,9 +138,9 @@ export function TextEditor({ text, onSave, onChange, placeholder = "Add your own
                     className="editor"
                     extensions={extensions}
                     content={text}
-                    onUpdate={async () => {
+                    onUpdate={async ({ editor }) => {
                         if (onChange)
-                            await onChange()
+                            await onChange(editor.getHTML())
                     }}
                     editable={isEditable}
                     editorProps={{
@@ -194,25 +193,6 @@ export function TextEditor({ text, onSave, onChange, placeholder = "Add your own
                                     selected={!isEditable}
                                     IconComponent={isEditable ? LockOpen : Lock}
                                 />
-
-                                <Button
-                                    variant="outlined"
-                                    size="small"
-                                    onClick={() => {
-                                        try {
-                                            setSaving(true)
-                                            if (onSave)
-                                                onSave(rteRef.current?.editor?.getHTML())
-                                            setSaving(false)
-                                        }
-                                        catch (err) {
-                                            setSaving(false)
-                                            throw err
-                                        }
-                                    }}
-                                >
-                                    {saving ? <CircularProgress size={25} /> : t('save')}
-                                </Button>
                             </Stack>
                         ),
                     }}
