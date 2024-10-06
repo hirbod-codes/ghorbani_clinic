@@ -50,14 +50,14 @@ export function Visits() {
             if (res.code !== 200 || !res.data) {
                 publish(RESULT_EVENT_NAME, {
                     severity: 'error',
-                    message: t('failedToFetchVisits')
+                    message: t('failedToUpdateVisit')
                 })
                 return
             }
 
             publish(RESULT_EVENT_NAME, {
                 severity: 'success',
-                message: t('successfullyFetchedVisits')
+                message: t('successfullyUpdatedVisit')
             })
         } catch (error) {
             console.error(error)
@@ -90,11 +90,14 @@ export function Visits() {
     const [showGrid, setShowGrid] = useState(false)
     useEffect(() => {
         console.log('Visits', 'useEffect2', 'start');
-        if (!visits || visits.length === 0)
-            subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
-                if (e?.detail === '/Visits')
-                    setShowGrid(true)
-            })
+
+        if (visits.length === 0)
+            init(page.offset, page.limit)
+
+        subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
+            if (e?.detail === '/Visits')
+                setShowGrid(true)
+        })
     }, [])
 
     const deletesVisit = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.VISIT), [auth])
@@ -221,10 +224,10 @@ export function Visits() {
                 onSave={async (diagnosis, canvasId) => {
                     console.log('ManageVisits', 'diagnosis', 'onChange', diagnosis, canvasId)
 
-                    if (visits.find(f => f._id === showDiagnosis).diagnosis)
+                    if (visits.find(f => f._id === showDiagnosis).diagnosis) {
                         visits.find(f => f._id === showDiagnosis).diagnosis = { text: diagnosis, canvas: canvasId }
-
-                    updateVisit(visits.find(f => f._id === showDiagnosis))
+                        updateVisit(visits.find(f => f._id === showDiagnosis))
+                    }
                 }}
             />
             <EditorModal
@@ -238,10 +241,10 @@ export function Visits() {
                 onSave={async (treatments, canvasId) => {
                     console.log('ManageVisits', 'treatments', 'onChange', treatments, canvasId)
 
-                    if (visits.find(f => f._id === showTreatments).treatments)
+                    if (visits.find(f => f._id === showTreatments).treatments) {
                         visits.find(f => f._id === showTreatments).treatments = { text: treatments, canvas: canvasId }
-
-                    updateVisit(visits.find(f => f._id === showTreatments))
+                        updateVisit(visits.find(f => f._id === showTreatments))
+                    }
                 }}
             />
         </>

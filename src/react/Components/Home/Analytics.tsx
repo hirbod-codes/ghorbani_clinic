@@ -23,59 +23,47 @@ export function Analytics() {
     console.log('Analytics', { initLoading, initFailed, visitsCount, expiredVisitsCount, patientsCount });
 
     const initPatientsProgressBars = async () => {
-        setPatientsCount(undefined);
         try {
             const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.getPatientsEstimatedCount();
-            if (res.code !== 200 || !res.data)
-                throw new Error(`bad response. Response code: ${res.code}`);
-
-            setPatientsCount(res.data);
+            if (res.code === 200 && res.data)
+                setPatientsCount(res.data);
+            else
+                publish(RESULT_EVENT_NAME, {
+                    severity: 'error',
+                    message: t('failedToFetchPatientsCount')
+                });
         } catch (error) {
             console.error('Analytics', 'initPatientsProgressBars', error);
-
-            publish(RESULT_EVENT_NAME, {
-                severity: 'error',
-                message: t('failedToFetchPatientsCount')
-            });
-
             throw error;
         }
     };
     const initVisitsProgressBars = async () => {
-        setVisitsCount(undefined);
         try {
             const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.getVisitsEstimatedCount();
-            if (res.code !== 200 || !res.data)
-                throw new Error(`bad response. Response code: ${res.code}`);
-
-            setVisitsCount(res.data);
+            if (res.code === 200 && res.data)
+                setVisitsCount(res.data);
+            else
+                publish(RESULT_EVENT_NAME, {
+                    severity: 'error',
+                    message: t('failedToFetchVisitsCount')
+                });
         } catch (error) {
             console.error('Analytics', 'initVisitsProgressBars', error);
-
-            publish(RESULT_EVENT_NAME, {
-                severity: 'error',
-                message: t('failedToFetchVisitsCount')
-            });
-
             throw error;
         }
     };
     const initExpiredVisitsProgressBars = async () => {
-        setExpiredVisitsCount(undefined);
         try {
             const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.getExpiredVisitsCount();
-            if (res.code !== 200 || !res.data)
-                throw new Error(`bad response. Response code: ${res.code}`);
-
-            setExpiredVisitsCount(res.data);
+            if (res.code === 200 && res.data)
+                setExpiredVisitsCount(res.data);
+            else
+                publish(RESULT_EVENT_NAME, {
+                    severity: 'error',
+                    message: t('failedToFetchExpiredVisitsCount')
+                });
         } catch (error) {
             console.error('Analytics', 'initExpiredVisitsProgressBars', error);
-
-            publish(RESULT_EVENT_NAME, {
-                severity: 'error',
-                message: t('failedToFetchExpiredVisitsCount')
-            });
-
             throw error;
         }
     };
@@ -92,9 +80,11 @@ export function Analytics() {
             ]);
 
             setInitLoading(false);
+
+            if (visitsCount === undefined || expiredVisitsCount === undefined || patientsCount === undefined)
+                setInitFailed(true);
         } catch (error) {
             console.error('Analytics', 'initProgressBars', error);
-            setInitLoading(false);
             setInitFailed(true);
         }
     };

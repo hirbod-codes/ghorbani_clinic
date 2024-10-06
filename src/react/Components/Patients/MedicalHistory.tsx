@@ -122,7 +122,7 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                 slotProps={{ backdrop: { sx: { top: '2rem' } } }}
             >
                 <Slide direction={open ? 'up' : 'down'} in={open} timeout={250}>
-                    <Box sx={{ width: '80%', height: '80%', position: 'relative', overflow: 'hidden', p: 0, m: 0 }} ref={containerRef}>
+                    <Box sx={{ width: '80vw', height: '80vh', position: 'relative', overflow: 'hidden', p: 0, m: 0 }} ref={containerRef}>
                         <animated.div style={{ position: 'relative', width: '50%', left: drawerAnimationLeft.left, zIndex: 100 }}>
                             <Paper sx={{ height, padding: '0.5rem 0rem', overflow: 'auto', zIndex: 101 }}>
                                 {loading
@@ -226,54 +226,51 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                         </Box>
 
                         <Paper sx={{ position: 'absolute', top: 0, width: '100%', height: '100%', padding: '0.5rem 2rem', overflow: 'hidden' }} onClick={() => { if (openDrawer) setOpenDrawer(false) }}>
-                            <Stack direction='column' spacing={2} sx={{ height: '100%' }}>
-                                <Grid container sx={{ height: '100%' }} columns={24}>
-                                    <Grid item xs={11}>
-                                        <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3 }}>
-                                            <Stack direction='column' sx={{ height: '100%' }}>
-                                                <Typography variant='h4'>
-                                                    {t('medicalHistory')}
-                                                </Typography>
-                                                <Divider />
-                                                <List sx={{ overflow: 'auto', flexGrow: 2 }}>
-                                                    {medicalHistory?.histories?.map((h, i) =>
-                                                        <ListItem key={i}>
-                                                            <ListItemText primary={h} />
-                                                        </ListItem>
-                                                    )}
-                                                </List>
-                                            </Stack>
-                                        </Paper>
-                                    </Grid>
-
-                                    <Grid item xs={1} container justifyContent='center' >
-                                        <Divider orientation="vertical" variant='middle' />
-                                    </Grid>
-
-                                    <Grid item xs={11}>
-                                        <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3 }}>
-                                            <Editor
-                                                title={t('medicalHistory')}
-                                                text={medicalHistory?.description?.text}
-                                                canvasId={medicalHistory?.description?.canvas as string}
-                                                onSave={(text, canvas) => {
-                                                    setMedicalHistory({ ...medicalHistory, description: { text, canvas } });
-                                                    if (onSave)
-                                                        onSave({ ...medicalHistory, description: { text, canvas } })
-                                                }}
-                                                onChange={(text, canvas) => {
-                                                    if (onChange)
-                                                        onChange({ ...medicalHistory, description: { text, canvas } })
-                                                }}
-                                                setHasUnsavedChanges={setHasUnsavedChanges}
-                                            />
-                                        </Paper>
-                                    </Grid>
-
+                            {/* <Stack direction='column' spacing={2} sx={{ height: '100%' }}> */}
+                            <Grid container sx={{ height: '100%' }} columns={24}>
+                                <Grid item xs={11} sx={{ height:'100%'}}>
+                                    <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3 }}>
+                                        <Stack direction='column' sx={{ height: '100%' }}>
+                                            <Typography variant='h4'>
+                                                {t('medicalHistory')}
+                                            </Typography>
+                                            <Divider />
+                                            <List sx={{ overflow: 'auto', flexGrow: 2 }}>
+                                                {medicalHistory?.histories?.map((h, i) =>
+                                                    <ListItem key={i}>
+                                                        <ListItemText primary={h} />
+                                                    </ListItem>
+                                                )}
+                                            </List>
+                                        </Stack>
+                                    </Paper>
                                 </Grid>
 
-                                <Divider variant='middle' />
-                            </Stack>
+                                <Grid item xs={1} container justifyContent='center' >
+                                    <Divider orientation="vertical" variant='middle' />
+                                </Grid>
+
+                                <Grid item xs={11} sx={{ height:'100%'}}>
+                                    <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3 }}>
+                                        <Editor
+                                            title={t('medicalHistory')}
+                                            text={medicalHistory?.description?.text}
+                                            canvasId={medicalHistory?.description?.canvas as string}
+                                            onSave={(text, canvas) => {
+                                                setMedicalHistory({ ...medicalHistory, description: { text, canvas } });
+                                                if (onSave)
+                                                    onSave({ ...medicalHistory, description: { text, canvas } })
+                                            }}
+                                            onChange={(text, canvas) => {
+                                                if (onChange)
+                                                    onChange({ ...medicalHistory, description: { text, canvas } })
+                                            }}
+                                            setHasUnsavedChanges={setHasUnsavedChanges}
+                                        />
+                                    </Paper>
+                                </Grid>
+                            </Grid>
+                            {/* </Stack> */}
                         </Paper>
                     </Box>
                 </Slide>

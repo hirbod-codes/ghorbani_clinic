@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { RouterProvider, createBrowserRouter, Navigate } from "react-router-dom";
 import { Layout } from './Pages/Layout';
 import { AnimatedLayout } from './Pages/AnimatedLayout';
 import { Home } from './Pages/Home';
@@ -12,23 +12,46 @@ import { ThemeSettings } from './Pages/Settings/ThemeSettings';
 export function Main() {
     console.log('Main')
 
-    return (
-        <>
-            <BrowserRouter>
-                <Routes location={'/'}>
-                    <Route path="/" element={<Layout />} >
-                        <Route path="/" element={<AnimatedLayout><Home /></AnimatedLayout>} />
-                        <Route path="/Users" element={<AnimatedLayout><Users /></AnimatedLayout>} />
-                        <Route path="/Patients" element={<AnimatedLayout><Patients /></AnimatedLayout>} />
-                        <Route path="/Visits" element={<AnimatedLayout><Visits /></AnimatedLayout>} />
-                        <Route path="/General" element={<AnimatedLayout><General /></AnimatedLayout>} />
-                        <Route path="/DbSettings" element={<AnimatedLayout><DbSettings /></AnimatedLayout>} />
-                        <Route path="/ThemeSettings" element={<AnimatedLayout><ThemeSettings /></AnimatedLayout>} />
-                    </Route>
-                </Routes>
-            </BrowserRouter>
-        </>
-    )
+    const router = createBrowserRouter([
+        {
+            path: '/',
+            element: <Layout />,
+            errorElement: <Navigate to="/" replace={true} />,
+            children: [
+                {
+                    index: true,
+                    path: "/",
+                    element: <AnimatedLayout><Home /></AnimatedLayout>
+                },
+                {
+                    path: "/Users",
+                    element: <AnimatedLayout><Users /></AnimatedLayout>
+                },
+                {
+                    path: "/Patients",
+                    element: <AnimatedLayout><Patients /></AnimatedLayout>
+                },
+                {
+                    path: "/Visits",
+                    element: <AnimatedLayout><Visits /></AnimatedLayout>
+                },
+                {
+                    path: "/General",
+                    element: <AnimatedLayout><General /></AnimatedLayout>
+                },
+                {
+                    path: "/DbSettings",
+                    element: <AnimatedLayout><DbSettings /></AnimatedLayout>
+                },
+                {
+                    path: "/ThemeSettings",
+                    element: <AnimatedLayout><ThemeSettings /></AnimatedLayout>
+                },
+            ]
+        }
+    ]);
+
+    return (<RouterProvider router={router} />)
 }
 
 

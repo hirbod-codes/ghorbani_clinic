@@ -26,12 +26,14 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
 
     const [text, setText] = useState<string | undefined>(inputText)
     useEffect(() => {
-        setText(inputText);
+        if (text !== inputText)
+            setText(inputText);
     }, [inputText])
 
     const [canvasId, setCanvasId] = useState<string | undefined>(inputCanvasId)
     useEffect(() => {
-        setCanvasId(inputCanvasId);
+        if (canvasId !== inputCanvasId)
+            setCanvasId(inputCanvasId);
     }, [inputCanvasId])
 
     const imageRef = useRef<HTMLImageElement>()
@@ -121,7 +123,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
             }
 
             if (canvasId)
-                await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteCanvas(canvasId)
+                console.log(await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteCanvas(canvasId))
 
             publish(RESULT_EVENT_NAME, {
                 severity: 'success',
@@ -164,7 +166,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
 
             setLoading(true)
 
-            if (!inputCanvasId) {
+            if (!canvasId) {
                 console.log('no canvas id')
                 setLoading(false)
                 return
@@ -175,7 +177,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                 return
             }
 
-            const data = await getCanvas(inputCanvasId)
+            const data = await getCanvas(canvasId)
             if (!data) {
                 publish(RESULT_EVENT_NAME, {
                     severity: 'error',
@@ -250,7 +252,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                 .finally(() => console.groupEnd())
         }
         finally { console.groupEnd() }
-    }, [status, canvas.current, inputCanvasId, inputText])
+    }, [status, canvas.current, inputCanvasId, inputText, canvasId])
 
     return (
         <>
@@ -286,7 +288,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
 
                 {status === 'showing'
                     &&
-                    <Stack direction='column' spacing={1} sx={{ width: '100%', height: '100%' }}>
+                    <Stack direction='column' spacing={1} sx={{ pr: 1, overflow: 'auto', flexGrow: 2, width: '100%' }}>
                         {text &&
                             <>
                                 <Typography variant='h5'>
@@ -295,15 +297,13 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
 
                                 <Divider />
 
-                                <div style={{ overflow: 'auto' }} dangerouslySetInnerHTML={{ __html: text }} />
+                                <div dangerouslySetInnerHTML={{ __html: text }} />
 
                                 <Divider />
                             </>
                         }
 
-                        <Box sx={{ flexGrow: 2 }}>
-                            <img ref={imageRef} src={imageSrc} style={{ backgroundColor: canvasBackground }} />
-                        </Box>
+                        <img ref={imageRef} src={imageSrc} style={{ backgroundColor: canvasBackground }} />
                     </Stack>
                 }
 
