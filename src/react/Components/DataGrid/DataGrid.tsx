@@ -38,7 +38,7 @@ export function DataGrid(props: DataGridProps) {
             includeHeaders: true,
             includeOutliers: true,
             outliersFactor: 1,
-            expand: false,
+            expand: true,
         }
 
     const apiRef = useGridApiRef()
@@ -58,13 +58,15 @@ export function DataGrid(props: DataGridProps) {
 
     useEffect(() => {
         console.log('DataGrid', 'fetching Column visibility model...')
-        if (storeColumnVisibilityModel && !columnVisibilityModel)
+        if (storeColumnVisibilityModel)
             (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
                 .then((c) => {
-                    if (c?.columnVisibilityModels)
+                    if (c?.columnVisibilityModels) {
                         setColumnVisibilityModel(c.columnVisibilityModels[name])
+                        apiRef.current.autosizeColumns()
+                    }
                 })
-    }, [])
+    }, [storeColumnVisibilityModel])
 
     return (
         <div style={{ height: '100%' }}>
@@ -92,6 +94,7 @@ export function DataGrid(props: DataGridProps) {
                         }
                         : undefined
                     }
+                    columnVisibilityModel={columnVisibilityModel}
                     onColumnVisibilityModelChange={(model: GridColumnVisibilityModel, details: GridCallbackDetails<any>) => {
                         console.log({ model, details });
 
@@ -127,9 +130,9 @@ export function DataGrid(props: DataGridProps) {
                             </GridToolbarContainer>
                         )
                     }}
-                autosizeOnMount
-                apiRef={apiRef}
-                autosizeOptions={autosizeOptions}
+                    autosizeOnMount
+                    apiRef={apiRef}
+                    autosizeOptions={autosizeOptions}
                 />}
         </div>
     )

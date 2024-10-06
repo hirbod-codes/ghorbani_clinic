@@ -28,6 +28,7 @@ export const Patients = memo(function Patients() {
 
     const [page, setPage] = useState({ offset: 0, limit: 25 })
 
+    const [initialized, setInitialized] = useState<boolean>(false)
     const [loading, setLoading] = useState<boolean>(true)
     const [patients, setPatients] = useState<Patient[]>(undefined)
 
@@ -54,15 +55,9 @@ export const Patients = memo(function Patients() {
         showingMH
     })
 
-    const init = async (offset: number, limit: number, useCache = true) => {
+    const init = async (offset: number, limit: number) => {
         try {
             console.group('Patients', 'init');
-
-            console.log({ patientsLength: patients?.length ?? 0, offset, limit, useCache })
-            if (useCache && patients && patients.length !== 0) {
-                console.log('exiting...')
-                return
-            }
 
             setLoading(true)
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPatients(offset, limit)
@@ -84,18 +79,17 @@ export const Patients = memo(function Patients() {
     }
 
     useEffect(() => {
-        console.log('Patients', 'useEffect1')
-
-        init(page.offset, page.limit)
-    }, [page, auth])
-
-    useEffect(() => {
         console.log('Patients', 'useEffect2', 'start');
 
-        subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
-            if (e?.detail === '/Patients')
-                setShowGrid(true)
-        })
+        if (!patients || patients.length === 0)
+            init(page.offset, page.limit)
+                .then(() => {
+                    setInitialized(true)
+                    subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
+                        if (e?.detail === '/Patients')
+                            setShowGrid(true)
+                    })
+                })
     }, [])
 
     const createsPatient = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).create(resources.PATIENT), [auth])
@@ -192,11 +186,14 @@ export const Patients = memo(function Patients() {
                                 overWriteColumns={columns}
                                 loading={loading}
                                 serverSidePagination
-                                onPaginationModelChange={(m, d) => setPage({ offset: m.page, limit: m.pageSize })}
-                                orderedColumnsFields={['actions']}
+                                onPaginationModelChange={async (m, d) => {
+                                    setPage({ offset: m.page, limit: m.pageSize });
+                                    await init(m.page, m.pageSize)
+                                }}
+                                orderedColumnsFields={['actions', 'socialId', 'firstName', 'lastName', 'age', 'medicalHistory', 'phoneNumber', 'gender', 'address', 'birthDate']}
                                 storeColumnVisibilityModel
                                 customToolbar={[
-                                    <Button onClick={async () => await init(page.offset, page.limit, false)} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
+                                    <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
                                     createsPatient && <Button onClick={() => setCreatingPatient(true)} startIcon={<AddOutlined />}>{t('Create')}</Button>,
                                 ]}
                                 additionalColumns={additionalColumns}
@@ -212,6 +209,7 @@ export const Patients = memo(function Patients() {
                 inputPatient={patients?.find(p => p._id && p._id === editingPatientId)}
             />
 
+            {/* Address */}
             <EditorModal
                 open={showingAddress}
                 onClose={() => {
@@ -246,9 +244,6 @@ export const Patients = memo(function Patients() {
                             message: t('successfullyUpdatedPatientAddress')
                         })
 
-                        setActivePatientId(undefined)
-                        setShowingMH(false)
-
                         await init(page.offset, page.limit)
                     }
                     finally { console.groupEnd() }
@@ -262,7 +257,7 @@ export const Patients = memo(function Patients() {
                     setActivePatientId(undefined)
                     setShowingMH(false)
                 }}
-                onChange={async (mh) => {
+                onSave={async (mh) => {
                     try {
                         console.group('Patients', 'MedicalHistory', 'onChange')
 
@@ -287,9 +282,6 @@ export const Patients = memo(function Patients() {
                             severity: 'success',
                             message: t('successfullyUpdatedPatientMedicalHistory')
                         })
-
-                        setActivePatientId(undefined)
-                        setShowingMH(false)
 
                         await init(page.offset, page.limit)
                     }

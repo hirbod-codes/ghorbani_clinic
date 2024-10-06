@@ -17,17 +17,21 @@ export type MedicalHistoryProps = {
     open: boolean;
     onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void;
     inputMedicalHistory?: PatientsMedicalHistory | undefined;
-    onChange?: (medicalHistory: PatientsMedicalHistory) => any
+    onSave?: (medicalHistory: PatientsMedicalHistory) => any;
+    onChange?: (medicalHistory: PatientsMedicalHistory) => any;
 }
 
-export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }: MedicalHistoryProps) {
+export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onChange }: MedicalHistoryProps) {
     const [openDrawer, setOpenDrawer] = useState<boolean>(false)
 
     const [removingMedicalHistoryLoading, setRemovingMedicalHistoryLoading] = useState<number | undefined>(undefined)
     const [addingMedicalHistoryLoading, setAddingMedicalHistoryLoading] = useState<boolean>(false)
 
     const [addingMedicalHistory, setAddingMedicalHistory] = useState<string | undefined>(undefined)
-    const [medicalHistory, setMedicalHistory] = useState<PatientsMedicalHistory | undefined>(inputMedicalHistory ?? { description: { text: '', canvas: undefined }, histories: [] })
+    const [medicalHistory, setMedicalHistory] = useState<PatientsMedicalHistory | undefined>(inputMedicalHistory)
+    useEffect(() => {
+        setMedicalHistory(inputMedicalHistory ?? { description: { text: '', canvas: undefined }, histories: [] })
+    }, [inputMedicalHistory])
 
     const [loading, setLoading] = useState<boolean>(true)
     const [fetchedHistories, setFetchedHistories] = useState<string[] | undefined>(undefined)
@@ -67,22 +71,18 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
         init()
     }, [])
 
-    useEffect(() => {
-        setMedicalHistory(inputMedicalHistory ?? { description: { text: '', canvas: undefined }, histories: [] })
-    }, [inputMedicalHistory])
-
     const toggleHistory = (v: boolean, fh: string) => {
         setHasUnsavedChanges(true)
 
-        if (!medicalHistory.histories)
+        if (!medicalHistory?.histories)
             medicalHistory.histories = []
 
-        if (v && medicalHistory.histories?.find(f => f === fh) === undefined) {
-            medicalHistory.histories?.push(fh)
+        if (v && medicalHistory?.histories?.find(f => f === fh) === undefined) {
+            medicalHistory?.histories?.push(fh)
             setMedicalHistory({ ...medicalHistory })
         }
-        else if (!v && medicalHistory.histories?.find(f => f === fh) !== undefined)
-            setMedicalHistory({ ...medicalHistory, histories: medicalHistory.histories?.filter(f => f !== fh) })
+        else if (!v && medicalHistory?.histories?.find(f => f === fh) !== undefined)
+            setMedicalHistory({ ...medicalHistory, histories: medicalHistory?.histories?.filter(f => f !== fh) })
     }
 
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
@@ -183,7 +183,7 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                                                         <ListItemButton
                                                             dense
                                                             onClick={() => {
-                                                                const v = !medicalHistory.histories?.find(f => f === fh) !== undefined
+                                                                const v = !medicalHistory?.histories?.find(f => f === fh) !== undefined
                                                                 toggleHistory(v, fh)
                                                             }}
                                                         >
@@ -191,7 +191,7 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                                                                 <Checkbox
                                                                     color='success'
                                                                     edge="start"
-                                                                    checked={medicalHistory.histories?.find(f => f === fh) !== undefined}
+                                                                    checked={medicalHistory?.histories?.find(f => f === fh) !== undefined}
                                                                     onChange={(e, v) => {
                                                                         toggleHistory(v, fh)
                                                                     }}
@@ -229,17 +229,20 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                             <Stack direction='column' spacing={2} sx={{ height: '100%' }}>
                                 <Grid container sx={{ height: '100%' }} columns={24}>
                                     <Grid item xs={11}>
-                                        <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3, overflow: 'auto' }}>
-                                            <List>
+                                        <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3 }}>
+                                            <Stack direction='column' sx={{ height: '100%' }}>
                                                 <Typography variant='h4'>
                                                     {t('medicalHistory')}
                                                 </Typography>
-                                                {medicalHistory.histories?.map((h, i) =>
-                                                    <ListItem key={i}>
-                                                        <ListItemText primary={h} />
-                                                    </ListItem>
-                                                )}
-                                            </List>
+                                                <Divider />
+                                                <List sx={{ overflow: 'auto', flexGrow: 2 }}>
+                                                    {medicalHistory?.histories?.map((h, i) =>
+                                                        <ListItem key={i}>
+                                                            <ListItemText primary={h} />
+                                                        </ListItem>
+                                                    )}
+                                                </List>
+                                            </Stack>
                                         </Paper>
                                     </Grid>
 
@@ -253,7 +256,15 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                                                 title={t('medicalHistory')}
                                                 text={medicalHistory?.description?.text}
                                                 canvasId={medicalHistory?.description?.canvas as string}
-                                                onSave={(content, canvasId) => setMedicalHistory({ ...medicalHistory, description: { text: content, canvas: canvasId } })}
+                                                onSave={(text, canvas) => {
+                                                    setMedicalHistory({ ...medicalHistory, description: { text, canvas } });
+                                                    if (onSave)
+                                                        onSave({ ...medicalHistory, description: { text, canvas } })
+                                                }}
+                                                onChange={(text, canvas) => {
+                                                    if (onChange)
+                                                        onChange({ ...medicalHistory, description: { text, canvas } })
+                                                }}
                                                 setHasUnsavedChanges={setHasUnsavedChanges}
                                             />
                                         </Paper>
@@ -262,13 +273,6 @@ export function MedicalHistory({ open, onClose, inputMedicalHistory, onChange }:
                                 </Grid>
 
                                 <Divider variant='middle' />
-
-                                <Button fullWidth variant='outlined' color='success' onClick={async () => {
-                                    if (onChange)
-                                        await onChange(medicalHistory)
-                                }} >
-                                    {t('done')}
-                                </Button>
                             </Stack>
                         </Paper>
                     </Box>

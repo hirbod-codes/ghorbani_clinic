@@ -9,6 +9,7 @@ import { TextEditor } from "../TextEditor/TextEditor";
 import { Canvas } from "../Canvas/Canvas";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { SaveIcon } from "../Icons/SaveIcon";
+import LoadingScreen from "../LoadingScreen";
 
 export type EditorProps = {
     title?: string;
@@ -33,6 +34,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
         setCanvasId(inputCanvasId);
     }, [inputCanvasId])
 
+    const imageRef = useRef<HTMLImageElement>()
     const [imageSrc, setImageSrc] = useState<string>()
     const [status, setStatus] = useState<string>('showing')
 
@@ -162,7 +164,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
 
             setLoading(true)
 
-            if (!canvasId) {
+            if (!inputCanvasId) {
                 console.log('no canvas id')
                 setLoading(false)
                 return
@@ -173,7 +175,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                 return
             }
 
-            const data = await getCanvas(canvasId)
+            const data = await getCanvas(inputCanvasId)
             if (!data) {
                 publish(RESULT_EVENT_NAME, {
                     severity: 'error',
@@ -191,19 +193,26 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
 
             switch (status) {
                 case 'showing':
-                    setImageSrc(`data:${data.type};base64,${data.data}`);
+                    if (!imageRef.current) {
+                        console.log('no image ref')
+                        setLoading(false)
+                        return
+                    }
+
+                    const src = `data:${data.type};base64,${data.data}`
+
+                    if (imageSrc === src) {
+                        setLoading(false)
+                        return
+                    }
+
+                    setImageSrc(src);
 
                     if (data.backgroundColor)
                         setCanvasBackground(data.backgroundColor)
 
-                    const image = new Image()
-                    image.onload = () => {
-                        canvas.current.getContext('2d', { willReadFrequently: true }).drawImage(image, 0, 0);
-                        setLoading(false)
-                    }
-                    image.src = 'data:image/png;base64,' + data.data
-
-                    setLoading(false)
+                    // if src is not different than previous imageSrc then this event wouldn't fire
+                    imageRef.current.onload = () => setLoading(false)
 
                     break;
 
@@ -216,6 +225,13 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
 
                     if (data.backgroundColor)
                         setCanvasBackground(data.backgroundColor)
+
+                    const image = new Image()
+                    image.onload = () => {
+                        canvas.current.getContext('2d', { willReadFrequently: true }).drawImage(image, 0, 0);
+                        setLoading(false)
+                    }
+                    image.src = 'data:image/png;base64,' + data.data
 
                     break;
 
@@ -234,7 +250,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                 .finally(() => console.groupEnd())
         }
         finally { console.groupEnd() }
-    }, [status, canvas.current])
+    }, [status, canvas.current, inputCanvasId, inputText])
 
     return (
         <>
@@ -242,7 +258,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                 loading
                 &&
                 <Backdrop sx={{ zIndex: theme.zIndex.drawer + 1 }} open={loading}>
-                    <CircularProgress />
+                    <LoadingScreen />
                 </Backdrop >
             }
 
@@ -285,11 +301,9 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                             </>
                         }
 
-                        {imageSrc &&
-                            <Box sx={{ flexGrow: 2 }}>
-                                <img src={imageSrc} style={{ backgroundColor: canvasBackground }} />
-                            </Box>
-                        }
+                        <Box sx={{ flexGrow: 2 }}>
+                            <img ref={imageRef} src={imageSrc} style={{ backgroundColor: canvasBackground }} />
+                        </Box>
                     </Stack>
                 }
 

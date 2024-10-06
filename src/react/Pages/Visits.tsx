@@ -66,13 +66,8 @@ export function Visits() {
         }
     }
 
-    const init = async (offset: number, limit: number, useCache = true) => {
+    const init = async (offset: number, limit: number) => {
         console.log('init', 'start');
-
-        if (useCache && visits && visits.length !== 0) {
-            console.log('exiting...')
-            return
-        }
 
         setLoading(true)
         const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getVisits(offset, limit)
@@ -92,20 +87,14 @@ export function Visits() {
         console.log('init', 'end');
     }
 
-    useEffect(() => {
-        console.log('Visits', 'useEffect1', 'start', 'pageHasLoaded')
-        init(page.offset, page.limit).then(() => {
-            console.log('useEffect', 'end')
-        })
-    }, [page, auth])
-
     const [showGrid, setShowGrid] = useState(false)
     useEffect(() => {
         console.log('Visits', 'useEffect2', 'start');
-        subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
-            if (e?.detail === '/Visits')
-                setShowGrid(true)
-        })
+        if (!visits || visits.length === 0)
+            subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
+                if (e?.detail === '/Visits')
+                    setShowGrid(true)
+            })
     }, [])
 
     const deletesVisit = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.VISIT), [auth])
@@ -168,11 +157,14 @@ export function Visits() {
                                 overWriteColumns={columns}
                                 loading={loading}
                                 serverSidePagination
-                                onPaginationModelChange={(m, d) => setPage({ offset: m.page, limit: m.pageSize })}
+                                onPaginationModelChange={async (m, d) => {
+                                    setPage({ offset: m.page, limit: m.pageSize });
+                                    await init(page.offset, page.limit)
+                                }}
                                 orderedColumnsFields={['actions', 'patientId', 'due']}
                                 storeColumnVisibilityModel
                                 customToolbar={[
-                                    <Button onClick={async () => await init(page.offset, page.limit, false)} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
+                                    <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
                                 ]}
                                 additionalColumns={[
                                     {

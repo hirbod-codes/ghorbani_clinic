@@ -171,7 +171,8 @@ export function Users() {
     }
 
     useEffect(() => {
-        refresh()
+        if (users.length === 0)
+            refresh()
     }, [])
 
     useEffect(() => {
