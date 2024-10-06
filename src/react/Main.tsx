@@ -15,7 +15,7 @@ export function Main() {
     return (
         <>
             <BrowserRouter>
-                <Routes>
+                <Routes location={'/'}>
                     <Route path="/" element={<Layout />} >
                         <Route path="/" element={<AnimatedLayout><Home /></AnimatedLayout>} />
                         <Route path="/Users" element={<AnimatedLayout><Users /></AnimatedLayout>} />
