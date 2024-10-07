@@ -1,15 +1,17 @@
 import { useTheme } from '@mui/material/styles';
 import { SvgIcon } from "@mui/material";
-import Logo from "../../assets/save-floppy.svg?react";
+import Logo from "../../assets/eraser.svg?react";
 
-export function SaveIcon({ color }: { color?: string }): JSX.Element {
+export function EraserIcon({ color }: { color?: string }): JSX.Element {
     const theme = useTheme();
+
+    console.log(color)
 
     if (!color)
         color = theme.palette.text.primary
 
     return (
-        <SvgIcon viewBox="0 0 32 32" fill={color}>
+        <SvgIcon viewBox="0 0 24 24" stroke={color}>
             <Logo />
         </SvgIcon>
     );

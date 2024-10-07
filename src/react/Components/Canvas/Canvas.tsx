@@ -1,4 +1,4 @@
-import { Backdrop, Box, Button, CircularProgress, Divider, IconButton, Menu, Paper, Stack, TextField } from "@mui/material";
+import { Backdrop, Box, Button, CircularProgress, Divider, IconButton, Menu, Paper, Stack, TextField, colors } from "@mui/material";
 import { MutableRefObject, useContext, useEffect, useRef, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { Draw } from "./types";
@@ -9,6 +9,8 @@ import { ColorLensOutlined, PrintOutlined } from "@mui/icons-material";
 import { t } from "i18next";
 import { HexAlphaColorPicker } from "react-colorful";
 import { useReactToPrint } from "react-to-print";
+import { PencilIcon } from "../Icons/PencilIcon";
+import { EraserIcon } from "../Icons/EraserIcon";
 
 export type CanvasProps = {
     canvasRef?: MutableRefObject<HTMLCanvasElement>,
@@ -20,13 +22,16 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
     let theme = useContext(ConfigurationContext).get.theme
     if (!canvasBackground)
         canvasBackground = theme.palette.common.white
+
     const [loading, setLoading] = useState<boolean>(false)
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-    const [color, setColor] = useState<string>(theme.palette.common.black)
+    const [color, setColor] = useState<string>(canvasBackground === theme.palette.common.white ? theme.palette.common.black : theme.palette.common.white)
 
     const [lineWidth, setLineWidth] = useState<string>('1.2')
     const [radius, setRadius] = useState<string>('0.3')
+
+    const [tool, setTool] = useState<'pencil' | 'eraser'>('pencil')
 
     const { onDown, clear, empty } = useDraw(drawLine, canvasRef, onChange)
 
@@ -94,6 +99,24 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
                             </IconButton>
                             <TextField type='text' label={t('radius')} sx={{ width: '5rem' }} variant='standard' onChange={(e) => setRadius(e.target.value)} value={radius.toString()} />
                             <TextField type='text' label={t('lineWidth')} sx={{ width: '5rem' }} variant='standard' onChange={(e) => setLineWidth(e.target.value)} value={lineWidth.toString()} />
+                            <IconButton onClick={() => {
+                                if (tool !== 'pencil')
+                                    setTool('pencil')
+
+                                setColor(canvasBackground === theme.palette.common.white ? theme.palette.common.black : theme.palette.common.white)
+                                setRadius('0.3')
+                            }}>
+                                <PencilIcon color={tool === 'pencil' ? theme.palette.success.light : undefined} />
+                            </IconButton>
+                            <IconButton onClick={() => {
+                                if (tool !== 'eraser')
+                                    setTool('eraser')
+
+                                setColor(canvasBackground === theme.palette.common.white ? theme.palette.common.white : theme.palette.common.black)
+                                setRadius('10')
+                            }}>
+                                <EraserIcon color={tool === 'eraser' ? theme.palette.success.light : undefined} />
+                            </IconButton>
                             <Button
                                 variant='outlined'
                                 onClick={() => {

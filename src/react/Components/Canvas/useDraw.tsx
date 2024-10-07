@@ -13,7 +13,6 @@ export const useDraw = (draw: ({ ctx, currentPoint, prevPoint }: Draw) => void, 
     const ctx = canvasRef.current?.getContext('2d', { willReadFrequently: true })
 
     const clear = () => {
-        console.log(empty)
         const canvas = canvasRef.current
         if (!canvas)
             return
@@ -33,7 +32,6 @@ export const useDraw = (draw: ({ ctx, currentPoint, prevPoint }: Draw) => void, 
     }
 
     const move = (point: Point) => {
-        console.log(empty)
         if (!point)
             return
 
