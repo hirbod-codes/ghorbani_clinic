@@ -1,4 +1,4 @@
-import { Backdrop, CircularProgress, Divider, IconButton, Menu, Paper, Stack, TextField } from "@mui/material";
+import { Backdrop, Box, Button, CircularProgress, Divider, IconButton, Menu, Paper, Stack, TextField } from "@mui/material";
 import { MutableRefObject, useContext, useEffect, useRef, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { Draw } from "./types";
@@ -78,34 +78,48 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
                 </Backdrop >
             }
 
-            {/* for 100% height, a scrollbar will be added, and idk why */}
-            <Stack direction='column' alignItems='start' sx={{ height: '98%' }} spacing={1} >
-                <Stack direction='row' alignItems='center' spacing={1} divider={<Divider orientation='vertical' variant='middle' />} >
-                    <IconButton onClick={() => {
-                        printRef.current.src = canvasRef.current.toDataURL()
-                        setLoading(true)
-                        print(null, () => printRef.current);
-                    }}>
-                        <PrintOutlined />
-                    </IconButton>
-                    <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
-                        <ColorLensOutlined />
-                    </IconButton>
-                    <TextField type='text' label={t('radius')} sx={{ width: '5rem' }} variant='standard' onChange={(e) => setRadius(e.target.value)} value={radius.toString()} />
-                    <TextField type='text' label={t('lineWidth')} sx={{ width: '5rem' }} variant='standard' onChange={(e) => setLineWidth(e.target.value)} value={lineWidth.toString()} />
+            <Box sx={{ height: '100%' }}>
+                <Stack direction='column' alignItems='start' sx={{ height: '100%' }} spacing={1} >
+                    <Box sx={{ overflowX: 'auto', overflowY: 'hidden', flexGrow: 1, width: '100%' }}>
+                        <Stack direction='row' alignItems='center' spacing={2} sx={{ width: 'fit-content' }}>
+                            <IconButton onClick={() => {
+                                printRef.current.src = canvasRef.current.toDataURL()
+                                setLoading(true)
+                                print(null, () => printRef.current);
+                            }}>
+                                <PrintOutlined />
+                            </IconButton>
+                            <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+                                <ColorLensOutlined />
+                            </IconButton>
+                            <TextField type='text' label={t('radius')} sx={{ width: '5rem' }} variant='standard' onChange={(e) => setRadius(e.target.value)} value={radius.toString()} />
+                            <TextField type='text' label={t('lineWidth')} sx={{ width: '5rem' }} variant='standard' onChange={(e) => setLineWidth(e.target.value)} value={lineWidth.toString()} />
+                            <Button
+                                variant='outlined'
+                                onClick={() => {
+                                    setColor(theme.palette.common.black)
+                                    setLineWidth('1.2')
+                                    setRadius('0.3')
+                                }}
+                            >
+                                {t('reset')}
+                            </Button>
+                            <Button variant='outlined' onClick={() => { clear() }}>{t('clean')}</Button>
+                        </Stack >
+                    </Box>
+
+                    <Divider variant='middle' />
+
+                    <Paper elevation={2} sx={{ flexGrow: 2, width: '100%', p: 0, m: 0 }} ref={parentRef}>
+                        <canvas
+                            ref={canvasRef}
+                            onMouseDown={onDown}
+                            onTouchStart={onDown}
+                            className='canvas'
+                        />
+                    </Paper>
                 </Stack >
-
-                <Divider variant='middle' />
-
-                <Paper elevation={2} sx={{ flexGrow: 2, width: '100%', height: '100%', p: 0, m: 0, backgroundColor: 'green' }} ref={parentRef}>
-                    <canvas
-                        ref={canvasRef}
-                        onMouseDown={onDown}
-                        onTouchStart={onDown}
-                        className='canvas'
-                    />
-                </Paper>
-            </Stack >
+            </Box>
 
             <Menu
                 open={Boolean(anchorEl)}

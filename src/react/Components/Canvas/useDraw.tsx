@@ -1,5 +1,6 @@
 import { MutableRefObject, useEffect, useRef, useState } from 'react'
 import { Draw, Point } from './types'
+import { isCanvasEmpty } from './helpers'
 
 export const useDraw = (draw: ({ ctx, currentPoint, prevPoint }: Draw) => void, canvasRef: MutableRefObject<HTMLCanvasElement>, onChange?: (empty?: boolean) => void | Promise<void>) => {
     const [empty, setEmpty] = useState(true)
@@ -12,6 +13,7 @@ export const useDraw = (draw: ({ ctx, currentPoint, prevPoint }: Draw) => void, 
     const ctx = canvasRef.current?.getContext('2d', { willReadFrequently: true })
 
     const clear = () => {
+        console.log(empty)
         const canvas = canvasRef.current
         if (!canvas)
             return
@@ -19,18 +21,19 @@ export const useDraw = (draw: ({ ctx, currentPoint, prevPoint }: Draw) => void, 
         if (!ctx)
             return
 
-        if (!empty)
-            if (onChange)
-                onChange(true)
+        const shouldCallOnChange = !isCanvasEmpty(canvasRef)
 
         ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-        if (!empty)
+        if (shouldCallOnChange && onChange)
+            onChange(true)
+
+        if (shouldCallOnChange)
             setEmpty(true)
     }
 
-
     const move = (point: Point) => {
+        console.log(empty)
         if (!point)
             return
 

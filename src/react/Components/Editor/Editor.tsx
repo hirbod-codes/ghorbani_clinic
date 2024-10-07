@@ -10,6 +10,7 @@ import { Canvas } from "../Canvas/Canvas";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { SaveIcon } from "../Icons/SaveIcon";
 import LoadingScreen from "../LoadingScreen";
+import { isCanvasEmpty } from "../Canvas/helpers";
 
 export type EditorProps = {
     title?: string;
@@ -97,43 +98,49 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
 
             setLoading(true)
 
-            const dataUrl = canvas.current?.toDataURL()
-            const type = dataUrl.split(',')[0].replace(';base64', '').replace('data:', '')
-            const data = dataUrl.split(',')[1]
-            console.log({ dataUrl, type, data })
+            let id = undefined
 
-            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(
-                {
-                    width: canvas.current?.width,
-                    height: canvas.current?.height,
-                    colorSpace: 'srgb',
-                    backgroundColor: canvasBackground,
-                    type,
-                    data,
-                })
+            if (!isCanvasEmpty(canvas)) {
+                const dataUrl = canvas.current?.toDataURL()
+                const type = dataUrl.split(',')[0].replace(';base64', '').replace('data:', '')
+                const data = dataUrl.split(',')[1]
+                console.log({ dataUrl, type, data })
 
-            console.log({ res })
-            if (res.code !== 200 || !res.data) {
+                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(
+                    {
+                        width: canvas.current?.width,
+                        height: canvas.current?.height,
+                        colorSpace: 'srgb',
+                        backgroundColor: canvasBackground,
+                        type,
+                        data,
+                    })
+
+                console.log({ res })
+                if (res.code !== 200 || !res.data) {
+                    publish(RESULT_EVENT_NAME, {
+                        severity: 'error',
+                        message: t('failedToUploadCanvas')
+                    })
+
+                    return
+                }
+
                 publish(RESULT_EVENT_NAME, {
-                    severity: 'error',
-                    message: t('failedToUploadCanvas')
+                    severity: 'success',
+                    message: t('successfullyUploadedCanvas')
                 })
 
-                return
+                setCanvasId(res.data)
+
+                id = res.data
             }
 
             if (canvasId)
                 console.log(await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteCanvas(canvasId))
 
-            publish(RESULT_EVENT_NAME, {
-                severity: 'success',
-                message: t('successfullyUploadedCanvas')
-            })
-
-            setCanvasId(res.data)
-
             if (onSave)
-                await onSave(text, res.data)
+                await onSave(text, id)
 
             setCanvasHasUnsavedChanges(false)
         }
@@ -303,7 +310,9 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                             </>
                         }
 
-                        <img ref={imageRef} src={imageSrc} style={{ backgroundColor: canvasBackground }} />
+                        {canvasId &&
+                            <img ref={imageRef} src={imageSrc} style={{ backgroundColor: canvasBackground }} />
+                        }
                     </Stack>
                 }
 
@@ -353,7 +362,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                             <Canvas
                                 canvasRef={canvas}
                                 canvasBackground={canvasBackground}
-                                onChange={async () => {
+                                onChange={async (empty) => {
                                     setCanvasHasUnsavedChanges(true);
                                     if (onChange)
                                         await onChange(text, canvasId)
