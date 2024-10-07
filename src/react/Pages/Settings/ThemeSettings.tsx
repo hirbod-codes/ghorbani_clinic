@@ -219,7 +219,7 @@ export function ThemeSettings() {
                     </AccordionDetails>
                 </Accordion>
 
-                <Accordion>
+                {/* <Accordion>
                     <AccordionSummary expandIcon={<ExpandMoreOutlined />}>
                         {t('backgroundColor')}
                     </AccordionSummary>
@@ -232,7 +232,7 @@ export function ThemeSettings() {
                             <Button fullWidth sx={{ backgroundColor: backgroundColor }} variant='contained'></Button>
                         </Stack>
                     </AccordionDetails>
-                </Accordion>
+                </Accordion> */}
             </Stack>
 
             <Menu
@@ -286,8 +286,8 @@ export function ThemeSettings() {
                                 break;
 
                             case 'background':
-                                setBackgroundColor(color)
-                                options.palette.background = { default: color, paper: color }
+                                // setBackgroundColor(color)
+                                // options.palette.background = { default: color, paper: color }
                                 break;
 
                             default:

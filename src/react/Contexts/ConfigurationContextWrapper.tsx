@@ -159,7 +159,7 @@ export function ConfigurationContextWrapper({ children }: { children?: ReactNode
                                     height: '0.4em',
                                 },
                                 '*::-webkit-scrollbar-track': {
-                                    '-webkit-box-shadow': 'inset 0 0 5px rgb(0,0,0)',
+                                    'WebkitBoxShadow': 'inset 0 0 5px rgb(0,0,0)',
                                 },
                                 '*::-webkit-scrollbar-thumb': {
                                     backgroundColor: 'rgba(0,0,0,.8)',

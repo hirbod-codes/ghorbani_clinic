@@ -1,28 +1,25 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { t } from "i18next";
-import { Box, Button, CircularProgress, Grid, Stack, Typography } from "@mui/material";
+import { Button, CircularProgress, Grid, Stack, Typography } from "@mui/material";
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
 import { RefreshOutlined } from "@mui/icons-material";
 import { AnimatedCircularProgressBar } from "../ProgressBars/AnimatedCircularProgressBar";
 import { AnimatedCounter } from "../Counters/AnimatedCounter";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
-import { animate, motion, useMotionValue, useTransform } from "framer-motion";
-import { CircularProgressBar } from "../ProgressBars/CircularProgressBar";
+import { motion } from "framer-motion";
 
 
 export function Analytics() {
-    const [initialized, setInitialized] = useState<boolean>(false);
     const [initLoading, setInitLoading] = useState<boolean>(true);
-    const [initFailed, setInitFailed] = useState<boolean>(false);
 
     const [visitsCount, setVisitsCount] = useState<number | undefined>(undefined);
     const [expiredVisitsCount, setExpiredVisitsCount] = useState<number | undefined>(undefined);
     const [patientsCount, setPatientsCount] = useState<number | undefined>(undefined);
 
-    console.log('Analytics', { initLoading, initFailed, visitsCount, expiredVisitsCount, patientsCount });
+    console.log('Analytics', { initLoading, visitsCount, expiredVisitsCount, patientsCount });
 
-    const initPatientsProgressBars = async () => {
+    const initPatientsProgressBars = async (): Promise<boolean> => {
         try {
             const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.getPatientsEstimatedCount();
             if (res.code === 200 && res.data)
@@ -32,12 +29,13 @@ export function Analytics() {
                     severity: 'error',
                     message: t('failedToFetchPatientsCount')
                 });
+            return res.code === 200 && res.data !== undefined
         } catch (error) {
             console.error('Analytics', 'initPatientsProgressBars', error);
             throw error;
         }
     };
-    const initVisitsProgressBars = async () => {
+    const initVisitsProgressBars = async (): Promise<boolean> => {
         try {
             const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.getVisitsEstimatedCount();
             if (res.code === 200 && res.data)
@@ -47,12 +45,13 @@ export function Analytics() {
                     severity: 'error',
                     message: t('failedToFetchVisitsCount')
                 });
+            return res.code === 200 && res.data !== undefined
         } catch (error) {
             console.error('Analytics', 'initVisitsProgressBars', error);
             throw error;
         }
     };
-    const initExpiredVisitsProgressBars = async () => {
+    const initExpiredVisitsProgressBars = async (): Promise<boolean> => {
         try {
             const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.getExpiredVisitsCount();
             if (res.code === 200 && res.data)
@@ -62,6 +61,7 @@ export function Analytics() {
                     severity: 'error',
                     message: t('failedToFetchExpiredVisitsCount')
                 });
+            return res.code === 200 && res.data !== undefined
         } catch (error) {
             console.error('Analytics', 'initExpiredVisitsProgressBars', error);
             throw error;
@@ -69,7 +69,6 @@ export function Analytics() {
     };
 
     const initProgressBars = async () => {
-        setInitFailed(false);
         setInitLoading(true);
 
         try {
@@ -80,25 +79,19 @@ export function Analytics() {
             ]);
 
             setInitLoading(false);
-
-            if (visitsCount === undefined || expiredVisitsCount === undefined || patientsCount === undefined)
-                setInitFailed(true);
         } catch (error) {
             console.error('Analytics', 'initProgressBars', error);
-            setInitFailed(true);
         }
     };
 
     useEffect(() => {
-        if (!initialized)
-            initProgressBars()
-                .then(() => (setInitialized(true)));
+        initProgressBars()
     }, []);
 
     return (
         <>
             <Grid container spacing={1} p={1}>
-                {initFailed
+                {!visitsCount || !expiredVisitsCount || !patientsCount
                     ?
                     <>
                         <Grid item xs={3}></Grid>

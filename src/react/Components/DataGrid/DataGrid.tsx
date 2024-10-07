@@ -2,7 +2,7 @@ import { GridColDef, GridColumnVisibilityModel, GridPaginationModel, GridToolbar
 import { useState, useEffect, useMemo } from 'react'
 import { getColumns } from './helpers'
 import { configAPI } from 'src/Electron/Configuration/renderer';
-import { CircularProgress } from '@mui/material';
+import { Button, CircularProgress } from '@mui/material';
 
 export type DataGridProps = {
     name?: string;
@@ -37,8 +37,8 @@ export function DataGrid(props: DataGridProps) {
         autosizeOptions = {
             includeHeaders: true,
             includeOutliers: true,
-            outliersFactor: 1,
-            expand: true,
+            // outliersFactor: 1,
+            expand: false,
         }
 
     const apiRef = useGridApiRef()
@@ -47,6 +47,7 @@ export function DataGrid(props: DataGridProps) {
         pageSize: 25,
     });
 
+    const [hasInitialized, setHasInitialized] = useState<boolean>(false)
     const [columnVisibilityModel, setColumnVisibilityModel] = useState<GridColumnVisibilityModel>(undefined)
 
     console.log('DataGrid')
@@ -63,10 +64,16 @@ export function DataGrid(props: DataGridProps) {
                 .then((c) => {
                     if (c?.columnVisibilityModels) {
                         setColumnVisibilityModel(c.columnVisibilityModels[name])
-                        apiRef.current.autosizeColumns()
                     }
                 })
     }, [storeColumnVisibilityModel])
+
+    useEffect(() => {
+        if (!hasInitialized && apiRef.current && apiRef.current.autosizeColumns) {
+            setHasInitialized(true)
+            apiRef.current.autosizeColumns()
+        }
+    }, [])
 
     return (
         <div style={{ height: '100%' }}>
@@ -126,11 +133,12 @@ export function DataGrid(props: DataGridProps) {
                                 <GridToolbarFilterButton />
                                 <GridToolbarDensitySelector />
                                 <GridToolbarExport />
+                                <Button onClick={() => apiRef.current.autosizeColumns()} >Resize</Button>
                                 {...(customToolbar ?? [])}
                             </GridToolbarContainer>
                         )
                     }}
-                    autosizeOnMount
+                    // autosizeOnMount
                     apiRef={apiRef}
                     autosizeOptions={autosizeOptions}
                 />}
