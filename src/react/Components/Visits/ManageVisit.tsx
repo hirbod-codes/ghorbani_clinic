@@ -42,7 +42,7 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                 }}
                 text={visits[activeVisitIndex]?.diagnosis?.text}
                 canvasId={visits[activeVisitIndex]?.diagnosis?.canvas as string}
-                title={t('diagnosis')}
+                title={t('ManageVisits.diagnosis')}
                 onSave={async (diagnosis, canvasId) => {
                     console.log('ManageVisits', 'diagnosis', 'onChange', diagnosis, canvasId)
 
@@ -60,7 +60,7 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                 }}
                 text={visits[activeVisitIndex]?.treatments?.text}
                 canvasId={visits[activeVisitIndex]?.treatments?.canvas as string}
-                title={t('treatments')}
+                title={t('ManageVisits.treatments')}
                 onSave={async (treatments, canvasId) => {
                     console.log('ManageVisits', 'treatments', 'onChange', treatments, canvasId)
 
@@ -95,11 +95,11 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
 
                                     <Stack direction='row' alignItems='center' justifyContent='space-evenly' divider={<Divider orientation='horizontal' variant='middle' flexItem />} sx={{ width: '100%' }}>
                                         <Button variant='outlined' onClick={() => { setActiveVisitIndex(i); setShowDiagnosis(true) }}>
-                                            {t('diagnosis')}
+                                            {t('ManageVisits.diagnosis')}
                                         </Button>
 
                                         <Button variant='outlined' onClick={() => { setActiveVisitIndex(i); setShowTreatments(true) }}>
-                                            {t('treatments')}
+                                            {t('ManageVisits.treatments')}
                                         </Button>
                                     </Stack>
                                 </Stack>

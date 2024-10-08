@@ -4,7 +4,6 @@ import { SxProps, Theme, alpha, useTheme } from '@mui/material/styles';
 import { IconButton as MUIIconButton, Box, Stack } from "@mui/material";
 import { CloseIcon } from '../Icons/CloseIcon';
 import { MinimizeIcon } from '../Icons/MinimizeIcon';
-import { SquareIcon } from '../Icons/SquareIcon';
 import { MenuIcon } from '../Icons/MenuIcon';
 import { MaxUnmaxIcon } from '../Icons/MaxUnmaxIcon';
 

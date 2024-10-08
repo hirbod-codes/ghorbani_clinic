@@ -120,7 +120,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                 if (res.code !== 200 || !res.data) {
                     publish(RESULT_EVENT_NAME, {
                         severity: 'error',
-                        message: t('failedToUploadCanvas')
+                        message: t('Editor.failedToUploadCanvas')
                     })
 
                     return
@@ -128,7 +128,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
 
                 publish(RESULT_EVENT_NAME, {
                     severity: 'success',
-                    message: t('successfullyUploadedCanvas')
+                    message: t('Editor.successfullyUploadedCanvas')
                 })
 
                 setCanvasId(res.data)
@@ -188,7 +188,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
             if (!data) {
                 publish(RESULT_EVENT_NAME, {
                     severity: 'error',
-                    message: t('failedToUploadCanvas')
+                    message: t('Editor.failedToUploadCanvas')
                 })
 
                 setLoading(false)
@@ -197,7 +197,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
 
             publish(RESULT_EVENT_NAME, {
                 severity: 'success',
-                message: t('successfullyUploadedCanvas')
+                message: t('Editor.successfullyUploadedCanvas')
             })
 
             switch (status) {
@@ -299,7 +299,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                         {text &&
                             <>
                                 <Typography variant='h5'>
-                                    {t('description')}
+                                    {t('Editor.description')}
                                 </Typography>
 
                                 <Divider />

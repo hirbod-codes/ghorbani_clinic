@@ -27,7 +27,7 @@ export function Analytics() {
             else
                 publish(RESULT_EVENT_NAME, {
                     severity: 'error',
-                    message: t('failedToFetchPatientsCount')
+                    message: t('Analytics.failedToFetchPatientsCount')
                 });
             return res.code === 200 && res.data !== undefined
         } catch (error) {
@@ -43,7 +43,7 @@ export function Analytics() {
             else
                 publish(RESULT_EVENT_NAME, {
                     severity: 'error',
-                    message: t('failedToFetchVisitsCount')
+                    message: t('Analytics.failedToFetchVisitsCount')
                 });
             return res.code === 200 && res.data !== undefined
         } catch (error) {
@@ -59,7 +59,7 @@ export function Analytics() {
             else
                 publish(RESULT_EVENT_NAME, {
                     severity: 'error',
-                    message: t('failedToFetchExpiredVisitsCount')
+                    message: t('Analytics.failedToFetchExpiredVisitsCount')
                 });
             return res.code === 200 && res.data !== undefined
         } catch (error) {
@@ -126,7 +126,7 @@ export function Analytics() {
                                                 </Typography>
                                             </AnimatedCircularProgressBar>
                                             <Typography variant="body1" textAlign='center' sx={{ position: 'relative', top: '-3rem' }}>
-                                                {t('visits')}
+                                                {t('Analytics.visits')}
                                             </Typography>
                                         </motion.div>
                                         :
@@ -150,7 +150,7 @@ export function Analytics() {
                                                 </Typography>
                                             </AnimatedCircularProgressBar>
                                             <Typography variant="body1" textAlign='center' sx={{ position: 'relative', top: '-3rem' }}>
-                                                {t('expiredVisits')}
+                                                {t('Analytics.expiredVisits')}
                                             </Typography>
                                         </motion.div>
                                         :
@@ -175,7 +175,7 @@ export function Analytics() {
                                                 </Typography>
                                             </AnimatedCircularProgressBar>
                                             <Typography variant="body1" textAlign='center' sx={{ position: 'relative', top: '-3rem' }}>
-                                                {t('patients')}
+                                                {t('Analytics.patients')}
                                             </Typography>
                                         </motion.div>
                                         :

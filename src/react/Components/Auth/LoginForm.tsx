@@ -12,7 +12,7 @@ export function LoginForm({ onFinish }: { onFinish: (username: string, password:
                 <TextField variant='standard' type='text' value={username} onChange={(e) => setUsername(e.target.value)} label={t('username')} />
                 <TextField variant='standard' type='password' value={password} onChange={(e) => setPassword(e.target.value)} label={t('password')} />
                 <Button onClick={() => onFinish(username, password)}>
-                    {t('login')}
+                    {t('LoginForm.login')}
                 </Button>
             </Stack>
         </>

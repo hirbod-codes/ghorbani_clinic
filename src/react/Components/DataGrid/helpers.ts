@@ -7,7 +7,7 @@ export const getColumns = (data: any[], overWriteColumns?: GridColDef<any>[], ad
 
     let columns: GridColDef<any>[] = Object.keys(data[0]).map(k => ({
         field: k,
-        headerName: t(k),
+        headerName: t(`Columns.${k}`),
         headerAlign: 'center',
         align: 'center',
         type: 'string',

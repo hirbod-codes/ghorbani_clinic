@@ -24,7 +24,7 @@ export function Visits() {
     if (!auth.accessControl?.can(auth.user.roleName).read(resources.VISIT).granted)
         navigate('/')
 
-    const [page, setPage] = useState({ offset: 0, limit: 25 })
+    const [page, setPage] = useState({ offset: 0, limit: 10 })
 
     const [loading, setLoading] = useState<boolean>(true)
     const [visits, setVisits] = useState<Visit[]>([])
@@ -50,14 +50,14 @@ export function Visits() {
             if (res.code !== 200 || !res.data) {
                 publish(RESULT_EVENT_NAME, {
                     severity: 'error',
-                    message: t('failedToUpdateVisit')
+                    message: t('Visits.failedToUpdateVisit')
                 })
                 return
             }
 
             publish(RESULT_EVENT_NAME, {
                 severity: 'success',
-                message: t('successfullyUpdatedVisit')
+                message: t('Visits.successfullyUpdatedVisit')
             })
         } catch (error) {
             console.error(error)
@@ -77,7 +77,7 @@ export function Visits() {
         if (res.code !== 200 || !res.data) {
             publish(RESULT_EVENT_NAME, {
                 severity: 'error',
-                message: t('failedToFetchVisits')
+                message: t('Visits.failedToFetchVisits')
             })
             return
         }
@@ -115,7 +115,7 @@ export function Visits() {
                             setShowDiagnosis(visits.find(v => v._id === params.row._id)?._id as string);
                         }}
                     >
-                        {t('Show')}
+                        {t('Visits.Show')}
                     </Button>
                 );
             }
@@ -124,7 +124,7 @@ export function Visits() {
             field: 'treatments',
             type: 'actions',
             width: 120,
-            renderCell: (params: GridRenderCellParams<any, Date>) => (<Button onClick={() => setShowTreatments(visits.find(v => v._id === params.row._id)?._id as string)}>{t('Show')}</Button>)
+            renderCell: (params: GridRenderCellParams<any, Date>) => (<Button onClick={() => setShowTreatments(visits.find(v => v._id === params.row._id)?._id as string)}>{t('Visits.Show')}</Button>)
         },
         {
             field: 'due',
@@ -167,13 +167,13 @@ export function Visits() {
                                 orderedColumnsFields={['actions', 'patientId', 'due']}
                                 storeColumnVisibilityModel
                                 customToolbar={[
-                                    <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
+                                    <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Visits.Refresh')}</Button>,
                                 ]}
                                 additionalColumns={[
                                     {
                                         field: 'actions',
                                         type: 'actions',
-                                        headerName: t('actions'),
+                                        headerName: t('Visits.actions'),
                                         headerAlign: 'center',
                                         align: 'center',
                                         width: 120,
@@ -189,7 +189,7 @@ export function Visits() {
                                                     if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1) {
                                                         publish(RESULT_EVENT_NAME, {
                                                             severity: 'error',
-                                                            message: t('failedToDeleteVisit')
+                                                            message: t('Visits.failedToDeleteVisit')
                                                         })
 
                                                         return
@@ -197,13 +197,13 @@ export function Visits() {
 
                                                     publish(RESULT_EVENT_NAME, {
                                                         severity: 'success',
-                                                        message: t('successfullyDeletedVisit')
+                                                        message: t('Visits.successfullyDeletedVisit')
                                                     })
 
                                                     await init(page.offset, page.limit)
                                                 }
                                                 finally { console.groupEnd() }
-                                            }} label={t('delete')} /> : null,
+                                            }} label={t('Visits.delete')} /> : null,
                                         ]
                                     },
                                 ]}
@@ -220,7 +220,7 @@ export function Visits() {
                 }}
                 text={visits.find(f => f._id === showDiagnosis)?.diagnosis.text}
                 canvasId={visits.find(f => f._id === showDiagnosis)?.diagnosis.canvas as string}
-                title={t('diagnosis')}
+                title={t('Visits.diagnosis')}
                 onSave={async (diagnosis, canvasId) => {
                     console.log('ManageVisits', 'diagnosis', 'onChange', diagnosis, canvasId)
 
@@ -237,7 +237,7 @@ export function Visits() {
                 }}
                 text={visits.find(f => f._id === showTreatments)?.treatments.text}
                 canvasId={visits.find(f => f._id === showTreatments)?.treatments.canvas as string}
-                title={t('treatments')}
+                title={t('Visits.treatments')}
                 onSave={async (treatments, canvasId) => {
                     console.log('ManageVisits', 'treatments', 'onChange', treatments, canvasId)
 

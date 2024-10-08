@@ -1,5 +1,5 @@
 import { Lock, LockOpen, TextFields } from "@mui/icons-material";
-import { Box, Button, CircularProgress, Stack, Typography } from "@mui/material";
+import { Box, Stack } from "@mui/material";
 import type { EditorOptions } from "@tiptap/core";
 import { useCallback, useRef, useState } from "react";
 import {
@@ -14,7 +14,6 @@ import EditorMenuControls from "./EditorMenuControls";
 import { useExtensions } from "./useExtensions";
 
 import './styles.css'
-import { t } from "i18next";
 
 function fileListToImageFiles(fileList: FileList): File[] {
     // You may want to use a package like attr-accept

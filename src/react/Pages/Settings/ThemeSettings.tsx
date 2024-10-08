@@ -57,14 +57,14 @@ export function ThemeSettings() {
                 <FormGroup>
                     <FormControlLabel
                         control={<Switch checked={showGradientBackground} onChange={(e) => updateShowGradientBackground(e.target.checked)} />}
-                        label={t('showThemeOptions')}
+                        label={t('ThemeSettings.showGradientBackground')}
                     />
                 </FormGroup>
 
                 <TextField
                     variant='standard'
                     type='text'
-                    label={t('contrastThreshold')}
+                    label={t('ThemeSettings.contrastThreshold')}
                     value={contrastThreshold}
                     onChange={(e) => {
                         setContrastThreshold(e.target.value)
@@ -76,7 +76,7 @@ export function ThemeSettings() {
                         } catch (error) {
                             publish(RESULT_EVENT_NAME, {
                                 severity: 'error',
-                                message: t('invalidNumber')
+                                message: t('ThemeSettings.invalidNumber')
                             })
                             return
                         }
@@ -92,7 +92,7 @@ export function ThemeSettings() {
                 <TextField
                     variant='standard'
                     type='text'
-                    label={t('tonalOffset')}
+                    label={t('ThemeSettings.tonalOffset')}
                     value={tonalOffset}
                     onChange={(e) => {
                         setTonalOffset(e.target.value)
@@ -104,7 +104,7 @@ export function ThemeSettings() {
                         } catch (error) {
                             publish(RESULT_EVENT_NAME, {
                                 severity: 'error',
-                                message: t('invalidNumber')
+                                message: t('ThemeSettings.invalidNumber')
                             })
                             return
                         }
@@ -118,7 +118,7 @@ export function ThemeSettings() {
 
                 <Accordion defaultExpanded>
                     <AccordionSummary sx={{ color: primaryColor }} expandIcon={<ExpandMoreOutlined />}>
-                        {t('primaryColor')}
+                        {t('ThemeSettings.primaryColor')}
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack sx={{ width: '100%', p: 3 }} direction='column' spacing={2} alignItems={'center'}>
@@ -126,16 +126,16 @@ export function ThemeSettings() {
                                 <ColorLensOutlined />
                             </IconButton>
 
-                            <Button fullWidth sx={{ backgroundColor: primaryColor }} variant='contained'>{t('main')}</Button>
-                            <Button fullWidth sx={{ backgroundColor: lighten(primaryColor, 0.25) }} variant='contained'>{t('lightMode')}</Button>
-                            <Button fullWidth sx={{ backgroundColor: darken(primaryColor, 0.25) }} variant='contained'>{t('darkMode')}</Button>
+                            <Button fullWidth sx={{ backgroundColor: primaryColor }} variant='contained'>{t('ThemeSettings.main')}</Button>
+                            <Button fullWidth sx={{ backgroundColor: lighten(primaryColor, 0.25) }} variant='contained'>{t('ThemeSettings.lightMode')}</Button>
+                            <Button fullWidth sx={{ backgroundColor: darken(primaryColor, 0.25) }} variant='contained'>{t('ThemeSettings.darkMode')}</Button>
                         </Stack>
                     </AccordionDetails>
                 </Accordion>
 
                 <Accordion>
                     <AccordionSummary sx={{ color: secondaryColor }} expandIcon={<ExpandMoreOutlined />}>
-                        {t('secondaryColor')}
+                        {t('ThemeSettings.secondaryColor')}
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack sx={{ width: '100%', p: 3 }} direction='column' spacing={2} alignItems={'center'}>
@@ -143,16 +143,16 @@ export function ThemeSettings() {
                                 <ColorLensOutlined />
                             </IconButton>
 
-                            <Button fullWidth sx={{ backgroundColor: secondaryColor }} variant='contained'>{t('main')}</Button>
-                            <Button fullWidth sx={{ backgroundColor: lighten(secondaryColor, 0.25) }} variant='contained'>{t('lightMode')}</Button>
-                            <Button fullWidth sx={{ backgroundColor: darken(secondaryColor, 0.25) }} variant='contained'>{t('darkMode')}</Button>
+                            <Button fullWidth sx={{ backgroundColor: secondaryColor }} variant='contained'>{t('ThemeSettings.main')}</Button>
+                            <Button fullWidth sx={{ backgroundColor: lighten(secondaryColor, 0.25) }} variant='contained'>{t('ThemeSettings.lightMode')}</Button>
+                            <Button fullWidth sx={{ backgroundColor: darken(secondaryColor, 0.25) }} variant='contained'>{t('ThemeSettings.darkMode')}</Button>
                         </Stack>
                     </AccordionDetails>
                 </Accordion>
 
                 <Accordion>
                     <AccordionSummary sx={{ color: errorColor }} expandIcon={<ExpandMoreOutlined />}>
-                        {t('errorColor')}
+                        {t('ThemeSettings.errorColor')}
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack sx={{ width: '100%', p: 3 }} direction='column' spacing={2} alignItems={'center'}>
@@ -161,16 +161,16 @@ export function ThemeSettings() {
                                 <ColorLensOutlined />
                             </IconButton>
 
-                            <Button fullWidth sx={{ backgroundColor: errorColor }} variant='contained'>{t('main')}</Button>
-                            <Button fullWidth sx={{ backgroundColor: lighten(errorColor, 0.25) }} variant='contained'>{t('lightMode')}</Button>
-                            <Button fullWidth sx={{ backgroundColor: darken(errorColor, 0.25) }} variant='contained'>{t('darkMode')}</Button>
+                            <Button fullWidth sx={{ backgroundColor: errorColor }} variant='contained'>{t('ThemeSettings.main')}</Button>
+                            <Button fullWidth sx={{ backgroundColor: lighten(errorColor, 0.25) }} variant='contained'>{t('ThemeSettings.lightMode')}</Button>
+                            <Button fullWidth sx={{ backgroundColor: darken(errorColor, 0.25) }} variant='contained'>{t('ThemeSettings.darkMode')}</Button>
                         </Stack>
                     </AccordionDetails>
                 </Accordion>
 
                 <Accordion>
                     <AccordionSummary sx={{ color: infoColor }} expandIcon={<ExpandMoreOutlined />}>
-                        {t('infoColor')}
+                        {t('ThemeSettings.infoColor')}
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack sx={{ width: '100%', p: 3 }} direction='column' spacing={2} alignItems={'center'}>
@@ -178,16 +178,16 @@ export function ThemeSettings() {
                                 <ColorLensOutlined />
                             </IconButton>
 
-                            <Button fullWidth sx={{ backgroundColor: infoColor }} variant='contained'>{t('main')}</Button>
-                            <Button fullWidth sx={{ backgroundColor: lighten(infoColor, 0.25) }} variant='contained'>{t('lightMode')}</Button>
-                            <Button fullWidth sx={{ backgroundColor: darken(infoColor, 0.25) }} variant='contained'>{t('darkMode')}</Button>
+                            <Button fullWidth sx={{ backgroundColor: infoColor }} variant='contained'>{t('ThemeSettings.main')}</Button>
+                            <Button fullWidth sx={{ backgroundColor: lighten(infoColor, 0.25) }} variant='contained'>{t('ThemeSettings.lightMode')}</Button>
+                            <Button fullWidth sx={{ backgroundColor: darken(infoColor, 0.25) }} variant='contained'>{t('ThemeSettings.darkMode')}</Button>
                         </Stack>
                     </AccordionDetails>
                 </Accordion>
 
                 <Accordion>
                     <AccordionSummary sx={{ color: warningColor }} expandIcon={<ExpandMoreOutlined />}>
-                        {t('warningColor')}
+                        {t('ThemeSettings.warningColor')}
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack sx={{ width: '100%', p: 3 }} direction='column' spacing={2} alignItems={'center'}>
@@ -195,16 +195,16 @@ export function ThemeSettings() {
                                 <ColorLensOutlined />
                             </IconButton>
 
-                            <Button fullWidth sx={{ backgroundColor: warningColor }} variant='contained'>{t('main')}</Button>
-                            <Button fullWidth sx={{ backgroundColor: lighten(warningColor, 0.25) }} variant='contained'>{t('lightMode')}</Button>
-                            <Button fullWidth sx={{ backgroundColor: darken(warningColor, 0.25) }} variant='contained'>{t('darkMode')}</Button>
+                            <Button fullWidth sx={{ backgroundColor: warningColor }} variant='contained'>{t('ThemeSettings.main')}</Button>
+                            <Button fullWidth sx={{ backgroundColor: lighten(warningColor, 0.25) }} variant='contained'>{t('ThemeSettings.lightMode')}</Button>
+                            <Button fullWidth sx={{ backgroundColor: darken(warningColor, 0.25) }} variant='contained'>{t('ThemeSettings.darkMode')}</Button>
                         </Stack>
                     </AccordionDetails>
                 </Accordion>
 
                 <Accordion>
                     <AccordionSummary sx={{ color: successColor }} expandIcon={<ExpandMoreOutlined />}>
-                        {t('successColor')}
+                        {t('ThemeSettings.successColor')}
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack sx={{ width: '100%', p: 3 }} direction='column' spacing={2} alignItems={'center'}>
@@ -212,16 +212,16 @@ export function ThemeSettings() {
                                 <ColorLensOutlined />
                             </IconButton>
 
-                            <Button fullWidth sx={{ backgroundColor: successColor }} variant='contained'>{t('main')}</Button>
-                            <Button fullWidth sx={{ backgroundColor: lighten(successColor, 0.25) }} variant='contained'>{t('lightMode')}</Button>
-                            <Button fullWidth sx={{ backgroundColor: darken(successColor, 0.25) }} variant='contained'>{t('darkMode')}</Button>
+                            <Button fullWidth sx={{ backgroundColor: successColor }} variant='contained'>{t('ThemeSettings.main')}</Button>
+                            <Button fullWidth sx={{ backgroundColor: lighten(successColor, 0.25) }} variant='contained'>{t('ThemeSettings.lightMode')}</Button>
+                            <Button fullWidth sx={{ backgroundColor: darken(successColor, 0.25) }} variant='contained'>{t('ThemeSettings.darkMode')}</Button>
                         </Stack>
                     </AccordionDetails>
                 </Accordion>
 
                 {/* <Accordion>
                     <AccordionSummary expandIcon={<ExpandMoreOutlined />}>
-                        {t('backgroundColor')}
+                        {t('ThemeSettings.backgroundColor')}
                     </AccordionSummary>
                     <AccordionDetails>
                         <Stack sx={{ width: '100%', p: 3 }} direction='column' spacing={2} alignItems={'center'}>

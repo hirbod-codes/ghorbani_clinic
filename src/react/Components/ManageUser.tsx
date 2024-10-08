@@ -35,13 +35,13 @@ export default function ManageUser({ roles, defaultUser, onFinish }: { roles: st
     return (
         <>
             <Stack justifyContent={'space-around'} sx={{ height: '100%', width: '100%' }} direction='column'>
-                <Typography textAlign='center' variant='h6'>{defaultUser ? t('updateUser') : t('createUser')}</Typography>
+                <Typography textAlign='center' variant='h6'>{defaultUser ? t('ManageUser.updateUser') : t('ManageUser.createUser')}</Typography>
                 <Divider sx={{ mt: 1, mb: 2 }} />
                 {/* Role Name */}
                 {
                     readsUserRoleName &&
                     <FormControl variant='standard' >
-                        <InputLabel id="role-name-label">{t('roleName')}</InputLabel>
+                        <InputLabel id="role-name-label">{t('ManageUser.roleName')}</InputLabel>
                         <Select disabled={!updatesUserRoleName} onChange={(e) => setUser({ ...user, roleName: e.target.value })} labelId="role-name-label" value={user?.roleName ?? ''} error={(user?.roleName ?? '') === ''} fullWidth >
                             {roles.map((r, i) =>
                                 <MenuItem key={i} value={r}>{r}</MenuItem>
@@ -52,12 +52,12 @@ export default function ManageUser({ roles, defaultUser, onFinish }: { roles: st
                 {/* Username */}
                 {
                     readsUserUsername &&
-                    <TextField variant='standard' type='text' disabled={!updatesUserUsername} onChange={(e) => setUser({ ...user, username: e.target.value })} value={user?.username ?? ''} label={t('username')} error={(user?.username ?? '') === ''} fullWidth />
+                    <TextField variant='standard' type='text' disabled={!updatesUserUsername} onChange={(e) => setUser({ ...user, username: e.target.value })} value={user?.username ?? ''} label={t('ManageUser.username')} error={(user?.username ?? '') === ''} fullWidth />
                 }
                 {/* Password */}
                 {
                     readsUserPassword &&
-                    <TextField variant='standard' type='password' disabled={!updatesUserPassword} onChange={(e) => setUser({ ...user, password: e.target.value })} value={user?.password ?? ''} label={t('password')} fullWidth />
+                    <TextField variant='standard' type='password' disabled={!updatesUserPassword} onChange={(e) => setUser({ ...user, password: e.target.value })} value={user?.password ?? ''} label={t('ManageUser.password')} fullWidth />
                 }
                 <Divider sx={{ mt: 2, mb: 2 }} />
                 <Button fullWidth startIcon={<CheckOutlined />} onClick={async () => {
@@ -71,14 +71,14 @@ export default function ManageUser({ roles, defaultUser, onFinish }: { roles: st
                         if (res.code !== 200 || !res.data.acknowledged || res.data.matchedCount !== 1 || res.data.modifiedCount !== 1) {
                             publish(RESULT_EVENT_NAME, {
                                 severity: 'error',
-                                message: t('failedToUpdateUser'),
+                                message: t('ManageUser.failedToUpdateUser'),
                             })
                             return
                         }
 
                         publish(RESULT_EVENT_NAME, {
                             severity: 'success',
-                            message: t('successfullyUpdatedUser'),
+                            message: t('ManageUser.successfullyUpdatedUser'),
                         })
 
                         if (auth.user._id === user._id)
@@ -90,21 +90,21 @@ export default function ManageUser({ roles, defaultUser, onFinish }: { roles: st
                         if (res.code !== 200 || !res.data.acknowledged) {
                             publish(RESULT_EVENT_NAME, {
                                 severity: 'error',
-                                message: t('failedToRegisterUser'),
+                                message: t('ManageUser.failedToRegisterUser'),
                             })
                             return
                         }
 
                         publish(RESULT_EVENT_NAME, {
                             severity: 'success',
-                            message: t('successfullyRegisteredUser'),
+                            message: t('ManageUser.successfullyRegisteredUser'),
                         })
                     }
 
                     if (onFinish)
                         onFinish()
                 }}>
-                    {t('done')}
+                    {t('ManageUser.done')}
                 </Button>
             </Stack>
         </>

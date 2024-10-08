@@ -51,7 +51,7 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
         if (res.code !== 200) {
             publish(RESULT_EVENT_NAME, {
                 severity: 'error',
-                message: t('failedToFetchMedicalHistories')
+                message: t('MedicalHistory.failedToFetchMedicalHistories')
             })
 
             return
@@ -59,7 +59,7 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
 
         publish(RESULT_EVENT_NAME, {
             severity: 'success',
-            message: t('successfullyFetchedMedicalHistories')
+            message: t('MedicalHistory.successfullyFetchedMedicalHistories')
         })
 
         const mh = res.data.map(m => m.name).filter(f => f !== null || f !== undefined || f.trim() !== '') ?? []
@@ -107,8 +107,8 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                     if (hasUnsavedChanges)
                         setDialog({
                             open: true,
-                            title: t('exiting'),
-                            content: t('areYouSure?YouHaveUnsavedChanges'),
+                            title: t('MedicalHistory.exiting'),
+                            content: t('MedicalHistory.areYouSure?YouHaveUnsavedChanges'),
                             e,
                             r
                         })
@@ -134,7 +134,7 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                                             <LoadingScreen>
                                                 {!loading &&
                                                     <Button variant="outlined" onClick={async () => await init()} sx={{ mt: 1 }}>
-                                                        {t('tryAgain')}
+                                                        {t('MedicalHistory.tryAgain')}
                                                     </Button>
                                                 }
                                             </LoadingScreen>
@@ -158,7 +158,7 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                                                                         if (res.code !== 200 || !res.data.acknowledged) {
                                                                             publish(RESULT_EVENT_NAME, {
                                                                                 severity: 'error',
-                                                                                message: t('failedToRemoveMedicalHistory')
+                                                                                message: t('MedicalHistory.failedToRemoveMedicalHistory')
                                                                             })
 
                                                                             return
@@ -166,7 +166,7 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
 
                                                                         publish(RESULT_EVENT_NAME, {
                                                                             severity: 'success',
-                                                                            message: t('successfullyRemovedMedicalHistory')
+                                                                            message: t('MedicalHistory.successfullyRemovedMedicalHistory')
                                                                         })
 
                                                                         setFetchedHistories(fetchedHistories.filter((f, fi) => fi !== i))
@@ -228,11 +228,11 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                         <Paper sx={{ position: 'absolute', top: 0, width: '100%', height: '100%', padding: '0.5rem 2rem', overflow: 'hidden' }} onClick={() => { if (openDrawer) setOpenDrawer(false) }}>
                             {/* <Stack direction='column' spacing={2} sx={{ height: '100%' }}> */}
                             <Grid container sx={{ height: '100%' }} columns={24}>
-                                <Grid item xs={11} sx={{ height:'100%'}}>
+                                <Grid item xs={11} sx={{ height: '100%' }}>
                                     <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3 }}>
                                         <Stack direction='column' sx={{ height: '100%' }}>
                                             <Typography variant='h4'>
-                                                {t('medicalHistory')}
+                                                {t('MedicalHistory.medicalHistory')}
                                             </Typography>
                                             <Divider />
                                             <List sx={{ overflow: 'auto', flexGrow: 2 }}>
@@ -250,10 +250,10 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                                     <Divider orientation="vertical" variant='middle' />
                                 </Grid>
 
-                                <Grid item xs={11} sx={{ height:'100%'}}>
+                                <Grid item xs={11} sx={{ height: '100%' }}>
                                     <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3 }}>
                                         <Editor
-                                            title={t('medicalHistory')}
+                                            title={t('MedicalHistory.medicalHistory')}
                                             text={medicalHistory?.description?.text}
                                             canvasId={medicalHistory?.description?.canvas as string}
                                             onSave={(text, canvas) => {
@@ -289,7 +289,7 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                         <Grid container spacing={0}>
                             <Grid item xs={12}>
                                 <Typography variant='h5'>
-                                    {t('AddMedicalHistoryTitle')}
+                                    {t('MedicalHistory.AddMedicalHistoryTitle')}
                                 </Typography>
                             </Grid>
                             <Grid item xs={12}>
@@ -297,7 +297,7 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                             </Grid>
                             <Grid item xs={6}>
                                 <Button fullWidth variant='outlined' color='error' onClick={() => setAddingMedicalHistory(undefined)}>
-                                    {t('cancel')}
+                                    {t('MedicalHistory.cancel')}
                                 </Button>
                             </Grid>
                             <Grid item xs={6}>
@@ -312,7 +312,7 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                                     if (res.code !== 200 || !res.data.acknowledged) {
                                         publish(RESULT_EVENT_NAME, {
                                             severity: 'error',
-                                            message: t('failedToAddMedicalHistory')
+                                            message: t('MedicalHistory.failedToAddMedicalHistory')
                                         })
 
                                         return
@@ -320,13 +320,13 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
 
                                     publish(RESULT_EVENT_NAME, {
                                         severity: 'success',
-                                        message: t('successfullyAddedMedicalHistory')
+                                        message: t('MedicalHistory.successfullyAddedMedicalHistory')
                                     })
 
                                     await init()
                                     setAddingMedicalHistory(undefined)
                                 }}>
-                                    {addingMedicalHistoryLoading ? <CircularProgress /> : t('add')}
+                                    {addingMedicalHistoryLoading ? <CircularProgress /> : t('MedicalHistory.add')}
                                 </Button>
                             </Grid>
                         </Grid>
@@ -339,18 +339,18 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                     {dialog.title}
                 </DialogTitle>
                 <DialogContent>
-                    <DialogContentText>
+                    <DialogContentText whiteSpace={'break-spaces'}>
                         {dialog.content}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={closeDialog}>{t('No')}</Button>
+                    <Button onClick={closeDialog}>{t('MedicalHistory.No')}</Button>
                     <Button onClick={() => {
                         if (onClose)
                             onClose(dialog.e, dialog.r)
 
                         closeDialog()
-                    }}>{t('Yes')}</Button>
+                    }}>{t('MedicalHistory.Yes')}</Button>
                 </DialogActions>
             </Dialog>
         </>

@@ -1,4 +1,4 @@
-import { Box, Button, CircularProgress, Dialog, DialogActions, DialogTitle, Divider, Stack } from '@mui/material'
+import { Button, CircularProgress, Dialog, DialogActions, DialogTitle, Divider, Stack } from '@mui/material'
 import DbSettingsForm from '../../../react/Components/Settings/DbSettingsForm'
 import { t } from 'i18next'
 import { useContext, useState } from 'react'
@@ -22,11 +22,11 @@ export function DbSettings() {
             <Stack p={2} spacing={2} direction='column'>
                 <Stack spacing={2} direction='row'>
                     <Button variant='contained' onClick={() => setOpenSeedQuestion(true)}>
-                        {t("Seed")}
+                        {t("DbSettings.Seed")}
                     </Button>
 
                     <Button color='error' variant='contained' onClick={() => setOpenTruncateDbQuestion(true)}>
-                        {t("Truncate")}
+                        {t("DbSettings.Truncate")}
                     </Button>
                 </Stack>
 
@@ -40,7 +40,7 @@ export function DbSettings() {
                 onClose={() => setOpenSeedQuestion(false)}
             >
                 <DialogTitle>
-                    {t('doYouWantToSeedDB')}
+                    {t('DbSettings.doYouWantToSeedDB')}
                 </DialogTitle>
                 <DialogActions>
                     <Button
@@ -56,7 +56,7 @@ export function DbSettings() {
                                 else
                                     publish(RESULT_EVENT_NAME, {
                                         severity: 'error',
-                                        message: t('failedToSeedDB')
+                                        message: t('DbSettings.failedToSeedDB')
                                     });
                             } catch (error) {
                                 console.error(error);
@@ -64,9 +64,9 @@ export function DbSettings() {
                             }
                         }}
                     >
-                        {seeding ? <CircularProgress size={35} /> : t('yes')}
+                        {seeding ? <CircularProgress size={35} /> : t('DbSettings.yes')}
                     </Button>
-                    <Button onClick={() => setOpenSeedQuestion(false)}>{t('no')}</Button>
+                    <Button onClick={() => setOpenSeedQuestion(false)}>{t('DbSettings.no')}</Button>
                 </DialogActions>
             </Dialog>
 
@@ -75,7 +75,7 @@ export function DbSettings() {
                 onClose={() => setOpenTruncateDbQuestion(false)}
             >
                 <DialogTitle>
-                    {t('doYouWantToTruncateDB')}
+                    {t('DbSettings.doYouWantToTruncateDB')}
                 </DialogTitle>
                 <DialogActions>
                     <Button color='error' onClick={async () => {
@@ -93,16 +93,16 @@ export function DbSettings() {
                             else
                                 publish(RESULT_EVENT_NAME, {
                                     severity: 'error',
-                                    message: t('failedToSeedDB')
+                                    message: t('DbSettings.failedToSeedDB')
                                 });
                         } catch (error) {
                             console.error(error);
                             setTruncating(false);
                         }
                     }}>
-                        {truncating ? <CircularProgress size={35} /> : t('yes')}
+                        {truncating ? <CircularProgress size={35} /> : t('DbSettings.yes')}
                     </Button>
-                    <Button onClick={() => setOpenTruncateDbQuestion(false)}>{t('no')}</Button>
+                    <Button onClick={() => setOpenTruncateDbQuestion(false)}>{t('DbSettings.no')}</Button>
                 </DialogActions>
             </Dialog>
         </>

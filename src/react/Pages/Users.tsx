@@ -91,21 +91,21 @@ export function Users() {
             if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1) {
                 publish(RESULT_EVENT_NAME, {
                     severity: 'error',
-                    message: t('failedToDelete'),
+                    message: t('Users.failedToDelete'),
                 })
                 return
             }
 
             publish(RESULT_EVENT_NAME, {
                 severity: 'success',
-                message: t('successfullyDeleted'),
+                message: t('Users.successfullyDeleted'),
             })
         } catch (error) {
             console.error(error)
 
             publish(RESULT_EVENT_NAME, {
                 severity: 'error',
-                message: t('failedToDelete'),
+                message: t('Users.failedToDelete'),
             })
         }
     }
@@ -118,21 +118,21 @@ export function Users() {
             if (res.code !== 200) {
                 publish(RESULT_EVENT_NAME, {
                     severity: 'error',
-                    message: t('failedToDelete'),
+                    message: t('Users.failedToDelete'),
                 })
                 return
             }
 
             publish(RESULT_EVENT_NAME, {
                 severity: 'success',
-                message: t('successfullyDeleted'),
+                message: t('Users.successfullyDeleted'),
             })
         } catch (error) {
             console.error(error)
 
             publish(RESULT_EVENT_NAME, {
                 severity: 'error',
-                message: t('failedToDelete'),
+                message: t('Users.failedToDelete'),
             })
         }
     }
@@ -192,7 +192,7 @@ export function Users() {
                     readsRole &&
                     <Grid item xs={4} sm={2} onMouseLeave={() => setRoleActionsCollapse([])}>
                         <Paper sx={{ p: 1, height: '100%' }}>
-                            <Typography textAlign='center' variant='h4'>{t('roles')}</Typography>
+                            <Typography textAlign='center' variant='h4'>{t('Users.roles')}</Typography>
                             <List dense>
                                 {roles?.map((r, i) =>
                                     <div
@@ -208,7 +208,7 @@ export function Users() {
                                         <Box sx={{ mt: 1 }}></Box>
 
                                         <ListItemButton selected={role === r} onClick={async () => { await updateRows(r, false) }}>
-                                            <ListItemText primary={t(r)} />
+                                            <ListItemText primary={t(`Roles.${r}`)} />
                                         </ListItemButton>
 
                                         <Collapse in={roleActionsCollapse.includes(r)} unmountOnExit timeout={500}>
@@ -217,7 +217,7 @@ export function Users() {
                                                     <ListItemIcon>
                                                         <RemoveRedEyeOutlined />
                                                     </ListItemIcon>
-                                                    <ListItemText primary={t("show")} />
+                                                    <ListItemText primary={t("Users.show")} />
                                                 </ListItemButton>
                                                 {/* Not recommended for small projects(needs transaction support.) */}
                                                 {/* {
@@ -226,7 +226,7 @@ export function Users() {
                                                         <ListItemIcon>
                                                             {editingRole ? <CircularProgress size={20} /> : <EditOutlined />}
                                                         </ListItemIcon>
-                                                        <ListItemText primary={t("edit")} />
+                                                        <ListItemText primary={t("Users.edit")} />
                                                     </ListItemButton>
                                                 } */}
                                                 {
@@ -235,7 +235,7 @@ export function Users() {
                                                         <ListItemIcon>
                                                             {deletingRole ? <CircularProgress size={20} /> : <DeleteOutlined />}
                                                         </ListItemIcon>
-                                                        <ListItemText primary={t("delete")} />
+                                                        <ListItemText primary={t("Users.delete")} />
                                                     </ListItemButton>
                                                 }
                                             </List>
@@ -272,7 +272,7 @@ export function Users() {
                                     storeColumnVisibilityModel
                                     additionalColumns={(deletesUser || updatesUser) ? [{
                                         field: 'actions',
-                                        headerName: '',
+                                        headerName: t('Columns.actions'),
                                         headerAlign: 'center',
                                         align: 'center',
                                         type: 'actions',
@@ -280,14 +280,14 @@ export function Users() {
                                         getActions: (params) => [
                                             updatesUser
                                                 ? <GridActionsCellItem
-                                                    label={t('editUser')}
+                                                    label={t('Users.editUser')}
                                                     icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
                                                     onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === params.row._id)) }}
                                                 />
                                                 : null,
                                             deletesUser
                                                 ? <GridActionsCellItem
-                                                    label={t('deleteUser')}
+                                                    label={t('Users.deleteUser')}
                                                     icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
                                                     onClick={async () => {
                                                         await deleteUser(params.row._id);
@@ -300,8 +300,8 @@ export function Users() {
                                         ].filter(a => a != null)
                                     }] : undefined}
                                     customToolbar={[
-                                        <Button onClick={async () => await fetchUsers()} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
-                                        createsUser && <Button onClick={() => setOpenManageUserModal(true)} startIcon={<AddOutlined />}>{t('Create')}</Button>,
+                                        <Button onClick={async () => await fetchUsers()} startIcon={<RefreshOutlined />}>{t('Users.Refresh')}</Button>,
+                                        createsUser && <Button onClick={() => setOpenManageUserModal(true)} startIcon={<AddOutlined />}>{t('Users.Create')}</Button>,
                                     ]}
                                 />
                             }

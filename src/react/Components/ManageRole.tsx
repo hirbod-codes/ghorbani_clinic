@@ -115,14 +115,14 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                 // if (res.code !== 200 || res.data !== true) {
                 //     publish(RESULT_EVENT_NAME, {
                 //         severity: 'error',
-                //         message: t('roleUpdateFailure')
+                //         message: t('ManageRole.roleUpdateFailure')
                 //     })
                 //     return
                 // }
 
                 // publish(RESULT_EVENT_NAME, {
                 //     severity: 'success',
-                //     message: t('roleUpdateSuccessful')
+                //     message: t('ManageRole.roleUpdateSuccessful')
                 // })
             }
             else {
@@ -130,14 +130,14 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                 if (res.code !== 200 || !res.data.acknowledged || res.data.insertedCount <= 0) {
                     publish(RESULT_EVENT_NAME, {
                         severity: 'error',
-                        message: t('roleCreateFailure')
+                        message: t('ManageRole.roleCreateFailure')
                     })
                     return
                 }
 
                 publish(RESULT_EVENT_NAME, {
                     severity: 'success',
-                    message: t('roleCreateSuccessful')
+                    message: t('ManageRole.roleCreateSuccessful')
                 })
             }
 
@@ -152,7 +152,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                 {
                     fetchRoleFailed &&
                     <Button onClick={async () => await fetchRole()}>
-                        {t('tryAgain')}
+                        {t('ManageRole.tryAgain')}
                     </Button>
                 }
             </LoadingScreen>
@@ -162,10 +162,10 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
 
     return (
         <>
-            <Typography variant='h5' textAlign='center'>{defaultRole ? t('ManageRole') : t('createRole')}</Typography>
+            <Typography variant='h5' textAlign='center'>{defaultRole ? t('ManageRole.ManageRole') : t('ManageRole.createRole')}</Typography>
             <Divider sx={{ mt: 1, mb: 2 }} />
             {/* Role name */}
-            <TextField fullWidth variant='standard' value={roleName ?? ''} label={t('roleName')} onChange={(e) => setRoleName(e.target.value)} />
+            <TextField fullWidth variant='standard' value={roleName ?? ''} label={t('ManageRole.roleName')} onChange={(e) => setRoleName(e.target.value)} />
             {resources.map((r, i) =>
                 <Accordion key={i}>
                     <AccordionSummary expandIcon={<ExpandMoreOutlined />}>
@@ -174,7 +174,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                     <AccordionDetails>
                         <List>
                             <ListItem>
-                                <ListItemText primary={t('create')} />
+                                <ListItemText primary={t('ManageRole.create')} />
                                 <Checkbox
                                     edge="end"
                                     onChange={() => {
@@ -185,7 +185,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                                 />
                             </ListItem>
                             <ListItem>
-                                <ListItemText primary={t('read')} />
+                                <ListItemText primary={t('ManageRole.read')} />
                                 <Checkbox
                                     edge='end'
                                     checked={r?.read !== undefined}
@@ -232,7 +232,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                                 </List>
                             </Collapse>
                             <ListItem>
-                                <ListItemText primary={t('update')} />
+                                <ListItemText primary={t('ManageRole.update')} />
                                 <Checkbox
                                     edge="end"
                                     onChange={() => {
@@ -270,7 +270,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                                 </List>
                             </Collapse>
                             <ListItem>
-                                <ListItemText primary={t('delete')} />
+                                <ListItemText primary={t('ManageRole.delete')} />
                                 <Checkbox
                                     edge="end"
                                     onChange={() => {
@@ -285,7 +285,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                 </Accordion >
             )}
             <Divider sx={{ mt: 1, mb: 2 }} />
-            <Button fullWidth disabled={finishing || !roleName || roleName.trim() === ''} onClick={done}>{finishing ? <CircularProgress size={20} /> : t('done')}</Button>
+            <Button fullWidth disabled={finishing || !roleName || roleName.trim() === ''} onClick={done}>{finishing ? <CircularProgress size={20} /> : t('ManageRole.done')}</Button>
         </>
     )
 }

@@ -1,18 +1,18 @@
 {
-    "general": "General",
-    "settings": "Settings",
-    "home": "Home",
-    "language": "Language",
-    "timeZone": "Time Zone",
-    "calendar": "Calendar",
-    "persianCalendarName": "Persian",
-    "gregorianCalendarName": "Gregorian",
-    "Asia/Tehran": "Asia/Tehran",
+    "general": "عمومی",
+    "settings": "تنظیمات",
+    "home": "خانه",
+    "language": "زبان",
+    "timeZone": "منطقه زمانی",
+    "calendar": "تقویم",
+    "persianCalendarName": "شمسی",
+    "gregorianCalendarName": "میلادی",
+    "Asia/Tehran": "آسیا/تهران",
     "SearchPatientField": {
-        "search": "Search",
-        "socialId": "Social Id",
-        "InvalidSocialId": "Invalid SocialId",
-        "patientNotFound": "Patient Not Found"
+        "search": "جست و جو",
+        "socialId": "کد ملی",
+        "InvalidSocialId": "کد ملی اشتباه است",
+        "patientNotFound": "بیمار یافت نشد"
     },
     "Analytics": {
         "failedToFetchPatientsCount": "Failed to fetch patients count",
@@ -93,7 +93,7 @@
         "failedToUploadPatientsDocuments": "Failed to upload patients documents",
         "failedToRegisteredPatient": "Failed to registered patient",
         "successfullyRegisteredPatient": "Successfully registered patient",
-        "socialId": "Social Id",
+        "socialId": "کد ملی",
         "firstName": "First name",
         "lastName": "Last name",
         "address": "Address",
@@ -170,7 +170,7 @@
         "done": "Done",
         "failure": "Failure",
         "restartingIn3Seconds": "Restarting in3 seconds",
-        "search": "Search"
+        "search": "جست و جو"
     },
     "Editor": {
         "failedToUploadCanvas": "Failed to upload canvas",
@@ -199,7 +199,7 @@
         "actions": "Actions",
         "_id": "Id",
         "patientId": "Patient Id",
-        "socialId": "Social",
+        "socialId": "کد ملی",
         "roleName": "Role name",
         "username": "Username",
         "firstName": "First name",

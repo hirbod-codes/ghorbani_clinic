@@ -26,7 +26,7 @@ export const Patients = memo(function Patients() {
     if (!auth?.accessControl?.can(auth.user.roleName).read(resources.PATIENT).granted)
         navigate('/')
 
-    const [page, setPage] = useState({ offset: 0, limit: 25 })
+    const [page, setPage] = useState({ offset: 0, limit: 10 })
 
     const [initialized, setInitialized] = useState<boolean>(false)
     const [loading, setLoading] = useState<boolean>(true)
@@ -67,7 +67,7 @@ export const Patients = memo(function Patients() {
             if (res.code !== 200 || !res.data) {
                 publish(RESULT_EVENT_NAME, {
                     severity: 'error',
-                    message: t('failedToFetchPatients')
+                    message: t('Patients.failedToFetchPatients')
                 })
 
                 return
@@ -103,7 +103,7 @@ export const Patients = memo(function Patients() {
             renderCell: (params: GridRenderCellParams<any, Date>) => (params.row.address ? <Button onClick={() => {
                 setActivePatientId(patients?.find(p => p._id === params.row._id)?._id as string)
                 setShowingAddress(true)
-            }}>{t('Show')}</Button> : null)
+            }}>{t('Patients.Show')}</Button> : null)
         },
         {
             field: '_id',
@@ -114,7 +114,7 @@ export const Patients = memo(function Patients() {
             renderCell: (params: GridRenderCellParams<any, Date>) => (params.row.medicalHistory && params.row.medicalHistory.length !== 0 ? <Button onClick={() => {
                 setActivePatientId(patients?.find(p => p._id === params.row._id)?._id as string)
                 setShowingMH(true)
-            }}>{t('Show')}</Button> : null)
+            }}>{t('Patients.Show')}</Button> : null)
         },
         {
             field: 'birthDate',
@@ -137,14 +137,14 @@ export const Patients = memo(function Patients() {
         {
             field: 'actions',
             type: 'actions',
-            headerName: t('actions'),
+            headerName: t('Patients.actions'),
             headerAlign: 'center',
             align: 'center',
             width: 120,
             getActions: ({ row }: { row: any }) => [
                 updatesPatient ? <GridActionsCellItem icon={editingPatientId === row._id ? <CircularProgress size={20} /> : <EditOutlined />} onClick={() => {
                     setEditingPatientId(patients?.find(p => p._id === row._id)?._id as string)
-                }} label={t('edit')} /> : null,
+                }} label={t('Patients.edit')} /> : null,
                 deletesPatient ? <GridActionsCellItem icon={deletingPatientId === row._id ? <CircularProgress size={20} /> : <DeleteOutline />} onClick={async () => {
                     try {
                         console.group('Patients', 'deletesPatient', 'onClick')
@@ -156,18 +156,18 @@ export const Patients = memo(function Patients() {
                         if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1)
                             publish(RESULT_EVENT_NAME, {
                                 severity: 'error',
-                                message: t('failedToDeletePatient')
+                                message: t('Patients.failedToDeletePatient')
                             })
 
                         await init(page.offset, page.limit)
 
                         publish(RESULT_EVENT_NAME, {
                             severity: 'success',
-                            message: t('successfullyDeletedPatient')
+                            message: t('Patients.successfullyDeletedPatient')
                         })
                     }
                     finally { console.groupEnd() }
-                }} label={t('delete')} /> : null,
+                }} label={t('Patients.delete')} /> : null,
             ]
         },
     ]
@@ -193,8 +193,8 @@ export const Patients = memo(function Patients() {
                                 orderedColumnsFields={['actions', 'socialId', 'firstName', 'lastName', 'age', 'medicalHistory', 'phoneNumber', 'gender', 'address', 'birthDate']}
                                 storeColumnVisibilityModel
                                 customToolbar={[
-                                    <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Refresh')}</Button>,
-                                    createsPatient && <Button onClick={() => setCreatingPatient(true)} startIcon={<AddOutlined />}>{t('Create')}</Button>,
+                                    <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Patients.Refresh')}</Button>,
+                                    createsPatient && <Button onClick={() => setCreatingPatient(true)} startIcon={<AddOutlined />}>{t('Patients.Create')}</Button>,
                                 ]}
                                 additionalColumns={additionalColumns}
                             />
@@ -218,7 +218,7 @@ export const Patients = memo(function Patients() {
                 }}
                 text={patients?.find(f => f._id === activePatientId)?.address?.text}
                 canvasId={patients?.find(f => f._id === activePatientId)?.address?.canvas as string}
-                title={t('address')}
+                title={t('Patients.address')}
                 onSave={async (address, canvasId) => {
                     try {
                         console.group('Patients', 'Address', 'onSave')
@@ -233,7 +233,7 @@ export const Patients = memo(function Patients() {
                         if (res.code !== 200 || !res.data.acknowledged || res.data.matchedCount !== 1) {
                             publish(RESULT_EVENT_NAME, {
                                 severity: 'error',
-                                message: t('failedToUpdatePatientAddress')
+                                message: t('Patients.failedToUpdatePatientAddress')
                             })
 
                             return
@@ -241,7 +241,7 @@ export const Patients = memo(function Patients() {
 
                         publish(RESULT_EVENT_NAME, {
                             severity: 'success',
-                            message: t('successfullyUpdatedPatientAddress')
+                            message: t('Patients.successfullyUpdatedPatientAddress')
                         })
 
                         await init(page.offset, page.limit)
@@ -272,7 +272,7 @@ export const Patients = memo(function Patients() {
                         if (res.code !== 200 || !res.data.acknowledged || res.data.matchedCount !== 1) {
                             publish(RESULT_EVENT_NAME, {
                                 severity: 'error',
-                                message: t('failedToUpdatePatientMedicalHistory')
+                                message: t('Patients.failedToUpdatePatientMedicalHistory')
                             })
 
                             return
@@ -280,7 +280,7 @@ export const Patients = memo(function Patients() {
 
                         publish(RESULT_EVENT_NAME, {
                             severity: 'success',
-                            message: t('successfullyUpdatedPatientMedicalHistory')
+                            message: t('Patients.successfullyUpdatedPatientMedicalHistory')
                         })
 
                         await init(page.offset, page.limit)

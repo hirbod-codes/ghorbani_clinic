@@ -1,6 +1,6 @@
-import { useContext, useState, ChangeEvent } from "react";
+import { useState, ChangeEvent } from "react";
 import { t } from "i18next";
-import { CircularProgress, InputAdornment, Modal, Paper, Slide, TextField } from "@mui/material";
+import { CircularProgress, InputAdornment, TextField } from "@mui/material";
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
 import { SearchOutlined } from "@mui/icons-material";
 import { Patient } from "../../../Electron/Database/Models/Patient";
@@ -45,14 +45,14 @@ export function SearchPatientField() {
         <>
             <TextField
                 fullWidth
-                label={t('search')}
+                label={t('SearchPatientField.search')}
                 type="text"
                 variant="standard"
                 value={socialId ?? ''}
-                placeholder={t('socialId')}
+                placeholder={t('SearchPatientField.socialId')}
                 onChange={onSocialIdChange}
                 error={socialId !== undefined && socialId.length !== 10}
-                helperText={socialId !== undefined && socialId.length !== 10 ? t('InvalidSocialId') : (!loading && socialId && socialId.length === 10 && !patient ? t('patientNotFound') : '')}
+                helperText={socialId !== undefined && socialId.length !== 10 ? t('SearchPatientField.InvalidSocialId') : (!loading && socialId && socialId.length === 10 && !patient ? t('SearchPatientField.patientNotFound') : '')}
                 InputProps={{
                     startAdornment: (
                         <InputAdornment position="start">

@@ -37,7 +37,6 @@ export function DataGrid(props: DataGridProps) {
         autosizeOptions = {
             includeHeaders: true,
             includeOutliers: true,
-            // outliersFactor: 1,
             expand: false,
         }
 
@@ -82,6 +81,7 @@ export function DataGrid(props: DataGridProps) {
                 : <XDataGrid
                     {...props}
                     getRowId={(r) => r[idField]}
+                    pageSizeOptions={[10, 25, 50, 100]}
                     columns={columns}
                     rows={data}
                     rowCount={serverSidePagination ? -1 : undefined}
@@ -138,7 +138,6 @@ export function DataGrid(props: DataGridProps) {
                             </GridToolbarContainer>
                         )
                     }}
-                    // autosizeOnMount
                     apiRef={apiRef}
                     autosizeOptions={autosizeOptions}
                 />}

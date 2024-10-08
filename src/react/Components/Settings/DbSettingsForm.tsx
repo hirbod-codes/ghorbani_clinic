@@ -40,7 +40,7 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
         <>
             {!noTitle &&
                 <Typography variant={'h5'}>
-                    {t('dbSettings')}
+                    {t('DbSettingsForm.dbSettings')}
                 </Typography>
             }
 
@@ -54,14 +54,14 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
 
                 <div hidden={tabValue !== 0}>
                     <Stack direction='column' spacing={2}>
-                        <TextField variant='standard' type='text' value={username} onChange={(e) => setUsername(e.target.value)} label={t('username')} />
-                        <TextField variant='standard' type='password' value={password} onChange={(e) => setPassword(e.target.value)} label={t('password')} />
+                        <TextField variant='standard' type='text' value={username} onChange={(e) => setUsername(e.target.value)} label={t('DbSettingsForm.username')} />
+                        <TextField variant='standard' type='password' value={password} onChange={(e) => setPassword(e.target.value)} label={t('DbSettingsForm.password')} />
 
-                        <TextField variant='standard' type='text' value={url.replace('mongodb://', '')} placeholder={t('ip:port')} onChange={(e) => setUrl('mongodb://' + e.target.value.replace('mongodb://', ''))} label={t('url')} />
-                        <TextField variant='standard' type='text' value={databaseName} onChange={(e) => setDatabaseName(e.target.value)} label={t('databaseName')} />
+                        <TextField variant='standard' type='text' value={url.replace('mongodb://', '')} placeholder={t('DbSettingsForm.ip:port')} onChange={(e) => setUrl('mongodb://' + e.target.value.replace('mongodb://', ''))} label={t('DbSettingsForm.url')} />
+                        <TextField variant='standard' type='text' value={databaseName} onChange={(e) => setDatabaseName(e.target.value)} label={t('DbSettingsForm.databaseName')} />
 
                         <FormGroup>
-                            <FormControlLabel control={<Checkbox checked={supportsTransaction} onChange={(e) => setSupportsTransaction(e.target.checked)} />} label={t('supportsTransaction')} />
+                            <FormControlLabel control={<Checkbox checked={supportsTransaction} onChange={(e) => setSupportsTransaction(e.target.checked)} />} label={t('DbSettingsForm.supportsTransaction')} />
                         </FormGroup>
 
                         <Button
@@ -77,7 +77,7 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                                 if (!settings.databaseName || !settings.databaseName.match(/[a-zA-Z]+/) || !settings.url) {
                                     publish(RESULT_EVENT_NAME, {
                                         severity: 'error',
-                                        message: t('invalidSettingsProvided')
+                                        message: t('DbSettingsForm.invalidSettingsProvided')
                                     })
                                     return
                                 }
@@ -87,7 +87,7 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                                     if (!result) {
                                         publish(RESULT_EVENT_NAME, {
                                             severity: 'error',
-                                            message: t('configUpdateFailed')
+                                            message: t('DbSettingsForm.configUpdateFailed')
                                         })
 
                                         return
@@ -95,14 +95,14 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
 
                                     publish(RESULT_EVENT_NAME, {
                                         severity: 'success',
-                                        message: t('configUpdated')
+                                        message: t('DbSettingsForm.configUpdated')
                                     })
 
                                     result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.initializeDb()
                                     if (!result) {
                                         publish(RESULT_EVENT_NAME, {
                                             severity: 'error',
-                                            message: t('databaseInitializationFailed')
+                                            message: t('DbSettingsForm.databaseInitializationFailed')
                                         })
 
                                         return
@@ -110,26 +110,26 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
 
                                     publish(RESULT_EVENT_NAME, {
                                         severity: 'success',
-                                        message: t('databaseInitialized')
+                                        message: t('DbSettingsForm.databaseInitialized')
                                     })
                                 } finally {
                                     setLoading(false)
                                 }
                             }}
                         >
-                            {loading ? <CircularProgress /> : t('done')}
+                            {loading ? <CircularProgress /> : t('DbSettingsForm.done')}
                         </Button>
                     </Stack>
                 </div>
                 <div hidden={tabValue !== 1}>
                     <Stack direction='column' spacing={2}>
-                        <TextField variant='standard' type='text' value={username} onChange={(e) => setUsername(e.target.value)} label={t('username')} />
-                        <TextField variant='standard' type='password' value={password} onChange={(e) => setPassword(e.target.value)} label={t('password')} />
+                        <TextField variant='standard' type='text' value={username} onChange={(e) => setUsername(e.target.value)} label={t('DbSettingsForm.username')} />
+                        <TextField variant='standard' type='password' value={password} onChange={(e) => setPassword(e.target.value)} label={t('DbSettingsForm.password')} />
 
-                        <TextField variant='standard' type='text' value={databaseName} onChange={(e) => setDatabaseName(e.target.value)} label={t('databaseName')} />
+                        <TextField variant='standard' type='text' value={databaseName} onChange={(e) => setDatabaseName(e.target.value)} label={t('DbSettingsForm.databaseName')} />
 
                         <FormGroup>
-                            <FormControlLabel control={<Checkbox checked={supportsTransaction} onChange={(e) => setSupportsTransaction(e.target.checked)} />} label={t('supportsTransaction')} />
+                            <FormControlLabel control={<Checkbox checked={supportsTransaction} onChange={(e) => setSupportsTransaction(e.target.checked)} />} label={t('DbSettingsForm.supportsTransaction')} />
                         </FormGroup>
 
                         <Button
@@ -144,7 +144,7 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                                 if (!settings.databaseName || !settings.databaseName.match(/[a-zA-Z]+/)) {
                                     publish(RESULT_EVENT_NAME, {
                                         severity: 'error',
-                                        message: t('invalidSettingsProvided')
+                                        message: t('DbSettingsForm.invalidSettingsProvided')
                                     })
                                     return
                                 }
@@ -154,20 +154,20 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                                 if (!result) {
                                     publish(RESULT_EVENT_NAME, {
                                         severity: 'error',
-                                        message: t('failure')
+                                        message: t('DbSettingsForm.failure')
                                     })
                                     return
                                 }
 
                                 publish(RESULT_EVENT_NAME, {
                                     severity: 'success',
-                                    message: t('restartingIn3Seconds')
+                                    message: t('DbSettingsForm.restartingIn3Seconds')
                                 })
 
                                 await (window as typeof window & { dbAPI: dbAPI }).dbAPI.initializeDb()
                             }}
                         >
-                            {loading ? <CircularProgress /> : t('search')}
+                            {loading ? <CircularProgress /> : t('DbSettingsForm.search')}
                         </Button>
                     </Stack>
                 </div>

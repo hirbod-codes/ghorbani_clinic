@@ -90,17 +90,17 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                 id = patient?._id
                 const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.updatePatient(patient);
                 if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.matchedCount !== 1 || res.data.modifiedCount !== 1)
-                    throw new Error(t('failedToUpdatePatient'))
+                    throw new Error(t('ManagePatient.failedToUpdatePatient'))
                 for (const visit of visits) {
                     const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.updateVisit(visit);
                     if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.matchedCount !== 1 || res.data.modifiedCount !== 1)
-                        throw new Error(t('failedToUpdatePatientVisits'))
+                        throw new Error(t('ManagePatient.failedToUpdatePatientVisits'))
                 }
             }
             else {
                 const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createPatient(patient)
                 if (res.code !== 200 || res.data.acknowledged !== true || res.data.insertedId.toString() === '')
-                    throw new Error(t('failedToRegisterPatient'))
+                    throw new Error(t('ManagePatient.failedToRegisterPatient'))
 
                 id = res.data.insertedId.toString()
 
@@ -109,32 +109,32 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                     if (visit._id) {
                         const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.updateVisit(visit);
                         if (res.code !== 200 || !res.data.acknowledged)
-                            throw new Error(t('failedToRegisterPatientVisits'))
+                            throw new Error(t('ManagePatient.failedToRegisterPatientVisits'))
                     }
                     else {
                         const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.createVisit(visit);
                         if (res.code !== 200 || !res.data.acknowledged || res.data.insertedId.toString() === '')
-                            throw new Error(t('failedToRegisterPatientVisits'))
+                            throw new Error(t('ManagePatient.failedToRegisterPatientVisits'))
                     }
                 }
             }
 
             response = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadFiles(id as string, files)
             if (response.code !== 200 || response.data !== true)
-                throw new Error(t('failedToUploadPatientsDocuments'))
+                throw new Error(t('ManagePatient.failedToUploadPatientsDocuments'))
         } catch (error) {
             console.error(error)
         } finally {
             if (!response || response.data !== true) {
                 publish(RESULT_EVENT_NAME, {
                     severity: 'error',
-                    message: t('failedToRegisteredPatient')
+                    message: t('ManagePatient.failedToRegisteredPatient')
                 })
             }
 
             publish(RESULT_EVENT_NAME, {
                 severity: 'success',
-                message: t('successfullyRegisteredPatient')
+                message: t('ManagePatient.successfullyRegisteredPatient')
             })
         }
     }
@@ -170,7 +170,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                     {/* Social Id */}
                                                     <Stack direction='row' justifyContent='space-between' alignItems='center'>
                                                         <Typography variant='body1'>
-                                                            {t('socialId')}
+                                                            {t('ManagePatient.socialId')}
                                                         </Typography>
                                                         <TextField variant='standard' onChange={(e) => {
                                                             const id = e.target.value
@@ -185,7 +185,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                     {/* First name */}
                                                     <Stack direction='row' justifyContent='space-between' alignItems='center'>
                                                         <Typography variant='body1'>
-                                                            {t('firstName')}
+                                                            {t('ManagePatient.firstName')}
                                                         </Typography>
                                                         <TextField variant='standard' onChange={(e) => setPatient({ ...patient, firstName: e.target.value })} id='firstName' value={patient?.firstName ?? ''} sx={{ width: '7rem' }} />
                                                     </Stack>
@@ -193,14 +193,14 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                     {/* Last name */}
                                                     <Stack direction='row' justifyContent='space-between' alignItems='center'>
                                                         <Typography variant='body1'>
-                                                            {t('lastName')}
+                                                            {t('ManagePatient.lastName')}
                                                         </Typography>
                                                         <TextField variant='standard' onChange={(e) => setPatient({ ...patient, lastName: e.target.value })} id='lastName' value={patient?.lastName ?? ''} sx={{ width: '7rem' }} />
                                                     </Stack>
 
                                                     {/* Address */}
                                                     <Button sx={{ width: 'fit-content' }} variant='outlined' onClick={() => setShowAddress(true)}>
-                                                        {t('address')}
+                                                        {t('ManagePatient.address')}
                                                     </Button>
                                                     <EditorModal
                                                         open={showAddress}
@@ -208,17 +208,18 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                         text={patient?.address?.text}
                                                         canvasId={patient?.address?.canvas as string}
                                                         onSave={(address, canvasId) => setPatient({ ...patient, address: { text: address, canvas: canvasId } })}
-                                                        title={t('address')}
+                                                        title={t('ManagePatient.address')}
                                                     />
 
                                                     {/* Medical History */}
                                                     <Button sx={{ width: 'fit-content' }} variant='outlined' onClick={() => setShowMedicalHistory(true)}>
-                                                        {t('medicalHistory')}
+                                                        {t('ManagePatient.medicalHistory')}
                                                     </Button>
                                                     <MedicalHistory
                                                         open={showMedicalHistory}
+                                                        onClose={() => setShowMedicalHistory(false)}
                                                         inputMedicalHistory={patient?.medicalHistory}
-                                                        onChange={(mh) => {
+                                                        onSave={(mh) => {
                                                             setPatient({ ...patient, medicalHistory: mh });
                                                             setShowMedicalHistory(false)
                                                         }}
@@ -275,7 +276,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                     {/* Phone Number */}
                                                     <Stack direction='row' justifyContent='space-between' alignItems='center'>
                                                         <Typography variant='body1'>
-                                                            {t('phoneNumber')}
+                                                            {t('ManagePatient.phoneNumber')}
                                                         </Typography>
                                                         <TextField variant='standard' value={patient?.phoneNumber ?? ''} sx={{ width: '7rem' }} />
                                                     </Stack>
@@ -283,7 +284,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                     {/* Age */}
                                                     <Stack direction='row' justifyContent='space-between' alignItems='center'>
                                                         <Typography variant='body1'>
-                                                            {t('age')}
+                                                            {t('ManagePatient.age')}
                                                         </Typography>
                                                         <TextField variant='standard' value={patient?.age ?? ''} sx={{ width: '7rem' }} disabled />
                                                     </Stack>
@@ -291,7 +292,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                     {/* Birth Date */}
                                                     <Stack direction='row' justifyContent='space-between' alignItems='center'>
                                                         <Typography variant='body1'>
-                                                            {t('birthDate')}
+                                                            {t('ManagePatient.birthDate')}
                                                         </Typography>
                                                         <DateField
                                                             width='4rem'
@@ -312,7 +313,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                     {/* Gender */}
                                                     <Stack direction='row' justifyContent='space-between' alignItems='center'>
                                                         <Typography variant='body1'>
-                                                            {t('gender')}
+                                                            {t('ManagePatient.gender')}
                                                         </Typography>
                                                         <FormControl variant='standard' >
                                                             <Select onChange={(e) => setPatient({ ...patient, gender: e.target.value })} value={patient?.gender ?? ''} sx={{ width: '7rem' }} >
@@ -343,7 +344,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                         setDialogContent('Are you sure?')
                                                         setDialogOpen(true)
                                                     }}>
-                                                    {t('done')}
+                                                    {t('ManagePatient.done')}
                                                 </Button>
                                             </Grid>
                                             <Grid item xs={11}>

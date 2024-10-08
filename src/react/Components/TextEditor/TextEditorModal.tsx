@@ -39,8 +39,8 @@ export function TextEditorModal({ open, onClose, onSave: onChange, onSave, place
                     if (hasUnsavedChanges)
                         setDialog({
                             open: true,
-                            title: t('exiting'),
-                            content: t('areYouSure?YouHaveUnsavedChanges'),
+                            title: t('TextEditorModal.exiting'),
+                            content: t('TextEditorModal.areYouSure?YouHaveUnsavedChanges'),
                             e,
                             r
                         })
@@ -70,11 +70,11 @@ export function TextEditorModal({ open, onClose, onSave: onChange, onSave, place
                             <TextEditor
                                 placeholder={placeholder}
                                 text={text}
-                                onSave={(t) => {
+                                onChange={(t: string) => {
                                     setHasUnsavedChanges(true)
                                     setText(t)
                                     if (onChange)
-                                        onChange()
+                                        onChange(t)
                                 }}
                             />
                         </Stack>
@@ -92,13 +92,13 @@ export function TextEditorModal({ open, onClose, onSave: onChange, onSave, place
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={closeDialog}>{t('No')}</Button>
+                    <Button onClick={closeDialog}>{t('TextEditorModal.No')}</Button>
                     <Button onClick={() => {
                         if (onClose)
                             onClose(dialog.e, dialog.r)
 
                         closeDialog()
-                    }}>{t('Yes')}</Button>
+                    }}>{t('TextEditorModal.Yes')}</Button>
                 </DialogActions>
             </Dialog>
         </>

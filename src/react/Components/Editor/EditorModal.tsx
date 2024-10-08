@@ -38,8 +38,8 @@ export function EditorModal({ open, onClose, title, text, canvasId, onChange, on
                     if (hasUnsavedChanges)
                         setDialog({
                             open: true,
-                            title: t('exiting'),
-                            content: t('areYouSure?YouHaveUnsavedChanges'),
+                            title: t('EditorModal.exiting'),
+                            content: t('EditorModal.areYouSure?YouHaveUnsavedChanges'),
                             e,
                             r
                         })
@@ -63,18 +63,18 @@ export function EditorModal({ open, onClose, title, text, canvasId, onChange, on
                     {dialog.title}
                 </DialogTitle>
                 <DialogContent>
-                    <DialogContentText>
+                    <DialogContentText whiteSpace={'break-spaces'}>
                         {dialog.content}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={closeDialog}>{t('No')}</Button>
+                    <Button onClick={closeDialog}>{t('EditorModal.No')}</Button>
                     <Button onClick={() => {
                         if (onClose)
                             onClose(dialog.e, dialog.r)
 
                         closeDialog()
-                    }}>{t('Yes')}</Button>
+                    }}>{t('EditorModal.Yes')}</Button>
                 </DialogActions>
             </Dialog>
         </>

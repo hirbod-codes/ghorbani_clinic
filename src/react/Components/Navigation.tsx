@@ -55,7 +55,7 @@ export function Navigation() {
                                 <ListItemIcon>
                                     <HomeOutlined />
                                 </ListItemIcon>
-                                <ListItemText color='white' primary={t('home')} />
+                                <ListItemText color='white' primary={t('Navigation.home')} />
                             </ListItemButton>
 
                             <Box sx={{ mb: 8 }} />
@@ -65,7 +65,7 @@ export function Navigation() {
                                     <ListItemIcon>
                                         <PersonOutlined />
                                     </ListItemIcon>
-                                    <ListItemText color='white' primary={t('users')} />
+                                    <ListItemText color='white' primary={t('Navigation.users')} />
                                 </ListItemButton>}
 
                             <Box sx={{ mb: 2 }} />
@@ -75,7 +75,7 @@ export function Navigation() {
                                     <ListItemIcon>
                                         <MasksOutlined />
                                     </ListItemIcon>
-                                    <ListItemText color='white' primary={t('patients')} />
+                                    <ListItemText color='white' primary={t('Navigation.patients')} />
                                 </ListItemButton>}
 
                             <Box sx={{ mb: 2 }} />
@@ -85,7 +85,7 @@ export function Navigation() {
                                     <ListItemIcon>
                                         <AccessTimeOutlined />
                                     </ListItemIcon>
-                                    <ListItemText color='white' primary={t('visits')} />
+                                    <ListItemText color='white' primary={t('Navigation.visits')} />
                                 </ListItemButton>}
 
                             <Box sx={{ mb: 8 }} />
@@ -94,14 +94,14 @@ export function Navigation() {
                                 <ListItemIcon>
                                     <DisplaySettingsOutlined />
                                 </ListItemIcon>
-                                <ListItemText color='white' primary={t("general")} />
+                                <ListItemText color='white' primary={t("Navigation.general")} />
                             </ListItemButton>
 
                             <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/ThemeSettings')}>
                                 <ListItemIcon>
                                     <FormatPaintOutlined />
                                 </ListItemIcon>
-                                <ListItemText color='white' primary={t("Theme")} />
+                                <ListItemText color='white' primary={t("Navigation.Theme")} />
                             </ListItemButton>
 
                             <Box sx={{ mb: 8 }} />
@@ -110,7 +110,7 @@ export function Navigation() {
                                 <ListItemIcon>
                                     <StorageOutlined />
                                 </ListItemIcon>
-                                <ListItemText color='white' primary={t("Db")} />
+                                <ListItemText color='white' primary={t("Navigation.Db")} />
                             </ListItemButton>
                         </List>
                         <Box sx={{ height: '100%', width: '2px', background: `radial-gradient(ellipse farthest-side at center, ${appBarBorderColor}, transparent)` }} />

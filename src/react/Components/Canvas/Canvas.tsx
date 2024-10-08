@@ -97,8 +97,8 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
                             <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
                                 <ColorLensOutlined />
                             </IconButton>
-                            <TextField type='text' label={t('radius')} sx={{ width: '5rem' }} variant='standard' onChange={(e) => setRadius(e.target.value)} value={radius.toString()} />
-                            <TextField type='text' label={t('lineWidth')} sx={{ width: '5rem' }} variant='standard' onChange={(e) => setLineWidth(e.target.value)} value={lineWidth.toString()} />
+                            <TextField type='text' label={t('Canvas.radius')} sx={{ width: '5rem' }} variant='standard' onChange={(e) => setRadius(e.target.value)} value={radius.toString()} />
+                            <TextField type='text' label={t('Canvas.lineWidth')} sx={{ width: '5rem' }} variant='standard' onChange={(e) => setLineWidth(e.target.value)} value={lineWidth.toString()} />
                             <IconButton onClick={() => {
                                 if (tool !== 'pencil')
                                     setTool('pencil')
@@ -125,9 +125,9 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
                                     setRadius('0.3')
                                 }}
                             >
-                                {t('reset')}
+                                {t('Canvas.reset')}
                             </Button>
-                            <Button variant='outlined' onClick={() => { clear() }}>{t('clean')}</Button>
+                            <Button variant='outlined' onClick={() => { clear() }}>{t('Canvas.clean')}</Button>
                         </Stack >
                     </Box>
 
