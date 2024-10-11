@@ -1,4 +1,4 @@
-import { Box, Button, Checkbox, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Grid, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Modal, Paper, Slide, Stack, TextField, Typography } from "@mui/material";
+import { Box, Button, Checkbox, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Grid, IconButton, List, ListItem, ListItemButton, ListItemIcon, ListItemText, Modal, Paper, Slide, Stack, TextField, Typography, useTheme } from "@mui/material";
 import { t } from "i18next";
 import { useState, useEffect } from 'react'
 import { ArrowBox } from "./ArrowBox";
@@ -9,7 +9,7 @@ import LoadingScreen from "../LoadingScreen";
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
-import { AddOutlined, DeleteOutlined } from "@mui/icons-material";
+import { AddOutlined, ArrowLeftOutlined, ArrowRightOutlined, DeleteOutlined } from "@mui/icons-material";
 import { Editor } from "../Editor/Editor";
 import { TrashIcon } from "../Icons/TrashIcon";
 
@@ -22,6 +22,8 @@ export type MedicalHistoryProps = {
 }
 
 export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onChange }: MedicalHistoryProps) {
+    const theme = useTheme()
+
     const [openDrawer, setOpenDrawer] = useState<boolean>(false)
 
     const [removingMedicalHistoryLoading, setRemovingMedicalHistoryLoading] = useState<number | undefined>(undefined)
@@ -39,7 +41,7 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
     const [containerRef, { height }] = useMeasure()
 
     const drawerAnimationLeft = useSpring({
-        left: openDrawer ? '0' : '-50%',
+        left: theme.direction === 'ltr' ? (openDrawer ? '0' : '-50%') : (openDrawer ? '0%' : '100%'),
         config: { easing: easings.easeInBack }
     })
 
@@ -221,12 +223,15 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                             </Paper>
                         </animated.div>
 
-                        <Box sx={{ cursor: 'pointer', position: 'absolute', top: '50%', transform: 'translate(0, -50%)', zIndex: 9 }} onClick={() => setOpenDrawer(true)}>
-                            <ArrowBox />
-                        </Box>
+                        <Stack direction='column' justifyContent='center' sx={{ borderRadius: 1, height: '2rem', boxShadow: '0px 0px 10px 2px rgba(0,0,0,0.2)', cursor: 'pointer', position: 'absolute', top: '50%', transform: 'translate(0, -50%)', zIndex: 9 }} onClick={() => setOpenDrawer(true)}>
+                            {
+                                theme.direction === 'ltr'
+                                    ? <ArrowRightOutlined />
+                                    : <ArrowLeftOutlined />
+                            }
+                        </Stack>
 
                         <Paper sx={{ position: 'absolute', top: 0, width: '100%', height: '100%', padding: '0.5rem 2rem', overflow: 'hidden' }} onClick={() => { if (openDrawer) setOpenDrawer(false) }}>
-                            {/* <Stack direction='column' spacing={2} sx={{ height: '100%' }}> */}
                             <Grid container sx={{ height: '100%' }} columns={24}>
                                 <Grid item xs={11} sx={{ height: '100%' }}>
                                     <Paper elevation={2} sx={{ width: '100%', height: '100%', p: 3 }}>
@@ -270,7 +275,6 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                                     </Paper>
                                 </Grid>
                             </Grid>
-                            {/* </Stack> */}
                         </Paper>
                     </Box>
                 </Slide>
