@@ -75,7 +75,7 @@
     },
     "Patients": {
         "failedToFetchPatients": "بازیابی اطلاعات بیماران با شکست مواجه شد",
-        "نمایش": "نمایش",
+        "Show": "نمایش",
         "actions": "اقدامات",
         "edit": "ویرایش",
         "failedToDeletePatient": "حذف بیمار با شکست مواجه شد",
@@ -126,7 +126,7 @@
     },
     "Visits": {
         "failedToFetchVisits": "بازیابی ویزیت‌ها با شکست مواجه شد",
-        "نمایش": "نمایش",
+        "Show": "نمایش",
         "Refresh": "به‌روزرسانی",
         "actions": "اقدامات",
         "failedToDeleteVisit": "حذف ویزیت با شکست مواجه شد",
