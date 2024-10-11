@@ -17,6 +17,7 @@ import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish, subscribe } from "../Lib/Events";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import { useNavigate } from "react-router-dom";
+import LoadingScreen from "../Components/LoadingScreen";
 
 export function Users() {
     const configuration = useContext(ConfigurationContext)
@@ -260,9 +261,9 @@ export function Users() {
                 {
                     readsUser &&
                     <Grid item xs={readsRole ? 8 : 12} sm={readsRole ? 10 : 12}>
-                        <Paper sx={{ p: 1, height: '100%' }}>
+                        <Paper sx={{ p: 1, height: '100%' }} elevation={3}>
                             {!showGrid
-                                ? <CircularProgress size='medium' />
+                                ? <LoadingScreen />
                                 : <DataGrid
                                     name='users'
                                     data={rows}

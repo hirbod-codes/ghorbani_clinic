@@ -15,6 +15,7 @@ import { DeleteOutline, RefreshOutlined } from "@mui/icons-material";
 import { EditorModal } from "../Components/Editor/EditorModal";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import { useNavigate } from "react-router-dom";
+import LoadingScreen from "../Components/LoadingScreen";
 
 export function Visits() {
     const auth = useContext(AuthContext)
@@ -150,9 +151,9 @@ export function Visits() {
         <>
             <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
                 <Grid item xs={12} height={'100%'}>
-                    <Paper sx={{ p: 1, height: '100%', overflow: 'auto' }}>
+                    <Paper sx={{ p: 1, height: '100%', overflow: 'auto' }} elevation={3}>
                         {!visits || visits.length === 0 || !showGrid
-                            ? <CircularProgress size='medium' />
+                            ? <LoadingScreen />
                             : <DataGrid
                                 name='visits'
                                 data={visits}

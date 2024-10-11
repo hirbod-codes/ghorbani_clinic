@@ -17,6 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { MedicalHistory } from "../Components/Patients/MedicalHistory";
 import { EditorModal } from "../Components/Editor/EditorModal";
 import { ManagePatient } from "../Components/Patients/ManagePatient";
+import LoadingScreen from "../Components/LoadingScreen";
 
 export const Patients = memo(function Patients() {
     const auth = useContext(AuthContext)
@@ -176,9 +177,9 @@ export const Patients = memo(function Patients() {
         <>
             <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
                 <Grid item xs={12} height={'100%'}>
-                    <Paper style={{ padding: '1rem', height: '100%' }}>
+                    <Paper style={{ padding: '1rem', height: '100%' }} elevation={3}>
                         {!patients || patients?.length === 0 || !showGrid
-                            ? <CircularProgress size='medium' />
+                            ? <LoadingScreen />
                             : <DataGrid
                                 name='patients'
                                 data={patients ?? []}
