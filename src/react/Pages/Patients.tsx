@@ -18,6 +18,8 @@ import { MedicalHistory } from "../Components/Patients/MedicalHistory";
 import { EditorModal } from "../Components/Editor/EditorModal";
 import { ManagePatient } from "../Components/Patients/ManagePatient";
 import LoadingScreen from "../Components/LoadingScreen";
+import { Modal } from "../Components/Modal";
+import { DataGridTanStack } from "../Components/DataGrid/TEST";
 
 export const Patients = memo(function Patients() {
     const auth = useContext(AuthContext)
@@ -173,8 +175,18 @@ export const Patients = memo(function Patients() {
         },
     ]
 
+    const [open, setOpen] = useState(false)
+
     return (
         <>
+            <Button onClick={() => setOpen(true)}>open</Button>
+
+            <Modal open={open} onClose={() => setOpen(false)}>
+                <div style={{ direction: 'ltr', height: '100%', width: '100%' }}>
+                    <DataGridTanStack configName="Patients" data={undefined} />
+                </div>
+            </Modal>
+
             <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
                 <Grid item xs={12} height={'100%'}>
                     <Paper style={{ padding: '1rem', height: '100%' }} elevation={3}>

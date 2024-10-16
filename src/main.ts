@@ -1,9 +1,10 @@
 import os from 'os'
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain } from 'electron';
 import { handleMenuEvents } from './Electron/Menu/menu';
 import { handleConfigEvents, readConfig, writeConfigSync } from './Electron/Configuration/main';
 import { db, handleDbEvents } from './Electron/Database/main';
 import path from 'path';
+import { writeFileSync } from 'fs';
 
 const c = readConfig()
 
@@ -25,7 +26,7 @@ const ip = Object.entries(interfaces)
 console.log('address: ', ip);
 
 if (!ip)
-    throw new Error('Failed to find the host IP address.')
+    console.warn('Failed to find the host IP address.')
 
 writeConfigSync({
     ...c,
@@ -35,14 +36,17 @@ writeConfigSync({
 if (require('electron-squirrel-startup'))
     app.quit();
 
+let mainWindow: BrowserWindow;
+
 const createWindow = (): void => {
-    const mainWindow = new BrowserWindow({
-        fullscreen: false,
-        frame: false,
-        webPreferences: {
-            preload: path.join(__dirname, 'preload.js'),
-        },
-    });
+    if (!mainWindow)
+        mainWindow = new BrowserWindow({
+            fullscreen: false,
+            frame: false,
+            webPreferences: {
+                preload: path.join(__dirname, 'preload.js'),
+            },
+        });
 
     if (MAIN_WINDOW_VITE_DEV_SERVER_URL)
         mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
@@ -58,6 +62,12 @@ app.on('ready', async () => {
     ipcMain.on('relaunch-app', () => {
         app.relaunch()
         app.exit()
+    })
+
+    ipcMain.on('save-file', (_e, { content }: { content: string }) => {
+        const address = dialog.showSaveDialogSync(mainWindow, { title: 'Save file' })
+
+        writeFileSync(address, content)
     })
 
     handleConfigEvents()

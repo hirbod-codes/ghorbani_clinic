@@ -1,10 +1,15 @@
 import { Box, Grid } from "@mui/material";
 import { SearchPatientField } from "../Components/Search/SearchPatientField";
 import { Analytics } from "../Components/Home/Analytics";
+import { DataGridTanStack } from "../Components/DataGrid/TEST";
+import { Modal } from "../Components/Modal";
+import { Canvas } from "../Components/Canvas/test/Canvas";
+import { useState } from "react";
 
 export function Home() {
     console.log('Home')
 
+    const [open, setOpen] = useState(true)
     return (
         <>
             <Grid container spacing={1} p={1}>
@@ -21,6 +26,20 @@ export function Home() {
                 <Grid item xs={12}>
                     <Analytics />
                 </Grid>
+
+                <Grid item xs={12}>
+                    <Modal open={open} onClose={() => setOpen(false)}>
+                        <div style={{ direction: 'ltr', height: '100%', width: '100%' }}>
+                            <DataGridTanStack configName="test" data={undefined} />
+                        </div>
+                    </Modal>
+                </Grid>
+
+                {/* <Grid item xs={12}>
+                    <Modal open={true} >
+                        <Canvas />
+                    </Modal>
+                </Grid> */}
             </Grid>
         </>
     )

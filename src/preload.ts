@@ -1,8 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 import * as menu from './Electron/Menu/renderer/menu'
 import * as configs from './Electron/Configuration/renderer'
-import type { menuAPI } from './Electron/Menu/renderer/menuAPI'
-import { configAPI } from './Electron/Configuration/renderer/configAPI'
+import { menuAPI } from './Electron/Menu/renderer/menuAPI'
 import { handleDbRendererEvents } from './Electron/Database/renderer'
 import { handleAppRendererEvents } from './Electron/handleAppRendererEvents'
 
@@ -21,6 +20,6 @@ contextBridge.exposeInMainWorld('menuAPI', {
 contextBridge.exposeInMainWorld('configAPI', {
     readConfig: configs.readConfig,
     writeConfig: configs.writeConfig,
-} as configAPI)
+} as configs.configAPI)
 
 contextBridge.exposeInMainWorld('dbAPI', handleDbRendererEvents())

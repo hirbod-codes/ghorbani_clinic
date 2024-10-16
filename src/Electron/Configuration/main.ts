@@ -6,6 +6,7 @@ import { CONFIGURATION_DIRECTORY } from '../../directories';
 import type { ConfigurationStorableData } from "../../react/Contexts/ConfigurationContext"
 import { GridColumnVisibilityModel } from '@mui/x-data-grid';
 import { User } from '../Database/Models/User';
+import { VisibilityState } from '@tanstack/react-table';
 
 export type MongodbConfig = {
     supportsTransaction: boolean;
@@ -36,7 +37,8 @@ export type Config = {
     isMaster?: boolean,
     port?: number,
     ip?: string,
-    columnVisibilityModels?: { [k: string]: GridColumnVisibilityModel }
+    columnVisibilityModels?: { [k: string]: VisibilityState }
+    columnOrderModels?: { [k: string]: string[] }
 }
 
 export function handleConfigEvents() {
