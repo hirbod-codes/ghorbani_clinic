@@ -15,7 +15,7 @@ export function ColumnVisibilityButton() {
     return (
         <>
             <Button onClick={(event: MouseEvent<HTMLButtonElement>) => setAnchorEl(event.currentTarget)} startIcon={<ViewWeekOutlined />}>
-                {t('Columns.Columns')}
+                {t('Columns.columns')}
             </Button>
             <Menu anchorEl={anchorEl} open={open} onClose={() => setAnchorEl(null)}>
                 {table.getAllColumns().map((column, i) =>

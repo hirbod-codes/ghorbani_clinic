@@ -2,9 +2,11 @@ import { Fragment, ReactNode, useEffect, useMemo, useState } from 'react'
 
 import {
     ColumnDef,
+    PaginationState,
     Table,
     VisibilityState,
     getCoreRowModel,
+    getPaginationRowModel,
     useReactTable,
 } from '@tanstack/react-table'
 import { makeData, Person } from './makeData'
@@ -49,7 +51,7 @@ export type DataGridTanStackProps = {
     footerNodes?: ReactNode[],
     appendHeaderNodes?: ReactNode[],
     appendFooterNodes?: ReactNode[],
-    pagination?: boolean,
+    hasPagination?: boolean,
     paginationLimitOptions?: number[],
     onPagination?: (paginationLimit: number, pageOffset: number) => Promise<void> | void,
     loading?: boolean
@@ -64,7 +66,7 @@ export function DataGridTanStack({
     footerNodes = [],
     appendHeaderNodes = [],
     appendFooterNodes = [],
-    pagination = true,
+    hasPagination = false,
     paginationLimitOptions = [10, 25, 50, 100],
     onPagination,
     loading = false
@@ -115,6 +117,8 @@ export function DataGridTanStack({
     const [columnOrder, setColumnOrder] = useState<string[]>(columns.map(c => c.id))
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
+    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: paginationLimitOptions[0], })
+
     const [table, setTable] = useState(useReactTable({
         data,
         columns,
@@ -123,8 +127,8 @@ export function DataGridTanStack({
         state: {
             columnOrder,
             columnVisibility,
+            pagination: hasPagination && !onPagination ? pagination : undefined
         },
-        pagin
         onColumnOrderChange: async (updaterOrValue) => {
             let co
             if (typeof updaterOrValue !== 'function')
@@ -158,7 +162,9 @@ export function DataGridTanStack({
             (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
 
             setColumnVisibility(cv)
-        }
+        },
+        onPaginationChange: hasPagination && !onPagination ? setPagination : undefined,
+        getPaginationRowModel: hasPagination && !onPagination ? getPaginationRowModel() : undefined,
     }))
 
     if (!headerNodes || headerNodes.length === 0)
@@ -173,9 +179,9 @@ export function DataGridTanStack({
     if (!appendHeaderNodes || appendHeaderNodes.length === 0)
         headerNodes = headerNodes.concat(appendHeaderNodes)
 
-    if (pagination === true && (!footerNodes || footerNodes.length === 0))
+    if (hasPagination === true && (!footerNodes || footerNodes.length === 0))
         footerNodes = [
-            <Pagination paginationLimitOptions={paginationLimitOptions} onPagination={onPagination} />
+            <Pagination paginationLimitOptions={paginationLimitOptions} onPagination={onPagination} setPaginationLimitChange={(size) => setPagination({ pageIndex: pagination.pageIndex, pageSize: size })} />
         ]
 
     if (!prependFooterNodes || prependFooterNodes.length === 0)
@@ -253,7 +259,7 @@ export function DataGridTanStack({
                             ? <LoadingScreen />
                             : (
                                 data.length === 0
-                                    ? <p style={{ textAlign: 'center' }}>{t('noData')}</p>
+                                    ? <p style={{ textAlign: 'center' }}>{t('DataGrid.noData')}</p>
                                     : <div style={{ overflow: 'auto', flexGrow: 2 }}>
                                         <table style={{ borderCollapse: 'collapse', minWidth: '100%' }}>
                                             <thead style={{ position: 'sticky', top: 0, userSelect: 'none' }}>

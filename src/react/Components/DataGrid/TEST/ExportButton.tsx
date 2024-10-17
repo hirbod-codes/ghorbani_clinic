@@ -14,7 +14,7 @@ export function ExportButton() {
                 const json = JSON.stringify([].concat(table.getTopRows(), table.getCenterRows(), table.getBottomRows()), undefined, 4);
                 (window as typeof window & { appAPI: appAPI }).appAPI.saveFile(json)
             }} startIcon={<FileDownloadOutlined />}>
-                {t('DataGrid.Density')}
+                {t('DataGrid.density')}
             </Button>
         </>
     )

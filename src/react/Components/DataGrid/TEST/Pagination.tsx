@@ -4,7 +4,13 @@ import { t } from "i18next";
 import { useContext, useState } from "react";
 import { DataGridContext } from "./Context";
 
-export function Pagination({ paginationLimitOptions, onPagination }: { paginationLimitOptions?: number[], onPagination?: (paginationLimit: number, pageOffset: number) => Promise<void> | void, }) {
+export type PaginationProps = {
+    paginationLimitOptions?: number[],
+    onPagination?: (paginationLimit: number, pageOffset: number) => Promise<void> | void,
+    setPaginationLimitChange?: (paginationLimit: number) => void | Promise<void>
+}
+
+export function Pagination({ paginationLimitOptions, onPagination, setPaginationLimitChange }: PaginationProps) {
     const theme = useTheme()
 
     const table = useContext(DataGridContext).table
@@ -23,14 +29,23 @@ export function Pagination({ paginationLimitOptions, onPagination }: { paginatio
                         id="demo-simple-select"
                         value={paginationLimit}
                         label={t('DataGrid.paginationLimit')}
-                        onChange={(e) => setPaginationLimit(e.target.value as number)}
+                        onChange={(e) => {
+                            setPaginationLimit(e.target.value as number);
+                            setPaginationLimitChange(e.target.value as number)
+                        }}
                     >
                         {paginationLimitOptions.map((pl, i) => <MenuItem key={i} value={pl}>{pl}</MenuItem>)}
                     </Select>
                 </FormControl>
                 {
                     !onPagination
-                        ? <MuiPagination count={Math.ceil(table.getRowCount() / paginationLimit)} onChange={(e, page) => setPage(page)} />
+                        ? <MuiPagination
+                            count={Math.ceil(table.getRowCount() / paginationLimit)}
+                            onChange={(e, page) => {
+                                table.setPageIndex(page - 1)
+
+                                setPage(page)
+                            }} />
                         :
                         <Stack direction='row' alignItems='center'>
                             <IconButton
@@ -38,7 +53,6 @@ export function Pagination({ paginationLimitOptions, onPagination }: { paginatio
                                     if (onPagination)
                                         await onPagination(paginationLimit, page)
 
-                                    table.setPagination({ pageIndex: page - 1, pageSize: paginationLimit })
                                     setPage(page - 1)
                                 }}
                                 size='small'
@@ -54,7 +68,6 @@ export function Pagination({ paginationLimitOptions, onPagination }: { paginatio
                                     if (onPagination)
                                         await onPagination(paginationLimit, page)
 
-                                    table.setPagination({ pageIndex: page + 1, pageSize: paginationLimit })
                                     setPage(page + 1)
                                 }}
                                 size='small'

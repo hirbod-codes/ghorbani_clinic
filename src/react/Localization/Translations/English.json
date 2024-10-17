@@ -196,6 +196,7 @@
         "Yes": "Yes"
     },
     "Columns": {
+        "columns": "Columns",
         "actions": "Actions",
         "_id": "Id",
         "patientId": "Patient Id",
@@ -231,5 +232,14 @@
         "lightMode": "Light mode",
         "darkMode": "Dark mode",
         "backgroundColor": "Background color"
+    },
+    "DataGrid": {
+        "noData": "No Data Found!",
+        "density": "Density",
+        "compact": "Compact",
+        "standard": "Standard",
+        "comfortable": "Comfortable",
+        "limit": "Limit",
+        "paginationLimit": "Pagination limit"
     }
 }

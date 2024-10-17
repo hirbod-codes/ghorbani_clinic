@@ -13,7 +13,7 @@ export function DensityButton() {
     return (
         <>
             <Button onClick={(event: MouseEvent<HTMLButtonElement>) => setAnchorEl(event.currentTarget)} startIcon={<MenuOutlined />}>
-                {t('DataGrid.Density')}
+                {t('DataGrid.density')}
             </Button>
             <Menu anchorEl={anchorEl} open={open} onClose={() => setAnchorEl(null)}>
                 <MenuItem onClick={() => {

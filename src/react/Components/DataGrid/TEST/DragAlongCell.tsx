@@ -5,8 +5,6 @@ import { CSSProperties, useContext } from "react";
 import { Person } from "./makeData";
 import { DataGridContext } from "./Context";
 import { Typography } from "@mui/material";
-import { t } from "i18next";
-
 
 export const DragAlongCell = ({ cell }: { cell: Cell<Person, unknown>; }) => {
     const { isDragging, setNodeRef, transform, transition } = useSortable({

@@ -1,7 +1,7 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Typography, useTheme } from "@mui/material";
-import { Header, flexRender } from "@tanstack/react-table";
+import { Header } from "@tanstack/react-table";
 import { CSSProperties, useContext } from "react";
 import { Person } from "./makeData";
 import { DataGridContext } from "./Context";
@@ -31,7 +31,6 @@ export const DraggableTableHeader = ({ header }: { header: Header<Person, unknow
     };
 
     const density = useContext(DataGridContext).density.value;
-    console.log(density)
     switch (density) {
         case 'compact':
             style.paddingTop = '1rem';
