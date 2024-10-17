@@ -19,7 +19,7 @@ export function ColumnVisibilityButton() {
             </Button>
             <Menu anchorEl={anchorEl} open={open} onClose={() => setAnchorEl(null)}>
                 {table.getAllColumns().map((column, i) =>
-                    <FormGroup key={i}>
+                    <FormGroup key={i} sx={{ pl: 2 }}>
                         <FormControlLabel
                             label={t(`Columns.${column.id}`)}
                             control={

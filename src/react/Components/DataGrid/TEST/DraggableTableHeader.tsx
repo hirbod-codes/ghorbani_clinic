@@ -1,10 +1,11 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { useTheme } from "@mui/material";
+import { Typography, useTheme } from "@mui/material";
 import { Header, flexRender } from "@tanstack/react-table";
 import { CSSProperties, useContext } from "react";
 import { Person } from "./makeData";
 import { DataGridContext } from "./Context";
+import { t } from "i18next";
 
 export const DraggableTableHeader = ({ header }: { header: Header<Person, unknown>; }) => {
     const theme = useTheme();
@@ -29,18 +30,20 @@ export const DraggableTableHeader = ({ header }: { header: Header<Person, unknow
         cursor: 'move'
     };
 
-    switch (useContext(DataGridContext).density.value) {
+    const density = useContext(DataGridContext).density.value;
+    console.log(density)
+    switch (density) {
         case 'compact':
-            style.paddingTop = '0.25rem';
-            style.paddingBottom = '0.25rem';
+            style.paddingTop = '1rem';
+            style.paddingBottom = '1rem';
             break;
         case 'standard':
-            style.paddingTop = '0.5rem';
-            style.paddingBottom = '0.5rem';
+            style.paddingTop = '1.25rem';
+            style.paddingBottom = '1.25rem';
             break;
         case 'comfortable':
-            style.paddingTop = '0.75rem';
-            style.paddingBottom = '0.75rem';
+            style.paddingTop = '1.75rem';
+            style.paddingBottom = '1.75rem';
             break;
         default:
             break;
@@ -48,9 +51,9 @@ export const DraggableTableHeader = ({ header }: { header: Header<Person, unknow
 
     return (
         <th colSpan={header.colSpan} ref={setNodeRef} style={style} {...attributes} {...listeners}>
-            {header.isPlaceholder
-                ? null
-                : flexRender(header.column.columnDef.header, header.getContext())}
+            <Typography variant="body1">
+                {t('Columns.' + header.column.columnDef.id)}
+            </Typography>
         </th>
     );
 };

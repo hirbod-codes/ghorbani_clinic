@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useMemo, useState } from 'react'
+import { Fragment, ReactNode, useEffect, useMemo, useState } from 'react'
 
 import {
     ColumnDef,
@@ -28,7 +28,7 @@ import {
 } from '@dnd-kit/sortable'
 
 // needed for row & cell level scope DnD setup
-import { useTheme } from '@mui/material'
+import { Stack, useTheme } from '@mui/material'
 import LoadingScreen from '../../LoadingScreen'
 import { t } from 'i18next'
 import { configAPI } from 'src/Electron/Configuration/renderer'
@@ -38,12 +38,17 @@ import { ColumnVisibilityButton } from './ColumnVisibilityButton'
 import { DataGridContext, Density } from './Context'
 import { DensityButton } from './DensityButton'
 import { ExportButton } from './ExportButton'
+import { Pagination } from './Pagination'
 
 export type DataGridTanStackProps = {
     configName: string,
     data: any[],
+    prependHeaderNodes?: ReactNode[],
+    prependFooterNodes?: ReactNode[],
     headerNodes?: ReactNode[],
     footerNodes?: ReactNode[],
+    appendHeaderNodes?: ReactNode[],
+    appendFooterNodes?: ReactNode[],
     pagination?: boolean,
     paginationLimitOptions?: number[],
     onPagination?: (paginationLimit: number, pageOffset: number) => Promise<void> | void,
@@ -53,15 +58,19 @@ export type DataGridTanStackProps = {
 export function DataGridTanStack({
     configName,
     data,
+    prependHeaderNodes = [],
+    prependFooterNodes = [],
     headerNodes = [],
     footerNodes = [],
-    pagination = false,
+    appendHeaderNodes = [],
+    appendFooterNodes = [],
+    pagination = true,
     paginationLimitOptions = [10, 25, 50, 100],
     onPagination,
     loading = false
 }: DataGridTanStackProps) {
     if (!data)
-        data = useState(() => makeData(10))[0]
+        data = useState(() => makeData(15))[0]
 
     const theme = useTheme()
 
@@ -102,9 +111,9 @@ export function DataGridTanStack({
         ],
         []
     )
-    const [columnOrder, setColumnOrder] = useState<string[]>(() => columns.map(c => c.id!))
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>()
-    const [density, setDensity] = useState<Density>()
+    const [density, setDensity] = useState<Density>('compact')
+    const [columnOrder, setColumnOrder] = useState<string[]>(columns.map(c => c.id))
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
     const [table, setTable] = useState(useReactTable({
         data,
@@ -113,15 +122,40 @@ export function DataGridTanStack({
         enableHiding: true,
         state: {
             columnOrder,
-            columnVisibility
+            columnVisibility,
         },
-        onColumnOrderChange: setColumnOrder,
-        onColumnVisibilityChange: (updaterOrValue) => {
+        pagin
+        onColumnOrderChange: async (updaterOrValue) => {
+            let co
+            if (typeof updaterOrValue !== 'function')
+                co = updaterOrValue
+            else
+                co = updaterOrValue(undefined)
+
+            const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+
+            if (!c.columnOrderModels)
+                c.columnOrderModels = {}
+
+            c.columnOrderModels[configName] = co;
+            (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
+
+            setColumnOrder(co);
+        },
+        onColumnVisibilityChange: async (updaterOrValue) => {
             let cv
             if (typeof updaterOrValue !== 'function')
                 cv = updaterOrValue
             else
-                cv = updaterOrValue(columnVisibility)
+                cv = updaterOrValue(undefined)
+
+            const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+
+            if (!c.columnVisibilityModels)
+                c.columnVisibilityModels = {}
+
+            c.columnVisibilityModels[configName] = cv;
+            (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
 
             setColumnVisibility(cv)
         }
@@ -134,27 +168,32 @@ export function DataGridTanStack({
             <ExportButton />,
         ]
 
+    if (!prependHeaderNodes || prependHeaderNodes.length === 0)
+        headerNodes = prependHeaderNodes.concat(headerNodes)
+    if (!appendHeaderNodes || appendHeaderNodes.length === 0)
+        headerNodes = headerNodes.concat(appendHeaderNodes)
+
+    if (pagination === true && (!footerNodes || footerNodes.length === 0))
+        footerNodes = [
+            <Pagination paginationLimitOptions={paginationLimitOptions} onPagination={onPagination} />
+        ]
+
+    if (!prependFooterNodes || prependFooterNodes.length === 0)
+        footerNodes = prependFooterNodes.concat(footerNodes)
+    if (!appendFooterNodes || appendFooterNodes.length === 0)
+        footerNodes = footerNodes.concat(appendFooterNodes)
+
     function handleDragEnd(e: DragEndEvent) {
         const { active, over } = e
 
         if (!active || !over || active.id === over.id)
             return
 
-        setColumnOrder(columnOrder => {
-            const oldIndex = columnOrder.indexOf(active.id as string)
-            const newIndex = columnOrder.indexOf(over.id as string)
-            return arrayMove(columnOrder, oldIndex, newIndex)
-        });
-
-        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-            .then((c) => {
-                if (!c.columnOrderModels)
-                    c.columnOrderModels = {}
-
-                c.columnOrderModels[configName] = columnOrder;
-
-                (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig({ ...c })
-            })
+        const oldIndex = columnOrder.indexOf(active.id as string)
+        const newIndex = columnOrder.indexOf(over.id as string)
+        const newColumnOrder = arrayMove(columnOrder, oldIndex, newIndex)
+        setColumnOrder(newColumnOrder);
+        table.setColumnOrder(newColumnOrder)
     }
 
     useEffect(() => {
@@ -169,38 +208,57 @@ export function DataGridTanStack({
                     table.setColumnOrder(c.columnOrderModels[configName])
                     setColumnOrder(c.columnOrderModels[configName])
                 }
+
+                if (c?.tableDensity)
+                    setDensity(c?.tableDensity[configName])
             })
     }, [])
 
     const sensors = useSensors(useSensor(MouseSensor, {}), useSensor(TouchSensor, {}), useSensor(KeyboardSensor, {}))
 
-    console.log('DataGridTanStack', { columnOrder, columnVisibility });
-
-
     return (
-        <DataGridContext.Provider value={{ table, density: { value: density, set: setDensity } }}>
+        <DataGridContext.Provider value={{
+            table, density: {
+                value: density,
+                set: async (d) => {
+                    const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+                    if (!c?.tableDensity)
+                        c.tableDensity = {}
+
+                    c.tableDensity[configName] = d
+                    await (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
+
+                    setDensity(d)
+                }
+            }
+        }
+        } >
             {/* NOTE: This provider creates div elements, so don't nest inside of <table> elements */}
-            <div style={{ padding: '1rem', height: '100%', }}>
+            < div style={{ padding: '1rem', height: '100%' }}>
                 <DndContext
                     collisionDetection={closestCenter}
                     modifiers={[restrictToHorizontalAxis]}
                     onDragEnd={handleDragEnd}
                     sensors={sensors}
                 >
-                    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '0.5rem 0', overflow: 'auto', border: `1px solid ${theme.palette.grey[800]}`, borderRadius: `${theme.shape.borderRadius}px`, textWrap: 'nowrap' }}>
-                        <div style={{ display: 'flex', flexDirection: 'row', padding: '0 0.5rem' }}>
-                            {...headerNodes}
-                        </div>
+                    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '0.5rem 0', overflow: 'hidden', border: `1px solid ${theme.palette.grey[500]}`, borderRadius: `${theme.shape.borderRadius}px`, textWrap: 'nowrap' }}>
+                        <Stack direction='row' sx={{ p: 1 }}>
+                            {...headerNodes.map((n, i) =>
+                                <Fragment key={i}>
+                                    {n}
+                                </Fragment>
+                            )}
+                        </Stack>
                         {loading
                             ? <LoadingScreen />
                             : (
                                 data.length === 0
                                     ? <p style={{ textAlign: 'center' }}>{t('noData')}</p>
-                                    : <div style={{ flexGrow: 2 }}>
+                                    : <div style={{ overflow: 'auto', flexGrow: 2 }}>
                                         <table style={{ borderCollapse: 'collapse', minWidth: '100%' }}>
                                             <thead style={{ position: 'sticky', top: 0, userSelect: 'none' }}>
                                                 {table.getHeaderGroups().map(headerGroup => (
-                                                    <tr key={headerGroup.id} style={{ borderBottom: `1px solid ${theme.palette.grey[800]}` }}>
+                                                    <tr key={headerGroup.id} style={{ borderBottom: `1px solid ${theme.palette.grey[500]}` }}>
                                                         <SortableContext
                                                             items={columnOrder}
                                                             strategy={horizontalListSortingStrategy}
@@ -214,7 +272,7 @@ export function DataGridTanStack({
                                             </thead>
                                             <tbody>
                                                 {table.getRowModel().rows.map((row, i, arr) => (
-                                                    <tr key={row.id} style={{ borderBottom: i === (arr.length - 1) ? 0 : `1px solid ${theme.palette.grey[800]}`, textWrap: 'nowrap' }}>
+                                                    <tr key={row.id} style={{ borderBottom: i === (arr.length - 1) ? 0 : `1px solid ${theme.palette.grey[500]}`, textWrap: 'nowrap' }}>
                                                         {row.getVisibleCells().map(cell => (
                                                             <SortableContext
                                                                 key={cell.id}
@@ -231,12 +289,16 @@ export function DataGridTanStack({
                                     </div>
                             )
                         }
-                        <div style={{ display: 'flex', flexDirection: 'row', padding: '0 0.5rem' }}>
-                            {...footerNodes}
-                        </div>
+                        <Stack direction='row' sx={{ p: 1 }}>
+                            {...footerNodes.map((n, i) =>
+                                <Fragment key={i}>
+                                    {n}
+                                </Fragment>
+                            )}
+                        </Stack>
                     </div>
                 </DndContext>
-            </div>
-        </DataGridContext.Provider>
+            </div >
+        </DataGridContext.Provider >
     )
 }
