@@ -16,7 +16,7 @@ export function Main() {
         {
             path: '/',
             element: <Layout />,
-            errorElement: <Navigate to="/" replace={true} />,
+            // errorElement: <Navigate to="/" replace={true} />,
             children: [
                 {
                     index: true,

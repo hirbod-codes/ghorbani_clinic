@@ -1,5 +1,5 @@
 import { useState, useContext, useEffect, useMemo } from "react";
-import { DataGrid } from "../Components/DataGrid/DataGrid";
+import { DataGrid } from "../Components/DataGrid/DataGrid_old";
 import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { t } from "i18next";
 import { Button, CircularProgress, Grid, Paper } from "@mui/material";

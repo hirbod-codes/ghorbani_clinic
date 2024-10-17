@@ -7,7 +7,7 @@ import type { ConfigurationStorableData } from "../../react/Contexts/Configurati
 import { GridColumnVisibilityModel } from '@mui/x-data-grid';
 import { User } from '../Database/Models/User';
 import { VisibilityState } from '@tanstack/react-table';
-import { Density } from 'src/react/Components/DataGrid/TEST/Context';
+import { Density } from 'src/react/Components/DataGrid/Context';
 
 export type MongodbConfig = {
     supportsTransaction: boolean;
@@ -40,7 +40,7 @@ export type Config = {
     ip?: string,
     columnVisibilityModels?: { [k: string]: VisibilityState },
     columnOrderModels?: { [k: string]: string[] },
-    tableDensity?: {[k: string]: Density}
+    tableDensity?: { [k: string]: Density }
 }
 
 export function handleConfigEvents() {

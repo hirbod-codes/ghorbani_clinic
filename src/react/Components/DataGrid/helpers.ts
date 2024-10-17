@@ -1,21 +1,24 @@
-import { GridColDef } from '@mui/x-data-grid';
-import { t } from 'i18next';
+// import { GridColDef } from '@mui/x-data-grid';
+// import { t } from 'i18next';
+import { ColumnDef } from '@tanstack/react-table';
 
-export const getColumns = (data: any[], overWriteColumns?: GridColDef<any>[], additionalColumns?: GridColDef<any>[], orderedColumnsFields?: string[]): GridColDef<any>[] => {
+export const getColumns = (data: any[], overWriteColumns?: ColumnDef<any>[], additionalColumns?: ColumnDef<any>[], orderedColumnsFields?: string[]): ColumnDef<any>[] => {
     if (!data || data.length === 0)
         return [];
 
-    let columns: GridColDef<any>[] = Object.keys(data[0]).map(k => ({
-        field: k,
-        headerName: t(`Columns.${k}`),
-        headerAlign: 'center',
-        align: 'center',
-        type: 'string',
+    let columns: ColumnDef<any>[] = Object.keys(data[0]).filter(f => f !== 'subRows').map(k => ({
+        accessorKey: k,
+        id: k
+        // field: k,
+        // headerName: t(`Columns.${k}`),
+        // headerAlign: 'center',
+        // align: 'center',
+        // type: 'string',
     }));
 
     if (overWriteColumns)
         for (let i = 0; i < overWriteColumns.length; i++) {
-            const index = columns.findIndex(c => c.field === overWriteColumns[i].field);
+            const index = columns.findIndex(c => c.id === overWriteColumns[i].id);
             if (index === -1)
                 continue;
 
@@ -30,7 +33,7 @@ export const getColumns = (data: any[], overWriteColumns?: GridColDef<any>[], ad
 
             entries = entries.concat(Object.entries(overWriteColumns[i]).filter(f => entries.find(e => e[0] === f[0]) === undefined));
 
-            columns[index] = Object.fromEntries(entries) as GridColDef<any>;
+            columns[index] = Object.fromEntries(entries) as ColumnDef<any>;
         }
 
     if (additionalColumns)
@@ -38,11 +41,11 @@ export const getColumns = (data: any[], overWriteColumns?: GridColDef<any>[], ad
 
     if (orderedColumnsFields)
         for (let i = orderedColumnsFields.length - 1; i >= 0; i--) {
-            let c = columns.find(c => c.field === orderedColumnsFields[i]);
+            let c = columns.find(c => c.id === orderedColumnsFields[i]);
             if (c === undefined)
                 continue;
 
-            columns = columns.filter(column => column.field !== c.field);
+            columns = columns.filter(column => column.id !== c.id);
             columns.unshift(c);
         }
 

@@ -1,8 +1,8 @@
 import { MouseEvent, useContext, useState } from 'react'
 import { Button, Checkbox, FormControlLabel, FormGroup, Menu } from '@mui/material'
 import { t } from 'i18next'
-import { DataGridContext } from './Context'
 import { ViewWeekOutlined } from '@mui/icons-material'
+import { DataGridContext } from './Context'
 
 export function ColumnVisibilityButton() {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)

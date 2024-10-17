@@ -31,7 +31,6 @@ import {
 
 // needed for row & cell level scope DnD setup
 import { Stack, useTheme } from '@mui/material'
-import LoadingScreen from '../../LoadingScreen'
 import { t } from 'i18next'
 import { configAPI } from 'src/Electron/Configuration/renderer'
 import { DraggableTableHeader } from './DraggableTableHeader'
@@ -41,8 +40,10 @@ import { DataGridContext, Density } from './Context'
 import { DensityButton } from './DensityButton'
 import { ExportButton } from './ExportButton'
 import { Pagination } from './Pagination'
+import { getColumns } from './helpers'
+import LoadingScreen from '../LoadingScreen'
 
-export type DataGridTanStackProps = {
+export type DataGridProps = {
     configName: string,
     data: any[],
     prependHeaderNodes?: ReactNode[],
@@ -57,7 +58,7 @@ export type DataGridTanStackProps = {
     loading?: boolean
 }
 
-export function DataGridTanStack({
+export function DataGrid({
     configName,
     data,
     prependHeaderNodes = [],
@@ -70,51 +71,16 @@ export function DataGridTanStack({
     paginationLimitOptions = [10, 25, 50, 100],
     onPagination,
     loading = false
-}: DataGridTanStackProps) {
+}: DataGridProps) {
     if (!data)
         data = useState(() => makeData(15))[0]
 
     const theme = useTheme()
 
-    const columns = useMemo<ColumnDef<Person>[]>(
-        () => [
-            {
-                accessorKey: 'firstName',
-                cell: info => info.getValue(),
-                id: 'firstName',
-                enableHiding: true
-            },
-            {
-                accessorFn: row => row.lastName,
-                cell: info => info.getValue(),
-                header: () => <span>Last Name</span>,
-                id: 'lastName',
-            },
-            {
-                accessorKey: 'age',
-                header: () => 'Age',
-                id: 'age',
-            },
-            {
-                accessorKey: 'visits',
-                header: () => <span>Visits</span>,
-                id: 'visits',
-            },
-            {
-                accessorKey: 'status',
-                header: 'Status',
-                id: 'status',
-            },
-            {
-                accessorKey: 'progress',
-                header: 'Profile Progress',
-                id: 'progress',
-            },
-        ],
-        []
-    )
+    const columns = useMemo<ColumnDef<any>[]>(() => getColumns(data), [])
+
     const [density, setDensity] = useState<Density>('compact')
-    const [columnOrder, setColumnOrder] = useState<string[]>(columns.map(c => c.id))
+    const [columnOrder, setColumnOrder] = useState<string[]>((columns ?? []).map(c => c.id))
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
     const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: paginationLimitOptions[0], })
@@ -205,22 +171,24 @@ export function DataGridTanStack({
     useEffect(() => {
         (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
             .then((c) => {
-                if (c?.columnVisibilityModels) {
+                if (c?.columnVisibilityModels && c.columnVisibilityModels[configName]) {
                     table.setColumnVisibility(c.columnVisibilityModels[configName])
                     setColumnVisibility(c.columnVisibilityModels[configName])
                 }
 
-                if (c?.columnOrderModels) {
+                if (c?.columnOrderModels && c.columnOrderModels[configName]) {
                     table.setColumnOrder(c.columnOrderModels[configName])
                     setColumnOrder(c.columnOrderModels[configName])
                 }
 
-                if (c?.tableDensity)
+                if (c?.tableDensity && c?.tableDensity[configName])
                     setDensity(c?.tableDensity[configName])
             })
     }, [])
 
     const sensors = useSensors(useSensor(MouseSensor, {}), useSensor(TouchSensor, {}), useSensor(KeyboardSensor, {}))
+
+    console.log('DataGrid', { data, columns, columnOrder })
 
     return (
         <DataGridContext.Provider value={{

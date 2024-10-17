@@ -1,5 +1,4 @@
 import { useState, useContext, useEffect, memo, useMemo } from "react";
-import { DataGrid } from "../Components/DataGrid/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { t } from "i18next";
 import { Button, CircularProgress, Grid, Paper } from "@mui/material";
@@ -19,7 +18,7 @@ import { EditorModal } from "../Components/Editor/EditorModal";
 import { ManagePatient } from "../Components/Patients/ManagePatient";
 import LoadingScreen from "../Components/LoadingScreen";
 import { Modal } from "../Components/Modal";
-import { DataGridTanStack } from "../Components/DataGrid/TEST";
+import { DataGrid } from "../Components/DataGrid";
 
 export const Patients = memo(function Patients() {
     const auth = useContext(AuthContext)
@@ -183,7 +182,7 @@ export const Patients = memo(function Patients() {
 
             <Modal open={open} onClose={() => setOpen(false)}>
                 <div style={{ direction: 'ltr', height: '100%', width: '100%' }}>
-                    <DataGridTanStack configName="Patients" data={undefined} />
+                    <DataGrid configName="Patients" data={undefined} />
                 </div>
             </Modal>
 
@@ -193,23 +192,23 @@ export const Patients = memo(function Patients() {
                         {!patients || patients?.length === 0 || !showGrid
                             ? <LoadingScreen />
                             : <DataGrid
-                                name='patients'
+                                configName='patients'
                                 data={patients ?? []}
-                                hideFooter={false}
-                                overWriteColumns={columns}
-                                loading={loading}
-                                serverSidePagination
-                                onPaginationModelChange={async (m, d) => {
-                                    setPage({ offset: m.page, limit: m.pageSize });
-                                    await init(m.page, m.pageSize)
-                                }}
-                                orderedColumnsFields={['actions', 'socialId', 'firstName', 'lastName', 'age', 'medicalHistory', 'phoneNumber', 'gender', 'address', 'birthDate']}
-                                storeColumnVisibilityModel
-                                customToolbar={[
-                                    <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Patients.Refresh')}</Button>,
-                                    createsPatient && <Button onClick={() => setCreatingPatient(true)} startIcon={<AddOutlined />}>{t('Patients.Create')}</Button>,
-                                ]}
-                                additionalColumns={additionalColumns}
+                            // hideFooter={false}
+                            // overWriteColumns={columns}
+                            // loading={loading}
+                            // serverSidePagination
+                            // onPaginationModelChange={async (m, d) => {
+                            //     setPage({ offset: m.page, limit: m.pageSize });
+                            //     await init(m.page, m.pageSize)
+                            // }}
+                            // orderedColumnsFields={['actions', 'socialId', 'firstName', 'lastName', 'age', 'medicalHistory', 'phoneNumber', 'gender', 'address', 'birthDate']}
+                            // storeColumnVisibilityModel
+                            // customToolbar={[
+                            //     <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Patients.Refresh')}</Button>,
+                            //     createsPatient && <Button onClick={() => setCreatingPatient(true)} startIcon={<AddOutlined />}>{t('Patients.Create')}</Button>,
+                            // ]}
+                            // additionalColumns={additionalColumns}
                             />
                         }
                     </Paper>

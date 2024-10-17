@@ -11,7 +11,7 @@ import { ConfigurationContext } from '../Contexts/ConfigurationContext';
 import { AuthContext } from "../Contexts/AuthContext";
 import ManageUser from "../Components/ManageUser";
 import { ManageRole } from "../Components/ManageRole";
-import { DataGrid } from "../Components/DataGrid/DataGrid";
+import { DataGrid } from "../Components/DataGrid/DataGrid_old";
 import { GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish, subscribe } from "../Lib/Events";
