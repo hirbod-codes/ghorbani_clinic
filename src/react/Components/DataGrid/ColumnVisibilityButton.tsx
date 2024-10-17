@@ -10,8 +10,6 @@ export function ColumnVisibilityButton() {
 
     const table = useContext(DataGridContext).table
 
-    console.log('ColumnVisibilityButton', table, table.getVisibleFlatColumns())
-
     return (
         <>
             <Button onClick={(event: MouseEvent<HTMLButtonElement>) => setAnchorEl(event.currentTarget)} startIcon={<ViewWeekOutlined />}>

@@ -30,7 +30,7 @@ export function Home() {
                 <Grid item xs={12}>
                     <Modal open={open} onClose={() => setOpen(false)}>
                         <div style={{ direction: 'ltr', height: '100%', width: '100%' }}>
-                            <DataGrid configName="test" data={undefined} />
+                            <DataGrid configName="test" data={[]} />
                         </div>
                     </Modal>
                 </Grid>

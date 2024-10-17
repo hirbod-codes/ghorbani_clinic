@@ -234,5 +234,15 @@
         "lightMode": "حالت روشن",
         "darkMode": "حالت تاریک",
         "backgroundColor": "رنگ پس‌زمینه"
+    },
+    "DataGrid": {
+        "noData": "No Data Found!",
+        "export":"Export",
+        "density": "Density",
+        "compact": "Compact",
+        "standard": "Standard",
+        "comfortable": "Comfortable",
+        "limit": "Limit",
+        "paginationLimit": "Pagination limit"
     }
 }

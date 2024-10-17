@@ -235,6 +235,7 @@
     },
     "DataGrid": {
         "noData": "No Data Found!",
+        "export":"Export",
         "density": "Density",
         "compact": "Compact",
         "standard": "Standard",

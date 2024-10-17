@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect, memo, useMemo } from "react";
 import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { t } from "i18next";
-import { Button, CircularProgress, Grid, Paper } from "@mui/material";
+import { Button, CircularProgress, Grid, IconButton, Paper, Stack } from "@mui/material";
 import { GridActionsCellItem, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../Contexts/ConfigurationContext";
@@ -19,6 +19,7 @@ import { ManagePatient } from "../Components/Patients/ManagePatient";
 import LoadingScreen from "../Components/LoadingScreen";
 import { Modal } from "../Components/Modal";
 import { DataGrid } from "../Components/DataGrid";
+import { ColumnDef } from "@tanstack/react-table";
 
 export const Patients = memo(function Patients() {
     const auth = useContext(AuthContext)
@@ -98,79 +99,109 @@ export const Patients = memo(function Patients() {
     const updatesPatient = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).update(resources.PATIENT), [auth])
     const deletesPatient = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.PATIENT), [auth])
 
-    const columns: GridColDef<any>[] = [
+    const columns: ColumnDef<any>[] = [
         {
-            field: 'address',
-            type: 'actions',
-            renderCell: (params: GridRenderCellParams<any, Date>) => (params.row.address ? <Button onClick={() => {
-                setActivePatientId(patients?.find(p => p._id === params.row._id)?._id as string)
-                setShowingAddress(true)
-            }}>{t('Patients.Show')}</Button> : null)
+            accessorKey: 'address',
+            id: 'address',
+            cell: (props) => (
+                props.getValue()
+                    ? <Button
+                        onClick={() => {
+                            setActivePatientId(patients?.find(p => p._id === props.row.original._id)?._id as string)
+                            setShowingAddress(true)
+                        }}
+                    >
+                        {t('Patients.Show')}
+                    </Button>
+                    : null
+            )
         },
         {
-            field: '_id',
+            accessorKey: '_id',
+            id: '_id',
         },
         {
-            field: 'medicalHistory',
-            type: 'actions',
-            renderCell: (params: GridRenderCellParams<any, Date>) => (params.row.medicalHistory && params.row.medicalHistory.length !== 0 ? <Button onClick={() => {
-                setActivePatientId(patients?.find(p => p._id === params.row._id)?._id as string)
-                setShowingMH(true)
-            }}>{t('Patients.Show')}</Button> : null)
+            accessorKey: 'medicalHistory',
+            id: 'medicalHistory',
+            cell: (props) => (
+                props.row.original.medicalHistory && props.row.original.medicalHistory.length !== 0
+                    ? <Button
+                        onClick={() => {
+                            setActivePatientId(patients?.find(p => p._id === props.row.original._id)?._id as string)
+                            setShowingMH(true)
+                        }}
+                    >
+                        {t('Patients.Show')}
+                    </Button>
+                    : null
+            )
         },
         {
-            field: 'birthDate',
-            type: 'number',
-            valueGetter: (ts: number) => fromUnixToFormat(configuration.get.locale, ts, DATE),
+            accessorKey: 'birthDate',
+            id: 'birthDate',
+            cell: (props) => fromUnixToFormat(configuration.get.locale, props.getValue() as number, DATE),
         },
         {
-            field: 'createdAt',
-            type: 'number',
-            valueGetter: (ts: number) => fromUnixToFormat(configuration.get.locale, ts, DATE),
+            accessorKey: 'createdAt',
+            id: 'createdAt',
+            cell: (props) => fromUnixToFormat(configuration.get.locale, props.getValue() as number, DATE),
         },
         {
-            field: 'updatedAt',
-            type: 'number',
-            valueGetter: (ts: number) => fromUnixToFormat(configuration.get.locale, ts, DATE),
+            accessorKey: 'updatedAt',
+            id: 'updatedAt',
+            cell: (props) => fromUnixToFormat(configuration.get.locale, props.getValue() as number, DATE),
         },
     ]
 
-    const additionalColumns: GridColDef<any>[] = [
+    const additionalColumns: ColumnDef<any>[] = [
         {
-            field: 'actions',
-            type: 'actions',
-            headerName: t('Patients.actions'),
-            headerAlign: 'center',
-            align: 'center',
-            width: 120,
-            getActions: ({ row }: { row: any }) => [
-                updatesPatient ? <GridActionsCellItem icon={editingPatientId === row._id ? <CircularProgress size={20} /> : <EditOutlined />} onClick={() => {
-                    setEditingPatientId(patients?.find(p => p._id === row._id)?._id as string)
-                }} label={t('Patients.edit')} /> : null,
-                deletesPatient ? <GridActionsCellItem icon={deletingPatientId === row._id ? <CircularProgress size={20} /> : <DeleteOutline />} onClick={async () => {
-                    try {
-                        console.group('Patients', 'deletesPatient', 'onClick')
-
-                        setDeletingPatientId(row._id)
-                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deletePatient(row._id)
-                        setDeletingPatientId(undefined)
-
-                        if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1)
-                            publish(RESULT_EVENT_NAME, {
-                                severity: 'error',
-                                message: t('Patients.failedToDeletePatient')
-                            })
-
-                        await init(page.offset, page.limit)
-
-                        publish(RESULT_EVENT_NAME, {
-                            severity: 'success',
-                            message: t('Patients.successfullyDeletedPatient')
-                        })
+            id: 'actions',
+            accessorKey: 'actions',
+            cell: ({ row }) =>
+                <Stack direction='row' alignItems='center'>
+                    {
+                        updatesPatient
+                            ? <IconButton
+                                onClick={() => {
+                                    setEditingPatientId(patients?.find(p => p._id === row.original._id)?._id as string)
+                                }}
+                            >
+                                {editingPatientId === row.original._id ? <CircularProgress size={20} /> : <EditOutlined />}
+                            </IconButton>
+                            : null
                     }
-                    finally { console.groupEnd() }
-                }} label={t('Patients.delete')} /> : null,
-            ]
+                    {
+                        deletesPatient
+                            ? <IconButton
+                                onClick={async () => {
+                                    try {
+                                        console.group('Patients', 'deletesPatient', 'onClick')
+
+                                        setDeletingPatientId(row.original._id)
+                                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deletePatient(row.original._id)
+                                        setDeletingPatientId(undefined)
+
+                                        if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1)
+                                            publish(RESULT_EVENT_NAME, {
+                                                severity: 'error',
+                                                message: t('Patients.failedToDeletePatient')
+                                            })
+
+                                        await init(page.offset, page.limit)
+
+                                        publish(RESULT_EVENT_NAME, {
+                                            severity: 'success',
+                                            message: t('Patients.successfullyDeletedPatient')
+                                        })
+                                    }
+                                    finally { console.groupEnd() }
+                                }}
+                            >
+                                {deletingPatientId === row.original._id ? <CircularProgress size={20} /> : <DeleteOutline />}
+                            </IconButton>
+                            : null
+                    }
+                </Stack>
         },
     ]
 
@@ -194,21 +225,19 @@ export const Patients = memo(function Patients() {
                             : <DataGrid
                                 configName='patients'
                                 data={patients ?? []}
-                            // hideFooter={false}
-                            // overWriteColumns={columns}
-                            // loading={loading}
-                            // serverSidePagination
-                            // onPaginationModelChange={async (m, d) => {
-                            //     setPage({ offset: m.page, limit: m.pageSize });
-                            //     await init(m.page, m.pageSize)
-                            // }}
-                            // orderedColumnsFields={['actions', 'socialId', 'firstName', 'lastName', 'age', 'medicalHistory', 'phoneNumber', 'gender', 'address', 'birthDate']}
-                            // storeColumnVisibilityModel
-                            // customToolbar={[
-                            //     <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Patients.Refresh')}</Button>,
-                            //     createsPatient && <Button onClick={() => setCreatingPatient(true)} startIcon={<AddOutlined />}>{t('Patients.Create')}</Button>,
-                            // ]}
-                            // additionalColumns={additionalColumns}
+                                orderedColumnsFields={['actions', 'socialId', 'firstName', 'lastName', 'age', 'medicalHistory', 'phoneNumber', 'gender', 'address', 'birthDate']}
+                                overWriteColumns={columns}
+                                additionalColumns={additionalColumns}
+                                loading={loading}
+                                hasPagination
+                                onPagination={async (limit, offset) => {
+                                    setPage({ offset, limit })
+                                    await init(offset, limit)
+                                }}
+                                appendHeaderNodes={[
+                                    <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Patients.Refresh')}</Button>,
+                                    createsPatient && <Button onClick={() => setCreatingPatient(true)} startIcon={<AddOutlined />}>{t('Patients.Create')}</Button>,
+                                ]}
                             />
                         }
                     </Paper>

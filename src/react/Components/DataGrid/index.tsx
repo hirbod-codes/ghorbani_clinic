@@ -3,13 +3,11 @@ import { Fragment, ReactNode, useEffect, useMemo, useState } from 'react'
 import {
     ColumnDef,
     PaginationState,
-    Table,
     VisibilityState,
     getCoreRowModel,
     getPaginationRowModel,
     useReactTable,
 } from '@tanstack/react-table'
-import { makeData, Person } from './makeData'
 
 // needed for table body level scope DnD setup
 import {
@@ -46,6 +44,9 @@ import LoadingScreen from '../LoadingScreen'
 export type DataGridProps = {
     configName: string,
     data: any[],
+    orderedColumnsFields?: string[];
+    overWriteColumns?: ColumnDef<any>[];
+    additionalColumns?: ColumnDef<any>[];
     prependHeaderNodes?: ReactNode[],
     prependFooterNodes?: ReactNode[],
     headerNodes?: ReactNode[],
@@ -61,6 +62,9 @@ export type DataGridProps = {
 export function DataGrid({
     configName,
     data,
+    orderedColumnsFields = [],
+    overWriteColumns = [],
+    additionalColumns = [],
     prependHeaderNodes = [],
     prependFooterNodes = [],
     headerNodes = [],
@@ -72,12 +76,9 @@ export function DataGrid({
     onPagination,
     loading = false
 }: DataGridProps) {
-    if (!data)
-        data = useState(() => makeData(15))[0]
-
     const theme = useTheme()
 
-    const columns = useMemo<ColumnDef<any>[]>(() => getColumns(data), [])
+    const columns = useMemo<ColumnDef<any>[]>(() => getColumns(data, overWriteColumns, additionalColumns, orderedColumnsFields), [])
 
     const [density, setDensity] = useState<Density>('compact')
     const [columnOrder, setColumnOrder] = useState<string[]>((columns ?? []).map(c => c.id))
@@ -140,19 +141,23 @@ export function DataGrid({
             <ExportButton />,
         ]
 
-    if (!prependHeaderNodes || prependHeaderNodes.length === 0)
+    if (prependHeaderNodes && prependHeaderNodes.length !== 0)
         headerNodes = prependHeaderNodes.concat(headerNodes)
-    if (!appendHeaderNodes || appendHeaderNodes.length === 0)
+    if (appendHeaderNodes && appendHeaderNodes.length !== 0)
         headerNodes = headerNodes.concat(appendHeaderNodes)
 
     if (hasPagination === true && (!footerNodes || footerNodes.length === 0))
         footerNodes = [
-            <Pagination paginationLimitOptions={paginationLimitOptions} onPagination={onPagination} setPaginationLimitChange={(size) => setPagination({ pageIndex: pagination.pageIndex, pageSize: size })} />
+            <Pagination paginationLimitOptions={paginationLimitOptions} onPagination={onPagination} setPaginationLimitChange={(size) => {
+                setPagination({ pageIndex: pagination.pageIndex, pageSize: size })
+                if (onPagination)
+                    onPagination(size, pagination.pageIndex)
+            }} />
         ]
 
-    if (!prependFooterNodes || prependFooterNodes.length === 0)
+    if (prependFooterNodes && prependFooterNodes.length !== 0)
         footerNodes = prependFooterNodes.concat(footerNodes)
-    if (!appendFooterNodes || appendFooterNodes.length === 0)
+    if (appendFooterNodes && appendFooterNodes.length !== 0)
         footerNodes = footerNodes.concat(appendFooterNodes)
 
     function handleDragEnd(e: DragEndEvent) {
@@ -188,7 +193,7 @@ export function DataGrid({
 
     const sensors = useSensors(useSensor(MouseSensor, {}), useSensor(TouchSensor, {}), useSensor(KeyboardSensor, {}))
 
-    console.log('DataGrid', { data, columns, columnOrder })
+    console.log('DataGrid', { data, columns, columnOrder, headerNodes, footerNodes })
 
     return (
         <DataGridContext.Provider value={{
@@ -230,7 +235,7 @@ export function DataGrid({
                                     ? <p style={{ textAlign: 'center' }}>{t('DataGrid.noData')}</p>
                                     : <div style={{ overflow: 'auto', flexGrow: 2 }}>
                                         <table style={{ borderCollapse: 'collapse', minWidth: '100%' }}>
-                                            <thead style={{ position: 'sticky', top: 0, userSelect: 'none' }}>
+                                            <thead style={{ position: 'sticky', top: 0, userSelect: 'none', background: theme.palette.background.default, zIndex: 1 }}>
                                                 {table.getHeaderGroups().map(headerGroup => (
                                                     <tr key={headerGroup.id} style={{ borderBottom: `1px solid ${theme.palette.grey[500]}` }}>
                                                         <SortableContext

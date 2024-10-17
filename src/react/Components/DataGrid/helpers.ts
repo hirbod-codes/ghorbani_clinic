@@ -1,5 +1,3 @@
-// import { GridColDef } from '@mui/x-data-grid';
-// import { t } from 'i18next';
 import { ColumnDef } from '@tanstack/react-table';
 
 export const getColumns = (data: any[], overWriteColumns?: ColumnDef<any>[], additionalColumns?: ColumnDef<any>[], orderedColumnsFields?: string[]): ColumnDef<any>[] => {
@@ -9,29 +7,26 @@ export const getColumns = (data: any[], overWriteColumns?: ColumnDef<any>[], add
     let columns: ColumnDef<any>[] = Object.keys(data[0]).filter(f => f !== 'subRows').map(k => ({
         accessorKey: k,
         id: k
-        // field: k,
-        // headerName: t(`Columns.${k}`),
-        // headerAlign: 'center',
-        // align: 'center',
-        // type: 'string',
     }));
 
     if (overWriteColumns)
         for (let i = 0; i < overWriteColumns.length; i++) {
-            const index = columns.findIndex(c => c.id === overWriteColumns[i].id);
+            const elm = overWriteColumns[i]
+
+            const index = columns.findIndex(c => c.id === elm.id);
             if (index === -1)
                 continue;
 
             let entries = Object.entries(columns[index])
                 .map(
                     arr => {
-                        if (Object.keys(overWriteColumns[i]).includes(arr[0]))
-                            arr[1] = (overWriteColumns[i] as any)[arr[0]];
+                        if (Object.keys(elm).includes(arr[0]))
+                            arr[1] = (elm as any)[arr[0]];
                         return arr;
                     }
                 )
 
-            entries = entries.concat(Object.entries(overWriteColumns[i]).filter(f => entries.find(e => e[0] === f[0]) === undefined));
+            entries = entries.concat(Object.entries(elm).filter(f => entries.find(e => e[0] === f[0]) === undefined));
 
             columns[index] = Object.fromEntries(entries) as ColumnDef<any>;
         }

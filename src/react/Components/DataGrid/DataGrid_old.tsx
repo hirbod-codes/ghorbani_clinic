@@ -1,6 +1,5 @@
 import { GridColDef, GridColumnVisibilityModel, GridPaginationModel, GridToolbarColumnsButton, GridToolbarContainer, GridToolbarDensitySelector, GridToolbarExport, GridToolbarFilterButton, DataGrid as XDataGrid, useGridApiRef, DataGridProps as XDataGridProps, GridCallbackDetails } from '@mui/x-data-grid';
 import { useState, useEffect, useMemo } from 'react'
-import { getColumns } from './helpers'
 import { configAPI } from 'src/Electron/Configuration/renderer';
 import { Button, CircularProgress } from '@mui/material';
 
@@ -53,7 +52,8 @@ export function DataGrid(props: DataGridProps) {
 
     const columns = useMemo(() => {
         console.log('DataGrid', 'calculating columns...')
-        return getColumns(data, overWriteColumns, additionalColumns, orderedColumnsFields)
+        // return getColumnsOld(data, overWriteColumns, additionalColumns, orderedColumnsFields)
+        return [{field: 'aa'}]
     }, [])
 
     useEffect(() => {

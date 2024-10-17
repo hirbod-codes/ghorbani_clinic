@@ -1,15 +1,12 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Typography, useTheme } from "@mui/material";
+import { Typography } from "@mui/material";
 import { Header } from "@tanstack/react-table";
 import { CSSProperties, useContext } from "react";
-import { Person } from "./makeData";
 import { DataGridContext } from "./Context";
 import { t } from "i18next";
 
-export const DraggableTableHeader = ({ header }: { header: Header<Person, unknown>; }) => {
-    const theme = useTheme();
-
+export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>; }) => {
     const { attributes, isDragging, listeners, setNodeRef, transform, transition } = useSortable({
         transition: {
             duration: 250,
@@ -27,7 +24,9 @@ export const DraggableTableHeader = ({ header }: { header: Header<Person, unknow
         whiteSpace: 'nowrap',
         width: header.column.getSize(),
         zIndex: isDragging ? 1 : 0,
-        cursor: 'move'
+        cursor: 'move',
+        paddingLeft: '0.5rem',
+        paddingRight: '0.5rem',
     };
 
     const density = useContext(DataGridContext).density.value;

@@ -2,11 +2,10 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Cell, flexRender } from "@tanstack/react-table";
 import { CSSProperties, useContext } from "react";
-import { Person } from "./makeData";
 import { DataGridContext } from "./Context";
 import { Typography } from "@mui/material";
 
-export const DragAlongCell = ({ cell }: { cell: Cell<Person, unknown>; }) => {
+export const DragAlongCell = ({ cell }: { cell: Cell<any, unknown>; }) => {
     const { isDragging, setNodeRef, transform, transition } = useSortable({
         transition: {
             duration: 250,
