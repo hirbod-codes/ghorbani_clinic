@@ -1,5 +1,5 @@
 import { ObjectId } from "mongodb";
-import { InferType, array, mixed, number, object, string } from "yup";
+import { InferType, mixed, number, object, string } from "yup";
 import { contentSchema } from "./Content";
 
 export const collectionName = 'visits'

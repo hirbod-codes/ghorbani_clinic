@@ -4,12 +4,12 @@ import { readableFields as patientReadableFields, updatableFields as patientUpda
 import { readableFields as visitReadableFields, updatableFields as visitUpdatableFields } from "../../Models/Visit"
 
 export const resources = {
-    DB: 'db',
     USER: 'user',
+    PRIVILEGE: 'privilege',
     PATIENT: 'patient',
     VISIT: 'visit',
-    PRIVILEGE: 'privilege',
     FILE: 'file',
+    DB: 'db',
     MEDICAL_HISTORY: 'medicalHistory'
 }
 
@@ -38,6 +38,10 @@ export function getReadAttributes(resource: string): string[] {
             return visitReadableFields
         case resources.FILE:
             return []
+        case resources.DB:
+            return []
+        case resources.MEDICAL_HISTORY:
+            return []
 
         default:
             throw new Error('Invalid resource value provided.')
@@ -55,6 +59,10 @@ export function getUpdateAttributes(resource: string): string[] {
         case resources.VISIT:
             return visitUpdatableFields
         case resources.FILE:
+            return []
+        case resources.DB:
+            return []
+        case resources.MEDICAL_HISTORY:
             return []
 
         default:

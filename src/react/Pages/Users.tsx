@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useContext, useMemo } from "react";
+import { useState, useRef, useEffect, useContext } from "react";
 import { AddOutlined, DeleteOutlined, EditOutlined, RefreshOutlined, RemoveRedEyeOutlined } from '@mui/icons-material';
 import { Modal, Slide, Grid, List, ListItemButton, ListItemText, ListItemIcon, Paper, Typography, Button, Divider, Box, Stack, IconButton, Collapse, CircularProgress } from "@mui/material";
 import { t } from "i18next";
@@ -11,13 +11,13 @@ import { ConfigurationContext } from '../Contexts/ConfigurationContext';
 import { AuthContext } from "../Contexts/AuthContext";
 import ManageUser from "../Components/ManageUser";
 import { ManageRole } from "../Components/ManageRole";
-import { DataGrid } from "../Components/DataGrid/DataGrid_old";
-import { GridActionsCellItem, GridColDef } from "@mui/x-data-grid";
+import { DataGrid } from "../Components/DataGrid";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish, subscribe } from "../Lib/Events";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import { useNavigate } from "react-router-dom";
 import LoadingScreen from "../Components/LoadingScreen";
+import { ColumnDef } from "@tanstack/react-table";
 
 export function Users() {
     const configuration = useContext(ConfigurationContext)
@@ -138,22 +138,20 @@ export function Users() {
         }
     }
 
-    const columns: GridColDef<any>[] = [
+    const columns: ColumnDef<any>[] = [
         {
-            field: 'roleName',
-            width: 120,
+            accessorKey: 'roleName',
+            id: 'roleName',
         },
         {
-            field: 'createdAt',
-            type: 'number',
-            valueFormatter: (createdAt: number) => fromUnixToFormat(configuration.get.locale, createdAt, DATE),
-            width: 200,
+            accessorKey: 'createdAt',
+            id: 'createdAt',
+            cell: ({ getValue }) => fromUnixToFormat(configuration.get.locale, Number(getValue() as string), DATE),
         },
         {
-            field: 'updatedAt',
-            type: 'number',
-            valueFormatter: (updatedAt: number) => fromUnixToFormat(configuration.get.locale, updatedAt, DATE),
-            width: 200,
+            accessorKey: 'updatedAt',
+            id: 'updatedAt',
+            cell: ({ getValue }) => fromUnixToFormat(configuration.get.locale, Number(getValue() as string), DATE),
         },
     ]
 
@@ -165,6 +163,35 @@ export function Users() {
     const updatesRole = auth.accessControl?.can(auth.user.roleName).update(resources.PRIVILEGE).granted ?? false
     const deletesUser = auth.accessControl?.can(auth.user.roleName).delete(resources.USER).granted ?? false
     const deletesRole = auth.accessControl?.can(auth.user.roleName).delete(resources.PRIVILEGE).granted ?? false
+
+    const additionalColumns: ColumnDef<any>[] = (deletesUser || updatesUser) && [{
+        id: 'actions',
+        accessorKey: 'actions',
+        cell: ({ row }) =>
+            <Stack direction='row' alignItems='center'>
+                {
+                    updatesUser &&
+                    <IconButton
+                        onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === row.original._id)) }}
+                    >
+                        {editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
+                    </IconButton>
+                }
+                {
+                    deletesUser &&
+                    <IconButton
+                        onClick={async () => {
+                            await deleteUser(row.original._id);
+                            await updateRows(role)
+                            if (auth.user._id === row.original.id)
+                                await auth.logout()
+                        }}
+                    >
+                        {deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
+                    </IconButton>
+                }
+            </Stack>
+    }]
 
     const refresh = async () => {
         const r = await fetchRoles()
@@ -265,42 +292,13 @@ export function Users() {
                             {!showGrid
                                 ? <LoadingScreen />
                                 : <DataGrid
-                                    name='users'
+                                    configName='users'
                                     data={rows}
                                     overWriteColumns={columns}
                                     loading={loading}
                                     orderedColumnsFields={['actions']}
-                                    storeColumnVisibilityModel
-                                    additionalColumns={(deletesUser || updatesUser) ? [{
-                                        field: 'actions',
-                                        headerName: t('Columns.actions'),
-                                        headerAlign: 'center',
-                                        align: 'center',
-                                        type: 'actions',
-                                        width: 120,
-                                        getActions: (params) => [
-                                            updatesUser
-                                                ? <GridActionsCellItem
-                                                    label={t('Users.editUser')}
-                                                    icon={editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
-                                                    onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === params.row._id)) }}
-                                                />
-                                                : null,
-                                            deletesUser
-                                                ? <GridActionsCellItem
-                                                    label={t('Users.deleteUser')}
-                                                    icon={deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
-                                                    onClick={async () => {
-                                                        await deleteUser(params.row._id);
-                                                        await updateRows(role)
-                                                        if (auth.user._id === params.row.id)
-                                                            await auth.logout()
-                                                    }}
-                                                />
-                                                : null,
-                                        ].filter(a => a != null)
-                                    }] : undefined}
-                                    customToolbar={[
+                                    additionalColumns={additionalColumns}
+                                    appendHeaderNodes={[
                                         <Button onClick={async () => await fetchUsers()} startIcon={<RefreshOutlined />}>{t('Users.Refresh')}</Button>,
                                         createsUser && <Button onClick={() => setOpenManageUserModal(true)} startIcon={<AddOutlined />}>{t('Users.Create')}</Button>,
                                     ]}

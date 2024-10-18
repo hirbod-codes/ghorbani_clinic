@@ -1,9 +1,8 @@
 import { useState, useContext, useEffect, useMemo } from "react";
-import { DataGrid } from "../Components/DataGrid/DataGrid_old";
+import { DataGrid } from "../Components/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { t } from "i18next";
-import { Button, CircularProgress, Grid, Paper } from "@mui/material";
-import { GridActionsCellItem, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { Button, CircularProgress, Grid, IconButton, Paper } from "@mui/material";
 import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../Contexts/ConfigurationContext";
 import { Visit } from "../../Electron/Database/Models/Visit";
@@ -16,6 +15,7 @@ import { EditorModal } from "../Components/Editor/EditorModal";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import { useNavigate } from "react-router-dom";
 import LoadingScreen from "../Components/LoadingScreen";
+import { ColumnDef } from "@tanstack/react-table";
 
 export function Visits() {
     const auth = useContext(AuthContext)
@@ -67,25 +67,27 @@ export function Visits() {
         }
     }
 
-    const init = async (offset: number, limit: number) => {
+    const init = async (offset: number, limit: number): Promise<boolean> => {
         console.log('init', 'start');
 
-        setLoading(true)
         const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getVisits(offset, limit)
         console.log('fetchVisits', 'res', res)
-        setLoading(false)
 
         if (res.code !== 200 || !res.data) {
             publish(RESULT_EVENT_NAME, {
                 severity: 'error',
                 message: t('Visits.failedToFetchVisits')
             })
-            return
+            return false
         }
 
-        setVisits(res.data)
+        if (res.data.length > 0) {
+            setVisits(res.data)
+            return true
+        }
 
         console.log('init', 'end');
+        return false
     }
 
     const [showGrid, setShowGrid] = useState(false)
@@ -93,7 +95,7 @@ export function Visits() {
         console.log('Visits', 'useEffect2', 'start');
 
         if (visits.length === 0)
-            init(page.offset, page.limit)
+            init(page.offset, page.limit).then(() => setLoading(false))
 
         subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
             if (e?.detail === '/Visits')
@@ -103,47 +105,71 @@ export function Visits() {
 
     const deletesVisit = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.VISIT), [auth])
 
-    const columns: GridColDef<any>[] = [
+    const overWriteColumns: ColumnDef<any>[] = [
         {
-            field: 'diagnosis',
-            type: 'actions',
-            width: 120,
-            renderCell: (params: GridRenderCellParams<any, Date>) => {
-                return (
-                    <Button
-                        onClick={() => {
-                            console.log({ params, visits })
-                            setShowDiagnosis(visits.find(v => v._id === params.row._id)?._id as string);
-                        }}
-                    >
-                        {t('Visits.Show')}
-                    </Button>
-                );
-            }
+            id: 'diagnosis',
+            accessorKey: 'diagnosis',
+            cell: ({ row }) => <Button onClick={() => setShowDiagnosis(visits.find(v => v._id === row.original._id)?._id as string)}>{t('Visits.Show')}</Button>
         },
         {
-            field: 'treatments',
-            type: 'actions',
-            width: 120,
-            renderCell: (params: GridRenderCellParams<any, Date>) => (<Button onClick={() => setShowTreatments(visits.find(v => v._id === params.row._id)?._id as string)}>{t('Visits.Show')}</Button>)
+            id: 'treatments',
+            accessorKey: 'treatments',
+            cell: ({ row }) => (<Button onClick={() => setShowTreatments(visits.find(v => v._id === row.original._id)?._id as string)}>{t('Visits.Show')}</Button>)
         },
         {
-            field: 'due',
-            type: 'number',
-            valueFormatter: (createdAt: number) => fromUnixToFormat(configuration.get.locale, createdAt, DATE),
-            width: 200,
+            id: 'due',
+            accessorKey: 'due',
+            cell: ({ getValue }) => fromUnixToFormat(configuration.get.locale, Number(getValue() as string), DATE),
         },
         {
-            field: 'createdAt',
-            type: 'number',
-            valueFormatter: (createdAt: number) => fromUnixToFormat(configuration.get.locale, createdAt, DATE),
-            width: 200,
+            id: 'createdAt',
+            accessorKey: 'createdAt',
+            cell: ({ getValue }) => fromUnixToFormat(configuration.get.locale, Number(getValue() as string), DATE),
         },
         {
-            field: 'updatedAt',
-            type: 'number',
-            valueFormatter: (updatedAt: number) => fromUnixToFormat(configuration.get.locale, updatedAt, DATE),
-            width: 200,
+            id: 'updatedAt',
+            accessorKey: 'updatedAt',
+            cell: ({ getValue }) => fromUnixToFormat(configuration.get.locale, Number(getValue() as string), DATE),
+        },
+    ]
+
+    const additionalColumns: ColumnDef<any>[] = [
+        {
+            accessorKey: 'actions',
+            id: 'actions',
+            cell: ({ row }) =>
+                deletesVisit &&
+                <IconButton
+                    onClick={async () => {
+                        try {
+                            console.group('Visits', 'deletesVisit', 'onClick')
+
+                            setDeletingVisitId(row.original._id)
+                            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteVisit(row.original._id)
+                            setDeletingVisitId(undefined)
+
+                            if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1) {
+                                publish(RESULT_EVENT_NAME, {
+                                    severity: 'error',
+                                    message: t('Visits.failedToDeleteVisit')
+                                })
+
+                                return
+                            }
+
+                            publish(RESULT_EVENT_NAME, {
+                                severity: 'success',
+                                message: t('Visits.successfullyDeletedVisit')
+                            })
+
+                            await init(page.offset, page.limit)
+                        }
+                        finally { console.groupEnd() }
+                    }}
+                >
+                    {deletingVisitId === row.original._id ? <CircularProgress size={20} /> : <DeleteOutline />}
+                </IconButton>
+
         },
     ]
 
@@ -155,58 +181,21 @@ export function Visits() {
                         {!visits || visits.length === 0 || !showGrid
                             ? <LoadingScreen />
                             : <DataGrid
-                                name='visits'
+                                configName='visits'
                                 data={visits}
-                                hideFooter={false}
-                                overWriteColumns={columns}
-                                loading={loading}
-                                serverSidePagination
-                                onPaginationModelChange={async (m, d) => {
-                                    setPage({ offset: m.page, limit: m.pageSize });
-                                    await init(page.offset, page.limit)
-                                }}
+                                overWriteColumns={overWriteColumns}
                                 orderedColumnsFields={['actions', 'patientId', 'due']}
-                                storeColumnVisibilityModel
-                                customToolbar={[
+                                additionalColumns={additionalColumns}
+                                loading={loading}
+                                hasPagination
+                                onPagination={async (limit, offset) => {
+                                    const result = await init(offset, limit)
+                                    if (result)
+                                        setPage({ offset, limit })
+                                    return result
+                                }}
+                                appendHeaderNodes={[
                                     <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Visits.Refresh')}</Button>,
-                                ]}
-                                additionalColumns={[
-                                    {
-                                        field: 'actions',
-                                        type: 'actions',
-                                        headerName: t('Visits.actions'),
-                                        headerAlign: 'center',
-                                        align: 'center',
-                                        width: 120,
-                                        getActions: ({ row }) => [
-                                            deletesVisit ? <GridActionsCellItem icon={deletingVisitId === row._id ? <CircularProgress size={20} /> : <DeleteOutline />} onClick={async () => {
-                                                try {
-                                                    console.group('Visits', 'deletesVisit', 'onClick')
-
-                                                    setDeletingVisitId(row._id)
-                                                    const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteVisit(row._id)
-                                                    setDeletingVisitId(undefined)
-
-                                                    if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1) {
-                                                        publish(RESULT_EVENT_NAME, {
-                                                            severity: 'error',
-                                                            message: t('Visits.failedToDeleteVisit')
-                                                        })
-
-                                                        return
-                                                    }
-
-                                                    publish(RESULT_EVENT_NAME, {
-                                                        severity: 'success',
-                                                        message: t('Visits.successfullyDeletedVisit')
-                                                    })
-
-                                                    await init(page.offset, page.limit)
-                                                }
-                                                finally { console.groupEnd() }
-                                            }} label={t('Visits.delete')} /> : null,
-                                        ]
-                                    },
                                 ]}
                             />
                         }

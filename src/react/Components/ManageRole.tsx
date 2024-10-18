@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect } from "react";
 import { Typography, Accordion, AccordionSummary, AccordionDetails, Divider, TextField, Button, List, ListItem, ListItemText, Collapse, Checkbox, CircularProgress } from "@mui/material";
 import { ExpandMoreOutlined } from "@mui/icons-material";
 import { resources as staticResources } from "../../Electron/Database/Repositories/Auth/resources";
