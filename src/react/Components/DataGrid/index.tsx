@@ -55,7 +55,7 @@ export type DataGridProps = {
     appendFooterNodes?: ReactNode[],
     hasPagination?: boolean,
     paginationLimitOptions?: number[],
-    onPagination?: (paginationLimit: number, pageOffset: number) => Promise<void> | void,
+    onPagination?: (paginationLimit: number, pageOffset: number) => Promise<boolean> | boolean,
     loading?: boolean
 }
 

@@ -4,7 +4,6 @@ import { Analytics } from "../Components/Home/Analytics";
 import { Modal } from "../Components/Modal";
 import { Canvas } from "../Components/Canvas/test/Canvas";
 import { useState } from "react";
-import { DataGrid } from "../Components/DataGrid";
 
 export function Home() {
     console.log('Home')
@@ -25,14 +24,6 @@ export function Home() {
 
                 <Grid item xs={12}>
                     <Analytics />
-                </Grid>
-
-                <Grid item xs={12}>
-                    <Modal open={open} onClose={() => setOpen(false)}>
-                        <div style={{ direction: 'ltr', height: '100%', width: '100%' }}>
-                            <DataGrid configName="test" data={[]} />
-                        </div>
-                    </Modal>
                 </Grid>
 
                 {/* <Grid item xs={12}>

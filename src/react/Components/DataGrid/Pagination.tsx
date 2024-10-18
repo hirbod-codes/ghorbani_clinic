@@ -1,12 +1,13 @@
 import { NavigateBeforeOutlined, NavigateNextOutlined } from "@mui/icons-material";
-import { Pagination as MuiPagination, FormControl, InputLabel, MenuItem, Select, Stack, IconButton, PaginationItem, useTheme } from "@mui/material";
+import { Pagination as MuiPagination, FormControl, InputLabel, MenuItem, Select, Stack, IconButton, PaginationItem, useTheme, CircularProgress } from "@mui/material";
 import { t } from "i18next";
 import { useContext, useState } from "react";
 import { DataGridContext } from "./Context";
+import LoadingScreen from "../LoadingScreen";
 
 export type PaginationProps = {
     paginationLimitOptions?: number[],
-    onPagination?: (paginationLimit: number, pageOffset: number) => Promise<void> | void,
+    onPagination?: (paginationLimit: number, pageOffset: number) => Promise<boolean> | boolean,
     setPaginationLimitChange?: (paginationLimit: number) => void | Promise<void>
 }
 
@@ -18,6 +19,10 @@ export function Pagination({ paginationLimitOptions, onPagination, setPagination
     const [paginationLimit, setPaginationLimit] = useState<number>(paginationLimitOptions[0])
 
     const [page, setPage] = useState<number>(0)
+
+    const [isLoading, setIsLoading] = useState<boolean>(false)
+
+    console.log('Pagination', { page, paginationLimit })
 
     return (
         <>
@@ -32,6 +37,7 @@ export function Pagination({ paginationLimitOptions, onPagination, setPagination
                         onChange={(e) => {
                             setPaginationLimit(e.target.value as number);
                             setPaginationLimitChange(e.target.value as number)
+                            setPage(0)
                         }}
                     >
                         {paginationLimitOptions.map((pl, i) => <MenuItem key={i} value={pl}>{pl}</MenuItem>)}
@@ -50,34 +56,48 @@ export function Pagination({ paginationLimitOptions, onPagination, setPagination
                         <Stack direction='row' alignItems='center'>
                             <IconButton
                                 onClick={async () => {
-                                    if (onPagination)
-                                        await onPagination(paginationLimit, page)
+                                    setIsLoading(true)
+                                    const result = await onPagination(paginationLimit, page)
+                                    setIsLoading(false)
 
-                                    setPage(page - 1)
+                                    if (result)
+                                        setPage(page - 1)
                                 }}
+                                disabled={isLoading}
                                 size='small'
                                 sx={{ color: theme.palette.text.primary }}
                             >
-                                <NavigateBeforeOutlined fontSize="inherit" />
+                                {
+                                    theme.direction === 'ltr'
+                                        ? <NavigateBeforeOutlined fontSize="inherit" />
+                                        : <NavigateNextOutlined fontSize="inherit" />
+                                }
                             </IconButton>
 
-                            <PaginationItem page={page} />
+                            {isLoading ? <CircularProgress size={30} /> : <PaginationItem page={page} />}
 
                             <IconButton
                                 onClick={async () => {
-                                    if (onPagination)
-                                        await onPagination(paginationLimit, page)
+                                    setIsLoading(true)
+                                    const result = await onPagination(paginationLimit, page)
+                                    setIsLoading(false)
 
-                                    setPage(page + 1)
+                                    if (result)
+                                        setPage(page + 1)
                                 }}
+                                disabled={isLoading}
                                 size='small'
                                 sx={{ color: theme.palette.text.primary }}
                             >
-                                <NavigateNextOutlined fontSize="inherit" />
+                                {
+                                    theme.direction === 'ltr'
+                                        ? <NavigateNextOutlined fontSize="inherit" />
+                                        : <NavigateBeforeOutlined fontSize="inherit" />
+                                }
                             </IconButton>
                         </Stack>
                 }
-            </Stack>
+            </Stack >
         </>
     )
 }

@@ -1,8 +1,7 @@
 import { useState, useContext, useEffect, memo, useMemo } from "react";
 import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { t } from "i18next";
-import { Button, CircularProgress, Grid, IconButton, Paper, Stack } from "@mui/material";
-import { GridActionsCellItem, GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
+import { Button, CircularProgress, Grid, IconButton, Paper, Stack, useTheme } from "@mui/material";
 import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../Contexts/ConfigurationContext";
 import { Patient } from "../../Electron/Database/Models/Patient";
@@ -17,14 +16,15 @@ import { MedicalHistory } from "../Components/Patients/MedicalHistory";
 import { EditorModal } from "../Components/Editor/EditorModal";
 import { ManagePatient } from "../Components/Patients/ManagePatient";
 import LoadingScreen from "../Components/LoadingScreen";
-import { Modal } from "../Components/Modal";
 import { DataGrid } from "../Components/DataGrid";
 import { ColumnDef } from "@tanstack/react-table";
+import { getLuxonLocale } from "../Lib/helpers";
 
 export const Patients = memo(function Patients() {
     const auth = useContext(AuthContext)
     const configuration = useContext(ConfigurationContext)
     const navigate = useNavigate()
+    const theme = useTheme()
 
     if (!auth?.accessControl?.can(auth.user.roleName).read(resources.PATIENT).granted)
         navigate('/')
@@ -33,7 +33,7 @@ export const Patients = memo(function Patients() {
 
     const [initialized, setInitialized] = useState<boolean>(false)
     const [loading, setLoading] = useState<boolean>(true)
-    const [patients, setPatients] = useState<Patient[]>(undefined)
+    const [patients, setPatients] = useState<Patient[]>([])
 
     const [editingPatientId, setEditingPatientId] = useState<string | undefined>(undefined)
     const [creatingPatient, setCreatingPatient] = useState<boolean>(false)
@@ -58,14 +58,12 @@ export const Patients = memo(function Patients() {
         showingMH
     })
 
-    const init = async (offset: number, limit: number) => {
+    const init = async (offset: number, limit: number): Promise<boolean> => {
         try {
             console.group('Patients', 'init');
 
-            setLoading(true)
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPatients(offset, limit)
             console.log({ res })
-            setLoading(false)
 
             if (res.code !== 200 || !res.data) {
                 publish(RESULT_EVENT_NAME, {
@@ -73,10 +71,15 @@ export const Patients = memo(function Patients() {
                     message: t('Patients.failedToFetchPatients')
                 })
 
-                return
+                return false
             }
 
-            setPatients(res.data)
+            if (res.data.length > 0) {
+                setPatients(res.data)
+                return true
+            }
+
+            return false
         }
         finally { console.groupEnd() }
     }
@@ -88,6 +91,7 @@ export const Patients = memo(function Patients() {
             init(page.offset, page.limit)
                 .then(() => {
                     setInitialized(true)
+                    setLoading(false)
                     subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
                         if (e?.detail === '/Patients')
                             setShowGrid(true)
@@ -99,7 +103,7 @@ export const Patients = memo(function Patients() {
     const updatesPatient = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).update(resources.PATIENT), [auth])
     const deletesPatient = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.PATIENT), [auth])
 
-    const columns: ColumnDef<any>[] = [
+    const overWriteColumns: ColumnDef<any>[] = [
         {
             accessorKey: 'address',
             id: 'address',
@@ -117,8 +121,24 @@ export const Patients = memo(function Patients() {
             )
         },
         {
+            accessorKey: 'socialId',
+            id: 'socialId',
+            cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.get.locale.code), { trailingZeroDisplay: 'auto', minimumIntegerDigits: 10, useGrouping: false }).format(getValue() as Intl.StringNumericLiteral)
+        },
+        {
             accessorKey: '_id',
             id: '_id',
+            cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.get.locale.code)).format(Number(getValue() as string))
+        },
+        {
+            accessorKey: 'age',
+            id: 'age',
+            cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.get.locale.code)).format(Number(getValue() as string))
+        },
+        {
+            accessorKey: 'phoneNumber',
+            id: 'phoneNumber',
+            cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.get.locale.code), { trailingZeroDisplay: 'auto', minimumIntegerDigits: 11, useGrouping: false }).format(getValue() as Intl.StringNumericLiteral)
         },
         {
             accessorKey: 'medicalHistory',
@@ -205,18 +225,8 @@ export const Patients = memo(function Patients() {
         },
     ]
 
-    const [open, setOpen] = useState(false)
-
     return (
         <>
-            <Button onClick={() => setOpen(true)}>open</Button>
-
-            <Modal open={open} onClose={() => setOpen(false)}>
-                <div style={{ direction: 'ltr', height: '100%', width: '100%' }}>
-                    <DataGrid configName="Patients" data={undefined} />
-                </div>
-            </Modal>
-
             <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
                 <Grid item xs={12} height={'100%'}>
                     <Paper style={{ padding: '1rem', height: '100%' }} elevation={3}>
@@ -226,13 +236,15 @@ export const Patients = memo(function Patients() {
                                 configName='patients'
                                 data={patients ?? []}
                                 orderedColumnsFields={['actions', 'socialId', 'firstName', 'lastName', 'age', 'medicalHistory', 'phoneNumber', 'gender', 'address', 'birthDate']}
-                                overWriteColumns={columns}
+                                overWriteColumns={overWriteColumns}
                                 additionalColumns={additionalColumns}
                                 loading={loading}
                                 hasPagination
                                 onPagination={async (limit, offset) => {
-                                    setPage({ offset, limit })
-                                    await init(offset, limit)
+                                    const result = await init(offset, limit)
+                                    if (result)
+                                        setPage({ offset, limit })
+                                    return result
                                 }}
                                 appendHeaderNodes={[
                                     <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Patients.Refresh')}</Button>,
