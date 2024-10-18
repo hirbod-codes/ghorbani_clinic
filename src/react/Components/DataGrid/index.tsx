@@ -24,7 +24,7 @@ import { restrictToHorizontalAxis } from '@dnd-kit/modifiers'
 import {
     arrayMove,
     SortableContext,
-    horizontalListSortingStrategy,
+    horizontalListSortingStrategy
 } from '@dnd-kit/sortable'
 
 // needed for row & cell level scope DnD setup
@@ -40,6 +40,7 @@ import { ExportButton } from './ExportButton'
 import { Pagination } from './Pagination'
 import { getColumns } from './helpers'
 import LoadingScreen from '../LoadingScreen'
+import { AnimatePresence } from 'framer-motion'
 
 export type DataGridProps = {
     configName: string,
@@ -234,37 +235,39 @@ export function DataGrid({
                                 data.length === 0
                                     ? <p style={{ textAlign: 'center' }}>{t('DataGrid.noData')}</p>
                                     : <div style={{ overflow: 'auto', flexGrow: 2 }}>
-                                        <table style={{ borderCollapse: 'collapse', minWidth: '100%' }}>
-                                            <thead style={{ position: 'sticky', top: 0, userSelect: 'none', background: theme.palette.background.default, zIndex: 1 }}>
-                                                {table.getHeaderGroups().map(headerGroup => (
-                                                    <tr key={headerGroup.id} style={{ borderBottom: `1px solid ${theme.palette.grey[500]}` }}>
-                                                        <SortableContext
-                                                            items={columnOrder}
-                                                            strategy={horizontalListSortingStrategy}
-                                                        >
-                                                            {headerGroup.headers.map(header => (
-                                                                <DraggableTableHeader key={header.id} header={header} />
-                                                            ))}
-                                                        </SortableContext>
-                                                    </tr>
-                                                ))}
-                                            </thead>
-                                            <tbody>
-                                                {table.getRowModel().rows.map((row, i, arr) => (
-                                                    <tr key={row.id} style={{ borderBottom: i === (arr.length - 1) ? 0 : `1px solid ${theme.palette.grey[500]}`, textWrap: 'nowrap' }}>
-                                                        {row.getVisibleCells().map(cell => (
+                                        <AnimatePresence mode='sync'>
+                                            <table style={{ borderCollapse: 'collapse', minWidth: '100%' }}>
+                                                <thead style={{ position: 'sticky', top: 0, userSelect: 'none', background: theme.palette.background.default, zIndex: 1 }}>
+                                                    {table.getHeaderGroups().map(headerGroup => (
+                                                        <tr key={headerGroup.id} style={{ borderBottom: `1px solid ${theme.palette.grey[500]}` }}>
                                                             <SortableContext
-                                                                key={cell.id}
                                                                 items={columnOrder}
                                                                 strategy={horizontalListSortingStrategy}
                                                             >
-                                                                <DragAlongCell key={cell.id} cell={cell} />
+                                                                {headerGroup.headers.map(header => (
+                                                                    <DraggableTableHeader key={header.id} header={header} />
+                                                                ))}
                                                             </SortableContext>
-                                                        ))}
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                                        </tr>
+                                                    ))}
+                                                </thead>
+                                                <tbody>
+                                                    {table.getRowModel().rows.map((row, i, arr) => (
+                                                        <tr key={row.id} style={{ borderBottom: i === (arr.length - 1) ? 0 : `1px solid ${theme.palette.grey[500]}`, textWrap: 'nowrap' }}>
+                                                            {row.getVisibleCells().map(cell => (
+                                                                <SortableContext
+                                                                    key={cell.id}
+                                                                    items={columnOrder}
+                                                                    strategy={horizontalListSortingStrategy}
+                                                                >
+                                                                    <DragAlongCell key={cell.id} cell={cell} />
+                                                                </SortableContext>
+                                                            ))}
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </AnimatePresence>
                                     </div>
                             )
                         }

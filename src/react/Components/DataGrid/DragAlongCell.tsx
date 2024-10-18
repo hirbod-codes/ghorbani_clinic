@@ -1,11 +1,30 @@
+import { motion } from 'framer-motion';
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Cell, flexRender } from "@tanstack/react-table";
 import { CSSProperties, useContext } from "react";
 import { DataGridContext } from "./Context";
 import { Typography } from "@mui/material";
-import { t } from "i18next";
 import { Trans } from "react-i18next";
+import { mainTransition } from '../../Styles/animations';
+
+const variants = {
+    enter: {
+        name: 'enter',
+        opacity: 0,
+        transition: mainTransition
+    },
+    active: {
+        name: 'active',
+        opacity: 1,
+        transition: { ...mainTransition, delay: 0.5 }
+    },
+    exit: {
+        name: 'exit',
+        opacity: 0,
+        transition: mainTransition
+    }
+};
 
 export const DragAlongCell = ({ cell }: { cell: Cell<any, unknown>; }) => {
     const { isDragging, setNodeRef, transform, transition } = useSortable({
@@ -47,12 +66,19 @@ export const DragAlongCell = ({ cell }: { cell: Cell<any, unknown>; }) => {
     }
 
     return (
-        <td style={style} ref={setNodeRef}>
+        <motion.td
+            initial='enter'
+            animate='active'
+            exit='exit'
+            variants={variants}
+            style={style}
+            ref={setNodeRef}
+        >
             <Typography component='div' variant="body1">
                 <Trans >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </Trans>
             </Typography>
-        </td>
+        </motion.td>
     );
 };
