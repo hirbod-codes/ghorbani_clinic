@@ -1,4 +1,4 @@
-import { Backdrop, Box, CircularProgress, Divider, FormControl, IconButton, InputLabel, MenuItem, Paper, Select, Stack } from "@mui/material";
+import { Backdrop, Box, Button, CircularProgress, Divider, FormControl, IconButton, InputLabel, MenuItem, Paper, Select, Stack } from "@mui/material";
 import { MutableRefObject, useContext, useEffect, useRef, useState } from "react";
 import { ConfigurationContext } from "../../../Contexts/ConfigurationContext";
 import { Draw } from "../types";
@@ -9,7 +9,8 @@ import { PrintOutlined } from "@mui/icons-material";
 import { t } from "i18next";
 import { useReactToPrint } from "react-to-print";
 import { PencilOptions } from "./PencilOptions";
-import { RectangleOptions } from "./RectangleOptions";
+
+import * as fabric from 'fabric'
 
 type Tool = 'pencil' | 'eraser' | 'rectangle' | 'circle'
 
@@ -33,10 +34,13 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
 
     const [tool, setTool] = useState<Tool>('pencil')
 
-    const { onDown, clear, empty, onUp, onMouseMove, onTouchMove } = useDraw(draw, canvasRef, onChange)
+    // const { onDown, clear, empty, onUp, onMouseMove, onTouchMove } = useDraw(draw, canvasRef, onChange)
 
     const printRef = useRef<HTMLImageElement>()
     const print = useReactToPrint({ onAfterPrint: () => { setLoading(false); printRef.current.src = undefined } })
+
+    const canvas = useRef<fabric.Canvas>()
+    const brush = useRef<fabric.PencilBrush>()
 
     useEffect(() => {
         if (canvasRef.current) {
@@ -50,6 +54,21 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
     useEffect(() => {
         if (canvasRef.current)
             canvasRef.current.style.backgroundColor = canvasBackground
+        if (canvasRef.current) {
+            canvas.current = new fabric.Canvas(canvasRef.current, { isDrawingMode: true, freeDrawingCursor: 'crosshair', renderOnAddRemove:true })
+
+            brush.current = new fabric.PencilBrush(canvas.current)
+
+            brush.current.color = 'black'
+            brush.current.width = 10
+
+            canvas.current.freeDrawingBrush = brush.current
+
+            canvas.current.freeDrawingBrush.strokeLineJoin = 'round'
+            canvas.current.freeDrawingBrush.strokeLineCap = 'round'
+            canvas.current.freeDrawingBrush.width = 10
+            canvas.current.freeDrawingBrush.color = 'black'
+        }
     }, [canvasBackground])
 
     console.log('Canvas', { canvasRef, draw })
@@ -66,6 +85,19 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
 
             <Box sx={{ height: '100%' }}>
                 <Stack direction='column' alignItems='start' sx={{ height: '100%' }} spacing={1} >
+                    <Button onClick={() => {
+                        const canvas = new fabric.Canvas(canvasRef.current, { isDrawingMode: true })
+
+                        const brush = new fabric.PencilBrush(canvas)
+
+                        brush.color = 'black'
+                        brush.width = 10
+
+                        canvas.freeDrawingBrush = brush
+
+                        canvas.freeDrawingBrush.width = 10
+                        canvas.freeDrawingBrush.color = 'black'
+                    }}>aaa</Button>
                     <IconButton onClick={() => {
                         printRef.current.src = canvasRef.current.toDataURL()
                         setLoading(true)
@@ -93,25 +125,27 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
 
                     <Divider variant='middle' />
 
-                    {tool === 'pencil' && <PencilOptions setOnDraw={setDraw} canvasBackground={canvasBackground} />}
+                    {/* <Options tool={tool} /> */}
 
-                    {tool === 'eraser' && <PencilOptions mode='eraser' setOnDraw={setDraw} canvasBackground={canvasBackground} />}
+                    {/* {tool === 'pencil' && <PencilOptions setOnDraw={setDraw} canvasBackground={canvasBackground} />} */}
 
-                    {tool === 'eraser' && <RectangleOptions setOnDraw={setDraw} canvasBackground={canvasBackground} />}
+                    {/* {tool === 'eraser' && <PencilOptions mode='eraser' setOnDraw={setDraw} canvasBackground={canvasBackground} />} */}
 
-                    {tool === 'eraser' && <PencilOptions mode='eraser' setOnDraw={setDraw} canvasBackground={canvasBackground} />}
+                    {/* {tool === 'eraser' && <RectangleOptions setOnDraw={setDraw} canvasBackground={canvasBackground} />} */}
+
+                    {/* {tool === 'eraser' && <PencilOptions mode='eraser' setOnDraw={setDraw} canvasBackground={canvasBackground} />} */}
 
                     <Divider variant='middle' />
 
                     <Paper elevation={2} sx={{ flexGrow: 2, width: '100%', p: 1, m: 0 }}>
                         <canvas
                             ref={canvasRef}
-                            onMouseDown={onDown}
-                            onTouchStart={onDown}
-                            onMouseUp={onUp}
-                            onTouchEnd={onUp}
-                            onMouseMove={onMouseMove}
-                            onTouchMove={onTouchMove}
+                            // onMouseDown={onDown}
+                            // onTouchStart={onDown}
+                            // onMouseUp={onUp}
+                            // onTouchEnd={onUp}
+                            // onMouseMove={onMouseMove}
+                            // onTouchMove={onTouchMove}
                             className='canvas'
                         />
                     </Paper>
