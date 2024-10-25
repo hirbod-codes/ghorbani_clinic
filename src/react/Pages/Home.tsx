@@ -2,8 +2,9 @@ import { Box, Grid } from "@mui/material";
 import { SearchPatientField } from "../Components/Search/SearchPatientField";
 import { Analytics } from "../Components/Home/Analytics";
 import { Modal } from "../Components/Modal";
-import { Canvas } from "../Components/Canvas/test/Canvas";
 import { useState } from "react";
+import { Canvas as TestCanvas } from "../Components/Canvas/test/Canvas";
+import { Canvas } from "../Components/Canvas/Canvas";
 
 export function Home() {
     console.log('Home')
@@ -26,11 +27,18 @@ export function Home() {
                     <Analytics />
                 </Grid>
 
-                {/* <Grid item xs={12}>
-                    <Modal open={true} >
-                        <Canvas />
+                <Grid item xs={12}>
+                    <Modal open={open} onClose={() => setOpen(false)}>
+                        <div style={{ direction: 'ltr', position: 'relative', height: '100%', width: '100%' }}>
+                            <div style={{ position: 'absolute', height: '100%', width: '50%', padding: '10px' }}>
+                                <TestCanvas />
+                            </div>
+                            <div style={{ position: 'absolute', left: '50%', top: 0, height: '100%', width: '50%', padding: '10px' }}>
+                                <Canvas />
+                            </div>
+                        </div>
                     </Modal>
-                </Grid> */}
+                </Grid>
             </Grid>
         </>
     )

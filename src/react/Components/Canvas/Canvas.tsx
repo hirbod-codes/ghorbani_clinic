@@ -19,6 +19,9 @@ export type CanvasProps = {
 }
 
 export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
+    if (!canvasRef)
+        canvasRef = useRef()
+
     let theme = useContext(ConfigurationContext).get.theme
     if (!canvasBackground)
         canvasBackground = theme.palette.common.white
@@ -26,7 +29,7 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
     const [loading, setLoading] = useState<boolean>(false)
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-    const [color, setColor] = useState<string>(canvasBackground === theme.palette.common.white ? theme.palette.common.black : theme.palette.common.white)
+    const [color, setStroke] = useState<string>(canvasBackground === theme.palette.common.white ? theme.palette.common.black : theme.palette.common.white)
 
     const [lineWidth, setLineWidth] = useState<string>('1.2')
     const [radius, setRadius] = useState<string>('0.3')
@@ -57,17 +60,16 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
 
     function drawLine({ prevPoint, currentPoint, ctx }: Draw) {
         const { x: currX, y: currY } = currentPoint
-        const lineColor = color
 
         let startPoint = prevPoint ?? currentPoint
         ctx.beginPath()
         ctx.lineWidth = Number(lineWidth)
-        ctx.strokeStyle = lineColor
+        ctx.strokeStyle = color
         ctx.moveTo(startPoint.x, startPoint.y)
         ctx.lineTo(currX, currY)
         ctx.stroke()
 
-        ctx.fillStyle = lineColor
+        ctx.fillStyle = color
         ctx.beginPath()
         ctx.arc(startPoint.x, startPoint.y, Number(radius), 0, 2 * Math.PI)
         ctx.fill()
@@ -85,15 +87,16 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
 
             <Box sx={{ height: '100%' }}>
                 <Stack direction='column' alignItems='start' sx={{ height: '100%' }} spacing={1} >
-                    <Box sx={{ overflowX: 'auto', overflowY: 'hidden', flexGrow: 1, width: '100%' }}>
+                    <IconButton onClick={() => {
+                        printRef.current.src = canvasRef.current.toDataURL()
+                        setLoading(true)
+                        print(null, () => printRef.current);
+                    }}>
+                        <PrintOutlined />
+                    </IconButton>
+
+                    <Box sx={{ overflowX: 'auto', overflowY: 'hidden', width: '100%' }}>
                         <Stack direction='row' alignItems='center' spacing={2} sx={{ width: 'fit-content' }}>
-                            <IconButton onClick={() => {
-                                printRef.current.src = canvasRef.current.toDataURL()
-                                setLoading(true)
-                                print(null, () => printRef.current);
-                            }}>
-                                <PrintOutlined />
-                            </IconButton>
                             <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
                                 <ColorLensOutlined />
                             </IconButton>
@@ -103,7 +106,7 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
                                 if (tool !== 'pencil')
                                     setTool('pencil')
 
-                                setColor(canvasBackground === theme.palette.common.white ? theme.palette.common.black : theme.palette.common.white)
+                                setStroke(canvasBackground === theme.palette.common.white ? theme.palette.common.black : theme.palette.common.white)
                                 setRadius('0.3')
                             }}>
                                 <PencilIcon color={tool === 'pencil' ? theme.palette.success.light : undefined} />
@@ -112,7 +115,7 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
                                 if (tool !== 'eraser')
                                     setTool('eraser')
 
-                                setColor(canvasBackground === theme.palette.common.white ? theme.palette.common.white : theme.palette.common.black)
+                                setStroke(canvasBackground === theme.palette.common.white ? theme.palette.common.white : theme.palette.common.black)
                                 setRadius('10')
                             }}>
                                 <EraserIcon color={tool === 'eraser' ? theme.palette.success.light : undefined} />
@@ -120,7 +123,7 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
                             <Button
                                 variant='outlined'
                                 onClick={() => {
-                                    setColor(theme.palette.common.black)
+                                    setStroke(theme.palette.common.black)
                                     setLineWidth('1.2')
                                     setRadius('0.3')
                                 }}
@@ -133,7 +136,7 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
 
                     <Divider variant='middle' />
 
-                    <Paper elevation={2} sx={{ flexGrow: 2, width: '100%', p: 0, m: 0 }} ref={parentRef}>
+                    <Paper elevation={2} sx={{ flexGrow: 2, width: '100%', p: 1, m: 0 }} ref={parentRef}>
                         <canvas
                             ref={canvasRef}
                             onMouseDown={onDown}
@@ -160,7 +163,7 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
                 sx={{ mt: '40px' }}
             >
                 <Stack direction='column' alignItems='start' spacing={1} sx={{ m: 0, p: 2 }}>
-                    <HexAlphaColorPicker color={color} onChange={setColor} />
+                    <HexAlphaColorPicker color={color} onChange={setStroke} />
                 </Stack>
             </Menu>
 

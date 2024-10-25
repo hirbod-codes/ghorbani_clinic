@@ -5,8 +5,6 @@ import Logo from "../../assets/pencil.svg?react";
 export function PencilIcon({ color }: { color?: string }): JSX.Element {
     const theme = useTheme();
 
-    console.log(color)
-
     if (!color)
         color = theme.palette.text.primary
 

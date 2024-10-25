@@ -8,7 +8,9 @@
     ],
     "dictionaryDefinitions": [],
     "dictionaries": [],
-    "words": [],
+    "words": [
+        "Konva"
+    ],
     "ignoreWords": [],
     "import": []
 }

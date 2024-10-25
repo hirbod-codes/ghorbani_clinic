@@ -1,74 +1,129 @@
-import { MouseEvent, useRef, useState } from 'react';
-import { Stage, Layer, Line, Text } from 'react-konva';
+import { Backdrop, Box, CircularProgress, Divider, FormControl, IconButton, InputLabel, MenuItem, Paper, Select, Stack } from "@mui/material";
+import { MutableRefObject, useContext, useEffect, useRef, useState } from "react";
+import { ConfigurationContext } from "../../../Contexts/ConfigurationContext";
+import { Draw } from "../types";
+import { useDraw } from "../useDraw";
 
-export function Canvas() {
-    const [tool, setTool] = useState('pen');
-    const [lines, setLines] = useState([]);
-    const isDrawing = useRef(false);
+import '../styles.css'
+import { PrintOutlined } from "@mui/icons-material";
+import { t } from "i18next";
+import { useReactToPrint } from "react-to-print";
+import { PencilOptions } from "./PencilOptions";
+import { RectangleOptions } from "./RectangleOptions";
 
-    const handleMouseDown = (e: any) => {
-        isDrawing.current = true;
-        const pos = e.target.getStage().getPointerPosition();
-        setLines([...lines, { tool, points: [pos.x, pos.y] }]);
-    };
+type Tool = 'pencil' | 'eraser' | 'rectangle' | 'circle'
 
-    const handleMouseMove = (e: any) => {
-        // no drawing - skipping
-        if (!isDrawing.current) {
-            return;
+export type CanvasProps = {
+    canvasRef?: MutableRefObject<HTMLCanvasElement>,
+    onChange?: (empty?: boolean) => void | Promise<void>
+    canvasBackground?: string
+}
+
+export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
+    if (!canvasRef)
+        canvasRef = useRef()
+
+    let theme = useContext(ConfigurationContext).get.theme
+    if (!canvasBackground)
+        canvasBackground = theme.palette.common.white
+
+    const [loading, setLoading] = useState<boolean>(false)
+
+    const [draw, setDraw] = useState<(draw: Draw) => void>(undefined)
+
+    const [tool, setTool] = useState<Tool>('pencil')
+
+    const { onDown, clear, empty, onUp, onMouseMove, onTouchMove } = useDraw(draw, canvasRef, onChange)
+
+    const printRef = useRef<HTMLImageElement>()
+    const print = useReactToPrint({ onAfterPrint: () => { setLoading(false); printRef.current.src = undefined } })
+
+    useEffect(() => {
+        if (canvasRef.current) {
+            canvasRef.current.width = canvasRef.current.clientWidth
+            canvasRef.current.height = canvasRef.current.clientHeight
+            const ctx = canvasRef.current.getContext('2d')
+            ctx.scale(1, 1)
         }
-        const stage = e.target.getStage();
-        const point = stage.getPointerPosition();
-        let lastLine = lines[lines.length - 1];
-        // add point
-        lastLine.points = lastLine.points.concat([point.x, point.y]);
+    }, [canvasRef.current])
 
-        // replace last
-        lines.splice(lines.length - 1, 1, lastLine);
-        setLines(lines.concat());
-    };
+    useEffect(() => {
+        if (canvasRef.current)
+            canvasRef.current.style.backgroundColor = canvasBackground
+    }, [canvasBackground])
 
-    const handleMouseUp = () => {
-        isDrawing.current = false;
-    };
+    console.log('Canvas', { canvasRef, draw })
 
     return (
-        <div style={{ width: '100%', height: '100%' }}>
-            <select
-                value={tool}
-                onChange={(e) => {
-                    setTool(e.target.value);
-                }}
-            >
-                <option value="pen">Pen</option>
-                <option value="eraser">Eraser</option>
-            </select>
-            <Stage
-                style={{ border: '1px solid red', direction: 'ltr', width: '50%', height: '50%' }}
-                width={200}
-                height={200}
-                onMouseDown={handleMouseDown}
-                onMousemove={handleMouseMove}
-                onMouseup={handleMouseUp}
-            >
-                <Layer style={{ border: '1px solid red' }}>
-                    <Text text="Just start drawing" x={5} y={30} />
-                    {lines.map((line, i) => (
-                        <Line
-                            key={i}
-                            points={line.points}
-                            stroke="#df4b26"
-                            strokeWidth={5}
-                            tension={0.5}
-                            lineCap="round"
-                            lineJoin="round"
-                            globalCompositeOperation={
-                                line.tool === 'eraser' ? 'destination-out' : 'source-over'
-                            }
+        <>
+            {
+                loading
+                &&
+                <Backdrop sx={{ zIndex: theme.zIndex.drawer + 1 }} open={loading}>
+                    <CircularProgress />
+                </Backdrop >
+            }
+
+            <Box sx={{ height: '100%', border: '1px solid red' }}>
+                <Stack direction='column' alignItems='start' sx={{ height: '100%' }} spacing={1} >
+                    <IconButton onClick={() => {
+                        printRef.current.src = canvasRef.current.toDataURL()
+                        setLoading(true)
+                        print(null, () => printRef.current);
+                    }}>
+                        <PrintOutlined />
+                    </IconButton>
+
+                    <div style={{ width: '7rem' }}>
+                        <FormControl variant='standard' fullWidth>
+                            <InputLabel id="tool-label">{t('Canvas.tool')}</InputLabel>
+                            <Select
+                                onChange={(e) => setTool(e.target.value as any)}
+                                labelId="tool-label"
+                                id='tool'
+                                value={tool}
+                            >
+                                <MenuItem value='pencil'>{t('Canvas.pencil')}</MenuItem>
+                                <MenuItem value='eraser'>{t('Canvas.eraser')}</MenuItem>
+                                <MenuItem value='rectangle'>{t('Canvas.rectangle')}</MenuItem>
+                                <MenuItem value='circle'>{t('Canvas.circle')}</MenuItem>
+                            </Select>
+                        </FormControl>
+                    </div>
+
+                    <Divider variant='middle' />
+
+                    {/* <Options tool={tool} /> */}
+
+                    {tool === 'pencil' && <PencilOptions setOnDraw={setDraw} canvasBackground={canvasBackground} />}
+
+                    {tool === 'eraser' && <PencilOptions mode='eraser' setOnDraw={setDraw} canvasBackground={canvasBackground} />}
+
+                    {tool === 'eraser' && <RectangleOptions setOnDraw={setDraw} canvasBackground={canvasBackground} />}
+
+                    {tool === 'eraser' && <PencilOptions mode='eraser' setOnDraw={setDraw} canvasBackground={canvasBackground} />}
+
+                    <Divider variant='middle' />
+
+                    <Paper elevation={2} sx={{ flexGrow: 2, width: '100%', p: 1, m: 0 }}>
+                        <canvas
+                            ref={canvasRef}
+                            onMouseDown={onDown}
+                            onTouchStart={onDown}
+                            onMouseUp={onUp}
+                            onTouchEnd={onUp}
+                            onMouseMove={onMouseMove}
+                            onTouchMove={onTouchMove}
+                            className='canvas'
                         />
-                    ))}
-                </Layer>
-            </Stage>
-        </div>
-    );
-};
+                    </Paper>
+                </Stack >
+            </Box>
+
+            <div style={{ display: 'none' }}>
+                <img ref={printRef} style={{ backgroundColor: canvasBackground }} />
+            </div>
+        </>
+    )
+}
+
