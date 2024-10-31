@@ -36,7 +36,7 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
 
     const [tool, setTool] = useState<'pencil' | 'eraser'>('pencil')
 
-    const { onDown, clear, empty } = useDraw(drawLine, canvasRef, onChange)
+    const { onDown, clear, empty } = useDraw(canvasRef, drawLine, onChange)
 
     const parentRef = useRef<HTMLDivElement>()
 

@@ -22,12 +22,20 @@ export function PencilOptions({ setOnDraw, canvasBackground, mode = 'pencil' }: 
         if (!prevPoint || !currentPoint || !ctx)
             return
 
+        console.log('onDraw1', { color, lineWidth })
+
+        let width = Number(lineWidth);
+        if (draw.e.pointerType === 'pen')
+            width += (Math.pow(draw.e.pressure, 2) * 9);
+
+        console.log('onDraw1', { width })
+
         const { x: currX, y: currY } = currentPoint
         const lineColor = color
 
         let startPoint = prevPoint ?? currentPoint
         ctx.beginPath()
-        ctx.lineWidth = Number(lineWidth)
+        ctx.lineWidth = width
         ctx.strokeStyle = lineColor
         ctx.moveTo(startPoint.x, startPoint.y)
         ctx.lineTo(currX, currY)
@@ -35,13 +43,15 @@ export function PencilOptions({ setOnDraw, canvasBackground, mode = 'pencil' }: 
 
         ctx.fillStyle = lineColor
         ctx.beginPath()
-        ctx.arc(startPoint.x, startPoint.y, Number(lineWidth) / 2, 0, 2 * Math.PI)
+        ctx.arc(startPoint.x, startPoint.y, width / 2, 0, 2 * Math.PI)
         ctx.fill()
     }
 
     useEffect(() => {
         setOnDraw(() => onDraw)
     }, [color, lineWidth])
+
+    console.log('PencilOptions1', { color, lineWidth })
 
     return (
         <>

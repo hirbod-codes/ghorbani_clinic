@@ -1,20 +1,30 @@
-import { MouseEvent, MutableRefObject, TouchEvent, useEffect, useRef, useState } from 'react'
+import { MutableRefObject, PointerEvent, useRef, useState } from 'react'
 import { Draw, Point } from './types'
 import { isCanvasEmpty } from './helpers'
 
-export const useDraw = (draw: ({ ctx, currentPoint, prevPoint }: Draw) => void, canvasRef: MutableRefObject<HTMLCanvasElement>, onChange?: (empty?: boolean) => void | Promise<void>) => {
+export const useDraw = (
+    canvasRef: MutableRefObject<HTMLCanvasElement | undefined>,
+    draw?: (draw: Draw) => void,
+    onChange?: (empty?: boolean) => void | Promise<void>,
+) => {
     const [empty, setEmpty] = useState(true)
-    const [mouseDown, setMouseDown] = useState(false)
+    const [pointerDown, setPointerDown] = useState(false)
 
     const prevPoint = useRef<null | Point>(null)
 
     const ctx = canvasRef.current?.getContext('2d', { willReadFrequently: true })
 
-    const onDown = () => setMouseDown(true)
+    const onDown = (e: PointerEvent<HTMLCanvasElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setPointerDown(true)
+    }
 
-    const onUp = () => {
-        setMouseDown(false)
+    const onUp = (e: PointerEvent<HTMLCanvasElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
         prevPoint.current = null
+        setPointerDown(false)
     }
 
     const clear = () => {
@@ -36,40 +46,33 @@ export const useDraw = (draw: ({ ctx, currentPoint, prevPoint }: Draw) => void, 
             setEmpty(true)
     }
 
-    const onMouseMove = (e: MouseEvent) => onMove(e)
-
-    const onTouchMove = (e: TouchEvent) => onMove(e, false)
-
-    const onMove = (e: MouseEvent | TouchEvent, isMousePointer = true) => {
-        if (!mouseDown)
+    const onMove = (e: PointerEvent<HTMLCanvasElement>) => {
+        e.preventDefault()
+        e.stopPropagation()
+        if (!pointerDown)
             return
         if (!ctx)
             return
 
-        if (isMousePointer)
-            move(computePointInCanvas((e as MouseEvent).clientX, (e as MouseEvent).clientY))
-        else
-            for (let i = 0; i < (e as TouchEvent).touches.length; i++) {
-                const touch = (e as TouchEvent).touches[i]
-                move(computePointInCanvas(touch.clientX, touch.clientY))
-            }
-    }
+        const point = computePointInCanvas(e.clientX, e.clientY)
 
-    const move = (point: Point) => {
-        if (!point)
+        if (!point || !ctx || !draw)
             return
 
         if (onChange)
             onChange(empty)
 
-        draw({ ctx, currentPoint: point, prevPoint: prevPoint.current })
+        draw({ ctx, currentPoint: point, prevPoint: prevPoint.current, e })
         prevPoint.current = point
 
         if (empty)
             setEmpty(false)
     }
 
-    const computePointInCanvas = (x: number, y: number): Point => {
+    const computePointInCanvas = (x: number, y: number): Point | null => {
+        if (!canvasRef.current)
+            return null
+
         const rect = canvasRef.current.getBoundingClientRect()
 
         x = x - rect.left
@@ -78,21 +81,5 @@ export const useDraw = (draw: ({ ctx, currentPoint, prevPoint }: Draw) => void, 
         return { x, y }
     }
 
-    // useEffect(() => {
-    //     // Add event listeners
-    //     canvasRef.current?.addEventListener('mousemove', onMouseMove)
-    //     canvasRef.current?.addEventListener('touchmove', onTouchMove)
-    //     window.addEventListener('mouseup', onUp)
-    //     window.addEventListener('touchend', onUp)
-
-    //     // Remove event listeners
-    //     return () => {
-    //         canvasRef.current?.removeEventListener('mousemove', onMouseMove)
-    //         canvasRef.current?.removeEventListener('touchmove', onTouchMove)
-    //         window.removeEventListener('mouseup', onUp)
-    //         window.removeEventListener('touchend', onUp)
-    //     }
-    // }, [draw])
-
-    return { onDown, clear, empty, onUp, onMouseMove, onTouchMove }
+    return { onDown, clear, empty, onUp, onMove, pointerDown }
 }

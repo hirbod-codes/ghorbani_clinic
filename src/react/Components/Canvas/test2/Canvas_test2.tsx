@@ -34,13 +34,10 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
 
     const [tool, setTool] = useState<Tool>('pencil')
 
-    // const { onDown, clear, empty, onUp, onMouseMove, onTouchMove } = useDraw(draw, canvasRef, onChange)
+    const { onDown, onUp, onMove, pointerDown, clear, empty } = useDraw(canvasRef, draw, onChange)
 
     const printRef = useRef<HTMLImageElement>()
     const print = useReactToPrint({ onAfterPrint: () => { setLoading(false); printRef.current.src = undefined } })
-
-    const canvas = useRef<fabric.Canvas>()
-    const brush = useRef<fabric.PencilBrush>()
 
     useEffect(() => {
         if (canvasRef.current) {
@@ -54,24 +51,9 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
     useEffect(() => {
         if (canvasRef.current)
             canvasRef.current.style.backgroundColor = canvasBackground
-        if (canvasRef.current) {
-            canvas.current = new fabric.Canvas(canvasRef.current, { isDrawingMode: true, freeDrawingCursor: 'crosshair', renderOnAddRemove:true })
-
-            brush.current = new fabric.PencilBrush(canvas.current)
-
-            brush.current.color = 'black'
-            brush.current.width = 10
-
-            canvas.current.freeDrawingBrush = brush.current
-
-            canvas.current.freeDrawingBrush.strokeLineJoin = 'round'
-            canvas.current.freeDrawingBrush.strokeLineCap = 'round'
-            canvas.current.freeDrawingBrush.width = 10
-            canvas.current.freeDrawingBrush.color = 'black'
-        }
     }, [canvasBackground])
 
-    console.log('Canvas', { canvasRef, draw })
+    console.log('Canvas2', { canvasRef, draw })
 
     return (
         <>
@@ -125,9 +107,7 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
 
                     <Divider variant='middle' />
 
-                    {/* <Options tool={tool} /> */}
-
-                    {/* {tool === 'pencil' && <PencilOptions setOnDraw={setDraw} canvasBackground={canvasBackground} />} */}
+                    {tool === 'pencil' && <PencilOptions setOnDraw={setDraw} canvasBackground={canvasBackground} />}
 
                     {/* {tool === 'eraser' && <PencilOptions mode='eraser' setOnDraw={setDraw} canvasBackground={canvasBackground} />} */}
 
@@ -140,13 +120,16 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
                     <Paper elevation={2} sx={{ flexGrow: 2, width: '100%', p: 1, m: 0 }}>
                         <canvas
                             ref={canvasRef}
-                            // onMouseDown={onDown}
-                            // onTouchStart={onDown}
-                            // onMouseUp={onUp}
-                            // onTouchEnd={onUp}
-                            // onMouseMove={onMouseMove}
-                            // onTouchMove={onTouchMove}
-                            className='canvas'
+                            style={{ width: '100%', height: '100%', touchAction: 'none', userSelect: 'none' }}
+                            onPointerDown={onDown}
+                            onPointerUp={onUp}
+                            onPointerMove={onMove}
+                            onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                            onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                            onMouseUp={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                            onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                            onMouseMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                            onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
                         />
                     </Paper>
                 </Stack >

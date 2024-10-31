@@ -3,8 +3,8 @@ import { SearchPatientField } from "../Components/Search/SearchPatientField";
 import { Analytics } from "../Components/Home/Analytics";
 import { Modal } from "../Components/Modal";
 import { useState } from "react";
-import { Canvas as TestCanvas } from "../Components/Canvas/test2";
-import { Canvas } from "../Components/Canvas/test/Canvas";
+import { Canvas as TestCanvas } from "../Components/Canvas/test2/Canvas_test2";
+import { Canvas } from "../Components/Canvas/test/Canvas_test";
 
 export function Home() {
     console.log('Home')
