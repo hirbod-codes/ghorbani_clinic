@@ -1,11 +1,12 @@
 import { Box, IconButton, Menu, Stack, TextField } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
-import { Draw } from "../types";
-import { ColorLensOutlined } from "@mui/icons-material";
+import { Draw } from "./types";
+import { ColorLensOutlined, RestartAltOutlined } from "@mui/icons-material";
 import { t } from "i18next";
 import { HexAlphaColorPicker } from "react-colorful";
-import { ConfigurationContext } from "../../../Contexts/ConfigurationContext";
-import { PressureIcon } from "../../Icons/PressureIcon";
+import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
+import { PressureIcon } from "../Icons/PressureIcon";
+import { PenConnectIcon } from "../Icons/PenConnectIcon";
 
 export function PencilOptions({ setOnDraw, canvasBackground, mode = 'pencil' }: { setOnDraw: (onDraw: (draw: Draw) => void) => void, canvasBackground: string, mode?: 'pencil' | 'eraser' }) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -33,7 +34,7 @@ export function PencilOptions({ setOnDraw, canvasBackground, mode = 'pencil' }: 
             return
 
         let width = Number(lineWidth);
-        if (isPressureSensitive && draw.e.pointerType === 'pen')
+        if (mode !== 'eraser' && isPressureSensitive && draw.e.pointerType === 'pen')
             width += (Math.pow(draw.e.pressure, 2) * Number(pressureMagnitude));
 
         const { x: currX, y: currY } = currentPoint
@@ -59,44 +60,42 @@ export function PencilOptions({ setOnDraw, canvasBackground, mode = 'pencil' }: 
 
     return (
         <>
-            <Box sx={{ overflowX: 'auto', overflowY: 'hidden', width: '100%' }}>
-                <Stack spacing={3} direction='row' alignItems='center' sx={{ width: 'fit-content', minWidth: '100%' }}>
-                    <div style={{ width: '3rem' }}>
-                        <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
-                            <ColorLensOutlined />
-                        </IconButton>
-                    </div>
+            <Stack spacing={3} direction='row' alignItems='center' sx={{ width: 'fit-content', minWidth: '100%' }}>
+                <div style={{ width: '3rem' }}>
+                    <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+                        <ColorLensOutlined />
+                    </IconButton>
+                </div>
 
-                    <div style={{ width: '3rem' }}>
-                        <IconButton
-                            onClick={() => setIsPressureSensitive(!isPressureSensitive)}
-                        >
-                            <PressureIcon color={isPressureSensitive ? theme.palette.success[theme.palette.mode] : theme.palette.grey[400]} />
-                        </IconButton>
-                    </div>
+                <div style={{ width: '3rem' }}>
+                    <IconButton
+                        onClick={() => setIsPressureSensitive(!isPressureSensitive)}
+                    >
+                        <PenConnectIcon color={isPressureSensitive ? theme.palette.success[theme.palette.mode] : theme.palette.grey[400]} />
+                    </IconButton>
+                </div>
 
-                    <div style={{ width: '7rem' }}>
-                        <TextField type='text' label={t('Canvas.lineWidth')} variant='outlined' size='small' onChange={(e) => setLineWidth(e.target.value)} value={lineWidth} />
-                    </div>
+                <div style={{ width: '7rem' }}>
+                    <TextField type='text' label={t('Canvas.lineWidth')} variant='standard' size='small' onChange={(e) => setLineWidth(e.target.value)} value={lineWidth} />
+                </div>
 
-                    <div style={{ width: '7rem' }}>
-                        <TextField type='text' label={t('Canvas.pressureMagnitude')} variant='outlined' size='small' onChange={(e) => setPressureMagnitude(e.target.value)} value={pressureMagnitude} />
-                    </div>
+                <div style={{ width: '7rem' }}>
+                    <TextField type='text' label={t('Canvas.pressureMagnitude')} variant='standard' size='small' onChange={(e) => setPressureMagnitude(e.target.value)} value={pressureMagnitude} />
+                </div>
 
-                    <div style={{ width: '3rem' }}>
-                        <IconButton
-                            onClick={() => {
-                                setColor(canvasBackground === theme.palette.common.white ? theme.palette.common.black : theme.palette.common.white)
-                                setLineWidth('1.2')
-                                setIsPressureSensitive(true)
-                                setPressureMagnitude('9')
-                            }}
-                        >
-                            <PressureIcon color={isPressureSensitive ? theme.palette.success[theme.palette.mode] : theme.palette.grey[400]} />
-                        </IconButton>
-                    </div>
-                </Stack>
-            </Box>
+                <div style={{ width: '3rem' }}>
+                    <IconButton
+                        onClick={() => {
+                            setColor(canvasBackground === theme.palette.common.white ? theme.palette.common.black : theme.palette.common.white)
+                            setLineWidth('1.2')
+                            setIsPressureSensitive(true)
+                            setPressureMagnitude('9')
+                        }}
+                    >
+                        <RestartAltOutlined fontSize="medium" color='error' />
+                    </IconButton>
+                </div>
+            </Stack>
 
             <Menu
                 open={Boolean(anchorEl)}

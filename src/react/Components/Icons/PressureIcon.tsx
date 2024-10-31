@@ -9,8 +9,8 @@ export function PressureIcon({ color }: { color?: string }): JSX.Element {
         color = theme.palette.text.primary
 
     return (
-        <SvgIcon viewBox="0 0 500 500" fill={color}>
-            <Logo />
+        <SvgIcon viewBox="0 0 550 550" fontSize='large' fill={color}>
+            <Logo fill={color} />
         </SvgIcon>
     );
 }

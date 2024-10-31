@@ -1,12 +1,12 @@
 import { CloudDoneOutlined, CloudUploadOutlined, DarkModeOutlined, DrawOutlined, LightModeOutlined, RemoveRedEyeOutlined, SaveAltOutlined, TypeSpecimenOutlined } from "@mui/icons-material"
-import { Backdrop, Box, CircularProgress, Divider, IconButton, Stack, Typography } from "@mui/material"
+import { Backdrop, Box,  Divider, IconButton, Stack, Typography } from "@mui/material"
 import { t } from "i18next";
 import { useState, useRef, useEffect, useContext } from "react"
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 import { TextEditor } from "../TextEditor/TextEditor";
-import { Canvas } from "../Canvas/Canvas";
+import { Canvas } from "../Canvas";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { SaveIcon } from "../Icons/SaveIcon";
 import LoadingScreen from "../LoadingScreen";
