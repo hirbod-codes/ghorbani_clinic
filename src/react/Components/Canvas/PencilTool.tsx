@@ -5,10 +5,17 @@ import { ColorLensOutlined, RestartAltOutlined } from "@mui/icons-material";
 import { t } from "i18next";
 import { HexAlphaColorPicker } from "react-colorful";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
-import { PressureIcon } from "../Icons/PressureIcon";
 import { PenConnectIcon } from "../Icons/PenConnectIcon";
 
-export function PencilOptions({ setOnDraw, canvasBackground, mode = 'pencil' }: { setOnDraw: (onDraw: (draw: Draw) => void) => void, canvasBackground: string, mode?: 'pencil' | 'eraser' }) {
+export type PencilToolProps = {
+    canvasBackground: string,
+    setOnDraw: (onDraw: (draw: Draw) => void) => void,
+    setOnUpHook: (setOnUpHook: (draw: Draw) => void) => void,
+    setOnDownHook: (setOnDownHook: (draw: Draw) => void) => void,
+    mode?: 'pencil' | 'eraser'
+}
+
+export function PencilTool({ canvasBackground, setOnDraw, setOnUpHook, setOnDownHook, mode = 'pencil' }: PencilToolProps) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
     const theme = useContext(ConfigurationContext).get.theme
@@ -56,6 +63,8 @@ export function PencilOptions({ setOnDraw, canvasBackground, mode = 'pencil' }: 
 
     useEffect(() => {
         setOnDraw(() => onDraw)
+        setOnUpHook(() => (d: Draw) => { })
+        setOnDownHook(() => (d: Draw) => { })
     }, [color, lineWidth])
 
     return (

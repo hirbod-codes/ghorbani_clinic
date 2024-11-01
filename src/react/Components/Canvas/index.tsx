@@ -3,11 +3,12 @@ import { MutableRefObject, useContext, useEffect, useRef, useState } from "react
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { Draw } from "./types";
 import { useDraw } from "./useDraw";
-
 import { PrintOutlined } from "@mui/icons-material";
 import { t } from "i18next";
 import { useReactToPrint } from "react-to-print";
-import { PencilOptions } from "./PencilOptions";
+import { PencilTool } from "./PencilTool";
+
+import './styles.css'
 
 export type Tool = 'pencil' | 'eraser' | 'rectangle' | 'circle'
 
@@ -27,22 +28,27 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
 
     const [loading, setLoading] = useState<boolean>(false)
 
+    const [onDownHook, setOnDownHook] = useState<(draw: Draw) => void>(undefined)
+    const [onUpHook, setOnUpHook] = useState<(draw: Draw) => void>(undefined)
     const [draw, setDraw] = useState<(draw: Draw) => void>(undefined)
 
     const [tool, setTool] = useState<Tool>('pencil')
 
-    const { onDown, onUp, onMove, pointerDown, clear, empty } = useDraw(canvasRef, draw, onChange)
+    const { onDown, onUp, onMove, pointerDown, clear, empty } = useDraw(canvasRef, onChange, draw, onDownHook, onUpHook)
 
     const printRef = useRef<HTMLImageElement>()
     const print = useReactToPrint({ onAfterPrint: () => { setLoading(false); printRef.current.src = undefined } })
 
+    const resizeCanvas = (canvasRef: MutableRefObject<HTMLCanvasElement>) => {
+        canvasRef.current.width = canvasRef.current.clientWidth
+        canvasRef.current.height = canvasRef.current.clientHeight
+        const ctx = canvasRef.current.getContext('2d')
+        ctx.scale(1, 1)
+    }
+
     useEffect(() => {
-        if (canvasRef.current) {
-            canvasRef.current.width = canvasRef.current.clientWidth
-            canvasRef.current.height = canvasRef.current.clientHeight
-            const ctx = canvasRef.current.getContext('2d')
-            ctx.scale(1, 1)
-        }
+        if (canvasRef.current)
+            resizeCanvas(canvasRef)
     }, [canvasRef.current])
 
     useEffect(() => {
@@ -50,7 +56,7 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
             canvasRef.current.style.backgroundColor = canvasBackground
     }, [canvasBackground])
 
-    console.log('Canvas2', { canvasRef, draw })
+    console.log('Canvas', { canvasRef, draw })
 
     return (
         <>
@@ -62,8 +68,11 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
                 </Backdrop >
             }
 
-            <Box sx={{ height: '100%' }}>
+            <Box className='no_select' sx={{ height: '100%' }}>
                 <Stack direction='column' alignItems='start' sx={{ height: '100%' }} spacing={1} >
+                    <Button
+                        onResize={() => resizeCanvas(canvasRef)}
+                    >resize</Button>
                     <IconButton onClick={() => {
                         printRef.current.src = canvasRef.current.toDataURL()
                         setLoading(true)
@@ -92,13 +101,13 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
                     <Divider variant='middle' />
 
                     <Box sx={{ flexGrow: 1, overflowX: 'auto', overflowY: 'hidden', width: '100%', pt: 1 }}>
-                        {tool === 'pencil' && <PencilOptions setOnDraw={setDraw} canvasBackground={canvasBackground} />}
+                        {tool === 'pencil' && <PencilTool setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />}
 
-                        {tool === 'eraser' && <PencilOptions mode='eraser' setOnDraw={setDraw} canvasBackground={canvasBackground} />}
+                        {tool === 'eraser' && <PencilTool mode='eraser' setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />}
 
-                        {/* {tool === 'eraser' && <RectangleOptions setOnDraw={setDraw} canvasBackground={canvasBackground} />} */}
+                        {/* {tool === 'eraser' && <RectangleOptions setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />} */}
 
-                        {/* {tool === 'eraser' && <PencilOptions mode='eraser' setOnDraw={setDraw} canvasBackground={canvasBackground} />} */}
+                        {/* {tool === 'eraser' && <PencilTool mode='eraser' setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />} */}
                     </Box>
 
                     <Divider variant='middle' />
