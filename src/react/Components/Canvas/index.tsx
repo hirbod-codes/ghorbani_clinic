@@ -1,18 +1,41 @@
-import { Backdrop, Box, Button, CircularProgress, Divider, FormControl, IconButton, InputLabel, MenuItem, Paper, Select, Stack } from "@mui/material";
+import { Backdrop, Box, Button, CircularProgress, Divider, IconButton, Paper, Stack } from "@mui/material";
 import { MutableRefObject, useContext, useEffect, useRef, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { Draw } from "./types";
 import { useDraw } from "./useDraw";
-import { PrintOutlined } from "@mui/icons-material";
-import { t } from "i18next";
+import { CancelPresentationOutlined, CheckBoxOutlineBlankOutlined, DarkModeOutlined, EditOutlined, LightModeOutlined, NearMeOutlined, PrintOutlined, RestartAltOutlined } from "@mui/icons-material";
+import { motion } from 'framer-motion'
 import { useReactToPrint } from "react-to-print";
 import { PencilTool } from "./Tools/PencilTool";
-
-import './styles.css'
 import { Shapes } from "./Shapes/Shapes";
 import { RectangleTool } from "./Tools/RectangleTool";
+import { EraserIcon } from "../Icons/EraserIcon";
+import { SelectTool } from "./Tools/SelectTool";
+import { AnimatePresence } from "framer-motion";
+import { mainTransition } from "../../Styles/animations";
 
-export type Tool = 'pencil' | 'eraser' | 'rectangle' | 'circle'
+import './styles.css'
+
+const xOffset = 100;
+const variants = {
+    enter: {
+        name: 'enter',
+        x: -xOffset.toString() + '%',
+        transition: mainTransition
+    },
+    active: {
+        name: 'active',
+        x: 0,
+        transition: { ...mainTransition, delay: 0.5 }
+    },
+    exit: {
+        name: 'exit',
+        x: xOffset.toString() + '%',
+        transition: mainTransition
+    }
+};
+
+export type Tool = 'pencil' | 'eraser' | 'rectangle' | 'circle' | 'select'
 
 export type CanvasProps = {
     canvasRef?: MutableRefObject<HTMLCanvasElement>,
@@ -20,13 +43,12 @@ export type CanvasProps = {
     canvasBackground?: string
 }
 
-export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
+export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onChange }: CanvasProps) {
     if (!canvasRef)
         canvasRef = useRef()
 
     let theme = useContext(ConfigurationContext).get.theme
-    if (!canvasBackground)
-        canvasBackground = theme.palette.common.white
+    const [canvasBackground, setCanvasBackground] = useState(canvasBackgroundInit ?? theme.palette.common.white)
 
     const [loading, setLoading] = useState<boolean>(false)
 
@@ -73,45 +95,110 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
             }
 
             <Box className='no_select' sx={{ height: '100%' }}>
-                <Stack direction='column' alignItems='start' sx={{ height: '100%' }} spacing={1} >
-                    <Button
-                        onResize={() => resizeCanvas(canvasRef)}
-                    >resize</Button>
-                    <IconButton onClick={() => {
-                        printRef.current.src = canvasRef.current.toDataURL()
-                        setLoading(true)
-                        print(null, () => printRef.current);
-                    }}>
-                        <PrintOutlined />
-                    </IconButton>
+                <Stack direction='column' alignItems='start' sx={{ height: '100%' }}>
+                    <Stack direction='row' alignItems='center' sx={{ width: 'max-content' }}>
+                        <IconButton onClick={() => {
+                            printRef.current.src = canvasRef.current.toDataURL()
+                            setLoading(true)
+                            print(null, () => printRef.current);
+                        }}>
+                            <PrintOutlined />
+                        </IconButton>
+                        <IconButton onClick={() => {
+                            if (canvasBackground === theme.palette.common.white)
+                                setCanvasBackground(theme.palette.common.black)
+                            else
+                                setCanvasBackground(theme.palette.common.white)
+                        }}>
+                            {canvasBackground === theme.palette.common.white ? <LightModeOutlined fontSize='inherit' /> : <DarkModeOutlined fontSize='inherit' />}
+                        </IconButton>
+                        <IconButton onClick={() => {
+                            clear()
+                            setShapes(new Shapes([]))
+                        }}>
+                            <CancelPresentationOutlined fontSize="medium" color='error' />
+                        </IconButton>
+                    </Stack>
 
-                    <div style={{ width: '7rem' }}>
-                        <FormControl variant='standard' fullWidth>
-                            <InputLabel id="tool-label">{t('Canvas.tool')}</InputLabel>
-                            <Select
-                                onChange={(e) => setTool(e.target.value as any)}
-                                labelId="tool-label"
-                                id='tool'
-                                value={tool}
-                            >
-                                <MenuItem value='pencil'>{t('Canvas.pencil')}</MenuItem>
-                                <MenuItem value='eraser'>{t('Canvas.eraser')}</MenuItem>
-                                <MenuItem value='rectangle'>{t('Canvas.rectangle')}</MenuItem>
-                                <MenuItem value='circle'>{t('Canvas.circle')}</MenuItem>
-                            </Select>
-                        </FormControl>
+                    <div style={{ /**width: '7rem',*/ height: '4rem', overflowX: 'auto', overflowY: 'hidden' }}>
+                        <Stack direction='row' alignItems='center' sx={{ width: 'max-content' }}>
+                            <IconButton onClick={() => setTool('select')}>
+                                <NearMeOutlined color={tool === 'select' ? 'success' : undefined} />
+                            </IconButton>
+                            <IconButton onClick={() => setTool('pencil')}>
+                                <EditOutlined color={tool === 'pencil' ? 'success' : undefined} />
+                            </IconButton>
+                            <IconButton onClick={() => setTool('eraser')}>
+                                <EraserIcon color={tool === 'eraser' ? theme.palette.success[theme.palette.mode] : undefined} />
+                            </IconButton>
+                            <IconButton onClick={() => setTool('rectangle')}>
+                                <CheckBoxOutlineBlankOutlined color={tool === 'rectangle' ? 'success' : undefined} />
+                            </IconButton>
+                        </Stack>
                     </div>
 
                     <Divider variant='middle' />
 
-                    <Box sx={{ height: '4rem', overflowX: 'auto', overflowY: 'hidden', width: '100%', pt: 1 }}>
-                        {tool === 'pencil' && <PencilTool shapes={shapes} setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />}
+                    <Box sx={{ height: '4rem', overflowX: 'auto', overflowY: 'hidden', width: '100%', pt: 1, position: 'relative' }}>
+                        <AnimatePresence mode="sync">
+                            {tool === 'select' &&
+                                <motion.div
+                                    key={tool}
+                                    initial='enter'
+                                    animate='active'
+                                    exit='exit'
+                                    variants={variants}
+                                    transition={mainTransition}
+                                    style={{ height: '100%', width: '100%', overflow: 'hidden', position: 'absolute' }}
+                                >
+                                    <SelectTool shapes={shapes} setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />
+                                </motion.div>
+                            }
 
-                        {tool === 'eraser' && <PencilTool shapes={shapes} mode='eraser' setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />}
+                            {tool === 'pencil' &&
+                                <motion.div
+                                    key={tool}
+                                    initial='enter'
+                                    animate='active'
+                                    exit='exit'
+                                    variants={variants}
+                                    transition={mainTransition}
+                                    style={{ height: '100%', width: '100%', overflow: 'hidden', position: 'absolute' }}
+                                >
+                                    <PencilTool shapes={shapes} setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />
+                                </motion.div>
+                            }
 
-                        {tool === 'rectangle' && <RectangleTool shapes={shapes} setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />}
+                            {tool === 'eraser' &&
+                                <motion.div
+                                    key={tool}
+                                    initial='enter'
+                                    animate='active'
+                                    exit='exit'
+                                    variants={variants}
+                                    transition={mainTransition}
+                                    style={{ height: '100%', width: '100%', overflow: 'hidden', position: 'absolute' }}
+                                >
+                                    <PencilTool shapes={shapes} mode='eraser' setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />
+                                </motion.div>
+                            }
 
-                        {/* {tool === 'eraser' && <PencilTool shapes={shapes} mode='eraser' setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />} */}
+                            {tool === 'rectangle' &&
+                                <motion.div
+                                    key={tool}
+                                    initial='enter'
+                                    animate='active'
+                                    exit='exit'
+                                    variants={variants}
+                                    transition={mainTransition}
+                                    style={{ height: '100%', width: '100%', overflow: 'hidden', position: 'absolute' }}
+                                >
+                                    <RectangleTool shapes={shapes} setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />
+                                </motion.div>
+                            }
+
+                            {/* {tool === 'eraser' && <PencilTool shapes={shapes} mode='eraser' setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />} */}
+                        </AnimatePresence>
                     </Box>
 
                     <Divider variant='middle' />

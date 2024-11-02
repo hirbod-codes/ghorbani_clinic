@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { Shapes } from "../Shapes/Shapes"
 import { Draw, Point } from "../types"
 import { Rectangle } from "../Shapes/Rectangle"
-import { Button, IconButton, Menu, Stack, TextField } from "@mui/material"
+import { Button, IconButton, Menu, Stack, TextField, useTheme } from "@mui/material"
 import { HexAlphaColorPicker } from "react-colorful"
 import { ColorLensOutlined, RestartAltOutlined } from "@mui/icons-material"
 import { t } from "i18next"
@@ -16,6 +16,8 @@ export type RectangleToolProps = {
 }
 
 export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, setOnDownHook }: RectangleToolProps) {
+    const theme = useTheme()
+
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
     const [anchorType, setAnchorType] = useState<'stroke' | 'fill'>('fill')
     const [color, setColor] = useState<string>('#ffffff')
@@ -94,7 +96,9 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
             <Stack spacing={3} direction='row' alignItems='center' sx={{ width: 'fit-content', minWidth: '100%' }}>
                 <div>
                     <Button
-                        startIcon={<ColorLensOutlined />}
+                        variant='outlined'
+                        sx={{ borderColor: fill as string, color: fill as string }}
+                        startIcon={<ColorLensOutlined sx={{ color: 'white' }} />}
                         onClick={(e) => {
                             setColor(fill as string)
                             setAnchorType('fill')
@@ -107,7 +111,9 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
 
                 <div>
                     <Button
-                        startIcon={<ColorLensOutlined />}
+                        variant='outlined'
+                        sx={{ borderColor: stroke as string, color: stroke as string }}
+                        startIcon={<ColorLensOutlined sx={{ color: 'white' }} />}
                         onClick={(e) => {
                             setColor(stroke as string)
                             setAnchorType('stroke')
@@ -125,9 +131,9 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
                 <div>
                     <IconButton
                         onClick={() => {
-                            setStroke('red')
-                            setFill('green')
-                            setColor('#ffffff')
+                            setStroke('#ff0000')
+                            setFill('#00ff00')
+                            setAnchorType('fill')
                             setLineWidth('1.2')
                         }}
                     >

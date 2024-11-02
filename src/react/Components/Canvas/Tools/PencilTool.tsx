@@ -68,8 +68,8 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
         <>
             <Stack spacing={3} direction='row' alignItems='center' sx={{ width: 'max-content' }}>
                 <div>
-                    <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
-                        <ColorLensOutlined />
+                    <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ backgroundColor: color }}>
+                        <ColorLensOutlined sx={{ color: theme.palette.getContrastText(color) }} />
                     </IconButton>
                 </div>
 
@@ -82,7 +82,7 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
                 </div>
 
                 <div>
-                    <TextField type='text' label={t('Canvas.lineWidth')} variant='standard' size='small' onChange={(e) => setLineWidth(e.target.value)} value={lineWidth} />
+                    <TextField type='text' label={t('Canvas .lineWidth')} variant='standard' size='small' onChange={(e) => setLineWidth(e.target.value)} value={lineWidth} />
                 </div>
 
                 <div>
