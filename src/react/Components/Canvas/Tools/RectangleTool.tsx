@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { Shapes } from "../Shapes/Shapes"
 import { Draw, Point } from "../types"
 import { Rectangle } from "../Shapes/Rectangle"
-import { Button, IconButton, Menu, Stack } from "@mui/material"
+import { Button, IconButton, Menu, Stack, TextField } from "@mui/material"
 import { HexAlphaColorPicker } from "react-colorful"
 import { ColorLensOutlined, RestartAltOutlined } from "@mui/icons-material"
 import { t } from "i18next"
@@ -61,7 +61,6 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
             setHasMoved(true);
 
         if (!referencePoint) {
-            console.warn('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!')
             return
         }
 
@@ -93,7 +92,7 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
     return (
         <>
             <Stack spacing={3} direction='row' alignItems='center' sx={{ width: 'fit-content', minWidth: '100%' }}>
-                <div style={{ width: '10rem' }}>
+                <div>
                     <Button
                         startIcon={<ColorLensOutlined />}
                         onClick={(e) => {
@@ -106,7 +105,7 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
                     </Button>
                 </div>
 
-                <div style={{ width: '10rem' }}>
+                <div>
                     <Button
                         startIcon={<ColorLensOutlined />}
                         onClick={(e) => {
@@ -119,7 +118,11 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
                     </Button>
                 </div>
 
-                <div style={{ width: '3rem' }}>
+                <div>
+                    <TextField type='text' label={t('Canvas.lineWidth')} variant='standard' size='small' onChange={(e) => setLineWidth(e.target.value)} value={lineWidth} />
+                </div>
+
+                <div>
                     <IconButton
                         onClick={() => {
                             setStroke('red')

@@ -66,14 +66,14 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
 
     return (
         <>
-            <Stack spacing={3} direction='row' alignItems='center' sx={{ width: 'fit-content', minWidth: '100%' }}>
-                <div style={{ width: '3rem' }}>
+            <Stack spacing={3} direction='row' alignItems='center' sx={{ width: 'max-content' }}>
+                <div>
                     <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
                         <ColorLensOutlined />
                     </IconButton>
                 </div>
 
-                <div style={{ width: '3rem' }}>
+                <div>
                     <IconButton
                         onClick={() => setIsPressureSensitive(!isPressureSensitive)}
                     >
@@ -81,15 +81,15 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
                     </IconButton>
                 </div>
 
-                <div style={{ width: '7rem' }}>
+                <div>
                     <TextField type='text' label={t('Canvas.lineWidth')} variant='standard' size='small' onChange={(e) => setLineWidth(e.target.value)} value={lineWidth} />
                 </div>
 
-                <div style={{ width: '7rem' }}>
+                <div>
                     <TextField type='text' label={t('Canvas.pressureMagnitude')} variant='standard' size='small' onChange={(e) => setPressureMagnitude(e.target.value)} value={pressureMagnitude} />
                 </div>
 
-                <div style={{ width: '3rem' }}>
+                <div>
                     <IconButton
                         onClick={() => {
                             setColor(canvasBackground === theme.palette.common.white ? theme.palette.common.black : theme.palette.common.white)

@@ -104,7 +104,7 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
 
                     <Divider variant='middle' />
 
-                    <Box sx={{ flexGrow: 1, overflowX: 'auto', overflowY: 'hidden', width: '100%', pt: 1 }}>
+                    <Box sx={{ height: '4rem', overflowX: 'auto', overflowY: 'hidden', width: '100%', pt: 1 }}>
                         {tool === 'pencil' && <PencilTool shapes={shapes} setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />}
 
                         {tool === 'eraser' && <PencilTool shapes={shapes} mode='eraser' setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />}
@@ -116,7 +116,7 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
 
                     <Divider variant='middle' />
 
-                    <Paper elevation={2} sx={{ flexGrow: 2, width: '100%', p: 1, m: 0 }}>
+                    <Paper elevation={2} sx={{ flexGrow: 1, width: '100%', p: 1, m: 0 }}>
                         <canvas
                             ref={canvasRef}
                             style={{ width: '100%', height: '100%', touchAction: 'none', userSelect: 'none', cursor: 'crosshair' }}
