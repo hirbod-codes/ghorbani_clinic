@@ -23,7 +23,7 @@ export const useDraw = (
 
         if (onPointerDownHook) {
             const point = computePointInCanvas(e.clientX, e.clientY)
-            onPointerDownHook({ ctx, currentPoint: point, prevPoint: prevPoint.current, e })
+            onPointerDownHook({ ctx, currentPoint: point, prevPoint: prevPoint.current, e, canvasRef })
         }
     }
 
@@ -35,7 +35,7 @@ export const useDraw = (
 
         if (onPointerUpHook) {
             const point = computePointInCanvas(e.clientX, e.clientY)
-            onPointerUpHook({ ctx, currentPoint: point, prevPoint: prevPoint.current, e })
+            onPointerUpHook({ ctx, currentPoint: point, prevPoint: prevPoint.current, e, canvasRef })
         }
     }
 
@@ -74,7 +74,7 @@ export const useDraw = (
         if (onChange)
             onChange(empty)
 
-        onMoveHook({ ctx, currentPoint: point, prevPoint: prevPoint.current, e })
+        onMoveHook({ ctx, currentPoint: point, prevPoint: prevPoint.current, e, canvasRef })
         prevPoint.current = point
 
         if (empty)

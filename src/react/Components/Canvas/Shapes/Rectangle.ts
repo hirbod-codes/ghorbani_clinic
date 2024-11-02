@@ -2,18 +2,26 @@ import { Boundary, Draw, Point } from "../types";
 import { Shape } from "./Shape";
 
 export class Rectangle implements Shape {
-    private x: number
-    private y: number
-    private w: number
-    private h: number
-    private lineWidth: number
-    private fillColor: string | CanvasGradient | CanvasPattern
+    x: number
+    y: number
+    w: number
+    h: number
+    lineWidth: number
+    stroke: string | CanvasGradient | CanvasPattern
+    fill: string | CanvasGradient | CanvasPattern
 
-    constructor(w: number, h: number, lineWidth: number, fillColor: string | CanvasGradient | CanvasPattern) {
+    constructor(x: number, y: number, w: number, h: number, lineWidth: number, stroke: string | CanvasGradient | CanvasPattern, fill: string | CanvasGradient | CanvasPattern) {
+        this.x = x
+        this.y = y
         this.w = w
         this.h = h
         this.lineWidth = lineWidth
-        this.fillColor = fillColor
+        this.stroke = stroke
+        this.fill = fill
+    }
+
+    redraw(d: Draw): void {
+        this.draw(d)
     }
 
     getBoundary(): Boundary {
@@ -34,14 +42,12 @@ export class Rectangle implements Shape {
 
     draw(d: Draw): void {
         d.ctx.lineWidth = this.lineWidth
-        d.ctx.fillStyle = this.fillColor
+        d.ctx.strokeStyle = this.stroke
+        d.ctx.fillStyle = this.fill
 
         d.ctx.beginPath()
-        d.ctx.rect(d.currentPoint.x, d.currentPoint.y, this.w, this.h)
+        d.ctx.rect(this.x, this.y, this.w, this.h)
         d.ctx.fill()
         d.ctx.stroke()
-
-        this.x = d.currentPoint.x
-        this.y = d.currentPoint.y
     }
 }

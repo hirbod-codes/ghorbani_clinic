@@ -6,9 +6,11 @@ import { useDraw } from "./useDraw";
 import { PrintOutlined } from "@mui/icons-material";
 import { t } from "i18next";
 import { useReactToPrint } from "react-to-print";
-import { PencilTool } from "./PencilTool";
+import { PencilTool } from "./Tools/PencilTool";
 
 import './styles.css'
+import { Shapes } from "./Shapes/Shapes";
+import { RectangleTool } from "./Tools/RectangleTool";
 
 export type Tool = 'pencil' | 'eraser' | 'rectangle' | 'circle'
 
@@ -27,6 +29,8 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
         canvasBackground = theme.palette.common.white
 
     const [loading, setLoading] = useState<boolean>(false)
+
+    const [shapes, setShapes] = useState<Shapes>(new Shapes([]))
 
     const [onDownHook, setOnDownHook] = useState<(draw: Draw) => void>(undefined)
     const [onUpHook, setOnUpHook] = useState<(draw: Draw) => void>(undefined)
@@ -56,7 +60,7 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
             canvasRef.current.style.backgroundColor = canvasBackground
     }, [canvasBackground])
 
-    console.log('Canvas', { canvasRef, draw })
+    console.log('Canvas', { canvasRef, draw, shapes: shapes.shapes })
 
     return (
         <>
@@ -101,13 +105,13 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
                     <Divider variant='middle' />
 
                     <Box sx={{ flexGrow: 1, overflowX: 'auto', overflowY: 'hidden', width: '100%', pt: 1 }}>
-                        {tool === 'pencil' && <PencilTool setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />}
+                        {tool === 'pencil' && <PencilTool shapes={shapes} setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />}
 
-                        {tool === 'eraser' && <PencilTool mode='eraser' setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />}
+                        {tool === 'eraser' && <PencilTool shapes={shapes} mode='eraser' setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />}
 
-                        {/* {tool === 'eraser' && <RectangleOptions setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />} */}
+                        {tool === 'rectangle' && <RectangleTool shapes={shapes} setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />}
 
-                        {/* {tool === 'eraser' && <PencilTool mode='eraser' setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />} */}
+                        {/* {tool === 'eraser' && <PencilTool shapes={shapes} mode='eraser' setOnDraw={setDraw} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasBackground} />} */}
                     </Box>
 
                     <Divider variant='middle' />
@@ -115,7 +119,7 @@ export function Canvas({ canvasRef, canvasBackground, onChange }: CanvasProps) {
                     <Paper elevation={2} sx={{ flexGrow: 2, width: '100%', p: 1, m: 0 }}>
                         <canvas
                             ref={canvasRef}
-                            style={{ width: '100%', height: '100%', touchAction: 'none', userSelect: 'none' }}
+                            style={{ width: '100%', height: '100%', touchAction: 'none', userSelect: 'none', cursor: 'crosshair' }}
                             onPointerDown={onDown}
                             onPointerUp={onUp}
                             onPointerMove={onMove}

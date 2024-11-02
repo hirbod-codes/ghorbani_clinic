@@ -1,13 +1,16 @@
-import { Box, IconButton, Menu, Stack, TextField } from "@mui/material";
+import { IconButton, Menu, Stack, TextField } from "@mui/material";
 import { useContext, useEffect, useState } from "react";
-import { Draw } from "./types";
+import { Draw } from "../types";
 import { ColorLensOutlined, RestartAltOutlined } from "@mui/icons-material";
 import { t } from "i18next";
 import { HexAlphaColorPicker } from "react-colorful";
-import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
-import { PenConnectIcon } from "../Icons/PenConnectIcon";
+import { ConfigurationContext } from "../../../Contexts/ConfigurationContext";
+import { PenConnectIcon } from "../../Icons/PenConnectIcon";
+import { Line } from "../Shapes/Line";
+import { Shapes } from "../Shapes/Shapes";
 
 export type PencilToolProps = {
+    shapes: Shapes,
     canvasBackground: string,
     setOnDraw: (onDraw: (draw: Draw) => void) => void,
     setOnUpHook: (setOnUpHook: (draw: Draw) => void) => void,
@@ -15,7 +18,7 @@ export type PencilToolProps = {
     mode?: 'pencil' | 'eraser'
 }
 
-export function PencilTool({ canvasBackground, setOnDraw, setOnUpHook, setOnDownHook, mode = 'pencil' }: PencilToolProps) {
+export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, setOnDownHook, mode = 'pencil' }: PencilToolProps) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
     const theme = useContext(ConfigurationContext).get.theme
@@ -29,43 +32,37 @@ export function PencilTool({ canvasBackground, setOnDraw, setOnUpHook, setOnDown
     if (mode === 'eraser' && color !== canvasBackground)
         setColor(canvasBackground)
 
+    const [instance, setInstance] = useState<Line>(undefined)
+    const [hasMoved, setHasMoved] = useState<boolean>(false)
+
+    const onDown = (draw: Draw) => {
+        setInstance(new Line(Number(lineWidth), color, Number(pressureMagnitude), isPressureSensitive, mode))
+    }
+
+    const onUp = (draw: Draw) => {
+        if (hasMoved)
+            shapes.push(instance)
+
+        setInstance(undefined)
+        setHasMoved(false)
+    }
+
     const onDraw = (draw: Draw) => {
         if (!draw)
             return
 
-        const { prevPoint, currentPoint, ctx } = draw
-        if (!prevPoint || !currentPoint || !ctx)
-            return
+        if (!hasMoved)
+            setHasMoved(true)
 
-        if (Number.isNaN(Number(lineWidth)) || Number.isNaN(Number(pressureMagnitude)))
-            return
-
-        let width = Number(lineWidth);
-        if (mode !== 'eraser' && isPressureSensitive && draw.e.pointerType === 'pen')
-            width += (Math.pow(draw.e.pressure, 2) * Number(pressureMagnitude));
-
-        const { x: currX, y: currY } = currentPoint
-        const lineColor = color
-
-        let startPoint = prevPoint ?? currentPoint
-        ctx.beginPath()
-        ctx.lineWidth = width
-        ctx.strokeStyle = lineColor
-        ctx.moveTo(startPoint.x, startPoint.y)
-        ctx.lineTo(currX, currY)
-        ctx.stroke()
-
-        ctx.fillStyle = lineColor
-        ctx.beginPath()
-        ctx.arc(startPoint.x, startPoint.y, width / 2, 0, 2 * Math.PI)
-        ctx.fill()
+        if (instance)
+            instance.draw(draw)
     }
 
     useEffect(() => {
         setOnDraw(() => onDraw)
-        setOnUpHook(() => (d: Draw) => { })
-        setOnDownHook(() => (d: Draw) => { })
-    }, [color, lineWidth])
+        setOnUpHook(() => onUp)
+        setOnDownHook(() => onDown)
+    }, [color, lineWidth, instance, hasMoved])
 
     return (
         <>

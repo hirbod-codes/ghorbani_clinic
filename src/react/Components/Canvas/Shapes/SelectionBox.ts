@@ -1,4 +1,4 @@
-import { Point, Draw, Boundary, Position, PositionKeys } from "../types";
+import { Boundary, Draw, Point, Position, PositionKeys } from "../types";
 import { Shape } from "./Shape";
 
 export class SelectionBox implements Shape {
@@ -16,6 +16,11 @@ export class SelectionBox implements Shape {
         this.fillStyle = fillStyle
     }
 
+    redraw(d: Draw): void {
+        this.createScaleHandler(d.ctx)
+        this.createRotationHandler(d.ctx)
+    }
+
     isSelected(point: Point): boolean {
         return false
     }
@@ -23,7 +28,26 @@ export class SelectionBox implements Shape {
     draw(d: Draw): void {
         this.createScaleHandler(d.ctx)
         this.createRotationHandler(d.ctx)
+    }
 
+    getCornerBoundaries(): { [key in PositionKeys]: Boundary } {
+        const boundaries = this.getBoundaries()
+
+        return Object.fromEntries(
+            Object.entries(boundaries).filter(f =>
+                f[0] !== Position.TOP.toString() && f[0] !== Position.RIGHT.toString() && f[0] !== Position.BOTTOM.toString() && f[0] !== Position.LEFT.toString()
+            )
+        ) as { [key in PositionKeys]: Boundary }
+    }
+
+    getMiddleBoundaries(): { [key in PositionKeys]: Boundary } {
+        const boundaries = this.getBoundaries()
+
+        return Object.fromEntries(
+            Object.entries(boundaries).filter(f =>
+                f[0] !== Position.TOP_LEFT.toString() && f[0] !== Position.TOP_RIGHT.toString() && f[0] !== Position.BOTTOM_RIGHT.toString() && f[0] !== Position.BOTTOM_LEFT.toString()
+            )
+        ) as { [key in PositionKeys]: Boundary }
     }
 
     getBoundary(): Boundary {
@@ -91,26 +115,6 @@ export class SelectionBox implements Shape {
             default:
                 throw new Error('Invalid position provided for createCornerHandler method')
         }
-    }
-
-    getCornerBoundaries(): { [key in PositionKeys]: Boundary } {
-        const boundaries = this.getBoundaries()
-
-        return Object.fromEntries(
-            Object.entries(boundaries).filter(f =>
-                f[0] !== Position.TOP.toString() && f[0] !== Position.RIGHT.toString() && f[0] !== Position.BOTTOM.toString() && f[0] !== Position.LEFT.toString()
-            )
-        ) as { [key in PositionKeys]: Boundary }
-    }
-
-    getMiddleBoundaries(): { [key in PositionKeys]: Boundary } {
-        const boundaries = this.getBoundaries()
-
-        return Object.fromEntries(
-            Object.entries(boundaries).filter(f =>
-                f[0] !== Position.TOP_LEFT.toString() && f[0] !== Position.TOP_RIGHT.toString() && f[0] !== Position.BOTTOM_RIGHT.toString() && f[0] !== Position.BOTTOM_LEFT.toString()
-            )
-        ) as { [key in PositionKeys]: Boundary }
     }
 
     private createRotationHandler(c: CanvasRenderingContext2D) {

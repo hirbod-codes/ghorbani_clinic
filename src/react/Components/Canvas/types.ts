@@ -1,4 +1,4 @@
-import { PointerEvent } from "react";
+import { MutableRefObject, PointerEvent } from "react";
 
 export type Point = { x: number; y: number }
 
@@ -7,6 +7,7 @@ export type Draw = {
     currentPoint: Point
     prevPoint?: Point
     e: PointerEvent<HTMLCanvasElement>
+    canvasRef: MutableRefObject<HTMLCanvasElement | undefined>
 }
 
 export type Boundary = Point[]

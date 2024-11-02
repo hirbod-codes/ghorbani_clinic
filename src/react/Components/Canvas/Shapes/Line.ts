@@ -6,16 +6,38 @@ export class Line implements Shape {
     private stroke: string
     private pressureMagnitude: number
     private isPressureSensitive: boolean
-    private mode: 'eraser' | 'pen'
+    private mode: 'eraser' | 'pencil'
 
-    private points: { x: number, y: number }[] = []
+    private points: (Point & { lineWidth: number })[] = []
 
-    constructor(lineWidth: number, stroke: string, pressureMagnitude: number, isPressureSensitive: boolean, mode: 'eraser' | 'pen') {
+    constructor(lineWidth: number, stroke: string, pressureMagnitude: number, isPressureSensitive: boolean, mode: 'eraser' | 'pencil') {
         this.lineWidth = lineWidth
         this.stroke = stroke
         this.pressureMagnitude = pressureMagnitude
         this.isPressureSensitive = isPressureSensitive
         this.mode = mode
+    }
+
+    redraw(d: Draw): void {
+        d.ctx.beginPath()
+        d.ctx.strokeStyle = this.stroke
+        d.ctx.lineWidth = this.lineWidth
+        d.ctx.strokeStyle = this.stroke
+        d.ctx.fillStyle = this.stroke
+
+        d.ctx.moveTo(this.points[0].x, this.points[0].y)
+
+        for (let i = 1; i < this.points.length; i++) {
+            const point = this.points[i];
+
+            d.ctx.lineWidth = point.lineWidth
+            d.ctx.lineTo(point.x, point.y)
+        }
+        d.ctx.stroke()
+
+        d.ctx.beginPath()
+        d.ctx.arc(this.points[0].x, this.points[0].y, this.points[0].lineWidth / 2, 0, 2 * Math.PI)
+        d.ctx.fill()
     }
 
     getBoundary(): Boundary {
@@ -81,12 +103,13 @@ export class Line implements Shape {
 
         let startPoint = prevPoint ?? currentPoint
 
+        ctx.beginPath()
+
         const lineColor = this.stroke
         ctx.lineWidth = width
         ctx.strokeStyle = lineColor
         ctx.fillStyle = lineColor
 
-        ctx.beginPath()
         ctx.moveTo(startPoint.x, startPoint.y)
         ctx.lineTo(currentPoint.x, currentPoint.y)
         ctx.stroke()
@@ -95,6 +118,6 @@ export class Line implements Shape {
         ctx.arc(startPoint.x, startPoint.y, width / 2, 0, 2 * Math.PI)
         ctx.fill()
 
-        this.points.push(currentPoint)
+        this.points.push({ ...currentPoint, lineWidth: width })
     }
 }
