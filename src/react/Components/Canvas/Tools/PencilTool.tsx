@@ -1,10 +1,9 @@
-import { IconButton, Menu, Stack, TextField } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
+import { IconButton, Menu, Stack, TextField, useTheme } from "@mui/material";
+import { useEffect, useState } from "react";
 import { Draw } from "../types";
 import { ColorLensOutlined, RestartAltOutlined } from "@mui/icons-material";
 import { t } from "i18next";
 import { HexAlphaColorPicker } from "react-colorful";
-import { ConfigurationContext } from "../../../Contexts/ConfigurationContext";
 import { PenConnectIcon } from "../../Icons/PenConnectIcon";
 import { Line } from "../Shapes/Line";
 import { Shapes } from "../Shapes/Shapes";
@@ -13,6 +12,7 @@ export type PencilToolProps = {
     shapes: Shapes,
     canvasBackground: string,
     setOnDraw: (onDraw: (draw: Draw) => void) => void,
+    setOnHoverHook: (onHoverHook: (draw: Draw) => void) => void,
     setOnUpHook: (setOnUpHook: (draw: Draw) => void) => void,
     setOnDownHook: (setOnDownHook: (draw: Draw) => void) => void,
     mode?: 'pencil' | 'eraser'
@@ -21,7 +21,7 @@ export type PencilToolProps = {
 export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, setOnDownHook, mode = 'pencil' }: PencilToolProps) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
-    const theme = useContext(ConfigurationContext).get.theme
+    const theme = useTheme()
 
     const [color, setColor] = useState<string>(canvasBackground === theme.palette.common.white ? theme.palette.common.black : theme.palette.common.white)
     const [lineWidth, setLineWidth] = useState<string>('1.2')

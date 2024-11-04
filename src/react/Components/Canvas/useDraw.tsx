@@ -5,7 +5,8 @@ import { isCanvasEmpty } from './helpers'
 export const useDraw = (
     canvasRef: MutableRefObject<HTMLCanvasElement | undefined>,
     onChange?: (empty?: boolean) => void | Promise<void>,
-    onMoveHook?: (draw: Draw) => void,
+    onDraw?: (draw: Draw) => void,
+    onHoverHook?: (draw: Draw) => void,
     onPointerDownHook?: (draw: Draw) => void,
     onPointerUpHook?: (draw: Draw) => void,
 ) => {
@@ -61,20 +62,27 @@ export const useDraw = (
     const onMove = (e: PointerEvent<HTMLCanvasElement>) => {
         e.preventDefault()
         e.stopPropagation()
-        if (!pointerDown)
-            return
+
         if (!ctx)
             return
 
         const point = computePointInCanvas(e.clientX, e.clientY)
 
-        if (!point || !ctx || !onMoveHook)
+        if (!point || !ctx || !onDraw)
+            return
+
+        const draw = { ctx, currentPoint: point, prevPoint: prevPoint.current, e, canvasRef }
+
+        if (onHoverHook)
+            onHoverHook(draw)
+
+        if (!pointerDown)
             return
 
         if (onChange)
             onChange(empty)
 
-        onMoveHook({ ctx, currentPoint: point, prevPoint: prevPoint.current, e, canvasRef })
+        onDraw(draw)
         prevPoint.current = point
 
         if (empty)
@@ -93,7 +101,7 @@ export const useDraw = (
         return { x, y }
     }
 
-    const preventDefault = (e: PointerEvent | MouseEvent | TouchEvent) => { e.preventDefault(); e.stopPropagation() }
+    // const preventDefault = (e: PointerEvent | MouseEvent | TouchEvent) => { e.preventDefault(); e.stopPropagation() }
 
     // useEffect(() => {
     //     console.log('useDraw', 'useEffect1');

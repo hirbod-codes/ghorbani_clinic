@@ -10,17 +10,8 @@ export type Draw = {
     canvasRef: MutableRefObject<HTMLCanvasElement | undefined>
 }
 
-export type Boundary = Point[]
+export type Position = 'topLeft' | 'top' | 'topRight' | 'right' | 'bottomRight' | 'bottom' | 'bottomLeft' | 'left'
 
-export enum Position {
-    TOP,
-    RIGHT,
-    BOTTOM,
-    LEFT,
-    TOP_LEFT,
-    TOP_RIGHT,
-    BOTTOM_RIGHT,
-    BOTTOM_LEFT,
-}
+export type Boundary = { [key in Position]: Point };
 
-export type PositionKeys = keyof typeof Position
+export type Boundaries = { [key in Position]: Boundary };

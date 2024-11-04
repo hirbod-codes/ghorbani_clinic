@@ -1,4 +1,4 @@
-import { Boundary, Draw, Point } from "../types";
+import { Boundaries, Boundary, Draw, Point } from "../types";
 import { Shape } from "./Shape";
 
 export class Line implements Shape {
@@ -7,6 +7,8 @@ export class Line implements Shape {
     private pressureMagnitude: number
     private isPressureSensitive: boolean
     private mode: 'eraser' | 'pencil'
+    transformArgs: [number, number, number, number, number, number] = [1, 0, 0, 1, 0, 0]
+    rotationDegree: number = 0
 
     private points: (Point & { lineWidth: number })[] = []
 
@@ -72,18 +74,25 @@ export class Line implements Shape {
             return p.y <= c.y ? p : c
         }).y
 
-        return [
-            { x: minX, y: minY },
-            { x: maxX, y: minY },
-            { x: maxX, y: maxY },
-            { x: minX, y: maxY },
-        ]
+        const diffX = (maxX - minX) / 2
+        const diffY = (maxY - minY) / 2
+
+        return {
+            topLeft: { x: minX, y: minY },
+            top: { x: minX + (diffX / 2), y: minY },
+            topRight: { x: maxX, y: minY },
+            right: { x: maxX, y: minY + (diffY / 2) },
+            bottomRight: { x: maxX, y: maxY },
+            bottom: { x: minX + (diffX / 2), y: maxY },
+            bottomLeft: { x: minX, y: maxY },
+            left: { x: minX, y: minY + (diffY / 2) },
+        }
     }
 
-    isSelected(point: Point): boolean {
-        const boundaries = this.getBoundary()
+    isInside(ctx: CanvasRenderingContext2D, point: Point): boolean {
+        const boundary = this.getBoundary()
 
-        return point.x >= boundaries[0].x && point.x <= boundaries[1].x && point.y >= boundaries[0].y && point.y <= boundaries[2].y
+        return point.x >= boundary.left.x && point.x <= boundary.right.x && point.y >= boundary.top.y && point.y <= boundary.bottom.y
     }
 
     draw(d: Draw): void {

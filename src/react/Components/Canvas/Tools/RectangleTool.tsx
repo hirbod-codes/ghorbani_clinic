@@ -11,6 +11,7 @@ export type RectangleToolProps = {
     shapes: Shapes,
     canvasBackground: string,
     setOnDraw: (onDraw: (draw: Draw) => void) => void,
+    setOnHoverHook: (onHoverHook: (draw: Draw) => void) => void,
     setOnUpHook: (setOnUpHook: (draw: Draw) => void) => void,
     setOnDownHook: (setOnDownHook: (draw: Draw) => void) => void,
 }
@@ -112,8 +113,8 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
                 <div>
                     <Button
                         variant='outlined'
-                        sx={{ borderColor: stroke as string, color: stroke as string }}
-                        startIcon={<ColorLensOutlined sx={{ color: 'white' }} />}
+                        sx={{ borderColor: stroke as string, color: theme.palette.getContrastText(theme.palette.background.default) }}
+                        startIcon={<ColorLensOutlined sx={{ color: theme.palette.getContrastText(theme.palette.background.default) }} />}
                         onClick={(e) => {
                             setColor(stroke as string)
                             setAnchorType('stroke')
