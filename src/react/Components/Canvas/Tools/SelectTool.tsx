@@ -42,19 +42,22 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
         const shape = shapes.getSelectedShape()
 
         if (selectedHandler === 'move') {
-            if (shape instanceof Rectangle && draw.prevPoint && shape.x + (draw.currentPoint.x - draw.prevPoint.x) > 0) 
-                shape.transformArgs = [1, 0, 0, 1, shape.transformArgs[4] + (draw.currentPoint.x - draw.prevPoint.x), shape.transformArgs[5] + (draw.currentPoint.y - draw.prevPoint.y)]
+            if (shape instanceof Rectangle && draw.prevPoint && shape.x + (draw.currentPoint.x - draw.prevPoint.x) > 0) {
+                shape.transformArgs[4] += (draw.currentPoint.x - draw.prevPoint.x)
+                shape.transformArgs[5] += (draw.currentPoint.y - draw.prevPoint.y)
+            }
         } else if (selectedHandler === 'rotate') {
             if (!referencePoint)
                 setReferencePoint(draw.currentPoint)
-            else if (shape instanceof Rectangle) {
-                const t1 = draw.prevPoint.y / draw.prevPoint.x
+            else if (shape instanceof Rectangle && draw.prevPoint) {
+                const t1 = shape.y / shape.x
                 const t2 = draw.currentPoint.y / draw.currentPoint.x
-                if (!Number.isNaN(t1) && t1 !== Infinity && !Number.isNaN(t2) && t2 !== Infinity) {
-                    const degree = Math.tan(t2) - Math.tan(t1);
-                    console.log(t2, t1, degree)
-                    shape.rotationDegree = (shape.rotationDegree ?? 0) + degree * Math.PI / 180
-                }
+                // const degree = ((draw.currentPoint.y < draw.prevPoint.y) ? -1 : +1) * (Math.tan(t2) - Math.tan(t1));
+                // const degree = Math.tan(t2) - Math.tan(t1);
+                const degree = Math.tan((draw.currentPoint.y));
+                console.log(t2, t1, degree, shape.rotationDegree)
+                if (!Number.isNaN(t1) && t1 !== Infinity && !Number.isNaN(t2) && t2 !== Infinity)
+                    shape.rotationDegree = (shape.rotationDegree ?? 0) + (degree * Math.PI / 180)
             }
         } else {
             const verticalDiff = draw.currentPoint.y - handlersBoundaries[selectedHandler][selectedHandler].y

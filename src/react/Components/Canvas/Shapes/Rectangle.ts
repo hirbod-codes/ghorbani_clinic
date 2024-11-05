@@ -42,9 +42,8 @@ export class Rectangle implements Shape {
 
         ctx.save()
 
-        ctx.setTransform(this.transformArgs[0], this.transformArgs[1], this.transformArgs[2], this.transformArgs[3], -1.5 * (this.x), -1.5 * (this.y))
-        ctx.rotate(this.rotationDegree)
         ctx.setTransform(...this.transformArgs)
+        ctx.rotate(this.rotationDegree)
         const result = ctx.isPointInPath(this.path, point.x, point.y)
 
         ctx.restore()
@@ -65,11 +64,16 @@ export class Rectangle implements Shape {
         d.ctx.strokeStyle = this.stroke
         d.ctx.fillStyle = this.fill
 
-        d.ctx.setTransform(this.transformArgs[0], this.transformArgs[1], this.transformArgs[2], this.transformArgs[3], -1.5 * (this.x), -1.5 * (this.y))
-
+        let t = [...this.transformArgs]
+        t[4] = this.x + (0.5 * this.w)
+        t[5] = this.y + (0.5 * this.h)
+        d.ctx.translate(t[4], t[5])
         d.ctx.rotate(this.rotationDegree)
+        t[4] = -this.x - (0.5 * this.w)
+        t[5] = -this.y - (0.5 * this.h)
+        d.ctx.translate(t[4], t[5])
 
-        d.ctx.setTransform(...this.transformArgs)
+        d.ctx.transform(...this.transformArgs)
 
         this.path.rect(this.x, this.y, this.w, this.h)
 

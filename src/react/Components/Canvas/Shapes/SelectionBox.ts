@@ -1,4 +1,5 @@
 import { Boundaries, Boundary, Draw, Point, Position } from "../types";
+import { Rectangle } from "./Rectangle";
 import { Shape } from "./Shape";
 
 export class SelectionBox {
@@ -122,10 +123,17 @@ export class SelectionBox {
         }
     }
 
-    private transform(c: CanvasRenderingContext2D) {
-        const boundary = this.shape.getBoundary();
-        c.rotate(this.shape.rotationDegree)
-        c.setTransform(...this.shape.transformArgs)
+    private transform(ctx: CanvasRenderingContext2D) {
+        let t = [...(this.shape as Rectangle).transformArgs]
+        t[4] = (this.shape as Rectangle).x + (0.5 * (this.shape as Rectangle).w)
+        t[5] = (this.shape as Rectangle).y + (0.5 * (this.shape as Rectangle).h)
+        ctx.translate(t[4], t[5])
+        ctx.rotate((this.shape as Rectangle).rotationDegree)
+        t[4] = -(this.shape as Rectangle).x - (0.5 * (this.shape as Rectangle).w)
+        t[5] = -(this.shape as Rectangle).y - (0.5 * (this.shape as Rectangle).h)
+        ctx.translate(t[4], t[5])
+
+        ctx.transform(...(this.shape as Rectangle).transformArgs)
     }
 
     getBoundary(): Boundary {
