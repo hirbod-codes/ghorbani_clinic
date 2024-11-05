@@ -3,7 +3,6 @@ import { Pagination as MuiPagination, FormControl, InputLabel, MenuItem, Select,
 import { t } from "i18next";
 import { useContext, useState } from "react";
 import { DataGridContext } from "./Context";
-import LoadingScreen from "../LoadingScreen";
 
 export type PaginationProps = {
     paginationLimitOptions?: number[],
@@ -57,7 +56,7 @@ export function Pagination({ paginationLimitOptions, onPagination, setPagination
                             <IconButton
                                 onClick={async () => {
                                     setIsLoading(true)
-                                    const result = await onPagination(paginationLimit, page)
+                                    const result = await onPagination(paginationLimit, page - 1)
                                     setIsLoading(false)
 
                                     if (result)
@@ -79,7 +78,7 @@ export function Pagination({ paginationLimitOptions, onPagination, setPagination
                             <IconButton
                                 onClick={async () => {
                                     setIsLoading(true)
-                                    const result = await onPagination(paginationLimit, page)
+                                    const result = await onPagination(paginationLimit, page + 1)
                                     setIsLoading(false)
 
                                     if (result)

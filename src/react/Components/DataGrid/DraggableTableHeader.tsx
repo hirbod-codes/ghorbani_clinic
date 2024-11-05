@@ -1,10 +1,12 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Typography } from "@mui/material";
+import { IconButton, Typography } from "@mui/material";
 import { Header } from "@tanstack/react-table";
 import { CSSProperties, useContext } from "react";
 import { DataGridContext } from "./Context";
 import { t } from "i18next";
+import { PushPinOutlined } from "@mui/icons-material";
+import { getCommonPinningStyles } from "./getCommonPinningStyles";
 
 export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>; }) => {
     const { attributes, isDragging, listeners, setNodeRef, transform, transition } = useSortable({
@@ -27,10 +29,10 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
         cursor: 'move',
         paddingLeft: '0.5rem',
         paddingRight: '0.5rem',
+        ...getCommonPinningStyles(header.column),
     };
 
-    const density = useContext(DataGridContext).density.value;
-    switch (density) {
+    switch (useContext(DataGridContext).density.value) {
         case 'compact':
             style.paddingTop = '1rem';
             style.paddingBottom = '1rem';
@@ -51,7 +53,16 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
         <th colSpan={header.colSpan} ref={setNodeRef} style={style} {...attributes} {...listeners}>
             <Typography variant="body1">
                 {t('Columns.' + header.column.columnDef.id)}
+                <IconButton
+                    size='small'
+                    onClick={(e) => {
+                        if (header.column.getCanPin())
+                            header.column.pin('left')
+                    }}
+                >
+                    <PushPinOutlined fontSize="inherit" />
+                </IconButton>
             </Typography>
-        </th>
+        </th >
     );
 };

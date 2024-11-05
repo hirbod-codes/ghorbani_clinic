@@ -2,6 +2,7 @@ import { Fragment, ReactNode, useEffect, useMemo, useState } from 'react'
 
 import {
     ColumnDef,
+    ColumnPinningState,
     PaginationState,
     VisibilityState,
     getCoreRowModel,
@@ -28,7 +29,7 @@ import {
 } from '@dnd-kit/sortable'
 
 // needed for row & cell level scope DnD setup
-import { Stack, useTheme } from '@mui/material'
+import { Button, IconButton, Stack, useTheme } from '@mui/material'
 import { t } from 'i18next'
 import { configAPI } from 'src/Electron/Configuration/renderer'
 import { DraggableTableHeader } from './DraggableTableHeader'
@@ -41,6 +42,7 @@ import { Pagination } from './Pagination'
 import { getColumns } from './helpers'
 import LoadingScreen from '../LoadingScreen'
 import { AnimatePresence } from 'framer-motion'
+import { PushPinOutlined } from '@mui/icons-material'
 
 export type DataGridProps = {
     configName: string,
@@ -56,7 +58,8 @@ export type DataGridProps = {
     appendFooterNodes?: ReactNode[],
     hasPagination?: boolean,
     paginationLimitOptions?: number[],
-    onPagination?: (paginationLimit: number, pageOffset: number) => Promise<boolean> | boolean,
+    pagination?: PaginationState,
+    onPagination?: (pagination: PaginationState) => Promise<boolean> | boolean,
     loading?: boolean
 }
 
@@ -74,18 +77,36 @@ export function DataGrid({
     appendFooterNodes = [],
     hasPagination = false,
     paginationLimitOptions = [10, 25, 50, 100],
+    pagination,
     onPagination,
     loading = false
 }: DataGridProps) {
     const theme = useTheme()
 
-    const columns = useMemo<ColumnDef<any>[]>(() => getColumns(data, overWriteColumns, additionalColumns, orderedColumnsFields), [])
+    if (!additionalColumns.find(f => f.id === 'key'))
+        additionalColumns.push({
+            id: 'key',
+            accessorKey: 'key',
+            cell: ({ getValue }) => getValue(),
+            // cell: ({ row }) => ((pagination.pageIndex * pagination.pageSize) + row.index + 1),
+        })
+
+    data = data.map((d, i) => ({ ...d, key: (pagination.pageIndex * pagination.pageSize) + (i + 1) }))
+    // console.log('`````````````````````````````````````````', { data })
+
+    const columns = useMemo<ColumnDef<any>[]>(() => getColumns(data, overWriteColumns, additionalColumns, orderedColumnsFields), [overWriteColumns, additionalColumns, orderedColumnsFields])
 
     const [density, setDensity] = useState<Density>('compact')
     const [columnOrder, setColumnOrder] = useState<string[]>((columns ?? []).map(c => c.id))
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
-    const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: paginationLimitOptions[0], })
+    const [columnPinning, setColumnPinning] = useState<ColumnPinningState>({ left: ['key'], right: [] })
+
+    const sensors = useSensors(
+        useSensor(MouseSensor, { activationConstraint: { delay: 40, tolerance: 150 } }),
+        useSensor(TouchSensor, { activationConstraint: { delay: 40, tolerance: 150 } }),
+        useSensor(KeyboardSensor, {})
+    )
 
     const [table, setTable] = useState(useReactTable({
         data,
@@ -95,7 +116,26 @@ export function DataGrid({
         state: {
             columnOrder,
             columnVisibility,
+            columnPinning,
             pagination: hasPagination && !onPagination ? pagination : undefined
+        },
+        enableColumnPinning: true,
+        onColumnPinningChange: async (updaterOrValue) => {
+            let co: ColumnPinningState
+            if (typeof updaterOrValue !== 'function')
+                co = updaterOrValue
+            else
+                co = updaterOrValue(undefined)
+
+            const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+
+            if (!c.columnPinningModels)
+                c.columnPinningModels = {}
+
+            c.columnPinningModels[configName] = co;
+            (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
+
+            setColumnPinning(co);
         },
         onColumnOrderChange: async (updaterOrValue) => {
             let co
@@ -131,7 +171,7 @@ export function DataGrid({
 
             setColumnVisibility(cv)
         },
-        onPaginationChange: hasPagination && !onPagination ? setPagination : undefined,
+        onPaginationChange: hasPagination && !onPagination ? onPagination : undefined,
         getPaginationRowModel: hasPagination && !onPagination ? getPaginationRowModel() : undefined,
     }))
 
@@ -149,10 +189,14 @@ export function DataGrid({
 
     if (hasPagination === true && (!footerNodes || footerNodes.length === 0))
         footerNodes = [
-            <Pagination paginationLimitOptions={paginationLimitOptions} onPagination={onPagination} setPaginationLimitChange={(size) => {
-                setPagination({ pageIndex: pagination.pageIndex, pageSize: size })
+            <Pagination paginationLimitOptions={paginationLimitOptions} onPagination={async (l, o) => {
+                console.log({ l, o })
                 if (onPagination)
-                    onPagination(size, pagination.pageIndex)
+                    return await onPagination({ pageIndex: o, pageSize: l })
+                return true
+            }} setPaginationLimitChange={(size) => {
+                if (onPagination)
+                    onPagination({ pageIndex: 0, pageSize: size })
             }} />
         ]
 
@@ -160,19 +204,6 @@ export function DataGrid({
         footerNodes = prependFooterNodes.concat(footerNodes)
     if (appendFooterNodes && appendFooterNodes.length !== 0)
         footerNodes = footerNodes.concat(appendFooterNodes)
-
-    function handleDragEnd(e: DragEndEvent) {
-        const { active, over } = e
-
-        if (!active || !over || active.id === over.id)
-            return
-
-        const oldIndex = columnOrder.indexOf(active.id as string)
-        const newIndex = columnOrder.indexOf(over.id as string)
-        const newColumnOrder = arrayMove(columnOrder, oldIndex, newIndex)
-        setColumnOrder(newColumnOrder);
-        table.setColumnOrder(newColumnOrder)
-    }
 
     useEffect(() => {
         (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
@@ -187,14 +218,17 @@ export function DataGrid({
                     setColumnOrder(c.columnOrderModels[configName])
                 }
 
+                if (c?.columnPinningModels && c.columnPinningModels[configName]) {
+                    table.setColumnPinning(c.columnPinningModels[configName])
+                    setColumnPinning(c.columnPinningModels[configName])
+                }
+
                 if (c?.tableDensity && c?.tableDensity[configName])
                     setDensity(c?.tableDensity[configName])
             })
     }, [])
 
-    const sensors = useSensors(useSensor(MouseSensor, {}), useSensor(TouchSensor, {}), useSensor(KeyboardSensor, {}))
-
-    console.log('DataGrid', { data, columns, columnOrder, headerNodes, footerNodes })
+    console.log('DataGrid', { data, columns, pagination, columnPinning, columnVisibility, columnOrder, headerNodes, footerNodes })
 
     return (
         <DataGridContext.Provider value={{
@@ -218,7 +252,18 @@ export function DataGrid({
                 <DndContext
                     collisionDetection={closestCenter}
                     modifiers={[restrictToHorizontalAxis]}
-                    onDragEnd={handleDragEnd}
+                    onDragEnd={(e: DragEndEvent) => {
+                        const { active, over } = e
+
+                        if (!active || !over || active.id === over.id)
+                            return
+
+                        const oldIndex = columnOrder.indexOf(active.id as string)
+                        const newIndex = columnOrder.indexOf(over.id as string)
+                        const newColumnOrder = arrayMove(columnOrder, oldIndex, newIndex)
+                        setColumnOrder(newColumnOrder)
+                        table.setColumnOrder(newColumnOrder)
+                    }}
                     sensors={sensors}
                 >
                     <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '0.5rem 0', overflow: 'hidden', border: `1px solid ${theme.palette.grey[500]}`, borderRadius: `${theme.shape.borderRadius}px`, textWrap: 'nowrap' }}>
@@ -236,7 +281,7 @@ export function DataGrid({
                                     ? <p style={{ textAlign: 'center' }}>{t('DataGrid.noData')}</p>
                                     : <div style={{ overflow: 'auto', flexGrow: 2 }}>
                                         <AnimatePresence mode='sync'>
-                                            <table style={{ borderCollapse: 'collapse', minWidth: '100%' }}>
+                                            <table style={{ borderCollapse: 'separate', borderSpacing: 0, minWidth: '100%' }}>
                                                 <thead style={{ position: 'sticky', top: 0, userSelect: 'none', background: theme.palette.background.default, zIndex: 1 }}>
                                                     {table.getHeaderGroups().map(headerGroup => (
                                                         <tr key={headerGroup.id} style={{ borderBottom: `1px solid ${theme.palette.grey[500]}` }}>
@@ -244,9 +289,7 @@ export function DataGrid({
                                                                 items={columnOrder}
                                                                 strategy={horizontalListSortingStrategy}
                                                             >
-                                                                {headerGroup.headers.map(header => (
-                                                                    <DraggableTableHeader key={header.id} header={header} />
-                                                                ))}
+                                                                {headerGroup.headers.map(header => (<DraggableTableHeader key={header.id} header={header} />))}
                                                             </SortableContext>
                                                         </tr>
                                                     ))}

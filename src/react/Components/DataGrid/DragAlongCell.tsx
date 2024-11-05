@@ -1,12 +1,13 @@
 import { motion } from 'framer-motion';
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { Cell, flexRender } from "@tanstack/react-table";
+import { Cell, Column, flexRender } from "@tanstack/react-table";
 import { CSSProperties, useContext } from "react";
 import { DataGridContext } from "./Context";
 import { Typography } from "@mui/material";
 import { Trans } from "react-i18next";
 import { mainTransition } from '../../Styles/animations';
+import { getCommonPinningStyles } from "./getCommonPinningStyles";
 
 const variants = {
     enter: {
@@ -46,6 +47,7 @@ export const DragAlongCell = ({ cell }: { cell: Cell<any, unknown>; }) => {
         textAlign: 'center',
         paddingLeft: '0.5rem',
         paddingRight: '0.5rem',
+        ...getCommonPinningStyles(cell.column),
     };
 
     switch (useContext(DataGridContext).density.value) {

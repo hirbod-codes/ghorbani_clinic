@@ -6,7 +6,7 @@ import { CONFIGURATION_DIRECTORY } from '../../directories';
 import type { ConfigurationStorableData } from "../../react/Contexts/ConfigurationContext"
 import { GridColumnVisibilityModel } from '@mui/x-data-grid';
 import { User } from '../Database/Models/User';
-import { VisibilityState } from '@tanstack/react-table';
+import { ColumnPinningState, VisibilityState } from '@tanstack/react-table';
 import { Density } from 'src/react/Components/DataGrid/Context';
 
 export type MongodbConfig = {
@@ -38,6 +38,7 @@ export type Config = {
     isMaster?: boolean,
     port?: number,
     ip?: string,
+    columnPinningModels?: { [k: string]: ColumnPinningState },
     columnVisibilityModels?: { [k: string]: VisibilityState },
     columnOrderModels?: { [k: string]: string[] },
     tableDensity?: { [k: string]: Density }
