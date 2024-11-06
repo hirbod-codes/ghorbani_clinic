@@ -45,8 +45,7 @@ export const DragAlongCell = ({ cell }: { cell: Cell<any, unknown>; }) => {
         width: cell.column.getSize(),
         zIndex: isDragging ? 1 : 0,
         textAlign: 'center',
-        paddingLeft: '0.5rem',
-        paddingRight: '0.5rem',
+        paddingLeft: '1rem',
         ...getCommonPinningStyles(cell.column),
     };
 

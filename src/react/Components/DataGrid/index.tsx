@@ -88,7 +88,7 @@ export function DataGrid({
     const columns = useMemo<ColumnDef<any>[]>(() => getColumns(data, overWriteColumns, additionalColumns, orderedColumnsFields), [overWriteColumns, additionalColumns, orderedColumnsFields])
 
     if (!columns.find(f => f.id === 'key'))
-        columns.push({
+        columns.unshift({
             id: 'key',
             accessorKey: 'key',
             cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.get.locale.code), { trailingZeroDisplay: 'auto', minimumIntegerDigits: 10, useGrouping: false }).format(getValue() as Intl.StringNumericLiteral)

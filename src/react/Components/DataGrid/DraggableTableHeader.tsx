@@ -29,8 +29,7 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
         whiteSpace: 'nowrap',
         width: header.column.getSize(),
         zIndex: isDragging ? 1 : 0,
-        paddingLeft: '0.5rem',
-        paddingRight: '0.5rem',
+        paddingLeft: '1rem',
         ...getCommonPinningStyles(header.column),
     };
 
@@ -72,8 +71,8 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
                 style={style}
                 {...attributes}
             >
-                <Stack direction='row' alignItems='center'>
-                    <Typography variant="body1" {...listeners} sx={{ cursor: isDragging ? 'grabbing' : 'grab' }}>
+                <Stack direction='row' alignItems='center' justifyContent='end'>
+                    <Typography variant="body1" {...listeners} sx={{ flexGrow: 2,textAlign: 'center', cursor: isDragging ? 'grabbing' : 'grab' }}>
                         {t('Columns.' + header.column.columnDef.id)}
                     </Typography>
 
@@ -88,7 +87,7 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
                         <PushPinOutlined fontSize="inherit" />
                     </IconButton>
 
-                    <div style={{ height: '1.5rem', borderRight: `2px solid ${theme.palette.grey[400]}`, padding: '0 0.2rem', cursor: 'ew-resize' }} />
+                    {header.index - 1 !== header.headerGroup.headers.length && <div style={{ height: '1.5rem', borderRight: `2px solid ${theme.palette.grey[400]}`, padding: '0 0.2rem', cursor: 'ew-resize' }} />}
                 </Stack>
             </th >
         </>
