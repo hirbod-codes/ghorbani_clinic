@@ -1,5 +1,4 @@
-import { Fragment, ReactNode, useEffect, useMemo, useState } from 'react'
-
+import { Fragment, ReactNode, useContext, useEffect, useMemo, useState } from 'react'
 import {
     ColumnDef,
     ColumnPinningState,
@@ -27,9 +26,8 @@ import {
     SortableContext,
     horizontalListSortingStrategy
 } from '@dnd-kit/sortable'
-
 // needed for row & cell level scope DnD setup
-import { Button, IconButton, Stack, useTheme } from '@mui/material'
+import { Stack, useTheme } from '@mui/material'
 import { t } from 'i18next'
 import { configAPI } from 'src/Electron/Configuration/renderer'
 import { DraggableTableHeader } from './DraggableTableHeader'
@@ -42,7 +40,8 @@ import { Pagination } from './Pagination'
 import { getColumns } from './helpers'
 import LoadingScreen from '../LoadingScreen'
 import { AnimatePresence } from 'framer-motion'
-import { PushPinOutlined } from '@mui/icons-material'
+import { getLuxonLocale } from '../../Lib/helpers'
+import { ConfigurationContext } from '../../Contexts/ConfigurationContext'
 
 export type DataGridProps = {
     configName: string,
@@ -82,25 +81,23 @@ export function DataGrid({
     loading = false
 }: DataGridProps) {
     const theme = useTheme()
-
-    if (!additionalColumns.find(f => f.id === 'key'))
-        additionalColumns.push({
-            id: 'key',
-            accessorKey: 'key',
-            cell: ({ getValue }) => getValue(),
-            // cell: ({ row }) => ((pagination.pageIndex * pagination.pageSize) + row.index + 1),
-        })
+    const configuration = useContext(ConfigurationContext)
 
     data = data.map((d, i) => ({ ...d, key: (pagination.pageIndex * pagination.pageSize) + (i + 1) }))
-    // console.log('`````````````````````````````````````````', { data })
 
     const columns = useMemo<ColumnDef<any>[]>(() => getColumns(data, overWriteColumns, additionalColumns, orderedColumnsFields), [overWriteColumns, additionalColumns, orderedColumnsFields])
+
+    if (!columns.find(f => f.id === 'key'))
+        columns.push({
+            id: 'key',
+            accessorKey: 'key',
+            cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.get.locale.code), { trailingZeroDisplay: 'auto', minimumIntegerDigits: 10, useGrouping: false }).format(getValue() as Intl.StringNumericLiteral)
+        })
 
     const [density, setDensity] = useState<Density>('compact')
     const [columnOrder, setColumnOrder] = useState<string[]>((columns ?? []).map(c => c.id))
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-
-    const [columnPinning, setColumnPinning] = useState<ColumnPinningState>({ left: ['key'], right: [] })
+    const [columnPinning, setColumnPinning] = useState<ColumnPinningState>({ left: [], right: [] })
 
     const sensors = useSensors(
         useSensor(MouseSensor, { activationConstraint: { delay: 40, tolerance: 150 } }),
@@ -121,21 +118,45 @@ export function DataGrid({
         },
         enableColumnPinning: true,
         onColumnPinningChange: async (updaterOrValue) => {
-            let co: ColumnPinningState
+            console.group('onColumnPinningChange')
+
+            let cp: ColumnPinningState
             if (typeof updaterOrValue !== 'function')
-                co = updaterOrValue
+                cp = updaterOrValue
             else
-                co = updaterOrValue(undefined)
+                cp = updaterOrValue(undefined)
+
+            if (!cp.left) cp.left = []
+            if (!cp.right) cp.right = []
+
+            if (cp.left[0]) {
+                if (columnPinning.left.find(f => f === cp.left[0]) === undefined)
+                    cp.left = [...columnPinning.left, cp.left[0]]
+                else
+                    cp.left = columnPinning.left.filter(f => f !== cp.left[0])
+            }
+
+            console.log({ cp })
+
+            if (cp.right[0]) {
+                if (columnPinning.right.find(f => f === cp.right[0]) === undefined)
+                    cp.right = [...columnPinning.right, cp.right[0]]
+                else
+                    cp.right = columnPinning.right.filter(f => f !== cp.right[0])
+            }
 
             const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
 
             if (!c.columnPinningModels)
                 c.columnPinningModels = {}
 
-            c.columnPinningModels[configName] = co;
+            c.columnPinningModels[configName] = cp;
+            console.log({ c });
             (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
 
-            setColumnPinning(co);
+            setColumnPinning(cp);
+
+            console.groupEnd()
         },
         onColumnOrderChange: async (updaterOrValue) => {
             let co
@@ -231,99 +252,101 @@ export function DataGrid({
     console.log('DataGrid', { data, columns, pagination, columnPinning, columnVisibility, columnOrder, headerNodes, footerNodes })
 
     return (
-        <DataGridContext.Provider value={{
-            table, density: {
-                value: density,
-                set: async (d) => {
-                    const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-                    if (!c?.tableDensity)
-                        c.tableDensity = {}
+        <>
+            <DataGridContext.Provider value={{
+                table, density: {
+                    value: density,
+                    set: async (d) => {
+                        const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+                        if (!c?.tableDensity)
+                            c.tableDensity = {}
 
-                    c.tableDensity[configName] = d
-                    await (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
+                        c.tableDensity[configName] = d
+                        await (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
 
-                    setDensity(d)
+                        setDensity(d)
+                    }
                 }
             }
-        }
-        } >
-            {/* NOTE: This provider creates div elements, so don't nest inside of <table> elements */}
-            < div style={{ padding: '1rem', height: '100%' }}>
-                <DndContext
-                    collisionDetection={closestCenter}
-                    modifiers={[restrictToHorizontalAxis]}
-                    onDragEnd={(e: DragEndEvent) => {
-                        const { active, over } = e
+            } >
+                {/* NOTE: This provider creates div elements, so don't nest inside of <table> elements */}
+                <div style={{ padding: '1rem', height: '100%' }}>
+                    <DndContext
+                        collisionDetection={closestCenter}
+                        modifiers={[restrictToHorizontalAxis]}
+                        onDragEnd={(e: DragEndEvent) => {
+                            const { active, over } = e
 
-                        if (!active || !over || active.id === over.id)
-                            return
+                            if (!active || !over || active.id === over.id)
+                                return
 
-                        const oldIndex = columnOrder.indexOf(active.id as string)
-                        const newIndex = columnOrder.indexOf(over.id as string)
-                        const newColumnOrder = arrayMove(columnOrder, oldIndex, newIndex)
-                        setColumnOrder(newColumnOrder)
-                        table.setColumnOrder(newColumnOrder)
-                    }}
-                    sensors={sensors}
-                >
-                    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '0.5rem 0', overflow: 'hidden', border: `1px solid ${theme.palette.grey[500]}`, borderRadius: `${theme.shape.borderRadius}px`, textWrap: 'nowrap' }}>
-                        <Stack direction='row' sx={{ p: 1 }}>
-                            {...headerNodes.map((n, i) =>
-                                <Fragment key={i}>
-                                    {n}
-                                </Fragment>
-                            )}
-                        </Stack>
-                        {loading
-                            ? <LoadingScreen />
-                            : (
-                                data.length === 0
-                                    ? <p style={{ textAlign: 'center' }}>{t('DataGrid.noData')}</p>
-                                    : <div style={{ overflow: 'auto', flexGrow: 2 }}>
-                                        <AnimatePresence mode='sync'>
-                                            <table style={{ borderCollapse: 'separate', borderSpacing: 0, minWidth: '100%' }}>
-                                                <thead style={{ position: 'sticky', top: 0, userSelect: 'none', background: theme.palette.background.default, zIndex: 1 }}>
-                                                    {table.getHeaderGroups().map(headerGroup => (
-                                                        <tr key={headerGroup.id} style={{ borderBottom: `1px solid ${theme.palette.grey[500]}` }}>
-                                                            <SortableContext
-                                                                items={columnOrder}
-                                                                strategy={horizontalListSortingStrategy}
-                                                            >
-                                                                {headerGroup.headers.map(header => (<DraggableTableHeader key={header.id} header={header} />))}
-                                                            </SortableContext>
-                                                        </tr>
-                                                    ))}
-                                                </thead>
-                                                <tbody>
-                                                    {table.getRowModel().rows.map((row, i, arr) => (
-                                                        <tr key={row.id} style={{ borderBottom: i === (arr.length - 1) ? 0 : `1px solid ${theme.palette.grey[500]}`, textWrap: 'nowrap' }}>
-                                                            {row.getVisibleCells().map(cell => (
+                            const oldIndex = columnOrder.indexOf(active.id as string)
+                            const newIndex = columnOrder.indexOf(over.id as string)
+                            const newColumnOrder = arrayMove(columnOrder, oldIndex, newIndex)
+                            setColumnOrder(newColumnOrder)
+                            table.setColumnOrder(newColumnOrder)
+                        }}
+                        sensors={sensors}
+                    >
+                        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '0.5rem 0', overflow: 'hidden', border: `1px solid ${theme.palette.grey[500]}`, borderRadius: `${theme.shape.borderRadius}px`, textWrap: 'nowrap' }}>
+                            <Stack direction='row' sx={{ p: 1 }}>
+                                {...headerNodes.map((n, i) =>
+                                    <Fragment key={i}>
+                                        {n}
+                                    </Fragment>
+                                )}
+                            </Stack>
+                            {loading
+                                ? <LoadingScreen />
+                                : (
+                                    data.length === 0
+                                        ? <p style={{ textAlign: 'center' }}>{t('DataGrid.noData')}</p>
+                                        : <div style={{ overflow: 'auto', flexGrow: 2 }}>
+                                            <AnimatePresence mode='sync'>
+                                                <table style={{ borderCollapse: 'separate', borderSpacing: 0, minWidth: '100%' }}>
+                                                    <thead style={{ position: 'sticky', top: 0, userSelect: 'none', background: theme.palette.background.default, zIndex: 1 }}>
+                                                        {table.getHeaderGroups().map(headerGroup => (
+                                                            <tr key={headerGroup.id} style={{ borderBottom: `1px solid ${theme.palette.grey[500]}` }}>
                                                                 <SortableContext
-                                                                    key={cell.id}
                                                                     items={columnOrder}
                                                                     strategy={horizontalListSortingStrategy}
                                                                 >
-                                                                    <DragAlongCell key={cell.id} cell={cell} />
+                                                                    {headerGroup.headers.map(header => (<DraggableTableHeader key={header.id} header={header} />))}
                                                                 </SortableContext>
-                                                            ))}
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </AnimatePresence>
-                                    </div>
-                            )
-                        }
-                        <Stack direction='row' sx={{ p: 1 }}>
-                            {...footerNodes.map((n, i) =>
-                                <Fragment key={i}>
-                                    {n}
-                                </Fragment>
-                            )}
-                        </Stack>
-                    </div>
-                </DndContext>
-            </div >
-        </DataGridContext.Provider >
+                                                            </tr>
+                                                        ))}
+                                                    </thead>
+                                                    <tbody>
+                                                        {table.getRowModel().rows.map((row, i, arr) => (
+                                                            <tr key={row.id} style={{ borderBottom: i === (arr.length - 1) ? 0 : `1px solid ${theme.palette.grey[500]}`, textWrap: 'nowrap' }}>
+                                                                {row.getVisibleCells().map(cell => (
+                                                                    <SortableContext
+                                                                        key={cell.id}
+                                                                        items={columnOrder}
+                                                                        strategy={horizontalListSortingStrategy}
+                                                                    >
+                                                                        <DragAlongCell key={cell.id} cell={cell} />
+                                                                    </SortableContext>
+                                                                ))}
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </AnimatePresence>
+                                        </div>
+                                )
+                            }
+                            <Stack direction='row' sx={{ p: 1 }}>
+                                {...footerNodes.map((n, i) =>
+                                    <Fragment key={i}>
+                                        {n}
+                                    </Fragment>
+                                )}
+                            </Stack>
+                        </div>
+                    </DndContext>
+                </div >
+            </DataGridContext.Provider >
+        </>
     )
 }

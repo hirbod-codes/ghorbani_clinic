@@ -188,10 +188,11 @@ export function Visits() {
                                 additionalColumns={additionalColumns}
                                 loading={loading}
                                 hasPagination
-                                onPagination={async (limit, offset) => {
-                                    const result = await init(offset, limit)
+                                pagination={{ pageSize: page.limit, pageIndex: page.offset }}
+                                onPagination={async (p) => {
+                                    const result = await init(p.pageIndex, p.pageSize)
                                     if (result)
-                                        setPage({ offset, limit })
+                                        setPage({ limit: p.pageSize, offset: p.pageIndex })
                                     return result
                                 }}
                                 appendHeaderNodes={[
