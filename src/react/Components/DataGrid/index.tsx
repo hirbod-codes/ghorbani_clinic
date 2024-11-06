@@ -118,8 +118,6 @@ export function DataGrid({
         },
         enableColumnPinning: true,
         onColumnPinningChange: async (updaterOrValue) => {
-            console.group('onColumnPinningChange')
-
             let cp: ColumnPinningState
             if (typeof updaterOrValue !== 'function')
                 cp = updaterOrValue
@@ -129,34 +127,32 @@ export function DataGrid({
             if (!cp.left) cp.left = []
             if (!cp.right) cp.right = []
 
-            if (cp.left[0]) {
-                if (columnPinning.left.find(f => f === cp.left[0]) === undefined)
-                    cp.left = [...columnPinning.left, cp.left[0]]
-                else
-                    cp.left = columnPinning.left.filter(f => f !== cp.left[0])
-            }
+            const newCp: ColumnPinningState = { left: [...columnPinning.left], right: [...columnPinning.right] }
 
-            console.log({ cp })
-
-            if (cp.right[0]) {
-                if (columnPinning.right.find(f => f === cp.right[0]) === undefined)
-                    cp.right = [...columnPinning.right, cp.right[0]]
+            cp.left.forEach(l => {
+                if (columnPinning.left.find(f => f === l) === undefined)
+                    newCp.left.push(l)
                 else
-                    cp.right = columnPinning.right.filter(f => f !== cp.right[0])
-            }
+                    newCp.left = newCp.left.filter(f => f !== l)
+            })
+
+            cp.right.forEach(l => {
+                if (columnPinning.right.find(f => f === l) === undefined)
+                    newCp.right.push(l)
+                else
+                    newCp.right = newCp.right.filter(f => f !== l)
+            })
 
             const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+            console.log({ ...c });
 
             if (!c.columnPinningModels)
                 c.columnPinningModels = {}
 
-            c.columnPinningModels[configName] = cp;
-            console.log({ c });
+            c.columnPinningModels[configName] = newCp;
             (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
 
-            setColumnPinning(cp);
-
-            console.groupEnd()
+            setColumnPinning(newCp);
         },
         onColumnOrderChange: async (updaterOrValue) => {
             let co
