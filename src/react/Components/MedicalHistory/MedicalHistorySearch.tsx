@@ -1,5 +1,5 @@
 import { Done, SearchOutlined } from "@mui/icons-material";
-import { CircularProgress, IconButton, InputAdornment, List, ListItem, ListItemIcon, ListItemText, Paper, Stack, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from "@mui/material";
+import { CircularProgress, IconButton, InputAdornment, List, ListItem, ListItemIcon, ListItemText, Paper, Stack, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Typography } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
 import { t } from "i18next";
 import { useContext, useMemo, useState } from "react";
@@ -123,7 +123,7 @@ export function MedicalHistorySearch() {
                     }
                 </Stack>
 
-                <Paper sx={{ flexGrow: 2, width: '100%', overflow: 'hidden' }} elevation={3}>
+                <Paper sx={{ flexGrow: 2, width: '100%', overflow: 'hidden', p: 2 }} elevation={3}>
                     <AnimatePresence mode='wait'>
                         <List>
                             {
@@ -137,15 +137,16 @@ export function MedicalHistorySearch() {
                                         transition={mainTransition}
                                         style={{ width: '100%' }}
                                     >
-                                        <ListItem>
-                                            <ListItemText primary={md.name} />
-
+                                        <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={2} sx={{ width: '100%' }}>
+                                            <Typography variant='body1' sx={{ overflow: 'auto' }}>
+                                                {md.name}
+                                            </Typography>
                                             {deletesMedicalHistory &&
                                                 <IconButton onClick={() => deleteMedicalHistory(md._id as string)}>
                                                     <TrashIcon color="red" />
                                                 </IconButton>
                                             }
-                                        </ListItem>
+                                        </Stack>
                                     </motion.div>
                                 )
                             }
