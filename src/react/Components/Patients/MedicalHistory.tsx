@@ -9,7 +9,7 @@ import LoadingScreen from "../LoadingScreen";
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
-import { AddOutlined, ArrowLeftOutlined, ArrowRightOutlined, DeleteOutlined } from "@mui/icons-material";
+import { AddOutlined, ArrowLeftOutlined, ArrowRightOutlined } from "@mui/icons-material";
 import { Editor } from "../Editor/Editor";
 import { TrashIcon } from "../Icons/TrashIcon";
 

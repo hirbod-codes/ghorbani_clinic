@@ -72,7 +72,7 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
                 {...attributes}
             >
                 <Stack direction='row' alignItems='center' justifyContent='end'>
-                    <Typography variant="body1" {...listeners} sx={{ flexGrow: 2,textAlign: 'center', cursor: isDragging ? 'grabbing' : 'grab' }}>
+                    <Typography variant="body1" {...listeners} sx={{ flexGrow: 2, textAlign: 'center', cursor: isDragging ? 'grabbing' : 'grab' }}>
                         {t('Columns.' + header.column.columnDef.id)}
                     </Typography>
 
@@ -87,7 +87,7 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
                         <PushPinOutlined fontSize="inherit" />
                     </IconButton>
 
-                    {header.index - 1 !== header.headerGroup.headers.length && <div style={{ height: '1.5rem', borderRight: `2px solid ${theme.palette.grey[400]}`, padding: '0 0.2rem', cursor: 'ew-resize' }} />}
+                    {header.index + 1 !== header.headerGroup.headers.length && <div style={{ height: '1.5rem', borderRight: `2px solid ${theme.palette.grey[400]}`, padding: '0 0.2rem', cursor: 'ew-resize' }} />}
                 </Stack>
             </th >
         </>

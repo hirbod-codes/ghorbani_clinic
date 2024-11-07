@@ -1,7 +1,7 @@
 import { useState, useContext, useEffect, memo, useMemo } from "react";
 import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { t } from "i18next";
-import { Button, CircularProgress, Grid, IconButton, Paper, Stack, useTheme } from "@mui/material";
+import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, IconButton, Paper, Stack, useTheme } from "@mui/material";
 import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../Contexts/ConfigurationContext";
 import { Patient } from "../../Electron/Database/Models/Patient";
@@ -24,14 +24,26 @@ export const Patients = memo(function Patients() {
     const auth = useContext(AuthContext)
     const configuration = useContext(ConfigurationContext)
     const navigate = useNavigate()
-    const theme = useTheme()
 
     if (!auth?.accessControl?.can(auth.user.roleName).read(resources.PATIENT).granted)
         navigate('/')
 
+    const initDialog: any = {
+        open: false,
+        title: '',
+        content: '',
+        action: null
+    }
+    const [dialog, setDialog] = useState<{
+        open: boolean,
+        title?: string,
+        content: string,
+        action: () => void | Promise<void>
+    }>(initDialog)
+    const closeDialog = () => setDialog(initDialog)
+
     const [page, setPage] = useState({ offset: 0, limit: 10 })
 
-    const [initialized, setInitialized] = useState<boolean>(false)
     const [loading, setLoading] = useState<boolean>(true)
     const [patients, setPatients] = useState<Patient[]>([])
 
@@ -85,12 +97,9 @@ export const Patients = memo(function Patients() {
     }
 
     useEffect(() => {
-        console.log('Patients', 'useEffect2', 'start');
-
         if (!patients || patients.length === 0)
             init(page.offset, page.limit)
                 .then(() => {
-                    setInitialized(true)
                     setLoading(false)
                     subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
                         if (e?.detail === '/Patients')
@@ -194,27 +203,33 @@ export const Patients = memo(function Patients() {
                         deletesPatient
                             ? <IconButton
                                 onClick={async () => {
-                                    try {
-                                        console.group('Patients', 'deletesPatient', 'onClick')
+                                    setDialog({
+                                        open: true,
+                                        content: t('Patients.deletePatientDialogContent'),
+                                        action: async () => {
+                                            try {
+                                                console.group('Patients', 'deletesPatient', 'onClick')
 
-                                        setDeletingPatientId(row.original._id)
-                                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deletePatient(row.original._id)
-                                        setDeletingPatientId(undefined)
+                                                setDeletingPatientId(row.original._id)
+                                                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deletePatient(row.original._id)
+                                                setDeletingPatientId(undefined)
 
-                                        if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1)
-                                            publish(RESULT_EVENT_NAME, {
-                                                severity: 'error',
-                                                message: t('Patients.failedToDeletePatient')
-                                            })
+                                                if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1)
+                                                    publish(RESULT_EVENT_NAME, {
+                                                        severity: 'error',
+                                                        message: t('Patients.failedToDeletePatient')
+                                                    })
 
-                                        await init(page.offset, page.limit)
+                                                await init(page.offset, page.limit)
 
-                                        publish(RESULT_EVENT_NAME, {
-                                            severity: 'success',
-                                            message: t('Patients.successfullyDeletedPatient')
-                                        })
-                                    }
-                                    finally { console.groupEnd() }
+                                                publish(RESULT_EVENT_NAME, {
+                                                    severity: 'success',
+                                                    message: t('Patients.successfullyDeletedPatient')
+                                                })
+                                            }
+                                            finally { console.groupEnd() }
+                                        }
+                                    })
                                 }}
                             >
                                 {deletingPatientId === row.original._id ? <CircularProgress size={20} /> : <DeleteOutline />}
@@ -342,6 +357,27 @@ export const Patients = memo(function Patients() {
                     finally { console.groupEnd() }
                 }}
             />
+
+            <Dialog open={dialog.open} onClose={closeDialog} >
+                {dialog.title &&
+                    <DialogTitle>
+                        {dialog.title}
+                    </DialogTitle>
+                }
+                <DialogContent>
+                    <DialogContentText whiteSpace={'break-spaces'}>
+                        {dialog.content}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeDialog}>{t('Patients.No')}</Button>
+                    <Button onClick={() => {
+                        if (dialog.action && typeof dialog.action === 'function')
+                            dialog.action()
+                        closeDialog()
+                    }}>{t('Patients.Yes')}</Button>
+                </DialogActions>
+            </Dialog>
         </>
     )
 })

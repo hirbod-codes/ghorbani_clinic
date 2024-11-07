@@ -1,5 +1,5 @@
 import { CloudDoneOutlined, CloudUploadOutlined, DarkModeOutlined, DrawOutlined, LightModeOutlined, RemoveRedEyeOutlined, SaveAltOutlined, TypeSpecimenOutlined } from "@mui/icons-material"
-import { Backdrop, Box,  Divider, IconButton, Stack, Typography } from "@mui/material"
+import { Backdrop, Box, Divider, IconButton, Stack, Typography } from "@mui/material"
 import { t } from "i18next";
 import { useState, useRef, useEffect, useContext } from "react"
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
@@ -13,6 +13,8 @@ import LoadingScreen from "../LoadingScreen";
 import { isCanvasEmpty } from "../Canvas/helpers";
 
 export type EditorProps = {
+    hideCanvas?: boolean;
+    hideTextEditor?: boolean;
     title?: string;
     text?: string | undefined;
     canvasId?: string;
@@ -21,7 +23,7 @@ export type EditorProps = {
     onChange?: (text?: string, canvasId?: string) => void | Promise<void>;
 }
 
-export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave, onChange, setHasUnsavedChanges: setHasUnsavedChangesProperty }: EditorProps) {
+export function Editor({ hideCanvas = false, hideTextEditor = false, title, text: inputText, canvasId: inputCanvasId, onSave, onChange, setHasUnsavedChanges: setHasUnsavedChangesProperty }: EditorProps) {
     const theme = useContext(ConfigurationContext).get.theme
     const [loading, setLoading] = useState<boolean>(false)
 
@@ -316,8 +318,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                     </Stack>
                 }
 
-                {status === 'typing'
-                    &&
+                {!hideTextEditor && status === 'typing' &&
                     <>
                         {onSave &&
                             <Stack direction='row' justifyContent='start' alignContent='center'>
@@ -338,9 +339,7 @@ export function Editor({ title, text: inputText, canvasId: inputCanvasId, onSave
                     </>
                 }
 
-                {
-                    status === 'drawing'
-                    &&
+                {!hideCanvas && status === 'drawing' &&
                     <>
                         {onSave &&
                             <Stack direction='row' justifyContent='start' alignContent='center'>

@@ -83,21 +83,23 @@ export function DataGrid({
     const theme = useTheme()
     const configuration = useContext(ConfigurationContext)
 
-    data = data.map((d, i) => ({ ...d, key: (pagination.pageIndex * pagination.pageSize) + (i + 1) }))
+    data = data.map((d, i) => ({ ...d, counter: (pagination.pageIndex * pagination.pageSize) + (i + 1) }))
 
     const columns = useMemo<ColumnDef<any>[]>(() => getColumns(data, overWriteColumns, additionalColumns, orderedColumnsFields), [overWriteColumns, additionalColumns, orderedColumnsFields])
 
-    if (!columns.find(f => f.id === 'key'))
+    if (!columns.find(f => f.id === 'counter'))
         columns.unshift({
-            id: 'key',
-            accessorKey: 'key',
+            id: 'counter',
+            accessorKey: 'counter',
             cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.get.locale.code), { trailingZeroDisplay: 'auto', minimumIntegerDigits: 10, useGrouping: false }).format(getValue() as Intl.StringNumericLiteral)
         })
 
     const [density, setDensity] = useState<Density>('compact')
     const [columnOrder, setColumnOrder] = useState<string[]>((columns ?? []).map(c => c.id))
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-    const [columnPinning, setColumnPinning] = useState<ColumnPinningState>({ left: [], right: [] })
+    const [columnPinning, setColumnPinning] = useState<ColumnPinningState>({ left: ['counter'], right: [] })
+
+    const [hasInit, setHasInit] = useState(false)
 
     const sensors = useSensors(
         useSensor(MouseSensor, { activationConstraint: { delay: 40, tolerance: 150 } }),
@@ -118,6 +120,9 @@ export function DataGrid({
         },
         enableColumnPinning: true,
         onColumnPinningChange: async (updaterOrValue) => {
+            if (!hasInit)
+                return
+
             let cp: ColumnPinningState
             if (typeof updaterOrValue !== 'function')
                 cp = updaterOrValue
@@ -155,6 +160,9 @@ export function DataGrid({
             setColumnPinning(newCp);
         },
         onColumnOrderChange: async (updaterOrValue) => {
+            if (!hasInit)
+                return
+
             let co
             if (typeof updaterOrValue !== 'function')
                 co = updaterOrValue
@@ -172,6 +180,9 @@ export function DataGrid({
             setColumnOrder(co);
         },
         onColumnVisibilityChange: async (updaterOrValue) => {
+            if (!hasInit)
+                return
+
             let cv
             if (typeof updaterOrValue !== 'function')
                 cv = updaterOrValue
@@ -226,22 +237,24 @@ export function DataGrid({
         (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
             .then((c) => {
                 if (c?.columnVisibilityModels && c.columnVisibilityModels[configName]) {
-                    table.setColumnVisibility(c.columnVisibilityModels[configName])
                     setColumnVisibility(c.columnVisibilityModels[configName])
+                    table.setColumnVisibility(c.columnVisibilityModels[configName])
                 }
 
                 if (c?.columnOrderModels && c.columnOrderModels[configName]) {
-                    table.setColumnOrder(c.columnOrderModels[configName])
                     setColumnOrder(c.columnOrderModels[configName])
+                    table.setColumnOrder(c.columnOrderModels[configName])
                 }
 
                 if (c?.columnPinningModels && c.columnPinningModels[configName]) {
-                    table.setColumnPinning(c.columnPinningModels[configName])
                     setColumnPinning(c.columnPinningModels[configName])
+                    table.setColumnPinning(c.columnPinningModels[configName])
                 }
 
                 if (c?.tableDensity && c?.tableDensity[configName])
                     setDensity(c?.tableDensity[configName])
+
+                setHasInit(true)
             })
     }, [])
 

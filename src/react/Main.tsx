@@ -8,6 +8,7 @@ import { Visits } from './Pages/Visits';
 import { General } from './Pages/Settings/General';
 import { DbSettings } from './Pages/Settings/DbSettings';
 import { ThemeSettings } from './Pages/Settings/ThemeSettings';
+import { MedicalHistories } from "./Pages/MedicalHistories";
 
 export function Main() {
     console.log('Main')
@@ -34,6 +35,10 @@ export function Main() {
                 {
                     path: "/Visits",
                     element: <AnimatedLayout><Visits /></AnimatedLayout>
+                },
+                {
+                    path: "/MedicalHistories",
+                    element: <AnimatedLayout><MedicalHistories /></AnimatedLayout>
                 },
                 {
                     path: "/General",

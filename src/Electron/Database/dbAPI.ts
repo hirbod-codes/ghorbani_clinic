@@ -61,7 +61,7 @@ export type IPatientRepository = dbAPI & {
 export type IMedicalHistoryRepository = dbAPI & {
     handleEvents(): Promise<void>;
     createMedicalHistory(medicalHistory: MedicalHistory): Promise<InsertOneResult>;
-    getMedicalHistories(): Promise<MedicalHistory[]>;
+    getMedicalHistories(offset: number, count: number): Promise<MedicalHistory[]>;
     getMedicalHistory(name: string): Promise<MedicalHistory>;
     deleteMedicalHistoryById(id: string): Promise<DeleteResult>;
     deleteMedicalHistoryByName(name: string): Promise<DeleteResult>;

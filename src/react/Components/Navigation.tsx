@@ -1,4 +1,4 @@
-import { HomeOutlined, PersonOutlined, MasksOutlined, AccessTimeOutlined, DisplaySettingsOutlined, StorageOutlined, FormatPaintOutlined, DarkModeOutlined, LightModeOutlined, LoginOutlined, LogoutOutlined, MenuOutlined } from '@mui/icons-material';
+import { HomeOutlined, PersonOutlined, MasksOutlined, AccessTimeOutlined, DisplaySettingsOutlined, StorageOutlined, FormatPaintOutlined, DarkModeOutlined, LightModeOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, SettingsBackupRestoreOutlined } from '@mui/icons-material';
 import { alpha, darken, lighten, Drawer, Stack, List, ListItemButton, ListItemIcon, ListItemText, CircularProgress, useTheme, Box, AppBar, IconButton, Toolbar, Typography } from '@mui/material';
 import { t } from 'i18next';
 import { useContext, useState } from 'react';
@@ -7,7 +7,6 @@ import { ConfigurationContext } from '../Contexts/ConfigurationContext';
 import { resources } from '../../Electron/Database/Repositories/Auth/resources';
 import { getReactLocale } from '../Lib/helpers';
 import { useNavigate } from 'react-router-dom';
-
 
 export function Navigation() {
     const navigate = useNavigate();
@@ -22,6 +21,7 @@ export function Navigation() {
     const readsUsers = auth.accessControl && auth.user && auth.accessControl.can(auth.user.roleName).read(resources.USER).granted
     const readsPatients = auth.accessControl && auth.user && auth.accessControl.can(auth.user.roleName).read(resources.PATIENT).granted
     const readsVisits = auth.accessControl && auth.user && auth.accessControl.can(auth.user.roleName).read(resources.VISIT).granted
+    const readsMedicalHistories = auth.accessControl && auth.user && auth.accessControl.can(auth.user.roleName).read(resources.MEDICAL_HISTORY).granted
 
     console.log('App', { auth, theme, configuration })
 
@@ -36,6 +36,8 @@ export function Navigation() {
             navigate(destination)
         }, 50)
     }
+
+    const activeColor = theme.palette.primary[theme.palette.mode]
 
     return (
         <>
@@ -52,65 +54,75 @@ export function Navigation() {
                             <Box sx={{ mb: 8 }} />
 
                             <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/')}>
-                                <ListItemIcon>
+                                <ListItemIcon sx={{ color: window.location.pathname !== '/' ? 'white' : activeColor }} >
                                     <HomeOutlined />
                                 </ListItemIcon>
-                                <ListItemText color='white' primary={t('Navigation.home')} />
+                                <ListItemText sx={{ color: window.location.pathname !== '/' ? 'white' : activeColor }} primary={t('Navigation.home')} />
                             </ListItemButton>
 
                             <Box sx={{ mb: 8 }} />
 
                             {readsUsers &&
-                                <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('Users')}>
-                                    <ListItemIcon>
+                                <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/Users')} >
+                                    <ListItemIcon sx={{ color: window.location.pathname !== '/Users' ? 'white' : activeColor }}>
                                         <PersonOutlined />
                                     </ListItemIcon>
-                                    <ListItemText color='white' primary={t('Navigation.users')} />
+                                    <ListItemText sx={{ color: window.location.pathname !== '/Users' ? 'white' : activeColor }} primary={t('Navigation.users')} />
                                 </ListItemButton>}
 
                             <Box sx={{ mb: 2 }} />
 
                             {readsPatients &&
-                                <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/Patients')}>
-                                    <ListItemIcon>
+                                <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/Patients')} >
+                                    <ListItemIcon sx={{ color: window.location.pathname !== '/Patients' ? 'white' : activeColor }}>
                                         <MasksOutlined />
                                     </ListItemIcon>
-                                    <ListItemText color='white' primary={t('Navigation.patients')} />
+                                    <ListItemText sx={{ color: window.location.pathname !== '/Patients' ? 'white' : activeColor }} primary={t('Navigation.patients')} />
                                 </ListItemButton>}
 
                             <Box sx={{ mb: 2 }} />
 
                             {readsVisits &&
-                                <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/Visits')}>
-                                    <ListItemIcon>
+                                <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/Visits')} >
+                                    <ListItemIcon sx={{ color: window.location.pathname !== '/Visits' ? 'white' : activeColor }}>
                                         <AccessTimeOutlined />
                                     </ListItemIcon>
-                                    <ListItemText color='white' primary={t('Navigation.visits')} />
+                                    <ListItemText sx={{ color: window.location.pathname !== '/Visits' ? 'white' : activeColor }} primary={t('Navigation.visits')} />
+                                </ListItemButton>}
+
+                            <Box sx={{ mb: 2 }} />
+
+                            {readsMedicalHistories &&
+                                <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/MedicalHistories')} >
+                                    <ListItemIcon sx={{ color: window.location.pathname !== '/MedicalHistories' ? 'white' : activeColor }}>
+                                        <SettingsBackupRestoreOutlined />
+                                    </ListItemIcon>
+                                    <ListItemText sx={{ color: window.location.pathname !== '/MedicalHistories' ? 'white' : activeColor }} primary={t('Navigation.MedicalHistories')} />
                                 </ListItemButton>}
 
                             <Box sx={{ mb: 8 }} />
 
-                            <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/General')}>
-                                <ListItemIcon>
+                            <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/General')} >
+                                <ListItemIcon sx={{ color: window.location.pathname !== '/General' ? 'white' : activeColor }}>
                                     <DisplaySettingsOutlined />
                                 </ListItemIcon>
-                                <ListItemText color='white' primary={t("Navigation.general")} />
+                                <ListItemText sx={{ color: window.location.pathname !== '/General' ? 'white' : activeColor }} primary={t("Navigation.general")} />
                             </ListItemButton>
 
-                            <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/ThemeSettings')}>
-                                <ListItemIcon>
+                            <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/ThemeSettings')} >
+                                <ListItemIcon sx={{ color: window.location.pathname !== '/ThemeSettings' ? 'white' : activeColor }}>
                                     <FormatPaintOutlined />
                                 </ListItemIcon>
-                                <ListItemText color='white' primary={t("Navigation.Theme")} />
+                                <ListItemText sx={{ color: window.location.pathname !== '/ThemeSettings' ? 'white' : activeColor }} primary={t("Navigation.Theme")} />
                             </ListItemButton>
 
                             <Box sx={{ mb: 8 }} />
 
-                            <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/DbSettings')}>
-                                <ListItemIcon>
+                            <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/DbSettings')} >
+                                <ListItemIcon sx={{ color: window.location.pathname !== '/DbSettings' ? 'white' : activeColor }}>
                                     <StorageOutlined />
                                 </ListItemIcon>
-                                <ListItemText color='white' primary={t("Navigation.Db")} />
+                                <ListItemText sx={{ color: window.location.pathname !== '/DbSettings' ? 'white' : activeColor }} primary={t("Navigation.Db")} />
                             </ListItemButton>
                         </List>
                         <Box sx={{ height: '100%', width: '2px', background: `radial-gradient(ellipse farthest-side at center, ${appBarBorderColor}, transparent)` }} />

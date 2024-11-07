@@ -143,6 +143,7 @@
         "visits": "Visits",
         "general": "General",
         "Theme": "Theme",
+        "MedicalHistories": "Medical histories",
         "Db": "Db"
     },
     "DbSettings": {
@@ -235,7 +236,7 @@
     },
     "DataGrid": {
         "noData": "No Data Found!",
-        "export":"Export",
+        "export": "Export",
         "density": "Density",
         "compact": "Compact",
         "standard": "Standard",

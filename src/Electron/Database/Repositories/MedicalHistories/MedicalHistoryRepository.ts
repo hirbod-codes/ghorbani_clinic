@@ -12,7 +12,7 @@ import { DateTime } from "luxon";
 export class MedicalHistoryRepository extends MongoDB implements IMedicalHistoryRepository {
     async handleEvents(): Promise<void> {
         ipcMain.handle('create-medical-history', async (_e, { medicalHistory }: { medicalHistory: MedicalHistory }) => await this.handleErrors(async () => await this.createMedicalHistory(medicalHistory)))
-        ipcMain.handle('get-medical-histories', async () => await this.handleErrors(async () => await this.getMedicalHistories()))
+        ipcMain.handle('get-medical-histories', async (_e, { offset, count }: { offset: number, count: number }) => await this.handleErrors(async () => await this.getMedicalHistories(offset, count)))
         ipcMain.handle('get-medical-history', async (_e, { name }: { name: string }) => await this.handleErrors(async () => await this.getMedicalHistory(name)))
         ipcMain.handle('delete-medical-history-by-id', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.deleteMedicalHistoryById(id)))
         ipcMain.handle('delete-medical-history-by-name', async (_e, { name }: { name: string }) => await this.handleErrors(async () => await this.deleteMedicalHistoryByName(name)))
@@ -37,15 +37,17 @@ export class MedicalHistoryRepository extends MongoDB implements IMedicalHistory
         return await (await this.getMedicalHistoriesCollection()).insertOne(medicalHistory)
     }
 
-    async getMedicalHistories(): Promise<MedicalHistory[]> {
+    async getMedicalHistories(offset: number, count: number): Promise<MedicalHistory[]> {
         const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();
 
-        if (!(await privilegesRepository.getAccessControl()).can(user.roleName).read(resources.MEDICAL_HISTORY).granted)
+        const privileges = await privilegesRepository.getAccessControl();
+        const permission = privileges.can(user.roleName).read(resources.MEDICAL_HISTORY);
+        if (!permission.granted)
             throw new Unauthorized()
 
-        return await ((await this.getMedicalHistoriesCollection()).find()).toArray()
+        return await (await this.getMedicalHistoriesCollection()).find().limit(count).skip(offset * count).sort('createdAt', -1).toArray()
     }
 
     async getMedicalHistory(name: string): Promise<MedicalHistory> {

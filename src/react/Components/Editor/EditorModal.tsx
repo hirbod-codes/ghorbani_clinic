@@ -9,7 +9,7 @@ export type TextEditorModalProps = EditorProps & {
     onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void;
 }
 
-export function EditorModal({ open, onClose, title, text, canvasId, onChange, onSave, setHasUnsavedChanges: setHasUnsavedChangesProperty }: TextEditorModalProps) {
+export function EditorModal({ hideCanvas = false, hideTextEditor = false, open, onClose, title, text, canvasId, onChange, onSave, setHasUnsavedChanges: setHasUnsavedChangesProperty }: TextEditorModalProps) {
     console.log('EditorModal', { open, onClose, title, text, canvasId })
 
     const initDialog: any = {
@@ -49,6 +49,8 @@ export function EditorModal({ open, onClose, title, text, canvasId, onChange, on
                 open={open}
             >
                 <Editor
+                    hideCanvas={hideCanvas}
+                    hideTextEditor={hideTextEditor}
                     title={title}
                     text={text}
                     canvasId={canvasId}
