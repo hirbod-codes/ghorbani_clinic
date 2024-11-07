@@ -359,8 +359,8 @@ export class MongoDB implements dbAPI {
         if (indexes.find(i => i.name === 'patientId') === undefined)
             await db.createIndex(visitsCollectionName, { patientId: 1 }, { name: 'patientId' })
 
-        if (indexes.find(i => i.name === 'unique-name') === undefined)
-            await db.createIndex(patientsMedicalHistoriesCollectionName, { name: 1 }, { unique: true, name: 'unique-name' })
+        if (indexes.find(i => i.name === 'name') === undefined)
+            await db.createIndex(patientsMedicalHistoriesCollectionName, { name: 'text' }, { name: 'name' })
     }
 
     private async addVisitsCollection() {

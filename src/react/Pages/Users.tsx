@@ -164,34 +164,43 @@ export function Users() {
     const deletesUser = auth.accessControl?.can(auth.user.roleName).delete(resources.USER).granted ?? false
     const deletesRole = auth.accessControl?.can(auth.user.roleName).delete(resources.PRIVILEGE).granted ?? false
 
-    const additionalColumns: ColumnDef<any>[] = (deletesUser || updatesUser) && [{
-        id: 'actions',
-        accessorKey: 'actions',
-        cell: ({ row }) =>
-            <Stack direction='row' alignItems='center'>
-                {
-                    updatesUser &&
-                    <IconButton
-                        onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === row.original._id)) }}
-                    >
-                        {editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
-                    </IconButton>
-                }
-                {
-                    deletesUser &&
-                    <IconButton
-                        onClick={async () => {
-                            await deleteUser(row.original._id);
-                            await updateRows(role)
-                            if (auth.user._id === row.original.id)
-                                await auth.logout()
-                        }}
-                    >
-                        {deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
-                    </IconButton>
-                }
-            </Stack>
-    }]
+    const overWriteColumns: ColumnDef<any>[] = [
+        {
+            accessorKey: '_id',
+            id: '_id',
+        }
+    ]
+
+    const additionalColumns: ColumnDef<any>[] = (deletesUser || updatesUser) && [
+        {
+            id: 'actions',
+            accessorKey: 'actions',
+            cell: ({ row }) =>
+                <Stack direction='row' alignItems='center'>
+                    {
+                        updatesUser &&
+                        <IconButton
+                            onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === row.original._id)) }}
+                        >
+                            {editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
+                        </IconButton>
+                    }
+                    {
+                        deletesUser &&
+                        <IconButton
+                            onClick={async () => {
+                                await deleteUser(row.original._id);
+                                await updateRows(role)
+                                if (auth.user._id === row.original.id)
+                                    await auth.logout()
+                            }}
+                        >
+                            {deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
+                        </IconButton>
+                    }
+                </Stack>
+        }
+    ]
 
     const refresh = async () => {
         const r = await fetchRoles()

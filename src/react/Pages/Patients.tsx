@@ -137,7 +137,6 @@ export const Patients = memo(function Patients() {
         {
             accessorKey: '_id',
             id: '_id',
-            cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.get.locale.code)).format(Number(getValue() as string))
         },
         {
             accessorKey: 'age',

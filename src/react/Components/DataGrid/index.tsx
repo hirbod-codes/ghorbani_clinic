@@ -82,16 +82,18 @@ export function DataGrid({
 }: DataGridProps) {
     const theme = useTheme()
     const configuration = useContext(ConfigurationContext)
-
+    
     data = data.map((d, i) => ({ ...d, counter: (pagination.pageIndex * pagination.pageSize) + (i + 1) }))
 
-    const columns = useMemo<ColumnDef<any>[]>(() => getColumns(data, overWriteColumns, additionalColumns, orderedColumnsFields), [overWriteColumns, additionalColumns, orderedColumnsFields])
+    const columns = useMemo<ColumnDef<any>[]>(() => {
+        return getColumns(data, overWriteColumns, additionalColumns, orderedColumnsFields)
+    }, [overWriteColumns, additionalColumns, orderedColumnsFields])
 
     if (!columns.find(f => f.id === 'counter'))
         columns.unshift({
             id: 'counter',
             accessorKey: 'counter',
-            cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.get.locale.code), { trailingZeroDisplay: 'auto', minimumIntegerDigits: 10, useGrouping: false }).format(getValue() as Intl.StringNumericLiteral)
+            cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.get.locale.code), { trailingZeroDisplay: 'auto', minimumIntegerDigits: 1, useGrouping: false }).format(getValue() as Intl.StringNumericLiteral)
         })
 
     const [density, setDensity] = useState<Density>('compact')

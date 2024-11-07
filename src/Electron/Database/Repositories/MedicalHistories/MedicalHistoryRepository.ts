@@ -13,6 +13,7 @@ export class MedicalHistoryRepository extends MongoDB implements IMedicalHistory
     async handleEvents(): Promise<void> {
         ipcMain.handle('create-medical-history', async (_e, { medicalHistory }: { medicalHistory: MedicalHistory }) => await this.handleErrors(async () => await this.createMedicalHistory(medicalHistory)))
         ipcMain.handle('get-medical-histories', async (_e, { offset, count }: { offset: number, count: number }) => await this.handleErrors(async () => await this.getMedicalHistories(offset, count)))
+        ipcMain.handle('search-medical-histories', async (_e, { searchStr }: { searchStr: string }) => await this.handleErrors(async () => await this.searchMedicalHistories(searchStr)))
         ipcMain.handle('get-medical-history', async (_e, { name }: { name: string }) => await this.handleErrors(async () => await this.getMedicalHistory(name)))
         ipcMain.handle('delete-medical-history-by-id', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.deleteMedicalHistoryById(id)))
         ipcMain.handle('delete-medical-history-by-name', async (_e, { name }: { name: string }) => await this.handleErrors(async () => await this.deleteMedicalHistoryByName(name)))
@@ -59,6 +60,17 @@ export class MedicalHistoryRepository extends MongoDB implements IMedicalHistory
             throw new Unauthorized()
 
         return await (await this.getMedicalHistoriesCollection()).findOne({ name: name })
+    }
+
+    async searchMedicalHistories(searchStr: string): Promise<MedicalHistory[]> {
+        const user = await authRepository.getAuthenticatedUser()
+        if (!user)
+            throw new Unauthenticated();
+
+        if (!(await privilegesRepository.getAccessControl()).can(user.roleName).read(resources.MEDICAL_HISTORY).granted)
+            throw new Unauthorized()
+
+        return await (await this.getMedicalHistoriesCollection()).find({ name: { $regex: searchStr } }).toArray()
     }
 
     async deleteMedicalHistoryById(id: string): Promise<DeleteResult> {

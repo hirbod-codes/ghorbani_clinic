@@ -104,7 +104,7 @@
         "gender": "Gender",
         "done": "Done"
     },
-    "MedicalHistory": {
+    "MedicalHistories": {
         "failedToFetchMedicalHistories": "Failed to fetch medical histories",
         "successfullyFetchedMedicalHistories": "Successfully fetched medical histories",
         "exiting": "Exiting",
@@ -119,7 +119,16 @@
         "successfullyAddedMedicalHistory": "Successfully added medical history",
         "add": "Add",
         "No": "No",
-        "Yes": "Yes"
+        "Yes": "Yes",
+        "deleteMedicalHistoryDialogContent": "Are you sure you want to delete this medical history?",
+        "failedToDeleteMedicalHistory": "failed to delete the medical history",
+        "successfullyDeletedMedicalHistory": "Successfully deleted the medical history",
+        "Refresh": "Refresh",
+        "Search": "Search",
+        "Create": "Create",
+        "creationModalTitle": "craete a modal history",
+        "failedToCreatePatientAddress": "failed to create the medical history",
+        "successfullyCreatedPatientAddress": "Successfully created the medical history"
     },
     "Visits": {
         "failedToFetchVisits": "Failed to fetch visits",
@@ -198,6 +207,7 @@
     },
     "Columns": {
         "columns": "Columns",
+        "counter": "key",
         "actions": "Actions",
         "_id": "Id",
         "patientId": "Patient Id",

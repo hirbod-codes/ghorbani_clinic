@@ -62,6 +62,7 @@ export type IMedicalHistoryRepository = dbAPI & {
     handleEvents(): Promise<void>;
     createMedicalHistory(medicalHistory: MedicalHistory): Promise<InsertOneResult>;
     getMedicalHistories(offset: number, count: number): Promise<MedicalHistory[]>;
+    searchMedicalHistories(searchStr: string): Promise<MedicalHistory[]>;
     getMedicalHistory(name: string): Promise<MedicalHistory>;
     deleteMedicalHistoryById(id: string): Promise<DeleteResult>;
     deleteMedicalHistoryByName(name: string): Promise<DeleteResult>;

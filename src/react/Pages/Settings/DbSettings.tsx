@@ -4,8 +4,10 @@ import { t } from 'i18next'
 import { useContext, useState } from 'react'
 import { publish } from '../../Lib/Events'
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper'
-import { dbAPI } from '../../../Electron/Database/dbAPI'
 import { AuthContext } from '../../Contexts/AuthContext'
+import { RendererDbAPI } from '../../../Electron/Database/renderer'
+import { ipcRenderer } from 'electron'
+import { appAPI } from 'src/Electron/handleAppRendererEvents'
 
 export function DbSettings() {
     const auth = useContext(AuthContext)
@@ -47,17 +49,33 @@ export function DbSettings() {
                         onClick={async () => {
                             try {
                                 setSeeding(true);
-                                const result = await (window as typeof window & { dbAPI: dbAPI; }).dbAPI.seed();
-                                setSeeding(false);
-
-                                if (result === true)
-                                    setOpenSeedQuestion(false);
-
-                                else
+                                let result = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.initializeDb()
+                                console.log({ result })
+                                if (!result) {
                                     publish(RESULT_EVENT_NAME, {
                                         severity: 'error',
                                         message: t('DbSettings.failedToSeedDB')
                                     });
+                                    setSeeding(false);
+                                }
+                                else {
+                                    result = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.seed();
+                                    console.log({ result })
+                                    setSeeding(false);
+
+                                    if (result === true) {
+                                        publish(RESULT_EVENT_NAME, {
+                                            severity: 'error',
+                                            message: t('DbSettings.successfullySeededDB')
+                                        });
+                                        setOpenSeedQuestion(false);
+                                    }
+                                    else
+                                        publish(RESULT_EVENT_NAME, {
+                                            severity: 'error',
+                                            message: t('DbSettings.failedToSeedDB')
+                                        });
+                                }
                             } catch (error) {
                                 console.error(error);
                                 setSeeding(false);
@@ -68,7 +86,7 @@ export function DbSettings() {
                     </Button>
                     <Button onClick={() => setOpenSeedQuestion(false)}>{t('DbSettings.no')}</Button>
                 </DialogActions>
-            </Dialog>
+            </Dialog >
 
             <Dialog
                 open={openTruncateDbQuestion}
@@ -81,13 +99,14 @@ export function DbSettings() {
                     <Button color='error' onClick={async () => {
                         try {
                             setTruncating(true);
-                            const result = await (window as typeof window & { dbAPI: dbAPI; }).dbAPI.truncate();
+                            const result = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.truncate();
                             setTruncating(false);
 
                             if (result === true) {
                                 setOpenTruncateDbQuestion(false);
                                 await auth.logout();
                                 window.location.reload();
+                                (window as typeof window & { dbAPI: appAPI; }).dbAPI.reLaunch()
                             }
 
                             else

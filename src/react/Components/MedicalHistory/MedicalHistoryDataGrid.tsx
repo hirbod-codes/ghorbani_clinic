@@ -9,12 +9,13 @@ import { publish } from "../../../react/Lib/Events"
 import { RESULT_EVENT_NAME } from "../../../react/Contexts/ResultWrapper"
 import { t } from "i18next"
 import { ColumnDef } from "@tanstack/react-table"
-import { getLuxonLocale } from "../../../react/Lib/helpers"
 import { DATE, fromUnixToFormat } from "../../../react/Lib/DateTime/date-time-helpers"
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, CircularProgress, IconButton } from "@mui/material"
-import { AddOutlined, DeleteOutline, RefreshOutlined } from "@mui/icons-material"
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, CircularProgress, IconButton, Stack } from "@mui/material"
+import { AddOutlined, DeleteOutline, RefreshOutlined, SearchOutlined } from "@mui/icons-material"
 import { DataGrid } from "../DataGrid"
 import { EditorModal } from "../Editor/EditorModal"
+import { Modal } from "../Modal"
+import { MedicalHistorySearch } from "./MedicalHistorySearch"
 
 export function MedicalHistoryDataGrid() {
     const auth = useContext(AuthContext)
@@ -46,6 +47,8 @@ export function MedicalHistoryDataGrid() {
     const [creatingMedicalHistory, setCreatingMedicalHistory] = useState<boolean>(false)
     const [deletingMedicalHistoryId, setDeletingMedicalHistoryId] = useState<string | undefined>(undefined)
 
+    const [searchModalOpen, setSearchModalOpen] = useState<boolean>(false)
+
     console.log('MedicalHistories', {
         auth,
         configuration,
@@ -73,7 +76,7 @@ export function MedicalHistoryDataGrid() {
             }
 
             if (res.data.length > 0) {
-                setMedicalHistories(res.data)
+                setMedicalHistories(res.data.map((md, i) => ({ ...md, counter: (page.offset * page.limit) + i + 1 })))
                 return true
             }
 
@@ -97,12 +100,11 @@ export function MedicalHistoryDataGrid() {
         {
             accessorKey: '_id',
             id: '_id',
-            // cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.get.locale.code)).format(Number(getValue() as string))
         },
         {
             accessorKey: 'name',
             id: 'name',
-            cell: (props) => props.getValue(),
+            cell: (props) => <Stack direction='row' sx={{ maxHeight: '100px', overflow: 'auto', width: '200px' }}>{props.getValue() as any}</Stack>,
         },
         {
             accessorKey: 'createdAt',
@@ -176,9 +178,14 @@ export function MedicalHistoryDataGrid() {
                     }}
                     appendHeaderNodes={[
                         <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('MedicalHistories.Refresh')}</Button>,
+                        <Button onClick={async () => setSearchModalOpen(true)} startIcon={<SearchOutlined />}>{t('MedicalHistories.Search')}</Button>,
                         createsMedicalHistory && <Button onClick={() => setCreatingMedicalHistory(true)} startIcon={<AddOutlined />}>{t('MedicalHistories.Create')}</Button>,
                     ]}
                 />}
+
+            <Modal open={searchModalOpen} onClose={() => setSearchModalOpen(false)} >
+                <MedicalHistorySearch />
+            </Modal>
 
             {/* Medical history creation, Name field */}
             <EditorModal

@@ -117,6 +117,10 @@ export function Visits() {
             cell: ({ row }) => (<Button onClick={() => setShowTreatments(visits.find(v => v._id === row.original._id)?._id as string)}>{t('Visits.Show')}</Button>)
         },
         {
+            accessorKey: '_id',
+            id: '_id',
+        },
+        {
             id: 'due',
             accessorKey: 'due',
             cell: ({ getValue }) => fromUnixToFormat(configuration.get.locale, Number(getValue() as string), DATE),
