@@ -32,7 +32,7 @@ const variants = {
     })
 };
 
-export function MedicalHistorySearch() {
+export function MedicalHistorySearch({ selection, selectable = false }: { selection?: string[], selectable?: boolean }) {
     const auth = useContext(AuthContext)
 
     const initDialog: any = {
