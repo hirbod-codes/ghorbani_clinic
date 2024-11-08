@@ -274,22 +274,30 @@ export function Editor({ hideCanvas = false, hideTextEditor = false, title, text
             }
 
             <Stack direction='column' spacing={1} sx={{ width: '100%', height: '100%' }}>
-                <Stack direction='row' justifyContent='space-between' alignContent='center'>
-                    <Typography variant='h5'>
-                        {title}
-                    </Typography>
-                    <Stack direction='row' justifyContent='end' alignContent='center'>
+                <Stack direction='row' justifyContent='space-between' alignContent='center' sx={{ overflow: 'auto' }}>
+                    <Box sx={{ overflow: 'auto', textWrap: 'nowrap' }}>
+                        <Typography variant='h6'>
+                            {title}
+                        </Typography>
+                    </Box>
+                    <Stack direction='row' justifyContent='end' alignContent='center' alignItems='center'>
                         <IconButton onClick={() => {
                             setStatus('showing')
                         }}>
                             <RemoveRedEyeOutlined />
                         </IconButton>
-                        <IconButton onClick={() => setStatus('typing')}>
-                            <TypeSpecimenOutlined />
-                        </IconButton>
-                        <IconButton onClick={() => setStatus('drawing')}>
-                            <DrawOutlined />
-                        </IconButton>
+
+                        {!hideTextEditor &&
+                            <IconButton onClick={() => setStatus('typing')}>
+                                <TypeSpecimenOutlined />
+                            </IconButton>
+                        }
+
+                        {!hideCanvas &&
+                            <IconButton onClick={() => setStatus('drawing')}>
+                                <DrawOutlined />
+                            </IconButton>
+                        }
                     </Stack>
                 </Stack>
 

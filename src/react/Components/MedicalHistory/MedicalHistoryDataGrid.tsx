@@ -184,7 +184,7 @@ export function MedicalHistoryDataGrid() {
                 />}
 
             <Modal open={searchModalOpen} onClose={() => setSearchModalOpen(false)} >
-                <MedicalHistorySearch />
+                <MedicalHistorySearch creatable deletable/>
             </Modal>
 
             {/* Medical history creation, Name field */}

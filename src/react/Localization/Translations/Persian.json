@@ -129,9 +129,10 @@
         "Refresh": "Refresh",
         "Search": "Search",
         "Create": "Create",
-        "creationModalTitle": "craete a modal history",
+        "creationModalTitle": "Craete a medical history",
         "failedToCreatePatientAddress": "failed to create the medical history",
-        "successfullyCreatedPatientAddress": "Successfully created the medical history"
+        "successfullyCreatedPatientAddress": "Successfully created the medical history",
+        "save": "Save"
     },
     "Visits": {
         "failedToFetchVisits": "بازیابی ویزیت‌ها با شکست مواجه شد",

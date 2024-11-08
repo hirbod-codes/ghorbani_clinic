@@ -1,8 +1,8 @@
-import { Done, SearchOutlined } from "@mui/icons-material";
-import { CircularProgress, IconButton, InputAdornment, List, ListItem, ListItemIcon, ListItemText, Paper, Stack, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Typography } from "@mui/material";
+import { AddOutlined, Done, RemoveOutlined, SearchOutlined } from "@mui/icons-material";
+import { CircularProgress, IconButton, InputAdornment, List, ListItem, ListItemIcon, ListItemText, Paper, Stack, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Typography, Checkbox, Divider, Box } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
 import { t } from "i18next";
-import { useContext, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { MedicalHistory } from "../../../Electron/Database/Models/MedicalHistory";
 import { mainTransition } from "../../Styles/animations";
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
@@ -11,6 +11,7 @@ import { AuthContext } from "../../Contexts/AuthContext";
 import { resources } from "../../../Electron/Database/Repositories/Auth/resources";
 import { publish } from "../../Lib/Events";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
+import { EditorModal } from "../Editor/EditorModal";
 
 const xOffset = 100;
 const delay = 100
@@ -32,7 +33,7 @@ const variants = {
     })
 };
 
-export function MedicalHistorySearch({ selection, selectable = false }: { selection?: string[], selectable?: boolean }) {
+export function MedicalHistorySearch({ creatable = false, deletable = false, defaultSelection, selectable = false, onSelectionChange }: { creatable?: boolean, deletable?: boolean, defaultSelection?: string[], selectable?: boolean, onSelectionChange?: (selection: string[]) => (void | Promise<void>) }) {
     const auth = useContext(AuthContext)
 
     const initDialog: any = {
@@ -48,6 +49,8 @@ export function MedicalHistorySearch({ selection, selectable = false }: { select
         action: () => void | Promise<void>
     }>(initDialog)
     const closeDialog = () => setDialog(initDialog)
+
+    const [creatingMedicalHistory, setCreatingMedicalHistory] = useState(false)
 
     const [searchStr, setSearchStr] = useState<string>('')
     const [medicalHistories, setMedicalHistories] = useState<MedicalHistory[]>([])
@@ -70,6 +73,7 @@ export function MedicalHistorySearch({ selection, selectable = false }: { select
         return true
     }
 
+    const createsMedicalHistory = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).create(resources.MEDICAL_HISTORY), [auth])
     const deletesMedicalHistory = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.MEDICAL_HISTORY), [auth])
 
     const deleteMedicalHistory = async (id: string) =>
@@ -98,6 +102,13 @@ export function MedicalHistorySearch({ selection, selectable = false }: { select
             }
         })
 
+    const [selection, setSelection] = useState(defaultSelection ?? [])
+
+    useEffect(() => {
+        if (onSelectionChange)
+            onSelectionChange(selection)
+    }, [selection])
+
     return (
         <>
             <Stack direction='column' justifyContent='start' alignItems='center' sx={{ width: '100%', height: '100%' }} spacing={2}>
@@ -123,49 +134,136 @@ export function MedicalHistorySearch({ selection, selectable = false }: { select
                     }
                 </Stack>
 
-                <Paper sx={{ flexGrow: 2, width: '100%', overflow: 'hidden', p: 2 }} elevation={3}>
-                    <AnimatePresence mode='wait'>
-                        <List>
-                            {
-                                medicalHistories.map((md, i) =>
-                                    <motion.div
-                                        key={i}
-                                        initial='enter'
-                                        animate='active'
-                                        exit='exit'
-                                        variants={{ ...variants }}
-                                        transition={mainTransition}
-                                        style={{ width: '100%' }}
-                                    >
-                                        <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={2} sx={{ width: '100%' }}>
-                                            <Typography variant='body1' sx={{ overflow: 'auto' }}>
-                                                {md.name}
-                                            </Typography>
-                                            {deletesMedicalHistory &&
-                                                <IconButton onClick={() => deleteMedicalHistory(md._id as string)}>
-                                                    <TrashIcon color="red" />
-                                                </IconButton>
-                                            }
-                                        </Stack>
-                                    </motion.div>
-                                )
-                            }
-                        </List>
-                    </AnimatePresence>
-                </Paper>
+                <Box sx={{ flexGrow: 2, overflow: 'hidden', width: '100%' }}>
+                    <Stack direction='column' justifyContent='space-between' sx={{ height: '100%', width: '100%' }}>
+                        <Paper sx={{ height: '48%', width: '100%', p: 2, overflow: 'auto' }} elevation={3}>
+                            <AnimatePresence mode='wait'>
+                                <List>
+                                    {
+                                        medicalHistories.map((md, i) =>
+                                            <motion.div
+                                                key={i}
+                                                initial='enter'
+                                                animate='active'
+                                                exit='exit'
+                                                variants={{ ...variants }}
+                                                transition={mainTransition}
+                                                style={{ width: '100%' }}
+                                            >
+                                                <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={2} sx={{ width: '100%' }}>
+                                                    {selectable === true &&
+                                                        <Checkbox size='small' checked={selection?.find(f => f === md.name) !== undefined} onChange={(e) => setSelection((old) => {
+                                                            if (old.find(f => f === md.name) !== undefined)
+                                                                return old.filter(f => f !== md.name)
+                                                            else
+                                                                return [...old, md.name]
+                                                        })} />
+                                                    }
+                                                    <Typography variant='body1' sx={{ overflow: 'auto' }}>
+                                                        {md.name}
+                                                    </Typography>
+                                                    {deletesMedicalHistory && deletable &&
+                                                        <IconButton onClick={() => deleteMedicalHistory(md._id as string)}>
+                                                            <TrashIcon color="red" />
+                                                        </IconButton>
+                                                    }
+                                                </Stack>
+                                            </motion.div>
+                                        )
+                                    }
+                                </List>
+                            </AnimatePresence>
+                        </Paper>
+
+                        <Divider orientation="horizontal" />
+
+                        {selectable &&
+                            <Paper sx={{ height: '48%', width: '100%', p: 2, overflow: 'auto' }} elevation={3}>
+                                <AnimatePresence mode='wait'>
+                                    <List sx={{ overflowY: 'auto' }}>
+                                        {
+                                            selection?.map((name, i) =>
+                                                <motion.div
+                                                    key={i}
+                                                    initial='enter'
+                                                    animate='active'
+                                                    exit='exit'
+                                                    variants={{ ...variants }}
+                                                    transition={mainTransition}
+                                                    style={{ width: '100%' }}
+                                                >
+                                                    <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={2} sx={{ width: '100%' }}>
+                                                        <Typography variant='body1' sx={{ overflow: 'auto' }}>
+                                                            {name}
+                                                        </Typography>
+
+                                                        <IconButton onClick={() => setSelection(selection.filter(f => f !== name))}>
+                                                            <RemoveOutlined color="error" />
+                                                        </IconButton>
+                                                    </Stack>
+                                                </motion.div>
+                                            )
+                                        }
+                                    </List>
+                                </AnimatePresence>
+                            </Paper>
+                        }
+                    </Stack>
+                </Box>
+
+                {createsMedicalHistory && creatable &&
+                    <IconButton onClick={() => setCreatingMedicalHistory(true)} color="success">
+                        <AddOutlined />
+                    </IconButton>
+                }
             </Stack >
 
-            <Dialog open={dialog.open} onClose={closeDialog} >
-                {dialog.title &&
+            {/* Medical history creation, Name field */}
+            < EditorModal
+                open={creatingMedicalHistory}
+                onClose={() => setCreatingMedicalHistory(false)
+                }
+                hideCanvas={true}
+                title={t('MedicalHistories.creationModalTitle')}
+                onSave={async (address, canvasId) => {
+                    try {
+                        console.group('MedicalHistories', 'Address', 'onSave')
+                        console.log({ address, canvasId })
+
+                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createMedicalHistory({ name: address })
+                        console.log({ res })
+                        if (res.code !== 200 || !res.data.acknowledged) {
+                            publish(RESULT_EVENT_NAME, {
+                                severity: 'error',
+                                message: t('MedicalHistories.failedToUpdatePatientAddress')
+                            })
+
+                            return
+                        }
+
+                        publish(RESULT_EVENT_NAME, {
+                            severity: 'success',
+                            message: t('MedicalHistories.successfullyUpdatedPatientAddress')
+                        })
+
+                        await search()
+                    }
+                    finally { console.groupEnd() }
+                }}
+            />
+
+            < Dialog open={dialog.open} onClose={closeDialog} >
+                {
+                    dialog.title &&
                     <DialogTitle>
                         {dialog.title}
                     </DialogTitle>
                 }
-                <DialogContent>
+                < DialogContent >
                     <DialogContentText whiteSpace={'break-spaces'}>
                         {dialog.content}
                     </DialogContentText>
-                </DialogContent>
+                </DialogContent >
                 <DialogActions>
                     <Button onClick={closeDialog}>{t('MedicalHistories.No')}</Button>
                     <Button onClick={async () => {
@@ -176,7 +274,7 @@ export function MedicalHistorySearch({ selection, selectable = false }: { select
                         {t('MedicalHistories.Yes')}
                     </Button>
                 </DialogActions>
-            </Dialog>
+            </Dialog >
         </>
     )
 }

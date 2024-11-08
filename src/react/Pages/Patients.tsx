@@ -108,6 +108,7 @@ export const Patients = memo(function Patients() {
                 })
     }, [])
 
+    const readsMedicalHistories = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).read(resources.MEDICAL_HISTORY), [auth])
     const createsPatient = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).create(resources.PATIENT), [auth])
     const updatesPatient = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).update(resources.PATIENT), [auth])
     const deletesPatient = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.PATIENT), [auth])
@@ -149,22 +150,6 @@ export const Patients = memo(function Patients() {
             cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.get.locale.code), { trailingZeroDisplay: 'auto', minimumIntegerDigits: 11, useGrouping: false }).format(getValue() as Intl.StringNumericLiteral)
         },
         {
-            accessorKey: 'medicalHistory',
-            id: 'medicalHistory',
-            cell: (props) => (
-                props.row.original.medicalHistory && props.row.original.medicalHistory.length !== 0
-                    ? <Button
-                        onClick={() => {
-                            setActivePatientId(patients?.find(p => p._id === props.row.original._id)?._id as string)
-                            setShowingMH(true)
-                        }}
-                    >
-                        {t('Patients.Show')}
-                    </Button>
-                    : null
-            )
-        },
-        {
             accessorKey: 'birthDate',
             id: 'birthDate',
             cell: (props) => fromUnixToFormat(configuration.get.locale, props.getValue() as number, DATE),
@@ -180,6 +165,30 @@ export const Patients = memo(function Patients() {
             cell: (props) => fromUnixToFormat(configuration.get.locale, props.getValue() as number, DATE),
         },
     ]
+
+    if (readsMedicalHistories)
+        overWriteColumns.push({
+            accessorKey: 'medicalHistory',
+            id: 'medicalHistory',
+            cell: (props) => (
+                props.row.original.medicalHistory && props.row.original.medicalHistory.length !== 0
+                    ? <Button
+                        onClick={() => {
+                            setActivePatientId(patients?.find(p => p._id === props.row.original._id)?._id as string)
+                            setShowingMH(true)
+                        }}
+                    >
+                        {t('Patients.Show')}
+                    </Button>
+                    : null
+            )
+        })
+    else
+        overWriteColumns.push({
+            accessorKey: 'medicalHistory',
+            id: 'medicalHistory',
+            cell: (props) => t('Patients.NoData')
+        })
 
     const additionalColumns: ColumnDef<any>[] = [
         {
