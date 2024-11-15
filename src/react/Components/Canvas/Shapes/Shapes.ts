@@ -34,6 +34,7 @@ export class Shapes {
 
     select(ctx: CanvasRenderingContext2D, point: Point): void {
         const i = this.findSelectedIndex(ctx, point)
+        console.warn('select', i)
         if (i < 0) {
             this.deselect()
             return
@@ -57,7 +58,7 @@ export class Shapes {
     }
 
     getSelectedShape(): Shape | undefined {
-        if (!this.selectionIndex)
+        if (this.selectionIndex === undefined || this.selectionIndex < 0)
             return
 
         return this.shapes[this.selectionIndex]
