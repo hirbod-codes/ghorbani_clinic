@@ -139,9 +139,6 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
     }
 
     const onHoverHook = (draw: Draw) => {
-        const shape = shapes.getSelectedShape()
-        console.log({ cachedRad: shape.cachedRad, rotation: shape.rotation })
-
         if (!shapes.hasSelection() || selectedHandler)
             return
 
