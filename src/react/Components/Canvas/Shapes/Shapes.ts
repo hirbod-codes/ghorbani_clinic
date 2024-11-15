@@ -34,7 +34,6 @@ export class Shapes {
 
     select(ctx: CanvasRenderingContext2D, point: Point): void {
         const i = this.findSelectedIndex(ctx, point)
-        console.log(i)
         if (i < 0) {
             this.deselect()
             return
@@ -46,7 +45,7 @@ export class Shapes {
         this.setSelection(i)
     }
 
-    findSelectedIndex(ctx: CanvasRenderingContext2D, point: Point): number {
+    private findSelectedIndex(ctx: CanvasRenderingContext2D, point: Point): number {
         if (this.selectionBox !== undefined && this.selectionBox.isInside(ctx, point))
             return this.selectionIndex ?? -1
 
@@ -68,7 +67,7 @@ export class Shapes {
         return this.selectionIndex
     }
 
-    setSelection(i: number) {
+    private setSelection(i: number) {
         this.selectionIndex = i
         this.selectionBox = new SelectionBox(this.shapes[i])
     }
@@ -94,5 +93,10 @@ export class Shapes {
             this.selectionBox = new SelectionBox(this.shapes[this.selectionIndex])
             this.selectionBox.redraw(draw)
         }
+    }
+
+    deleteSelectedShape() {
+        this.shapes = this.shapes.filter((f, i) => i !== this.selectionIndex)
+        this.deselect()
     }
 }

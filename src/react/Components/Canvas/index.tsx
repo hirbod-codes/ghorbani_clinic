@@ -223,4 +223,3 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
         </>
     )
 }
-

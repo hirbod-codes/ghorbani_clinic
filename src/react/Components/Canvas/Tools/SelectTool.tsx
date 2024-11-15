@@ -1,8 +1,7 @@
-import { PointerEvent, useEffect, useState } from "react"
+import { useEffect, useState } from "react"
 import { Shapes } from "../Shapes/Shapes"
 import { Draw, Point, Position } from "../types"
 import { Rectangle } from "../Shapes/Rectangle"
-import { ContentPasteGoTwoTone } from "@mui/icons-material"
 
 export type SelectToolProps = {
     shapes: Shapes,
@@ -29,6 +28,8 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
     }
 
     const onUp = (draw: Draw) => {
+        const shape = shapes.getSelectedShape()
+        shape.cachedRad = shape.rotation
         setSelectedHandler(undefined)
         setReferencePoint(undefined)
     }
@@ -50,14 +51,19 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
             if (!referencePoint)
                 setReferencePoint(draw.currentPoint)
             else if (shape instanceof Rectangle && draw.prevPoint) {
-                const t1 = shape.y / shape.x
-                const t2 = draw.currentPoint.y / draw.currentPoint.x
-                // const degree = ((draw.currentPoint.y < draw.prevPoint.y) ? -1 : +1) * (Math.tan(t2) - Math.tan(t1));
-                // const degree = Math.tan(t2) - Math.tan(t1);
-                const degree = Math.tan((draw.currentPoint.y));
-                console.log(t2, t1, degree, shape.rotationDegree)
-                if (!Number.isNaN(t1) && t1 !== Infinity && !Number.isNaN(t2) && t2 !== Infinity)
-                    shape.rotationDegree = (shape.rotationDegree ?? 0) + (degree * Math.PI / 180)
+                const centerPoint: Point = { x: shape.x + (shape.w / 2), y: shape.y + (shape.h / 2) }
+                const transformedCenterPoint: Point = {
+                    x: centerPoint.x * shape.transformArgs[0] + centerPoint.y * shape.transformArgs[2] + shape.transformArgs[4],
+                    y: centerPoint.x * shape.transformArgs[1] + centerPoint.y * shape.transformArgs[3] + shape.transformArgs[5]
+                }
+
+                const p = getRad(transformedCenterPoint, referencePoint)
+                const c = getRad(transformedCenterPoint, draw.currentPoint)
+                const absoluteRad = c - p
+
+                shape.rotation = shape.cachedRad + absoluteRad
+                while (shape.rotation >= 2 * Math.PI)
+                    shape.rotation -= 2 * Math.PI
             }
         } else {
             const verticalDiff = draw.currentPoint.y - handlersBoundaries[selectedHandler][selectedHandler].y
@@ -133,6 +139,9 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
     }
 
     const onHoverHook = (draw: Draw) => {
+        const shape = shapes.getSelectedShape()
+        console.log({ cachedRad: shape.cachedRad, rotation: shape.rotation })
+
         if (!shapes.hasSelection() || selectedHandler)
             return
 
@@ -214,6 +223,23 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
         }
     }
 
+    const getRad = (centerPoint: Point, p: Point): number => {
+        const relativeRad = Math.abs(Math.asin((centerPoint.y - p.y) / twoPointDistance(p, centerPoint)))
+
+        if (p.x >= centerPoint.x && p.y <= centerPoint.y)
+            return Math.PI / 2 - relativeRad
+        else if (p.x >= centerPoint.x && p.y >= centerPoint.y)
+            return Math.PI / 2 + relativeRad
+        else if (p.x <= centerPoint.x && p.y <= centerPoint.y)
+            return 3 * Math.PI / 2 + relativeRad
+        else if (p.x <= centerPoint.x && p.y >= centerPoint.y)
+            return 3 * Math.PI / 2 - relativeRad
+        else
+            throw new Error('Invalid Points')
+    }
+
+    const twoPointDistance = (p1: Point, p2: Point): number => Math.sqrt(Math.pow((p1.x - p2.x), 2) + Math.pow((p1.y - p2.y), 2))
+
     useEffect(() => {
         setOnDraw(() => onMoveHook)
         setOnHoverHook(() => onHoverHook)
@@ -222,8 +248,7 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
     }, [selectedHandler, referencePoint])
 
     return (
-        <>
-        </>
+        <></>
     )
 }
 

@@ -11,7 +11,8 @@ export class Rectangle implements Shape {
     stroke: string | CanvasGradient | CanvasPattern
     fill: string | CanvasGradient | CanvasPattern
     transformArgs: [number, number, number, number, number, number] = [1, 0, 0, 1, 0, 0]
-    rotationDegree: number = 0
+    rotation: number = 0
+    cachedRad: number = 0
 
     constructor(x: number, y: number, w: number, h: number, lineWidth: number, stroke: string | CanvasGradient | CanvasPattern, fill: string | CanvasGradient | CanvasPattern) {
         this.x = x
@@ -43,7 +44,7 @@ export class Rectangle implements Shape {
         ctx.save()
 
         ctx.setTransform(...this.transformArgs)
-        ctx.rotate(this.rotationDegree)
+
         const result = ctx.isPointInPath(this.path, point.x, point.y)
 
         ctx.restore()
@@ -64,16 +65,18 @@ export class Rectangle implements Shape {
         d.ctx.strokeStyle = this.stroke
         d.ctx.fillStyle = this.fill
 
+        d.ctx.transform(...this.transformArgs)
+
         let t = [...this.transformArgs]
         t[4] = this.x + (0.5 * this.w)
         t[5] = this.y + (0.5 * this.h)
         d.ctx.translate(t[4], t[5])
-        d.ctx.rotate(this.rotationDegree)
+
+        d.ctx.rotate(this.rotation)
+
         t[4] = -this.x - (0.5 * this.w)
         t[5] = -this.y - (0.5 * this.h)
         d.ctx.translate(t[4], t[5])
-
-        d.ctx.transform(...this.transformArgs)
 
         this.path.rect(this.x, this.y, this.w, this.h)
 

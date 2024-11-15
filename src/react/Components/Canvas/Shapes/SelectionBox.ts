@@ -124,16 +124,18 @@ export class SelectionBox {
     }
 
     private transform(ctx: CanvasRenderingContext2D) {
+        ctx.transform(...(this.shape as Rectangle).transformArgs)
+
         let t = [...(this.shape as Rectangle).transformArgs]
         t[4] = (this.shape as Rectangle).x + (0.5 * (this.shape as Rectangle).w)
         t[5] = (this.shape as Rectangle).y + (0.5 * (this.shape as Rectangle).h)
         ctx.translate(t[4], t[5])
-        ctx.rotate((this.shape as Rectangle).rotationDegree)
+
+        ctx.rotate((this.shape as Rectangle).rotation)
+
         t[4] = -(this.shape as Rectangle).x - (0.5 * (this.shape as Rectangle).w)
         t[5] = -(this.shape as Rectangle).y - (0.5 * (this.shape as Rectangle).h)
         ctx.translate(t[4], t[5])
-
-        ctx.transform(...(this.shape as Rectangle).transformArgs)
     }
 
     getBoundary(): Boundary {
