@@ -4,6 +4,7 @@ import { Draw, Point, Position } from "../types"
 import { Rectangle } from "../Shapes/Rectangle"
 import { applyToPoint, fromObject } from "transformation-matrix"
 import { Stack } from "@mui/material"
+import { Shape } from "../Shapes/Shape"
 
 export type SelectToolProps = {
     shapes: Shapes,
@@ -18,7 +19,6 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
     const [selectedHandler, setSelectedHandler] = useState<Position | 'rotate' | 'move'>(undefined)
     const [referencePoint, setReferencePoint] = useState<Point>(undefined)
 
-    const [handlerRefPoint, setHandlerRefPoint] = useState<Point>()
     const [pointerCoordinates, setPointerCoordinates] = useState<Point>()
 
     const onDown = (draw: Draw) => {
@@ -64,103 +64,182 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
                 shape.rotate(absoluteRad, centerPoint)
             }
         } else {
-            let t = handlersBoundaries[selectedHandler][selectedHandler]
-            // const hrp = {
-            //     x: t.x * shape.transformArgs.a + t.y * shape.transformArgs.c + shape.transformArgs.e,
-            //     y: t.x * shape.transformArgs.b + t.y * shape.transformArgs.d + shape.transformArgs.f,
-            // }
-            const hrp = applyToPoint(fromObject(shape.transformArgs), handlersBoundaries[selectedHandler][selectedHandler])
-            console.log({ hrp, shape })
+            const p1 = applyToPoint(shape.transformArgs, handlersBoundaries.topLeft.topLeft)
+            const p2 = applyToPoint(shape.transformArgs, handlersBoundaries.bottomRight.bottomRight)
+            let xFlipped = false
+            let xRange: [number, number]
+            if (p1.x > p2.x) {
+                xFlipped = true
+                xRange = [p2.x, p1.x]
+            }
+            else
+                xRange = [p1.x, p2.x]
 
-            const verticalDiff = Math.abs(draw.currentPoint.y - hrp.y) - 5
-            const horizontalDiff = Math.abs(draw.currentPoint.x - hrp.x) - 5
+            let yFlipped = false
+            let yRange: [number, number]
+            if (p1.y > p2.y) {
+                yFlipped = true
+                yRange = [p2.y, p1.y]
+            }
+            else
+                yRange = [p1.y, p2.y]
+
+            const handlerRefPoint = applyToPoint(fromObject(shape.transformArgs), handlersBoundaries[selectedHandler][selectedHandler])
+
+            const verticalDiff = Math.abs(draw.currentPoint.y - handlerRefPoint.y) - 5
+            const horizontalDiff = Math.abs(draw.currentPoint.x - handlerRefPoint.x) - 5
+
+            function calcRectWidth(shape: Rectangle, point: Point, range: [number, number], side: string) {
+                if (side.toLowerCase().includes('left')) {
+                    if (!xFlipped && point.x > range[1])
+                        return
+                    if (xFlipped && point.x < range[0])
+                        return
+                } else {
+                    if (!xFlipped && point.x < range[0])
+                        return
+                    if (xFlipped && point.x > range[1])
+                        return
+                }
+
+                if (point.x <= range[1] && point.x >= range[0]) {
+                    if (side.toLowerCase().includes('left'))
+                        minusLeft(shape, horizontalDiff)
+                    else
+                        minusRight(shape, horizontalDiff)
+                } else {
+                    if (side.toLowerCase().includes('left'))
+                        addLeft(shape, horizontalDiff)
+                    else
+                        addRight(shape, horizontalDiff)
+                }
+            }
+
+            function calcRectHeight(shape: Rectangle, point: Point, range: [number, number], side: string) {
+                if (side.toLowerCase().includes('top')) {
+                    if (!yFlipped && point.y > range[1])
+                        return
+                    if (yFlipped && point.y < range[0])
+                        return
+                } else {
+                    if (!yFlipped && point.y < range[0])
+                        return
+                    if (yFlipped && point.y > range[1])
+                        return
+                }
+
+                if (point.y <= range[1] && point.y >= range[0]) {
+                    if (side.toLowerCase().includes('top'))
+                        minusTop(shape, verticalDiff)
+                    else
+                        minusBottom(shape, verticalDiff)
+                } else {
+                    if (side.toLowerCase().includes('top'))
+                        addTop(shape, verticalDiff)
+                    else
+                        addBottom(shape, verticalDiff)
+                }
+            }
+
+            function addRight(shape: Rectangle, x: number) {
+                shape.w += x
+            }
+
+            function addLeft(shape: Rectangle, x: number) {
+                if ((shape.w - x) < 0)
+                    return
+
+                shape.x -= x
+                shape.w += x
+            }
+
+            function minusRight(shape: Rectangle, x: number) {
+                if ((shape.w - x) < 0)
+                    return
+
+                shape.w -= x
+            }
+
+            function minusLeft(shape: Rectangle, x: number) {
+                if ((shape.w - x) < 0)
+                    return
+
+                shape.x += x
+                shape.w -= x
+            }
+
+            function addTop(shape: Rectangle, y: number) {
+                shape.y -= y
+                shape.h += y
+            }
+
+            function addBottom(shape: Rectangle, y: number) {
+                shape.h += y
+            }
+
+            function minusTop(shape: Rectangle, y: number) {
+                if ((shape.h - y) < 0)
+                    return
+
+                shape.y += y
+                shape.h -= y
+            }
+
+            function minusBottom(shape: Rectangle, y: number) {
+                if ((shape.h - y) < 0)
+                    return
+
+                shape.h -= y
+            }
 
             if (verticalDiff > 0 || horizontalDiff > 0)
                 switch (selectedHandler) {
                     case 'topLeft':
-                        if (shape instanceof Rectangle) {
-                            const p1 = applyToPoint(shape.transformArgs, handlersBoundaries.topLeft.topLeft)
-                            const p2 = applyToPoint(shape.transformArgs, handlersBoundaries.bottomRight.bottomRight)
-                            let xRange = []
-                            if (p1.x > p2.x)
-                                xRange = [p2.x, p1.x]
-                            else
-                                xRange = [p1.x, p2.x]
-                            let yRange = []
-                            if (p1.y > p2.y)
-                                yRange = [p2.y, p1.y]
-                            else
-                                yRange = [p1.y, p2.y]
-
-                            if (draw.currentPoint.x <= xRange[1] && draw.currentPoint.x >= xRange[0]) {
-                                if ((shape.w - horizontalDiff) >= 0) {
-                                    shape.x += horizontalDiff
-                                    shape.w -= horizontalDiff
-                                }
-                            } else {
-                                shape.x -= horizontalDiff
-                                shape.w += horizontalDiff
-                            }
-
-                            if (draw.currentPoint.y <= yRange[1] && draw.currentPoint.y >= yRange[0]) {
-                                if ((shape.h - verticalDiff) >= 0) {
-                                    shape.y += verticalDiff
-                                    shape.h -= verticalDiff
-                                }
-                            } else {
-                                shape.y -= verticalDiff
-                                shape.h += verticalDiff
-                            }
-                        }
+                        if (shape instanceof Rectangle)
+                            calcRectWidth(shape, draw.currentPoint, xRange, selectedHandler)
+                        if (shape instanceof Rectangle)
+                            calcRectHeight(shape, draw.currentPoint, yRange, selectedHandler)
                         break;
 
                     case 'top':
-                        if (shape instanceof Rectangle && (shape.h + (verticalDiff) * -1) >= 0) {
-                            shape.y += verticalDiff
-                            shape.h += (verticalDiff) * -1
-                        }
+                        if (shape instanceof Rectangle)
+                            calcRectHeight(shape, draw.currentPoint, yRange, selectedHandler)
                         break;
 
                     case 'topRight':
-                        if (shape instanceof Rectangle && (shape.w + (horizontalDiff)) >= 0)
-                            shape.w += horizontalDiff
-                        if (shape instanceof Rectangle && (shape.h + (verticalDiff) * -1) >= 0) {
-                            shape.y += verticalDiff
-                            shape.h += (verticalDiff) * -1
-                        }
+                        if (shape instanceof Rectangle)
+                            calcRectWidth(shape, draw.currentPoint, xRange, selectedHandler)
+                        if (shape instanceof Rectangle)
+                            calcRectHeight(shape, draw.currentPoint, yRange, selectedHandler)
                         break;
 
                     case 'right':
-                        if (shape instanceof Rectangle && (shape.w + (horizontalDiff)) >= 0)
-                            shape.w += horizontalDiff
+                        if (shape instanceof Rectangle)
+                            calcRectWidth(shape, draw.currentPoint, xRange, selectedHandler)
                         break;
 
                     case 'bottomRight':
-                        if (shape instanceof Rectangle && (shape.w + (horizontalDiff)) >= 0)
-                            shape.w += horizontalDiff
-                        if (shape instanceof Rectangle && (shape.h + (verticalDiff)) >= 0)
-                            shape.h += verticalDiff
+                        if (shape instanceof Rectangle)
+                            calcRectWidth(shape, draw.currentPoint, xRange, selectedHandler)
+                        if (shape instanceof Rectangle)
+                            calcRectHeight(shape, draw.currentPoint, yRange, selectedHandler)
                         break;
 
                     case 'bottom':
-                        if (shape instanceof Rectangle && (shape.h + (verticalDiff)) >= 0)
-                            shape.h += verticalDiff
+                        if (shape instanceof Rectangle)
+                            calcRectHeight(shape, draw.currentPoint, yRange, selectedHandler)
                         break;
 
                     case 'bottomLeft':
-                        if (shape instanceof Rectangle && (shape.w + (horizontalDiff) * -1) >= 0) {
-                            shape.x += horizontalDiff
-                            shape.w += (horizontalDiff) * -1
-                        }
-                        if (shape instanceof Rectangle && (shape.h + (verticalDiff)) >= 0)
-                            shape.h += verticalDiff
+                        if (shape instanceof Rectangle)
+                            calcRectWidth(shape, draw.currentPoint, xRange, selectedHandler)
+                        if (shape instanceof Rectangle)
+                            calcRectHeight(shape, draw.currentPoint, yRange, selectedHandler)
                         break;
 
                     case 'left':
-                        if (shape instanceof Rectangle && (shape.w + (horizontalDiff) * -1) >= 0) {
-                            shape.x += horizontalDiff
-                            shape.w += (horizontalDiff) * -1
-                        }
+                        if (shape instanceof Rectangle)
+                            calcRectWidth(shape, draw.currentPoint, xRange, selectedHandler)
                         break;
 
                     default:
@@ -280,14 +359,6 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
 
     return (
         <>
-            <Stack direction='row' spacing={3}>
-                {pointerCoordinates &&
-                    <p>pointer.X: {pointerCoordinates.x.toFixed(0)} </p>
-                }
-                {pointerCoordinates &&
-                    <p>pointer.Y: {pointerCoordinates.y.toFixed(0)} </p>
-                }
-            </Stack>
         </>
     )
 }
