@@ -2,6 +2,8 @@ import { useEffect, useState } from "react"
 import { Shapes } from "../Shapes/Shapes"
 import { Draw, Point, Position } from "../types"
 import { Rectangle } from "../Shapes/Rectangle"
+import { applyToPoint, fromObject } from "transformation-matrix"
+import { Stack } from "@mui/material"
 
 export type SelectToolProps = {
     shapes: Shapes,
@@ -16,6 +18,9 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
     const [selectedHandler, setSelectedHandler] = useState<Position | 'rotate' | 'move'>(undefined)
     const [referencePoint, setReferencePoint] = useState<Point>(undefined)
 
+    const [handlerRefPoint, setHandlerRefPoint] = useState<Point>()
+    const [pointerCoordinates, setPointerCoordinates] = useState<Point>()
+
     const onDown = (draw: Draw) => {
         setReferencePoint(draw.currentPoint)
         shapes.select(draw.ctx, draw.currentPoint)
@@ -28,8 +33,6 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
     }
 
     const onUp = (draw: Draw) => {
-        const shape = shapes.getSelectedShape()
-        shape.cachedRad = shape.rotation
         setSelectedHandler(undefined)
         setReferencePoint(undefined)
     }
@@ -42,103 +45,134 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
 
         const shape = shapes.getSelectedShape()
 
-        if (selectedHandler === 'move') {
-            if (shape instanceof Rectangle && draw.prevPoint && shape.x + (draw.currentPoint.x - draw.prevPoint.x) > 0) {
-                shape.transformArgs[4] += (draw.currentPoint.x - draw.prevPoint.x)
-                shape.transformArgs[5] += (draw.currentPoint.y - draw.prevPoint.y)
-            }
+        if (!referencePoint)
+            setReferencePoint(draw.currentPoint)
+        else if (selectedHandler === 'move') {
+            if (shape instanceof Rectangle && draw.prevPoint && shape.x + (draw.currentPoint.x - draw.prevPoint.x) > 0)
+                shape.translate((draw.currentPoint.x - draw.prevPoint.x), (draw.currentPoint.y - draw.prevPoint.y))
         } else if (selectedHandler === 'rotate') {
-            if (!referencePoint)
-                setReferencePoint(draw.currentPoint)
-            else if (shape instanceof Rectangle && draw.prevPoint) {
-                const centerPoint: Point = { x: shape.x + (shape.w / 2), y: shape.y + (shape.h / 2) }
-                const transformedCenterPoint: Point = {
-                    x: centerPoint.x * shape.transformArgs[0] + centerPoint.y * shape.transformArgs[2] + shape.transformArgs[4],
-                    y: centerPoint.x * shape.transformArgs[1] + centerPoint.y * shape.transformArgs[3] + shape.transformArgs[5]
-                }
+            if (shape instanceof Rectangle && draw.prevPoint) {
+                const centerPoint: Point = applyToPoint(shape.transformArgs, { x: shape.x + (shape.w / 2), y: shape.y + (shape.h / 2) })
 
-                const p = getRad(transformedCenterPoint, referencePoint)
-                const c = getRad(transformedCenterPoint, draw.currentPoint)
-                const absoluteRad = c - p
+                const p = getRad(centerPoint, draw.prevPoint)
+                const c = getRad(centerPoint, draw.currentPoint)
+                let absoluteRad = c - p
 
-                shape.rotation = shape.cachedRad + absoluteRad
-                while (shape.rotation >= 2 * Math.PI)
-                    shape.rotation -= 2 * Math.PI
+                while (absoluteRad >= 2 * Math.PI)
+                    absoluteRad -= 2 * Math.PI
+
+                shape.rotate(absoluteRad, centerPoint)
             }
         } else {
-            const verticalDiff = draw.currentPoint.y - handlersBoundaries[selectedHandler][selectedHandler].y
-            const horizontalDiff = draw.currentPoint.x - handlersBoundaries[selectedHandler][selectedHandler].x
+            let t = handlersBoundaries[selectedHandler][selectedHandler]
+            // const hrp = {
+            //     x: t.x * shape.transformArgs.a + t.y * shape.transformArgs.c + shape.transformArgs.e,
+            //     y: t.x * shape.transformArgs.b + t.y * shape.transformArgs.d + shape.transformArgs.f,
+            // }
+            const hrp = applyToPoint(fromObject(shape.transformArgs), handlersBoundaries[selectedHandler][selectedHandler])
+            console.log({ hrp, shape })
 
-            switch (selectedHandler) {
-                case 'topLeft':
-                    if (shape instanceof Rectangle && (shape.w + (horizontalDiff) * -1) >= 0) {
-                        shape.x += horizontalDiff
-                        shape.w += (horizontalDiff) * -1
-                    }
-                    if (shape instanceof Rectangle && (shape.h + (verticalDiff) * -1) >= 0) {
-                        shape.y += verticalDiff
-                        shape.h += (verticalDiff) * -1
-                    }
-                    break;
+            const verticalDiff = Math.abs(draw.currentPoint.y - hrp.y) - 5
+            const horizontalDiff = Math.abs(draw.currentPoint.x - hrp.x) - 5
 
-                case 'top':
-                    if (shape instanceof Rectangle && (shape.h + (verticalDiff) * -1) >= 0) {
-                        shape.y += verticalDiff
-                        shape.h += (verticalDiff) * -1
-                    }
-                    break;
+            if (verticalDiff > 0 || horizontalDiff > 0)
+                switch (selectedHandler) {
+                    case 'topLeft':
+                        if (shape instanceof Rectangle) {
+                            const p1 = applyToPoint(shape.transformArgs, handlersBoundaries.topLeft.topLeft)
+                            const p2 = applyToPoint(shape.transformArgs, handlersBoundaries.bottomRight.bottomRight)
+                            let xRange = []
+                            if (p1.x > p2.x)
+                                xRange = [p2.x, p1.x]
+                            else
+                                xRange = [p1.x, p2.x]
+                            let yRange = []
+                            if (p1.y > p2.y)
+                                yRange = [p2.y, p1.y]
+                            else
+                                yRange = [p1.y, p2.y]
 
-                case 'topRight':
-                    if (shape instanceof Rectangle && (shape.w + (horizontalDiff)) >= 0)
-                        shape.w += horizontalDiff
-                    if (shape instanceof Rectangle && (shape.h + (verticalDiff) * -1) >= 0) {
-                        shape.y += verticalDiff
-                        shape.h += (verticalDiff) * -1
-                    }
-                    break;
+                            if (draw.currentPoint.x <= xRange[1] && draw.currentPoint.x >= xRange[0]) {
+                                if ((shape.w - horizontalDiff) >= 0) {
+                                    shape.x += horizontalDiff
+                                    shape.w -= horizontalDiff
+                                }
+                            } else {
+                                shape.x -= horizontalDiff
+                                shape.w += horizontalDiff
+                            }
 
-                case 'right':
-                    if (shape instanceof Rectangle && (shape.w + (horizontalDiff)) >= 0)
-                        shape.w += horizontalDiff
-                    break;
+                            if (draw.currentPoint.y <= yRange[1] && draw.currentPoint.y >= yRange[0]) {
+                                if ((shape.h - verticalDiff) >= 0) {
+                                    shape.y += verticalDiff
+                                    shape.h -= verticalDiff
+                                }
+                            } else {
+                                shape.y -= verticalDiff
+                                shape.h += verticalDiff
+                            }
+                        }
+                        break;
 
-                case 'bottomRight':
-                    if (shape instanceof Rectangle && (shape.w + (horizontalDiff)) >= 0)
-                        shape.w += horizontalDiff
-                    if (shape instanceof Rectangle && (shape.h + (verticalDiff)) >= 0)
-                        shape.h += verticalDiff
-                    break;
+                    case 'top':
+                        if (shape instanceof Rectangle && (shape.h + (verticalDiff) * -1) >= 0) {
+                            shape.y += verticalDiff
+                            shape.h += (verticalDiff) * -1
+                        }
+                        break;
 
-                case 'bottom':
-                    if (shape instanceof Rectangle && (shape.h + (verticalDiff)) >= 0)
-                        shape.h += verticalDiff
-                    break;
+                    case 'topRight':
+                        if (shape instanceof Rectangle && (shape.w + (horizontalDiff)) >= 0)
+                            shape.w += horizontalDiff
+                        if (shape instanceof Rectangle && (shape.h + (verticalDiff) * -1) >= 0) {
+                            shape.y += verticalDiff
+                            shape.h += (verticalDiff) * -1
+                        }
+                        break;
 
-                case 'bottomLeft':
-                    if (shape instanceof Rectangle && (shape.w + (horizontalDiff) * -1) >= 0) {
-                        shape.x += horizontalDiff
-                        shape.w += (horizontalDiff) * -1
-                    }
-                    if (shape instanceof Rectangle && (shape.h + (verticalDiff)) >= 0)
-                        shape.h += verticalDiff
-                    break;
+                    case 'right':
+                        if (shape instanceof Rectangle && (shape.w + (horizontalDiff)) >= 0)
+                            shape.w += horizontalDiff
+                        break;
 
-                case 'left':
-                    if (shape instanceof Rectangle && (shape.w + (horizontalDiff) * -1) >= 0) {
-                        shape.x += horizontalDiff
-                        shape.w += (horizontalDiff) * -1
-                    }
-                    break;
+                    case 'bottomRight':
+                        if (shape instanceof Rectangle && (shape.w + (horizontalDiff)) >= 0)
+                            shape.w += horizontalDiff
+                        if (shape instanceof Rectangle && (shape.h + (verticalDiff)) >= 0)
+                            shape.h += verticalDiff
+                        break;
 
-                default:
-                    break;
-            }
+                    case 'bottom':
+                        if (shape instanceof Rectangle && (shape.h + (verticalDiff)) >= 0)
+                            shape.h += verticalDiff
+                        break;
+
+                    case 'bottomLeft':
+                        if (shape instanceof Rectangle && (shape.w + (horizontalDiff) * -1) >= 0) {
+                            shape.x += horizontalDiff
+                            shape.w += (horizontalDiff) * -1
+                        }
+                        if (shape instanceof Rectangle && (shape.h + (verticalDiff)) >= 0)
+                            shape.h += verticalDiff
+                        break;
+
+                    case 'left':
+                        if (shape instanceof Rectangle && (shape.w + (horizontalDiff) * -1) >= 0) {
+                            shape.x += horizontalDiff
+                            shape.w += (horizontalDiff) * -1
+                        }
+                        break;
+
+                    default:
+                        break;
+                }
         }
 
         shapes.draw(draw)
     }
 
     const onHoverHook = (draw: Draw) => {
+        setPointerCoordinates(draw.currentPoint)
         if (!shapes.hasSelection() || selectedHandler)
             return
 
@@ -245,7 +279,16 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
     }, [selectedHandler, referencePoint])
 
     return (
-        <></>
+        <>
+            <Stack direction='row' spacing={3}>
+                {pointerCoordinates &&
+                    <p>pointer.X: {pointerCoordinates.x.toFixed(0)} </p>
+                }
+                {pointerCoordinates &&
+                    <p>pointer.Y: {pointerCoordinates.y.toFixed(0)} </p>
+                }
+            </Stack>
+        </>
     )
 }
 

@@ -1,4 +1,5 @@
-import { Boundaries, Boundary, Draw, Point } from "../types";
+import { translate, compose, applyToPoint, Matrix, fromObject } from 'transformation-matrix';
+import { Boundary, Draw, Point } from "../types";
 import { Shape } from "./Shape";
 
 export class Rectangle implements Shape {
@@ -10,9 +11,7 @@ export class Rectangle implements Shape {
     lineWidth: number
     stroke: string | CanvasGradient | CanvasPattern
     fill: string | CanvasGradient | CanvasPattern
-    transformArgs: [number, number, number, number, number, number] = [1, 0, 0, 1, 0, 0]
-    rotation: number = 0
-    cachedRad: number = 0
+    transformArgs: DOMMatrix | Matrix = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0, }
 
     constructor(x: number, y: number, w: number, h: number, lineWidth: number, stroke: string | CanvasGradient | CanvasPattern, fill: string | CanvasGradient | CanvasPattern) {
         this.x = x
@@ -43,13 +42,36 @@ export class Rectangle implements Shape {
 
         ctx.save()
 
-        ctx.setTransform(...this.transformArgs)
+        ctx.setTransform(this.transformArgs)
 
         const result = ctx.isPointInPath(this.path, point.x, point.y)
 
         ctx.restore()
 
         return result
+    }
+
+    translate(x: number, y: number) {
+        this.transformArgs = compose(
+            translate(x, y),
+            fromObject(this.transformArgs),
+        )
+    }
+
+    rotate(rad: number, pivot: Point) {
+        const sin = Math.sin(rad)
+        const cos = Math.cos(rad)
+        this.transformArgs = compose(
+            {
+                a: cos,
+                b: sin,
+                c: -sin,
+                d: cos,
+                e: pivot.x - (cos * pivot.x - sin * pivot.y),
+                f: pivot.y - (sin * pivot.x + cos * pivot.y),
+            },
+            fromObject(this.transformArgs),
+        )
     }
 
     redraw(d: Draw): void {
@@ -65,18 +87,8 @@ export class Rectangle implements Shape {
         d.ctx.strokeStyle = this.stroke
         d.ctx.fillStyle = this.fill
 
-        d.ctx.transform(...this.transformArgs)
-
-        let t = [...this.transformArgs]
-        t[4] = this.x + (0.5 * this.w)
-        t[5] = this.y + (0.5 * this.h)
-        d.ctx.translate(t[4], t[5])
-
-        d.ctx.rotate(this.rotation)
-
-        t[4] = -this.x - (0.5 * this.w)
-        t[5] = -this.y - (0.5 * this.h)
-        d.ctx.translate(t[4], t[5])
+        if (this.transformArgs)
+            d.ctx.setTransform(this.transformArgs)
 
         this.path.rect(this.x, this.y, this.w, this.h)
 

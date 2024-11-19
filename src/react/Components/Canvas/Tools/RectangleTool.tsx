@@ -43,10 +43,8 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
             return
 
         const helper = shapes.helper as Rectangle
-        const instance = new Rectangle(helper.x, helper.y, helper.w, helper.h, Number(lineWidth), stroke, fill)
-
-        if (hasMoved)
-            shapes.push(instance)
+        if (helper && hasMoved) 
+            shapes.push(new Rectangle(helper.x, helper.y, helper.w, helper.h, Number(lineWidth), stroke, fill))
 
         shapes.helper = undefined
         setReferencePoint(undefined)
