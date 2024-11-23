@@ -82,7 +82,10 @@ export function DataGrid({
 }: DataGridProps) {
     const theme = useTheme()
     const configuration = useContext(ConfigurationContext)
-    
+
+    if (!pagination)
+        pagination = { pageIndex: 0, pageSize: 10 }
+
     data = data.map((d, i) => ({ ...d, counter: (pagination.pageIndex * pagination.pageSize) + (i + 1) }))
 
     const columns = useMemo<ColumnDef<any>[]>(() => {
