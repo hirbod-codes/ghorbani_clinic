@@ -1,6 +1,8 @@
-import { translate, compose, applyToPoint, Matrix, fromObject } from 'transformation-matrix';
+import { translate, compose, applyToPoint, Matrix, fromObject, decomposeTSR } from 'transformation-matrix';
 import { Boundary, Draw, Point } from "../types";
 import { Shape } from "./Shape";
+import { SelectionBox } from './SelectionBox';
+import { getRadiansFromTwoPoints, lineFunction, pointFromLineDistance } from '../../../Lib/Math/2d';
 
 export class Rectangle implements Shape {
     path: Path2D
@@ -51,24 +53,40 @@ export class Rectangle implements Shape {
         return result
     }
 
-    translate(x: number, y: number) {
+    getCenterPoint(): Point {
+        return applyToPoint(fromObject(this.transformArgs), { x: this.x + (this.w / 2), y: this.y + (this.h / 2) })
+    }
+
+    translate(previousPoint: Point, currentPoint: Point) {
+        if (this.x + (currentPoint.x - previousPoint.x) < 0)
+            return
+
         this.transformArgs = compose(
-            translate(x, y),
+            translate(currentPoint.x - previousPoint.x, currentPoint.y - previousPoint.y),
             fromObject(this.transformArgs),
         )
     }
 
-    rotate(rad: number, pivot: Point) {
-        const sin = Math.sin(rad)
-        const cos = Math.cos(rad)
+    rotate(previousPoint: Point, currentPoint: Point): void {
+        const centerPoint: Point = applyToPoint(fromObject(this.transformArgs), { x: this.x + (this.w / 2), y: this.y + (this.h / 2) })
+
+        const p = getRadiansFromTwoPoints(centerPoint, previousPoint)
+        const c = getRadiansFromTwoPoints(centerPoint, currentPoint)
+        let absoluteRad = c - p
+
+        while (absoluteRad >= 2 * Math.PI)
+            absoluteRad -= 2 * Math.PI
+
+        const sin = Math.sin(absoluteRad)
+        const cos = Math.cos(absoluteRad)
         this.transformArgs = compose(
             {
                 a: cos,
                 b: sin,
                 c: -sin,
                 d: cos,
-                e: pivot.x - (cos * pivot.x - sin * pivot.y),
-                f: pivot.y - (sin * pivot.x + cos * pivot.y),
+                e: centerPoint.x - (cos * centerPoint.x - sin * centerPoint.y),
+                f: centerPoint.y - (sin * centerPoint.x + cos * centerPoint.y),
             },
             fromObject(this.transformArgs),
         )
@@ -96,5 +114,162 @@ export class Rectangle implements Shape {
         d.ctx.stroke(this.path)
 
         d.ctx.restore()
+    }
+
+    updateWidth(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string) {
+        if (!selectedHandler.toLowerCase().includes('left') && !selectedHandler.toLowerCase().includes('right'))
+            return
+
+        const handlersBoundaries = selectionBox.getHandlersBoundaries()
+
+        const topLeft = applyToPoint(fromObject(this.transformArgs), handlersBoundaries.topLeft.topLeft)
+        const topRight = applyToPoint(fromObject(this.transformArgs), handlersBoundaries.topRight.topRight)
+        const bottomRight = applyToPoint(fromObject(this.transformArgs), handlersBoundaries.bottomRight.bottomRight)
+        const bottomLeft = applyToPoint(fromObject(this.transformArgs), handlersBoundaries.bottomLeft.bottomLeft)
+        const [p1, p2] = selectedHandler.toLowerCase().includes('left') ? [topLeft, bottomLeft] : [bottomRight, topRight]
+
+        const distance = pointFromLineDistance(p1, p2, currentPoint)
+        if (Number.isNaN(distance) || distance === Infinity)
+            return
+
+        let shouldAdd: boolean
+
+        let y = lineFunction(p1, p2, currentPoint.x)
+
+        if (y === Infinity)
+            return
+
+        if (y === undefined && currentPoint.x < p1.x)
+            shouldAdd = false
+        if (y === undefined && currentPoint.x >= p1.x)
+            shouldAdd = true
+        if (y !== undefined && currentPoint.y <= y)
+            shouldAdd = false
+        if (y !== undefined && currentPoint.y > y)
+            shouldAdd = true
+
+        if (!selectedHandler.toLowerCase().includes('right'))
+            shouldAdd = !shouldAdd
+
+        const decomposedMatrix = decomposeTSR(fromObject(this.transformArgs))
+        if ((decomposedMatrix.rotation.angle * 180 / Math.PI) < 0)
+            shouldAdd = !shouldAdd
+
+        if (selectedHandler.toLowerCase().includes('left'))
+            if (shouldAdd)
+                this.addLeft(distance)
+            else
+                this.minusLeft(distance)
+
+        if (selectedHandler.toLowerCase().includes('right'))
+            if (shouldAdd)
+                this.addRight(distance)
+            else
+                this.minusRight(distance)
+
+        return
+    }
+
+    updateHeight(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string) {
+        if (!selectedHandler.toLowerCase().includes('top') && !selectedHandler.toLowerCase().includes('bottom'))
+            return
+
+        const handlersBoundaries = selectionBox.getHandlersBoundaries()
+
+        const topLeft = applyToPoint(fromObject(this.transformArgs), handlersBoundaries.topLeft.topLeft)
+        const topRight = applyToPoint(fromObject(this.transformArgs), handlersBoundaries.topRight.topRight)
+        const bottomRight = applyToPoint(fromObject(this.transformArgs), handlersBoundaries.bottomRight.bottomRight)
+        const bottomLeft = applyToPoint(fromObject(this.transformArgs), handlersBoundaries.bottomLeft.bottomLeft)
+        const [p1, p2] = selectedHandler.toLowerCase().includes('bottom') ? [bottomRight, bottomLeft] : [topLeft, topRight]
+
+        const distance = pointFromLineDistance(p1, p2, currentPoint)
+        if (Number.isNaN(distance) || distance === Infinity)
+            return
+
+        let shouldAdd: boolean
+
+        let y = lineFunction(p1, p2, currentPoint.x)
+
+        if (y === Infinity)
+            return
+
+        if (y === undefined && currentPoint.x < p1.x)
+            shouldAdd = false
+        if (y === undefined && currentPoint.x >= p1.x)
+            shouldAdd = true
+        if (y !== undefined && currentPoint.y <= y)
+            shouldAdd = false
+        if (y !== undefined && currentPoint.y > y)
+            shouldAdd = true
+
+        const decomposedMatrix = decomposeTSR(fromObject(this.transformArgs))
+        if ((decomposedMatrix.rotation.angle * 180 / Math.PI) < 0)
+            shouldAdd = !shouldAdd
+
+        if (!selectedHandler.toLowerCase().includes('bottom'))
+            shouldAdd = !shouldAdd
+
+        if (selectedHandler.toLowerCase().includes('top'))
+            if (shouldAdd)
+                this.addTop(distance)
+            else
+                this.minusTop(distance)
+
+        if (selectedHandler.toLowerCase().includes('bottom'))
+            if (shouldAdd)
+                this.addBottom(distance)
+            else
+                this.minusBottom(distance)
+    }
+
+    private addRight(x: number) {
+        this.w += x
+    }
+
+    private addLeft(x: number) {
+        if ((this.w - x) < 0)
+            return
+
+        this.x -= x
+        this.w += x
+    }
+
+    private minusRight(x: number) {
+        if ((this.w - x) < 0)
+            return
+
+        this.w -= x
+    }
+
+    private minusLeft(x: number) {
+        if ((this.w - x) < 0)
+            return
+
+        this.x += x
+        this.w -= x
+    }
+
+    private addTop(y: number) {
+        this.y -= y
+        this.h += y
+    }
+
+    private addBottom(y: number) {
+        this.h += y
+    }
+
+    private minusTop(y: number) {
+        if ((this.h - y) < 0)
+            return
+
+        this.y += y
+        this.h -= y
+    }
+
+    private minusBottom(y: number) {
+        if ((this.h - y) < 0)
+            return
+
+        this.h -= y
     }
 }
