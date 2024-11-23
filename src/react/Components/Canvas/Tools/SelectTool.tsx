@@ -18,6 +18,8 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
     const [selectedHandler, setSelectedHandler] = useState<Position | 'rotate' | 'move'>(undefined)
     const [referencePoint, setReferencePoint] = useState<Point>(undefined)
 
+    const [shouldScale, setShouldScale] = useState<boolean>(false)
+
     const onDown = (draw: Draw) => {
         setReferencePoint(draw.currentPoint)
         shapes.select(draw.ctx, draw.currentPoint)
@@ -48,8 +50,12 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
         else if (selectedHandler === 'rotate')
             shape.rotate(draw.prevPoint, draw.currentPoint)
         else {
-            shape.updateWidth(draw.prevPoint, draw.currentPoint, shapes.selectionBox, selectedHandler)
-            shape.updateHeight(draw.prevPoint, draw.currentPoint, shapes.selectionBox, selectedHandler)
+            if (shouldScale)
+                shape.scale(draw.prevPoint, draw.currentPoint, shapes.selectionBox, selectedHandler)
+            else {
+                shape.updateWidth(draw.prevPoint, draw.currentPoint, shapes.selectionBox, selectedHandler)
+                shape.updateHeight(draw.prevPoint, draw.currentPoint, shapes.selectionBox, selectedHandler)
+            }
         }
 
         shapes.draw(draw)

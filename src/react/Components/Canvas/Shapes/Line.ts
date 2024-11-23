@@ -24,6 +24,10 @@ export class Line implements Shape {
         this.mode = mode
     }
 
+    scale(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): void {
+        throw new Error("Method not implemented.");
+    }
+
     getCenterPoint(): Point {
         const b = this.getBoundary()
         return applyToPoint(fromObject(this.transformArgs), {

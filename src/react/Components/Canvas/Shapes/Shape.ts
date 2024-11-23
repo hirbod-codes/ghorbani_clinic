@@ -7,6 +7,7 @@ export interface Shape {
     getCenterPoint(): Point;
     updateWidth(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): void;
     updateHeight(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): void;
+    scale(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): void;
     translate(previousPoint: Point, currentPoint: Point): void;
     rotate(previousPoint: Point, currentPoint: Point): void;
     transformArgs: DOMMatrix | Matrix;

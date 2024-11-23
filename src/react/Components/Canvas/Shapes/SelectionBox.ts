@@ -18,7 +18,7 @@ export class SelectionBox {
 
     private shape: Shape
     private rectanglesWidth: number
-    private offset: number = 25
+    offset: number = 25
     private fillStyle: string | CanvasGradient | CanvasPattern
     private strokeStyle: string | CanvasGradient | CanvasPattern
 

@@ -1,4 +1,4 @@
-import { translate, compose, applyToPoint, Matrix, fromObject, decomposeTSR } from 'transformation-matrix';
+import { translate, compose, applyToPoint, Matrix, fromObject, decomposeTSR, scale } from 'transformation-matrix';
 import { Boundary, Draw, Point } from "../types";
 import { Shape } from "./Shape";
 import { SelectionBox } from './SelectionBox';
@@ -68,7 +68,7 @@ export class Rectangle implements Shape {
     }
 
     rotate(previousPoint: Point, currentPoint: Point): void {
-        const centerPoint: Point = applyToPoint(fromObject(this.transformArgs), { x: this.x + (this.w / 2), y: this.y + (this.h / 2) })
+        const centerPoint: Point = this.getCenterPoint()
 
         const p = getRadiansFromTwoPoints(centerPoint, previousPoint)
         const c = getRadiansFromTwoPoints(centerPoint, currentPoint)
@@ -116,7 +116,71 @@ export class Rectangle implements Shape {
         d.ctx.restore()
     }
 
+    scale(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string) {
+        let x = this.getHorizontalDistance(prevPoint, currentPoint, selectionBox, selectedHandler)
+        let y = this.getVerticalDistance(prevPoint, currentPoint, selectionBox, selectedHandler)
+        console.log(x, y)
+
+        const calcScale = (old: number, change: number) => (old + 2 * change) / old
+
+        const topLeft = applyToPoint(fromObject(this.transformArgs), { x: this.x, y: this.y })
+        const bottomRight = applyToPoint(fromObject(this.transformArgs), { x: this.x + this.w, y: this.y + this.h })
+        const centerPoint: Point = this.getCenterPoint()
+        const width = bottomRight.x - topLeft.x
+        const height = bottomRight.y - topLeft.y
+
+        if (x !== 0 && (selectedHandler.toLowerCase().includes('left') || selectedHandler.toLowerCase().includes('right')))
+            if (x > 0)
+                this.transformArgs = compose(scale(calcScale(width, x), 1, centerPoint.x, centerPoint.y), fromObject(this.transformArgs))
+            else
+                this.transformArgs = compose(scale(calcScale(width, x), 1, centerPoint.x, centerPoint.y), fromObject(this.transformArgs))
+
+        if (y !== 0 && (selectedHandler.toLowerCase().includes('top') || selectedHandler.toLowerCase().includes('bottom')))
+            if (y > 0)
+                this.transformArgs = compose(scale(1, calcScale(height, y), centerPoint.x, centerPoint.y), fromObject(this.transformArgs))
+            else
+                this.transformArgs = compose(scale(1, calcScale(height, y), centerPoint.x, centerPoint.y), fromObject(this.transformArgs))
+
+
+
+        const tl = applyToPoint(fromObject(this.transformArgs), { x: this.x, y: this.y })
+        const br = applyToPoint(fromObject(this.transformArgs), { x: this.x + this.w, y: this.y + this.h })
+        this.transformArgs = compose(translate((br.x - tl.x - width) / 2, (br.y - tl.y - height) / 2))
+    }
+
     updateWidth(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string) {
+        const distance = this.getHorizontalDistance(prevPoint, currentPoint, selectionBox, selectedHandler)
+
+        if (selectedHandler.toLowerCase().includes('left'))
+            if (distance > 0)
+                this.addLeft(distance)
+            else
+                this.minusLeft(-distance)
+
+        if (selectedHandler.toLowerCase().includes('right'))
+            if (distance > 0)
+                this.addRight(distance)
+            else
+                this.minusRight(-distance)
+    }
+
+    updateHeight(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string) {
+        const distance = this.getVerticalDistance(prevPoint, currentPoint, selectionBox, selectedHandler)
+
+        if (selectedHandler.toLowerCase().includes('top'))
+            if (distance > 0)
+                this.addTop(distance)
+            else
+                this.minusTop(-distance)
+
+        if (selectedHandler.toLowerCase().includes('bottom'))
+            if (distance > 0)
+                this.addBottom(distance)
+            else
+                this.minusBottom(-distance)
+    }
+
+    private getHorizontalDistance(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): number {
         if (!selectedHandler.toLowerCase().includes('left') && !selectedHandler.toLowerCase().includes('right'))
             return
 
@@ -135,6 +199,7 @@ export class Rectangle implements Shape {
         let shouldAdd: boolean
 
         let y = lineFunction(p1, p2, currentPoint.x)
+        console.log({ y })
 
         if (y === Infinity)
             return
@@ -155,22 +220,11 @@ export class Rectangle implements Shape {
         if ((decomposedMatrix.rotation.angle * 180 / Math.PI) < 0)
             shouldAdd = !shouldAdd
 
-        if (selectedHandler.toLowerCase().includes('left'))
-            if (shouldAdd)
-                this.addLeft(distance)
-            else
-                this.minusLeft(distance)
-
-        if (selectedHandler.toLowerCase().includes('right'))
-            if (shouldAdd)
-                this.addRight(distance)
-            else
-                this.minusRight(distance)
-
-        return
+        console.log({ shouldAdd, distance })
+        return shouldAdd ? distance : -distance
     }
 
-    updateHeight(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string) {
+    private getVerticalDistance(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): number {
         if (!selectedHandler.toLowerCase().includes('top') && !selectedHandler.toLowerCase().includes('bottom'))
             return
 
@@ -209,17 +263,7 @@ export class Rectangle implements Shape {
         if (!selectedHandler.toLowerCase().includes('bottom'))
             shouldAdd = !shouldAdd
 
-        if (selectedHandler.toLowerCase().includes('top'))
-            if (shouldAdd)
-                this.addTop(distance)
-            else
-                this.minusTop(distance)
-
-        if (selectedHandler.toLowerCase().includes('bottom'))
-            if (shouldAdd)
-                this.addBottom(distance)
-            else
-                this.minusBottom(distance)
+        return shouldAdd ? distance : -distance
     }
 
     private addRight(x: number) {
