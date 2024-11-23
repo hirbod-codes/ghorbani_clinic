@@ -5,7 +5,7 @@ import { SelectionBox } from './SelectionBox';
 import { getRadiansFromTwoPoints, lineFunction, pointFromLineDistance } from '../../../Lib/Math/2d';
 
 export class Rectangle implements Shape {
-    path: Path2D
+    private path: Path2D
     x: number
     y: number
     w: number

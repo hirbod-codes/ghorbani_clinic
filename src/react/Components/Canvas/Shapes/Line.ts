@@ -1,5 +1,9 @@
-import { Boundaries, Boundary, Draw, Point } from "../types";
+import { applyToPoint, compose, fromObject, Matrix, translate } from "transformation-matrix";
+import { Boundary, Draw } from "../types";
 import { Shape } from "./Shape";
+import { Point } from "../../../Lib/Math";
+import { SelectionBox } from "./SelectionBox";
+import { getRadiansFromTwoPoints } from "../../../Lib/Math/2d";
 
 export class Line implements Shape {
     private lineWidth: number
@@ -7,7 +11,7 @@ export class Line implements Shape {
     private pressureMagnitude: number
     private isPressureSensitive: boolean
     private mode: 'eraser' | 'pencil'
-    transformArgs: [number, number, number, number, number, number] = [1, 0, 0, 1, 0, 0]
+    transformArgs: DOMMatrix | Matrix = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0, }
     rotationDegree: number = 0
 
     private points: (Point & { lineWidth: number })[] = []
@@ -20,26 +24,52 @@ export class Line implements Shape {
         this.mode = mode
     }
 
-    redraw(d: Draw): void {
-        d.ctx.beginPath()
-        d.ctx.strokeStyle = this.stroke
-        d.ctx.lineWidth = this.lineWidth
-        d.ctx.strokeStyle = this.stroke
-        d.ctx.fillStyle = this.stroke
+    getCenterPoint(): Point {
+        const b = this.getBoundary()
+        return applyToPoint(fromObject(this.transformArgs), {
+            x: b.topLeft.x + (b.topRight.x - b.topLeft.x) / 2,
+            y: b.topLeft.y + (b.bottomLeft.y - b.topLeft.y) / 2,
+        })
+    }
 
-        d.ctx.moveTo(this.points[0].x, this.points[0].y)
+    updateWidth(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): void {
+        return
+    }
 
-        for (let i = 1; i < this.points.length; i++) {
-            const point = this.points[i];
+    updateHeight(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): void {
+        return
+    }
 
-            d.ctx.lineWidth = point.lineWidth
-            d.ctx.lineTo(point.x, point.y)
-        }
-        d.ctx.stroke()
+    translate(previousPoint: Point, currentPoint: Point): void {
+        this.transformArgs = compose(
+            translate(currentPoint.x - previousPoint.x, currentPoint.y - previousPoint.y),
+            fromObject(this.transformArgs),
+        )
+    }
 
-        d.ctx.beginPath()
-        d.ctx.arc(this.points[0].x, this.points[0].y, this.points[0].lineWidth / 2, 0, 2 * Math.PI)
-        d.ctx.fill()
+    rotate(previousPoint: Point, currentPoint: Point): void {
+        const centerPoint: Point = this.getCenterPoint()
+
+        const p = getRadiansFromTwoPoints(centerPoint, previousPoint)
+        const c = getRadiansFromTwoPoints(centerPoint, currentPoint)
+        let absoluteRad = c - p
+
+        while (absoluteRad >= 2 * Math.PI)
+            absoluteRad -= 2 * Math.PI
+
+        const sin = Math.sin(absoluteRad)
+        const cos = Math.cos(absoluteRad)
+        this.transformArgs = compose(
+            {
+                a: cos,
+                b: sin,
+                c: -sin,
+                d: cos,
+                e: centerPoint.x - (cos * centerPoint.x - sin * centerPoint.y),
+                f: centerPoint.y - (sin * centerPoint.x + cos * centerPoint.y),
+            },
+            fromObject(this.transformArgs),
+        )
     }
 
     getBoundary(): Boundary {
@@ -79,20 +109,24 @@ export class Line implements Shape {
 
         return {
             topLeft: { x: minX, y: minY },
-            top: { x: minX + (diffX / 2), y: minY },
+            top: { x: minX + diffX, y: minY },
             topRight: { x: maxX, y: minY },
-            right: { x: maxX, y: minY + (diffY / 2) },
+            right: { x: maxX, y: minY + diffY },
             bottomRight: { x: maxX, y: maxY },
-            bottom: { x: minX + (diffX / 2), y: maxY },
+            bottom: { x: minX + diffX, y: maxY },
             bottomLeft: { x: minX, y: maxY },
-            left: { x: minX, y: minY + (diffY / 2) },
+            left: { x: minX, y: minY + diffY },
         }
     }
 
     isInside(ctx: CanvasRenderingContext2D, point: Point): boolean {
-        const boundary = this.getBoundary()
-
-        return point.x >= boundary.left.x && point.x <= boundary.right.x && point.y >= boundary.top.y && point.y <= boundary.bottom.y
+        const offset = 3
+        for (let i = 0; i < this.points.length; i++) {
+            const p = applyToPoint(fromObject(this.transformArgs), this.points[i])
+            if (point.x > p.x - offset && point.x < p.x + offset && point.y > p.y - offset && point.y < p.y + offset)
+                return true
+        }
+        return false
     }
 
     draw(d: Draw): void {
@@ -112,15 +146,22 @@ export class Line implements Shape {
 
         let startPoint = prevPoint ?? currentPoint
 
+        d.ctx.save()
+
         ctx.beginPath()
 
         const lineColor = this.stroke
         ctx.lineWidth = width
         ctx.strokeStyle = lineColor
         ctx.fillStyle = lineColor
+        ctx.lineJoin = 'round'
+
+        if (this.transformArgs)
+            d.ctx.setTransform(this.transformArgs)
 
         ctx.moveTo(startPoint.x, startPoint.y)
         ctx.lineTo(currentPoint.x, currentPoint.y)
+
         ctx.stroke()
 
         ctx.beginPath()
@@ -128,5 +169,39 @@ export class Line implements Shape {
         ctx.fill()
 
         this.points.push({ ...currentPoint, lineWidth: width })
+
+        d.ctx.restore()
+    }
+
+    redraw(d: Draw): void {
+        d.ctx.save()
+
+        d.ctx.beginPath()
+
+        d.ctx.strokeStyle = this.stroke
+        d.ctx.lineWidth = this.lineWidth
+        d.ctx.strokeStyle = this.stroke
+        d.ctx.fillStyle = this.stroke
+        d.ctx.lineJoin = 'round'
+
+        if (this.transformArgs)
+            d.ctx.setTransform(this.transformArgs)
+
+        d.ctx.moveTo(this.points[0].x, this.points[0].y)
+
+        for (let i = 0; i < this.points.length; i++) {
+            const point = this.points[i];
+
+            d.ctx.lineWidth = point.lineWidth
+            d.ctx.lineTo(point.x, point.y)
+        }
+
+        d.ctx.stroke()
+
+        d.ctx.beginPath()
+        d.ctx.arc(this.points[0].x, this.points[0].y, this.points[0].lineWidth / 2, 0, 2 * Math.PI)
+        d.ctx.fill()
+
+        d.ctx.restore()
     }
 }

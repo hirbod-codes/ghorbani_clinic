@@ -18,16 +18,18 @@ export class SelectionBox {
 
     private shape: Shape
     private rectanglesWidth: number
-    private offset: number
+    private offset: number = 25
     private fillStyle: string | CanvasGradient | CanvasPattern
+    private strokeStyle: string | CanvasGradient | CanvasPattern
 
     private boundaries: Boundaries = undefined
 
-    constructor(shape: Shape, rectanglesWidth = 20, offset = 30, fillStyle: string | CanvasGradient | CanvasPattern = 'cyan') {
+    constructor(shape: Shape, rectanglesWidth = 15, offset = 30, fillStyle: string | CanvasGradient | CanvasPattern = 'cyan', strokeStyle: string | CanvasGradient | CanvasPattern = 'cyan') {
         this.shape = shape
         this.rectanglesWidth = rectanglesWidth
         this.offset = offset
         this.fillStyle = fillStyle
+        this.strokeStyle = strokeStyle
     }
 
     getShape(): Shape {
@@ -35,14 +37,16 @@ export class SelectionBox {
     }
 
     redraw(d: Draw): void {
-        this.createHandlers(d.ctx)
+        this.draw(d)
     }
 
     isInside(ctx: CanvasRenderingContext2D, point: Point): Position | 'move' | 'rotate' | undefined {
         let result: Position | 'move' | 'rotate' | undefined = undefined
 
         ctx.save()
-        this.transform(ctx)
+
+        if (this.shape.transformArgs)
+            ctx.setTransform(this.shape.transformArgs)
 
         if (ctx.isPointInPath(this.paths.rotate, point.x, point.y))
             result = 'rotate'
@@ -73,15 +77,15 @@ export class SelectionBox {
         // rotate
         ctx.save()
 
-        const width = 25
-        ctx.fillStyle = '#ff000085'
-        ctx.lineWidth = width
+        ctx.fillStyle = '#ff000000'
+        ctx.lineWidth = this.offset
 
         this.paths.rotate = new Path2D
 
-        this.transform(ctx)
+        if (this.shape.transformArgs)
+            ctx.setTransform(this.shape.transformArgs)
 
-        this.paths.rotate.rect(boundaries.topLeft.topLeft.x - width, boundaries.topLeft.topLeft.y - width, boundaries.right.right.x - boundaries.left.left.x + (width * 2), boundaries.bottom.bottom.y - boundaries.top.top.y + (width * 2))
+        this.paths.rotate.rect(boundaries.topLeft.topLeft.x - this.offset, boundaries.topLeft.topLeft.y - this.offset, boundaries.right.right.x - boundaries.left.left.x + (this.offset * 2), boundaries.bottom.bottom.y - boundaries.top.top.y + (this.offset * 2))
 
         ctx.fill(this.paths.rotate)
 
@@ -90,42 +94,44 @@ export class SelectionBox {
         // move
         ctx.save()
 
-        ctx.fillStyle = '#00000085'
+        ctx.fillStyle = '#00000000'
+        ctx.strokeStyle = this.strokeStyle
+        ctx.setLineDash([5, 3])
 
         this.paths.move = new Path2D
 
-        this.transform(ctx)
+        if (this.shape.transformArgs)
+            ctx.setTransform(this.shape.transformArgs)
 
-        this.paths.move.rect(boundaries.topLeft.topLeft.x, boundaries.topLeft.topLeft.y, boundaries.right.right.x - boundaries.left.left.x, boundaries.bottom.bottom.y - boundaries.top.top.y)
+        this.paths.move.rect(
+            boundaries.topLeft.topLeft.x + (this.rectanglesWidth / 2),
+            boundaries.topLeft.topLeft.y + (this.rectanglesWidth / 2),
+            boundaries.right.right.x - boundaries.left.left.x - this.rectanglesWidth,
+            boundaries.bottom.bottom.y - boundaries.top.top.y - this.rectanglesWidth
+        )
 
         ctx.fill(this.paths.move)
+        ctx.stroke(this.paths.move)
 
         ctx.restore()
 
         for (const key in boundaries) {
             ctx.save()
 
-            ctx.strokeStyle = '#ff0000'
             ctx.fillStyle = this.fillStyle
-            ctx.lineWidth = 10
 
             this.paths[key as Position] = new Path2D
 
-            this.transform(ctx)
+            if (this.shape.transformArgs)
+                ctx.setTransform(this.shape.transformArgs)
 
             const boundary = boundaries[key as Position]
             this.paths[key as Position].rect(boundary.topLeft.x, boundary.topLeft.y, boundary.right.x - boundary.left.x, boundary.bottom.y - boundary.top.y)
 
             ctx.fill(this.paths[key as Position])
-            ctx.stroke(this.paths[key as Position])
 
             ctx.restore()
         }
-    }
-
-    private transform(ctx: CanvasRenderingContext2D) {
-        if (this.shape.transformArgs)
-            ctx.setTransform(this.shape.transformArgs)
     }
 
     getBoundary(): Boundary {
@@ -156,7 +162,7 @@ export class SelectionBox {
         const boundaries = Object.fromEntries(
             Object.entries(this.shape?.getBoundary() ?? {})
                 .map(
-                    v => [v[0], this.getHandlerBoundary(this.getReferencePoint(this.getOffsetPoint(v[1], v[0] as Position)))]
+                    v => [v[0], this.getHandlerBoundary(this.getHandlerTopLeftPoint(this.getHandlerCenterPoint(v[1], v[0] as Position)))]
                 )
         ) as Boundaries
 
@@ -168,24 +174,24 @@ export class SelectionBox {
         return boundaries[position]
     }
 
-    private getHandlerBoundary(referencePoint: Point): Boundary {
+    private getHandlerBoundary(handlerTopLeftPoint: Point): Boundary {
         return {
-            topLeft: { x: referencePoint.x, y: referencePoint.y },
-            top: { x: referencePoint.x + (this.rectanglesWidth / 2), y: referencePoint.y },
-            topRight: { x: referencePoint.x + this.rectanglesWidth, y: referencePoint.y },
-            right: { x: referencePoint.x + this.rectanglesWidth, y: referencePoint.y + (this.rectanglesWidth / 2) },
-            bottomRight: { x: referencePoint.x + this.rectanglesWidth, y: referencePoint.y + this.rectanglesWidth },
-            bottom: { x: referencePoint.x + (this.rectanglesWidth / 2), y: referencePoint.y + this.rectanglesWidth },
-            bottomLeft: { x: referencePoint.x, y: referencePoint.y + this.rectanglesWidth },
-            left: { x: referencePoint.x, y: referencePoint.y + (this.rectanglesWidth / 2) },
+            topLeft: handlerTopLeftPoint,
+            top: { x: handlerTopLeftPoint.x + (this.rectanglesWidth / 2), y: handlerTopLeftPoint.y },
+            topRight: { x: handlerTopLeftPoint.x + this.rectanglesWidth, y: handlerTopLeftPoint.y },
+            right: { x: handlerTopLeftPoint.x + this.rectanglesWidth, y: handlerTopLeftPoint.y + (this.rectanglesWidth / 2) },
+            bottomRight: { x: handlerTopLeftPoint.x + this.rectanglesWidth, y: handlerTopLeftPoint.y + this.rectanglesWidth },
+            bottom: { x: handlerTopLeftPoint.x + (this.rectanglesWidth / 2), y: handlerTopLeftPoint.y + this.rectanglesWidth },
+            bottomLeft: { x: handlerTopLeftPoint.x, y: handlerTopLeftPoint.y + this.rectanglesWidth },
+            left: { x: handlerTopLeftPoint.x, y: handlerTopLeftPoint.y + (this.rectanglesWidth / 2) },
         }
     }
 
-    private getReferencePoint(offsetPoint: Point): Point {
-        return { x: offsetPoint.x - (this.rectanglesWidth / 2), y: offsetPoint.y - (this.rectanglesWidth / 2) }
+    private getHandlerTopLeftPoint(handlerCenterPoint: Point): Point {
+        return { x: handlerCenterPoint.x - (this.rectanglesWidth / 2), y: handlerCenterPoint.y - (this.rectanglesWidth / 2) }
     }
 
-    private getOffsetPoint(point: Point, position: keyof Boundaries): Point {
+    private getHandlerCenterPoint(point: Point, position: keyof Boundaries): Point {
         switch (position) {
             case 'top':
                 return { x: point.x, y: point.y - this.offset }
