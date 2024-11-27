@@ -1,7 +1,7 @@
 import { useContext, useEffect, useMemo, useState } from "react"
 import { RendererDbAPI } from "../../../Electron/Database/renderer"
 import { GridFSFile } from "mongodb";
-import { Button, CircularProgress, IconButton, Paper, Stack, styled } from "@mui/material";
+import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Paper, Stack, styled } from "@mui/material";
 import { DataGrid } from "../DataGrid";
 import { t } from "i18next";
 import { AddOutlined, DeleteOutline, DownloadOutlined } from "@mui/icons-material";
@@ -10,10 +10,12 @@ import { publish } from "../../Lib/Events";
 import { ColumnDef } from "@tanstack/react-table";
 import { AuthContext } from "../../Contexts/AuthContext";
 import { resources } from "../../../Electron/Database/Repositories/Auth/resources";
-import { DATE, DATE_TIME, fromUnixToFormat } from "../../Lib/DateTime/date-time-helpers";
+import { DATE_TIME, fromUnixToFormat } from "../../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { getLuxonLocale } from "../../Lib/helpers";
 import { DateTime } from "luxon";
+import { dialog } from 'electron'
+import { appAPI } from "src/Electron/handleAppRendererEvents";
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -35,6 +37,20 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
 
     const [deletingFileId, setDeletingFileId] = useState<string | undefined>(undefined)
     const [openingFileId, setOpeningFileId] = useState<string | undefined>(undefined)
+
+    const initDialog: any = {
+        open: false,
+        title: '',
+        content: '',
+        action: null
+    }
+    const [dialog, setDialog] = useState<{
+        open: boolean,
+        title?: string,
+        content: string,
+        action: () => void | Promise<void>
+    }>(initDialog)
+    const closeDialog = () => setDialog(initDialog)
 
     console.log('DocumentManagement', { files, adding })
 
@@ -103,11 +119,11 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                                         console.group('DocumentManagement', 'deletesFile', 'onClick')
 
                                         setDeletingFileId(row.original._id)
-                                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteFile(row.original._id)
+                                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteFile(patientId, row.original._id, row.original.filename)
                                         console.log({ res })
                                         setDeletingFileId(undefined)
 
-                                        if (res.code !== 200 || !res.data === false)
+                                        if (res.code !== 200 || res.data === false)
                                             publish(RESULT_EVENT_NAME, {
                                                 severity: 'error',
                                                 message: t('DocumentManagement.failedToDeleteFile')
@@ -134,16 +150,35 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                                     try {
                                         console.group('DocumentManagement', 'opensFile', 'onClick')
 
-                                        setOpeningFileId(row.original._id)
-                                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.openFile(row.original._id)
-                                        console.log({ res })
-                                        setOpeningFileId(undefined)
+                                        const openFile = async () => {
+                                            setOpeningFileId(row.original._id)
+                                            res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.openFile(patientId, row.original._id, row.original.filename)
+                                            console.log({ res })
+                                            setOpeningFileId(undefined)
 
-                                        if (res.code !== 200)
+                                            if (res.code !== 200 || res.data === false)
+                                                publish(RESULT_EVENT_NAME, {
+                                                    severity: 'error',
+                                                    message: t('DocumentManagement.failedToOpenFile')
+                                                });
+                                        }
+
+                                        let res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.fileExists(patientId, row.original._id, row.original.filename)
+                                        if (res.code < 200)
                                             publish(RESULT_EVENT_NAME, {
                                                 severity: 'error',
-                                                message: t('DocumentManagement.failedToDeleteFile')
+                                                message: t('DocumentManagement.failedToFetchFile')
+                                            });
+
+                                        if (res.data === true) {
+                                            setDialog({
+                                                action: openFile,
+                                                content: t('DocumentManagement.FileAlreadyExists,DoYouWantToDownloadAgain?'),
+                                                open: true,
+                                                title: ''
                                             })
+                                            return
+                                        }
                                     }
                                     finally { console.groupEnd() }
                                 }}
@@ -162,42 +197,65 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
     }, [patientId])
 
     return (
-        <Paper sx={{ width: '100%', height: '100%' }}>
-            <DataGrid
-                configName="Documents"
-                data={files}
-                overWriteColumns={overWriteColumns}
-                additionalColumns={additionalColumns}
-                defaultColumnOrderModel={['counter', 'action', 'filename', 'length']}
-                appendHeaderNodes={[
-                    createsFile ?
-                        <Button
-                            component="label"
-                            sx={{ width: 'fit-content' }}
-                            variant='text'
-                            role={undefined}
-                            tabIndex={-1}
-                            startIcon={adding ? <CircularProgress /> : <AddOutlined />}
-                        >
-                            {t('DocumentManagement.AddDocuments')}
-                            <VisuallyHiddenInput type="file" multiple={true} onChange={async (e: any) => {
-                                const fs: { fileName: string, bytes: Buffer | Uint8Array }[] = []
-                                for (const f of (e.target.files as unknown) as File[])
-                                    fs.push({ fileName: f.name, bytes: new Uint8Array(await f.arrayBuffer()) })
+        <>
+            <Paper sx={{ width: '100%', height: '100%' }}>
+                <DataGrid
+                    configName="Documents"
+                    data={files}
+                    overWriteColumns={overWriteColumns}
+                    additionalColumns={additionalColumns}
+                    defaultColumnOrderModel={['counter', 'action', 'filename', 'length']}
+                    appendHeaderNodes={[
+                        createsFile ?
+                            <Button
+                                component="label"
+                                sx={{ width: 'fit-content' }}
+                                variant='text'
+                                role={undefined}
+                                tabIndex={-1}
+                                startIcon={adding ? <CircularProgress /> : <AddOutlined />}
+                            >
+                                {t('DocumentManagement.AddDocuments')}
+                                <VisuallyHiddenInput type="file" multiple={true} onChange={async (e: any) => {
+                                    const fs: { fileName: string, bytes: Buffer | Uint8Array }[] = []
+                                    for (const f of (e.target.files as unknown) as File[])
+                                        fs.push({ fileName: f.name, bytes: new Uint8Array(await f.arrayBuffer()) })
 
-                                await addDocument(fs)
-                                await fetchAndSetDocuments();
-                            }} />
-                        </Button>
-                        : undefined
-                ]}
-                defaultColumnVisibilityModel={{
-                    metadata: false,
-                    chunkSize: false,
-                    _id: false,
-                }}
-            />
-        </Paper>
+                                    await addDocument(fs)
+                                    await fetchAndSetDocuments();
+                                }} />
+                            </Button>
+                            : undefined
+                    ]}
+                    defaultColumnVisibilityModel={{
+                        metadata: false,
+                        chunkSize: false,
+                        _id: false,
+                    }}
+                />
+            </Paper>
+
+            <Dialog open={dialog.open} onClose={closeDialog} >
+                {dialog.title &&
+                    <DialogTitle>
+                        {dialog.title}
+                    </DialogTitle>
+                }
+                <DialogContent>
+                    <DialogContentText whiteSpace={'break-spaces'}>
+                        {dialog.content}
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closeDialog}>{t('Patients.No')}</Button>
+                    <Button onClick={async () => {
+                        if (dialog.action && typeof dialog.action === 'function')
+                            await dialog.action()
+                        closeDialog()
+                    }}>{t('Patients.Yes')}</Button>
+                </DialogActions>
+            </Dialog>
+        </>
     )
 }
 

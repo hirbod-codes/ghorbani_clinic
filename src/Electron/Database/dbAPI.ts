@@ -85,11 +85,12 @@ export type IPatientsDocumentsRepository = dbAPI & {
     handleEvents(): Promise<void>;
     uploadFiles(patientId: string, files: { fileName: string; bytes: Buffer | Uint8Array; }[]): Promise<boolean>;
     retrieveFiles(patientId: string): Promise<GridFSFile[]>;
-    downloadFile(patientId: string, fileName: string): Promise<string>;
-    downloadFiles(patientId: string): Promise<string[]>;
-    openFile(fileId: string): Promise<void>;
+    downloadFiles(patientId: string, saveDirectory?: string, force?: boolean): Promise<boolean>;
+    fileExists(patientId: string, fileId: string, filename: string, saveDirectory?: string): Promise<boolean>;
+    downloadFile(patientId: string, fileId: string, filename: string, saveDirectory?: string, force?: boolean): Promise<boolean>;
+    openFile(patientId: string, fileId: string, filename: string): Promise<boolean>;
     deleteFiles(patientId: string): Promise<boolean>;
-    deleteFile(fileId: string): Promise<boolean>;
+    deleteFile(patientId: string, fileId: string, filename: string): Promise<boolean>;
 }
 
 export type ICanvasRepository = dbAPI & {

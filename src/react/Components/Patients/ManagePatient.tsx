@@ -234,44 +234,6 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                             <DocumentManagement patientId={patient._id as string} />
                                                         </Modal>
                                                     }
-                                                    <Stack direction='row' spacing={1} divider={<Divider orientation='vertical' variant='middle' flexItem />} alignItems='center'>
-                                                        {files.length !== 0 &&
-                                                            <Button disabled sx={{ width: 'fit-content' }} variant='outlined' >
-                                                                {files.length} files are added
-                                                            </Button>
-                                                        }
-                                                        <Button
-                                                            component="label"
-                                                            sx={{ width: 'fit-content' }}
-                                                            variant='outlined'
-                                                            role={undefined}
-                                                            tabIndex={-1}
-                                                            startIcon={<AddOutlined />}
-                                                        >
-                                                            Add documents
-                                                            <VisuallyHiddenInput type="file" multiple={true} onChange={async (e) => {
-                                                                const fs: { fileName: string, bytes: Buffer | Uint8Array }[] = []
-                                                                fs.concat(files)
-                                                                for (const f of (e.target.files as unknown) as File[])
-                                                                    fs.push({ fileName: f.name, bytes: new Uint8Array(await f.arrayBuffer()) })
-
-                                                                setFiles(fs)
-                                                            }} />
-                                                        </Button>
-                                                        {files.length !== 0 &&
-                                                            <Button sx={{ width: 'fit-content' }} variant='outlined' onClick={() => setFiles([])}>
-                                                                reset documents
-                                                            </Button>
-                                                        }
-                                                        {files.length !== 0 &&
-                                                            <Button sx={{ width: 'fit-content' }} variant='outlined' onClick={async () => {
-                                                                // const response = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.openFile(patient._id as string, files[0].fileName)
-                                                                // console.log(response)
-                                                            }}>
-                                                                open first
-                                                            </Button>
-                                                        }
-                                                    </Stack>
                                                 </Stack>
                                             </Grid>
 
