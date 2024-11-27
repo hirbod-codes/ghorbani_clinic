@@ -6,6 +6,7 @@ import { CloseIcon } from '../Icons/CloseIcon';
 import { MinimizeIcon } from '../Icons/MinimizeIcon';
 import { MenuIcon } from '../Icons/MenuIcon';
 import { MaxUnmaxIcon } from '../Icons/MaxUnmaxIcon';
+import { memo } from 'react';
 
 function IconButton({ children, onClick, sx }: { children: React.ReactNode, onClick: React.MouseEventHandler<HTMLButtonElement>, sx?: SxProps<Theme> }): JSX.Element {
     return (
@@ -52,7 +53,9 @@ function CloseIconButton({ onClick, sx }: { onClick: React.MouseEventHandler<HTM
     )
 }
 
-export function MenuBar() {
+export const MenuBar = memo(function MenuBar() {
+    console.log('MenuBar')
+
     return (
         <Box dir='ltr' sx={{ width: '100%', height: '2rem', position: 'absolute', top: '0', left: '0', background: '#00000000', zIndex: 10 }}>
             <Stack direction='row' justifyContent='space-between' sx={{ WebkitAppRegion: 'drag' }}>
@@ -73,4 +76,4 @@ export function MenuBar() {
             </Stack>
         </Box>
     )
-}
+})

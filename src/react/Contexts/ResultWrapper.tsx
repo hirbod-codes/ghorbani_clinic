@@ -1,4 +1,4 @@
-import { useState, useCallback, ReactNode, useRef } from 'react';
+import { useState, useCallback, ReactNode, useMemo, memo } from 'react';
 import { Result } from './ResultTypes.d';
 import { Alert, Snackbar } from '@mui/material';
 import { CheckOutlined, CloseOutlined, DangerousOutlined } from '@mui/icons-material';
@@ -6,19 +6,19 @@ import { subscribe } from '../Lib/Events';
 
 export const RESULT_EVENT_NAME = 'showResult'
 
-export function ResultWrapper({ children }: { children?: ReactNode; }) {
+export const ResultWrapper = memo(function ResultWrapper({ children }: { children?: ReactNode; }) {
     const [resultOpen, setResultOpen] = useState<boolean>(false);
     const [result, setResult] = useState<Result | undefined>(undefined);
 
-    const updateResult = useCallback((r?: Result) => { setResult(r); setResultOpen(true) }, [])
+    const memoizedChildren = useMemo(() => children, [])
 
-    subscribe(RESULT_EVENT_NAME, (e?: CustomEvent) => updateResult(e?.detail))
+    subscribe(RESULT_EVENT_NAME, (e?: CustomEvent) => { setResult(e?.detail); setResultOpen(true) })
 
     console.log('-------------ResultContextWrapper', '{ result }')
 
     return (
         <>
-            {children}
+            {memoizedChildren}
 
             <Snackbar
                 open={resultOpen}
@@ -35,4 +35,4 @@ export function ResultWrapper({ children }: { children?: ReactNode; }) {
             </Snackbar>
         </>
     );
-}
+})

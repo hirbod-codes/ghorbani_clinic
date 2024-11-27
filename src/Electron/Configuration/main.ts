@@ -4,7 +4,6 @@ import path from 'path'
 import { v4 as uuidV4 } from 'uuid';
 import { CONFIGURATION_DIRECTORY } from '../../directories';
 import type { ConfigurationStorableData } from "../../react/Contexts/ConfigurationContext"
-import { GridColumnVisibilityModel } from '@mui/x-data-grid';
 import { User } from '../Database/Models/User';
 import { ColumnPinningState, VisibilityState } from '@tanstack/react-table';
 import { Density } from 'src/react/Components/DataGrid/Context';

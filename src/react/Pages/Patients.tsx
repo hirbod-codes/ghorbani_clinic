@@ -19,6 +19,8 @@ import LoadingScreen from "../Components/LoadingScreen";
 import { DataGrid } from "../Components/DataGrid";
 import { ColumnDef } from "@tanstack/react-table";
 import { getLuxonLocale } from "../Lib/helpers";
+import { Modal } from "../Components/Modal";
+import { DocumentManagement } from "../Components/DocumentManagement";
 
 export const Patients = memo(function Patients() {
     const auth = useContext(AuthContext)
@@ -54,6 +56,7 @@ export const Patients = memo(function Patients() {
     const [activePatientId, setActivePatientId] = useState<string | undefined>(undefined)
     const [showingAddress, setShowingAddress] = useState<boolean>(false)
     const [showingMH, setShowingMH] = useState<boolean>(false)
+    const [showingDocuments, setShowingDocuments] = useState<boolean>(false)
 
     const [showGrid, setShowGrid] = useState(false)
 
@@ -87,6 +90,11 @@ export const Patients = memo(function Patients() {
             }
 
             if (res.data.length > 0) {
+                publish(RESULT_EVENT_NAME, {
+                    severity: 'success',
+                    message: t('Patients.successfullyFetchedPatients')
+                })
+
                 setPatients(res.data)
                 return true
             }
@@ -246,6 +254,19 @@ export const Patients = memo(function Patients() {
                     }
                 </Stack>
         },
+        {
+            id: 'documents',
+            accessorKey: 'documents',
+            cell: ({ row }) =>
+                <Button
+                    onClick={() => {
+                        setActivePatientId(patients?.find(p => p._id === row.original._id)?._id as string)
+                        setShowingDocuments(true)
+                    }}
+                >
+                    {t('Patients.Documents')}
+                </Button>
+        }
     ]
 
     return (
@@ -258,7 +279,7 @@ export const Patients = memo(function Patients() {
                             : <DataGrid
                                 configName='patients'
                                 data={patients ?? []}
-                                orderedColumnsFields={['actions', 'socialId', 'firstName', 'lastName', 'age', 'medicalHistory', 'phoneNumber', 'gender', 'address', 'birthDate']}
+                                defaultColumnOrderModel={['counter', 'actions', 'socialId', 'firstName', 'lastName', 'age', 'documents', 'medicalHistory', 'phoneNumber', 'gender', 'address', 'birthDate']}
                                 overWriteColumns={overWriteColumns}
                                 additionalColumns={additionalColumns}
                                 loading={loading}
@@ -279,6 +300,10 @@ export const Patients = memo(function Patients() {
                     </Paper>
                 </Grid>
             </Grid>
+
+            <Modal open={showingDocuments} onClose={() => setShowingDocuments(false)}>
+                <DocumentManagement patientId={activePatientId} />
+            </Modal>
 
             <ManagePatient
                 open={editingPatientId !== undefined || creatingPatient}

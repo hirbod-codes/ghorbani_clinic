@@ -1,5 +1,5 @@
 import { CssBaseline, GlobalStyles, Modal, PaletteMode, Paper, SimplePaletteColorOptions, Slide, ThemeOptions, ThemeProvider, createTheme, darken, lighten, rgbToHex, useMediaQuery } from '@mui/material';
-import { useState, useRef, ReactNode, useEffect } from 'react';
+import { useState, useRef, ReactNode, useEffect, memo, useMemo } from 'react';
 import { Localization, enUS } from '@mui/material/locale';
 import { useTranslation } from "react-i18next";
 import type { Locale } from '../Lib/Localization';
@@ -25,7 +25,7 @@ const ltrCache = createCache({
 });
 
 
-export function ConfigurationContextWrapper({ children }: { children?: ReactNode; }) {
+export const ConfigurationContextWrapper = memo(function ConfigurationContextWrapper({ children }: { children?: ReactNode; }) {
     const { t, i18n } = useTranslation();
 
     const initialThemeMode: PaletteMode = useMediaQuery('(prefers-color-scheme: dark)') ? 'dark' : 'light';
@@ -105,6 +105,8 @@ export function ConfigurationContextWrapper({ children }: { children?: ReactNode
     };
     const setShowGradientBackground = (v: boolean) => setConfiguration({ ...configuration, showGradientBackground: Boolean(v) })
 
+    const memoizedChildren = useMemo(() => children, [])
+
     const [hasFetchedConfig, setHasFetchedConfig] = useState<boolean>(false);
     useEffect(() => {
         if (!hasFetchedConfig) {
@@ -169,7 +171,7 @@ export function ConfigurationContextWrapper({ children }: { children?: ReactNode
                             }} />
                             <CssBaseline enableColorScheme />
 
-                            {children}
+                            {memoizedChildren}
 
                             <Modal open={showDbConfigurationModal} closeAfterTransition disableEscapeKeyDown disableAutoFocus sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }} slotProps={{ backdrop: { sx: { top: '2rem' } } }}>
                                 <Slide direction={showDbConfigurationModal ? 'up' : 'down'} in={showDbConfigurationModal} timeout={250}>
@@ -184,4 +186,4 @@ export function ConfigurationContextWrapper({ children }: { children?: ReactNode
             }
         </>
     );
-}
+})

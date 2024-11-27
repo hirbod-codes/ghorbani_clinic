@@ -19,6 +19,7 @@ import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
 import { publish } from '../../Lib/Events';
 import { MedicalHistory } from './MedicalHistory';
 import { EditorModal } from '../Editor/EditorModal';
+import { DocumentManagement } from '../DocumentManagement';
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -58,6 +59,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
     const [visits, setVisits] = useState<Visit[]>([])
 
     const [files, setFiles] = useState<{ fileName: string, bytes: Buffer | Uint8Array }[]>([])
+    const [showFiles, setShowFiles] = useState<boolean>(false)
 
     const [dialogOpen, setDialogOpen] = useState(false)
     const [dialogTitle, setDialogTitle] = useState('')
@@ -226,6 +228,12 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                     />
 
                                                     {/* Files */}
+                                                    <Button onClick={() => setShowFiles(true)}>Documents</Button>
+                                                    {patient && patient._id &&
+                                                        <Modal open={showFiles} onClose={() => setShowFiles(false)}>
+                                                            <DocumentManagement patientId={patient._id as string} />
+                                                        </Modal>
+                                                    }
                                                     <Stack direction='row' spacing={1} divider={<Divider orientation='vertical' variant='middle' flexItem />} alignItems='center'>
                                                         {files.length !== 0 &&
                                                             <Button disabled sx={{ width: 'fit-content' }} variant='outlined' >
@@ -257,8 +265,8 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                         }
                                                         {files.length !== 0 &&
                                                             <Button sx={{ width: 'fit-content' }} variant='outlined' onClick={async () => {
-                                                                const response = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.openFile(patient._id as string, files[0].fileName)
-                                                                console.log(response)
+                                                                // const response = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.openFile(patient._id as string, files[0].fileName)
+                                                                // console.log(response)
                                                             }}>
                                                                 open first
                                                             </Button>

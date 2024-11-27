@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ReactNode } from 'react';
+import { memo, ReactNode } from 'react';
 import { mainTransition } from '../Styles/animations';
 import { useLocation } from 'react-router-dom';
 import { publish } from '../Lib/Events';
@@ -25,7 +25,7 @@ const variants = {
     }
 };
 
-export function AnimatedLayout({ children }: { children: ReactNode }): JSX.Element {
+export const AnimatedLayout = memo(function AnimatedLayout({ children }: { children: ReactNode }): JSX.Element {
     console.log('AnimatedLayout');
 
     const location = useLocation();
@@ -46,4 +46,4 @@ export function AnimatedLayout({ children }: { children: ReactNode }): JSX.Eleme
             {children}
         </motion.div>
     );
-}
+})

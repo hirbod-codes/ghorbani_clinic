@@ -1,11 +1,11 @@
 import { Grid, Paper } from "@mui/material";
 import { MedicalHistoryDataGrid } from "../Components/MedicalHistory/MedicalHistoryDataGrid";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { subscribe } from "../Lib/Events";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import LoadingScreen from "../Components/LoadingScreen";
 
-export function MedicalHistories() {
+export const MedicalHistories = memo(function MedicalHistories() {
     const [showGrid, setShowGrid] = useState(false)
 
     useEffect(() => {
@@ -29,5 +29,5 @@ export function MedicalHistories() {
             </Grid>
         </>
     )
-}
+})
 

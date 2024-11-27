@@ -1,8 +1,8 @@
 import { useLocation, useOutlet } from "react-router-dom";
-import { cloneElement } from 'react';
+import { cloneElement, memo } from 'react';
 import { AnimatePresence } from 'framer-motion';
 
-export function AnimatedOutlet(): JSX.Element {
+export const AnimatedOutlet = memo(function AnimatedOutlet(): JSX.Element {
     console.log('AnimatedOutlet');
 
     const location = useLocation();
@@ -13,4 +13,4 @@ export function AnimatedOutlet(): JSX.Element {
             {outlet && cloneElement(outlet, { key: location.pathname })}
         </AnimatePresence>
     );
-}
+})

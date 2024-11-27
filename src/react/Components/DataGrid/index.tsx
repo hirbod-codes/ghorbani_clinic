@@ -46,7 +46,6 @@ import { ConfigurationContext } from '../../Contexts/ConfigurationContext'
 export type DataGridProps = {
     configName: string,
     data: any[],
-    orderedColumnsFields?: string[];
     overWriteColumns?: ColumnDef<any>[];
     additionalColumns?: ColumnDef<any>[];
     prependHeaderNodes?: ReactNode[],
@@ -59,13 +58,16 @@ export type DataGridProps = {
     paginationLimitOptions?: number[],
     pagination?: PaginationState,
     onPagination?: (pagination: PaginationState) => Promise<boolean> | boolean,
-    loading?: boolean
+    loading?: boolean,
+    defaultColumnPinningModel?: ColumnPinningState,
+    defaultColumnVisibilityModel?: VisibilityState,
+    defaultColumnOrderModel?: string[],
+    defaultTableDensity?: Density
 }
 
 export function DataGrid({
     configName,
     data,
-    orderedColumnsFields = [],
     overWriteColumns = [],
     additionalColumns = [],
     prependHeaderNodes = [],
@@ -78,7 +80,11 @@ export function DataGrid({
     paginationLimitOptions = [10, 25, 50, 100],
     pagination,
     onPagination,
-    loading = false
+    loading = false,
+    defaultColumnPinningModel = { left: ['counter'], right: [] },
+    defaultColumnVisibilityModel = {},
+    defaultColumnOrderModel = ['counter'],
+    defaultTableDensity = 'compact'
 }: DataGridProps) {
     const theme = useTheme()
     const configuration = useContext(ConfigurationContext)
@@ -89,8 +95,8 @@ export function DataGrid({
     data = data.map((d, i) => ({ ...d, counter: (pagination.pageIndex * pagination.pageSize) + (i + 1) }))
 
     const columns = useMemo<ColumnDef<any>[]>(() => {
-        return getColumns(data, overWriteColumns, additionalColumns, orderedColumnsFields)
-    }, [overWriteColumns, additionalColumns, orderedColumnsFields])
+        return getColumns(data, overWriteColumns, additionalColumns, defaultColumnOrderModel)
+    }, [overWriteColumns, additionalColumns, defaultColumnOrderModel])
 
     if (!columns.find(f => f.id === 'counter'))
         columns.unshift({
@@ -245,20 +251,46 @@ export function DataGrid({
                     setColumnVisibility(c.columnVisibilityModels[configName])
                     table.setColumnVisibility(c.columnVisibilityModels[configName])
                 }
+                else {
+                    setColumnVisibility(defaultColumnVisibilityModel)
+                    table.setColumnVisibility(defaultColumnVisibilityModel)
+                    if (!c.columnVisibilityModels)
+                        c.columnVisibilityModels = {}
+                    c.columnVisibilityModels[configName] = defaultColumnVisibilityModel
+                }
 
                 if (c?.columnOrderModels && c.columnOrderModels[configName]) {
                     setColumnOrder(c.columnOrderModels[configName])
                     table.setColumnOrder(c.columnOrderModels[configName])
+                } else {
+                    setColumnOrder(defaultColumnOrderModel)
+                    table.setColumnOrder(defaultColumnOrderModel)
+                    if (!c.columnOrderModels)
+                        c.columnOrderModels = {}
+                    c.columnOrderModels[configName] = defaultColumnOrderModel
                 }
 
                 if (c?.columnPinningModels && c.columnPinningModels[configName]) {
                     setColumnPinning(c.columnPinningModels[configName])
                     table.setColumnPinning(c.columnPinningModels[configName])
+                } else {
+                    setColumnPinning(defaultColumnPinningModel)
+                    table.setColumnPinning(defaultColumnPinningModel)
+                    if (!c.columnPinningModels)
+                        c.columnPinningModels = {}
+                    c.columnPinningModels[configName] = defaultColumnPinningModel
                 }
 
                 if (c?.tableDensity && c?.tableDensity[configName])
                     setDensity(c?.tableDensity[configName])
+                else {
+                    setDensity(defaultTableDensity)
+                    if (!c.tableDensity)
+                        c.tableDensity = {}
+                    c.tableDensity[configName] = defaultTableDensity
+                }
 
+                (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c);
                 setHasInit(true)
             })
     }, [])

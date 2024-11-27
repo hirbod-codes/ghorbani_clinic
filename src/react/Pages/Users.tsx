@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useContext } from "react";
+import { useState, useRef, useEffect, useContext, memo } from "react";
 import { AddOutlined, DeleteOutlined, EditOutlined, RefreshOutlined, RemoveRedEyeOutlined } from '@mui/icons-material';
 import { Modal, Slide, Grid, List, ListItemButton, ListItemText, ListItemIcon, Paper, Typography, Button, Divider, Box, Stack, IconButton, Collapse, CircularProgress } from "@mui/material";
 import { t } from "i18next";
@@ -19,7 +19,7 @@ import { useNavigate } from "react-router-dom";
 import LoadingScreen from "../Components/LoadingScreen";
 import { ColumnDef } from "@tanstack/react-table";
 
-export function Users() {
+export const Users = memo(function Users() {
     const configuration = useContext(ConfigurationContext)
     const auth = useContext(AuthContext)
     const navigate = useNavigate()
@@ -305,7 +305,7 @@ export function Users() {
                                     data={rows}
                                     overWriteColumns={columns}
                                     loading={loading}
-                                    orderedColumnsFields={['actions']}
+                                    defaultColumnOrderModel={['actions']}
                                     additionalColumns={additionalColumns}
                                     appendHeaderNodes={[
                                         <Button onClick={async () => await fetchUsers()} startIcon={<RefreshOutlined />}>{t('Users.Refresh')}</Button>,
@@ -360,4 +360,4 @@ export function Users() {
             </Modal>
         </>
     )
-}
+})

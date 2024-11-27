@@ -1,11 +1,11 @@
-import { useContext } from 'react';
+import { memo, useContext } from 'react';
 import { AnimatePresence, motion, useMotionTemplate, useMotionValue } from 'framer-motion';
 import { gradientBackgroundTransitions } from '../Styles/animations';
 import { ConfigurationContext } from '../Contexts/ConfigurationContext';
 import { Box, alpha, useTheme } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 
-export function GradientBackground() {
+export const GradientBackground = memo(function GradientBackground() {
     const c = useContext(ConfigurationContext)
     const theme = useTheme()
     const location = useLocation();
@@ -88,4 +88,4 @@ export function GradientBackground() {
             </AnimatePresence>
         </>
     );
-}
+})

@@ -87,8 +87,9 @@ export type IPatientsDocumentsRepository = dbAPI & {
     retrieveFiles(patientId: string): Promise<GridFSFile[]>;
     downloadFile(patientId: string, fileName: string): Promise<string>;
     downloadFiles(patientId: string): Promise<string[]>;
-    openFile(patientId: string, fileName: string): Promise<void>;
+    openFile(fileId: string): Promise<void>;
     deleteFiles(patientId: string): Promise<boolean>;
+    deleteFile(fileId: string): Promise<boolean>;
 }
 
 export type ICanvasRepository = dbAPI & {

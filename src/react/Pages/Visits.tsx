@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect, useMemo } from "react";
+import { useState, useContext, useEffect, useMemo, memo } from "react";
 import { DataGrid } from "../Components/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { t } from "i18next";
@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 import LoadingScreen from "../Components/LoadingScreen";
 import { ColumnDef } from "@tanstack/react-table";
 
-export function Visits() {
+export const Visits = memo(function Visits() {
     const auth = useContext(AuthContext)
     const configuration = useContext(ConfigurationContext)
     const navigate = useNavigate()
@@ -82,6 +82,11 @@ export function Visits() {
         }
 
         if (res.data.length > 0) {
+            publish(RESULT_EVENT_NAME, {
+                severity: 'success',
+                message: t('Patients.successfullyFetchedVisits')
+            })
+
             setVisits(res.data)
             return true
         }
@@ -188,7 +193,7 @@ export function Visits() {
                                 configName='visits'
                                 data={visits}
                                 overWriteColumns={overWriteColumns}
-                                orderedColumnsFields={['actions', 'patientId', 'due']}
+                                defaultColumnOrderModel={['actions', 'patientId', 'due']}
                                 additionalColumns={additionalColumns}
                                 loading={loading}
                                 hasPagination
@@ -244,4 +249,4 @@ export function Visits() {
             />
         </>
     )
-}
+})

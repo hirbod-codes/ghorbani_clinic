@@ -1,18 +1,17 @@
-import { useState, ReactNode, useContext, useEffect, useRef } from 'react';
+import { useState, ReactNode, useContext, useEffect, useRef, memo, useMemo } from 'react';
 import { useTranslation } from "react-i18next";
 import { RendererDbAPI } from '../../Electron/Database/renderer';
 import { User } from '../../Electron/Database/Models/User';
 import { AuthContext } from './AuthContext';
 import { AccessControl } from 'accesscontrol';
 import { ConfigurationContext } from './ConfigurationContext';
-import { Home } from '../Pages/Home';
 import { Modal, Paper, Slide } from '@mui/material';
 import { LoginForm } from '../Components/Auth/LoginForm';
 import { RESULT_EVENT_NAME } from './ResultWrapper';
 import { publish } from '../Lib/Events';
 import { useNavigate } from 'react-router-dom';
 
-export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
+export const AuthContextWrapper = memo(function AuthContextWrapper({ children }: { children?: ReactNode; }) {
     const { t } = useTranslation();
 
     const configuration = useContext(ConfigurationContext)
@@ -153,6 +152,8 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
         }
     }
 
+    const memoizedChildren = useMemo(() => children, [])
+
     useEffect(() => {
         console.log('AuthContextWrapper', 'useEffect', 'should init?', !hasInitialized.current && !isAuthLoading.current && configuration?.hasFetchedConfig && !configuration?.showDbConfigurationModal && (!auth.user || !auth.ac))
         if (!hasInitialized.current && !isAuthLoading.current && configuration?.hasFetchedConfig && !configuration?.showDbConfigurationModal && (!auth.user || !auth.ac))
@@ -162,7 +163,7 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
     return (
         <>
             <AuthContext.Provider value={{ user: auth.user, accessControl: auth.ac, isAuthLoading: isAuthLoading.current, logout, showModal: () => setShowModal(true), fetchUser: async () => { await fetchUser() } }}>
-                {!isAuthLoading.current && children}
+                {!isAuthLoading.current && memoizedChildren}
             </AuthContext.Provider>
 
             <Modal
@@ -182,4 +183,4 @@ export function AuthContextWrapper({ children }: { children?: ReactNode; }) {
             </Modal>
         </>
     );
-}
+})

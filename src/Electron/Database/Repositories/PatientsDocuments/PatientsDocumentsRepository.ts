@@ -1,4 +1,4 @@
-import { app, ipcMain, shell } from "electron";
+import { ipcMain, shell } from "electron";
 import { GridFSFile, ObjectId } from "mongodb";
 import path from 'path';
 import fs from 'fs';
@@ -16,8 +16,9 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
         ipcMain.handle('retrieve-files', async (_e, { patientId }: { patientId: string }) => await this.handleErrors(async () => await this.retrieveFiles(patientId)))
         ipcMain.handle('download-file', async (_e, { patientId, fileName }: { patientId: string, fileName: string }) => await this.handleErrors(async () => await this.downloadFile(patientId, fileName)))
         ipcMain.handle('download-files', async (_e, { patientId }: { patientId: string }) => await this.handleErrors(async () => await this.downloadFiles(patientId)))
-        ipcMain.handle('open-file', async (_e, { patientId, fileName }: { patientId: string, fileName: string }) => await this.handleErrors(async () => await this.openFile(patientId, fileName)))
-        ipcMain.handle('delete-file', async (_e, { fileId }: { fileId: string }) => await this.handleErrors(async () => await this.deleteFiles(fileId)))
+        ipcMain.handle('open-file', async (_e, { fileId }: { fileId: string }) => await this.handleErrors(async () => await this.openFile(fileId)))
+        ipcMain.handle('delete-files', async (_e, { patientId }: { patientId: string }) => await this.handleErrors(async () => await this.deleteFiles(patientId)))
+        ipcMain.handle('delete-file', async (_e, { fileId }: { fileId: string }) => await this.handleErrors(async () => await this.deleteFile(fileId)))
     }
 
     async uploadFiles(patientId: string, files: { fileName: string; bytes: Buffer | Uint8Array; }[]): Promise<boolean> {
@@ -140,11 +141,13 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
         return files
     }
 
-    async openFile(patientId: string, fileName: string): Promise<void> {
+    async openFile(fileId: string): Promise<void> {
+        console.log('authenticating...');
         const authenticated = await authRepository.getAuthenticatedUser()
         if (authenticated == null)
             throw new Unauthenticated();
 
+        console.log('authorizing...');
         const privileges = await privilegesRepository.getAccessControl();
         const permission = privileges.can(authenticated.roleName).read(resources.FILE);
         if (!permission.granted)
@@ -153,33 +156,30 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
         console.log('opening...');
         const bucket = await this.getPatientsDocumentsBucket();
 
-        const f = await bucket.find({ metadata: { patientId: patientId } }).toArray();
+        const f = await bucket.find({ _id: new ObjectId(fileId) }).toArray();
 
         console.log('found files', f.length);
+
+        if (f.length !== 1)
+            return
 
         if (!fs.existsSync(DOWNLOADS_DIRECTORY))
             fs.mkdirSync(DOWNLOADS_DIRECTORY, { recursive: true })
 
-        for (const doc of f) {
-            if (doc.filename !== fileName)
-                continue;
+        const filePath = path.join(DOWNLOADS_DIRECTORY, f[0]._id.toString() + f[0].filename);
+        console.log('downloadFile', 'filePath', filePath);
 
-            const filePath = path.join(DOWNLOADS_DIRECTORY, doc._id.toString() + doc.filename);
-            console.log('downloadFile', 'filePath', filePath);
+        bucket.openDownloadStreamByName(f[0].filename)
+            .on('end', async () => {
+                if (process.platform == 'darwin')
+                    console.log('shell result', await shell.openExternal('file://' + filePath));
 
-            bucket.openDownloadStreamByName(doc.filename)
-                .on('end', async () => {
-                    if (process.platform == 'darwin')
-                        console.log('shell result', await shell.openExternal('file://' + filePath));
+                else
+                    console.log('shell result', await shell.openPath(filePath));
+            })
+            .pipe(fs.createWriteStream(filePath), { end: true });
 
-                    else
-                        console.log('shell result', await shell.openPath(filePath));
-                })
-                .pipe(fs.createWriteStream(filePath), { end: true });
-
-            console.log('finished opening.');
-            return;
-        }
+        console.log('finished opening.');
     }
 
     async deleteFiles(patientId: string): Promise<boolean> {
@@ -198,6 +198,23 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
 
         for await (const doc of cursor)
             await bucket.delete(new ObjectId(doc._id));
+
+        return true;
+    }
+
+    async deleteFile(fileId: string): Promise<boolean> {
+        const authenticated = await authRepository.getAuthenticatedUser()
+        if (authenticated == null)
+            throw new Unauthenticated();
+
+        const privileges = await privilegesRepository.getAccessControl();
+        const permission = privileges.can(authenticated.roleName).delete(resources.FILE);
+        if (!permission.granted)
+            throw new Unauthorized()
+
+        const bucket = await this.getPatientsDocumentsBucket();
+
+        await bucket.delete(new ObjectId(fileId));
 
         return true;
     }

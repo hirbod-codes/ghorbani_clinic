@@ -1,6 +1,6 @@
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Grid, IconButton, List, ListItem, ListItemText, Paper, Stack, Typography } from "@mui/material";
 import { t } from "i18next";
-import { useState, useMemo, useContext } from 'react'
+import { useState, useMemo, useContext, useEffect } from 'react'
 import { PatientsMedicalHistory } from "../../../Electron/Database/Models/Patient";
 import { EditOutlined } from "@mui/icons-material";
 import { Editor } from "../Editor/Editor";
@@ -33,16 +33,22 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
         title: '',
         content: '',
         e: undefined,
-        r: undefined,
+        r: undefined
     }
     const [dialog, setDialog] = useState(initDialog)
     const closeDialog = () => setDialog(initDialog)
 
     const updateMedicalHistory = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).update(resources.MEDICAL_HISTORY), [auth])
 
+    useEffect(() => {
+        setMedicalHistory(inputMedicalHistory)
+    }, [inputMedicalHistory])
+
     return (
         <>
             <Modal
+                closeAfterTransition
+                disableAutoFocus
                 onClose={(e, r) => {
                     console.log({ e, r })
                     if (hasUnsavedChanges)

@@ -164,7 +164,7 @@ export function MedicalHistoryDataGrid() {
                 <DataGrid
                     configName='medicalHistories'
                     data={medicalHistories ?? []}
-                    orderedColumnsFields={['actions', 'name']}
+                    defaultColumnOrderModel={['actions', 'name']}
                     overWriteColumns={overWriteColumns}
                     additionalColumns={additionalColumns}
                     loading={loading}

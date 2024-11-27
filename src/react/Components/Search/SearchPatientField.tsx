@@ -17,13 +17,12 @@ export function SearchPatientField() {
     console.log('SearchPatientField', { loading, socialId, patient });
 
     const onSocialIdChange = async (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        if (Number.isNaN(e.target.value))
+        if (e.target.value.trim().length > 10 || e.target.value.trim().match(/\D+/)?.length > 0)
             return;
 
-        if (e.target.value && e.target.value.trim().length <= 10)
-            setSocialId(e.target.value);
+        setSocialId(e.target.value.trim());
 
-        if (!e.target.value || e.target.value.trim().length !== 10)
+        if (!e.target.value || Number.isNaN(e.target.value.trim()) || e.target.value.trim().length !== 10)
             return;
 
         setLoading(true);
@@ -51,8 +50,8 @@ export function SearchPatientField() {
                 value={socialId ?? ''}
                 placeholder={t('SearchPatientField.socialId')}
                 onChange={onSocialIdChange}
-                error={socialId !== undefined && socialId.length !== 10}
-                helperText={socialId !== undefined && socialId.length !== 10 ? t('SearchPatientField.InvalidSocialId') : (!loading && socialId && socialId.length === 10 && !patient ? t('SearchPatientField.patientNotFound') : '')}
+                error={socialId !== undefined && socialId.length !== 0 && socialId.length !== 10}
+                helperText={socialId !== undefined && socialId.length !== 0 && socialId.length !== 10 ? t('SearchPatientField.InvalidSocialId') : (!loading && socialId && socialId.length === 10 && !patient ? t('SearchPatientField.patientNotFound') : '')}
                 InputProps={{
                     startAdornment: (
                         <InputAdornment position="start">

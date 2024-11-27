@@ -1,14 +1,14 @@
 import { HomeOutlined, PersonOutlined, MasksOutlined, AccessTimeOutlined, DisplaySettingsOutlined, StorageOutlined, FormatPaintOutlined, DarkModeOutlined, LightModeOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, SettingsBackupRestoreOutlined } from '@mui/icons-material';
 import { alpha, darken, lighten, Drawer, Stack, List, ListItemButton, ListItemIcon, ListItemText, CircularProgress, useTheme, Box, AppBar, IconButton, Toolbar, Typography } from '@mui/material';
 import { t } from 'i18next';
-import { useContext, useState } from 'react';
+import { memo, useContext, useState } from 'react';
 import { AuthContext } from '../Contexts/AuthContext';
 import { ConfigurationContext } from '../Contexts/ConfigurationContext';
 import { resources } from '../../Electron/Database/Repositories/Auth/resources';
 import { getReactLocale } from '../Lib/helpers';
 import { useNavigate } from 'react-router-dom';
 
-export function Navigation() {
+export const Navigation = memo(function Navigation() {
     const navigate = useNavigate();
 
     const auth = useContext(AuthContext)
@@ -23,7 +23,7 @@ export function Navigation() {
     const readsVisits = auth.accessControl && auth.user && auth.accessControl.can(auth.user.roleName).read(resources.VISIT).granted
     const readsMedicalHistories = auth.accessControl && auth.user && auth.accessControl.can(auth.user.roleName).read(resources.MEDICAL_HISTORY).granted
 
-    console.log('App', { auth, theme, configuration })
+    console.log('Navigation', { auth, theme, configuration })
 
     const appBarBorderColor = theme.palette.mode === 'dark' ? '#fff' : '#000'
     const appBarGradientColor = alpha(theme.palette.mode === 'dark' ? theme.palette.common.white : theme.palette.common.black, 0.7)
@@ -171,4 +171,4 @@ export function Navigation() {
             <div style={{ height: '2px', background: `radial-gradient(ellipse farthest-side at center, ${appBarBorderColor}, transparent)`, margin: '0 1rem' }} />
         </>
     );
-}
+})
