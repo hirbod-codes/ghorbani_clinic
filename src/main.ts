@@ -4,7 +4,7 @@ import { handleMenuEvents } from './Electron/Menu/menu';
 import { handleConfigEvents, readConfig, writeConfigSync } from './Electron/Configuration/main';
 import { db, handleDbEvents } from './Electron/Database/main';
 import path from 'path';
-import { writeFileSync } from 'fs';
+import fs from 'fs';
 
 const c = readConfig()
 
@@ -64,10 +64,32 @@ app.on('ready', async () => {
         app.exit()
     })
 
-    ipcMain.on('save-file', (_e, { content }: { content: string }) => {
-        const address = dialog.showSaveDialogSync(mainWindow, { title: 'Save file' })
+    ipcMain.handle('save-file', (_e, { content, path }: { content: string, path: string }) => {
+        try {
+            if (!fs.existsSync(path) || !fs.statSync(path).isDirectory())
+                return false
 
-        writeFileSync(address, content)
+            fs.writeFileSync(path, content)
+            return true
+        } catch (e) {
+            console.error(e)
+            return false
+        }
+    })
+
+    ipcMain.handle('save-file-dialog', async (_e, options?: { defaultPath?: string, message?: string, buttonLabel?: string, title?: string }) => {
+        try { return await dialog.showSaveDialog(mainWindow, { properties: ['createDirectory', 'showHiddenFiles'], ...options, title: options?.title ?? 'Save file' }) }
+        catch (e) { console.error(e) }
+    })
+
+    ipcMain.handle('open-directory-dialog', async (_e, options?: { defaultPath?: string, message?: string, buttonLabel?: string, title?: string }) => {
+        try { return await dialog.showOpenDialog(mainWindow, { properties: ['createDirectory', 'openDirectory', 'showHiddenFiles'], ...options, title: options?.title ?? 'Open directory' }) }
+        catch (e) { console.error(e) }
+    })
+
+    ipcMain.handle('open-file-dialog', async (_e, options?: { defaultPath?: string, message?: string, buttonLabel?: string, title?: string }) => {
+        try { return await dialog.showOpenDialog(mainWindow, { properties: ['createDirectory', 'openFile', 'multiSelections', 'showHiddenFiles'], ...options, title: options?.title ?? 'Open file' }) }
+        catch (e) { console.error(e) }
     })
 
     handleConfigEvents()

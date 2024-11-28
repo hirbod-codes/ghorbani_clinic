@@ -12,12 +12,6 @@ export const Home = memo(function Home() {
 
     return (
         <>
-            <Button onClick={() => {
-                publish(RESULT_EVENT_NAME, {
-                    severity: 'success',
-                    message: t('foundPatient')
-                });
-            }}>click</Button>
             <Grid container spacing={1} p={1}>
                 <Grid item xs={12} sm={3}>
                     <Clock />

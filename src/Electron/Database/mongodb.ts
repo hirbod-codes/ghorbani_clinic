@@ -201,8 +201,6 @@ export class MongoDB implements dbAPI {
         console.group('getDb')
 
         try {
-            console.log({ useCache, staticDbInstance: MongoDB.db, client });
-
             if (useCache)
                 return MongoDB.db
 

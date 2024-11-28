@@ -9,8 +9,8 @@ import { Unauthenticated } from "../../Exceptions/Unauthenticated";
 import { resources } from "../Auth/resources";
 import { authRepository, privilegesRepository } from "../../main";
 import { DOWNLOADS_DIRECTORY } from "../../../../directories";
-import { readConfig } from "src/Electron/Configuration/main";
-import { StorageHelper } from "src/Electron/StorageHelper";
+import { readConfig } from "../../../Configuration/main";
+import { StorageHelper } from "../../../StorageHelper";
 
 export class PatientsDocumentsRepository extends MongoDB implements IPatientsDocumentsRepository {
     async handleEvents(): Promise<void> {
@@ -124,11 +124,16 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
 
             paths.push(filePath)
 
-            bucket.openDownloadStreamByName(doc.filename)
-                .pipe(fs.createWriteStream(filePath), { end: true })
-                .close();
+            const result = await (() => new Promise<boolean>((res, rej) =>
+                bucket.openDownloadStream(doc._id)
+                    .pipe(fs.createWriteStream(filePath), { end: true })
+                    .on('finish', () => res(true))
+                    .on('error', (e) => { console.error(e); res(false) })
+                    .close()
+            ))()
 
-            files.push(filePath);
+            if (result)
+                files.push(filePath);
         }
 
         if (!saveDirectory)
@@ -152,7 +157,7 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
 
         const folderPath = saveDirectory ? Path.dirname(saveDirectory) : Path.join(DOWNLOADS_DIRECTORY, patientId, fileId)
         const filePath = saveDirectory ? Path.join(saveDirectory, filename) : Path.join(folderPath, filename)
-        console.log('downloadFile', 'filePath', filePath, 'folderPath', folderPath)
+        console.log('fileExists', 'filePath', filePath, 'folderPath', folderPath)
 
         return fs.existsSync(filePath)
     }
@@ -178,7 +183,7 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
         if (force === false && fs.existsSync(filePath))
             return true
 
-        if (force === false && !saveDirectory) {
+        if (!saveDirectory) {
             const size = readConfig()?.DownloadsDirectorySize
             if (size !== undefined && !Number.isNaN(size) && await StorageHelper.getSize(folderPath) >= size)
                 return false
@@ -193,15 +198,67 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
         if (f.length === 0)
             return false
 
-        bucket.openDownloadStreamByName(f[0].filename)
-            .pipe(fs.createWriteStream(filePath), { end: true })
-            .close()
+        return new Promise<boolean>((resolve, reject) => {
+            const readStream = bucket.openDownloadStream(new ObjectId(fileId))
+            const writeStream = fs.createWriteStream(filePath);
 
-        if (!saveDirectory)
-            StorageHelper.addSize(DOWNLOADS_DIRECTORY, [filePath])
+            readStream
+                .on('data', (chunk) => writeStream.write(chunk))
+                .on('end', () => { console.log(0, 'end'); writeStream.close(() => readStream.end()) })
+                .on('close', () => { console.log(0, 'close'); resolve(true) })
 
-        console.log('finished downloading.')
-        return true
+            // readStream
+            //     .on('close', () => console.log(0, 'close'))
+            //     .on('data', () => console.log(0, 'data'))
+            //     .on('end', () => console.log(0, 'end'))
+            //     .on('pause', () => console.log(0, 'pause'))
+            //     .on('readable', () => console.log(0, 'readable'))
+            //     .on('resume', () => console.log(0, 'resume'))
+            //     // .on('end', () => {
+            //     //     console.log({
+            //     //         readable: stream.readable,
+            //     //         readableAborted: stream.readableAborted,
+            //     //         readableDidRead: stream.readableDidRead,
+            //     //         // readableEncoding: stream.readableEncoding,
+            //     //         readableEnded: stream.readableEnded,
+            //     //         readableFlowing: stream.readableFlowing,
+            //     //         readableHighWaterMark: stream.readableHighWaterMark,
+            //     //         readableLength: stream.readableLength,
+            //     //         readableObjectMode: stream.readableObjectMode
+            //     //     })
+            //     // })
+            //     .on('error', (e) => { console.error(0, e); resolve(false) })
+            //     .pipe(fs.createWriteStream(filePath), { end: true })
+            //     .on('close', () => console.log(1, 'close'))
+            //     .on('drain', () => console.log(1, 'drain'))
+            //     .on('finish', () => console.log(1, 'finish'))
+            //     .on('open', () => console.log(1, 'open'))
+            //     .on('pipe', () => console.log(1, 'pipe'))
+            //     .on('ready', () => console.log(1, 'ready'))
+            //     .on('unpipe', () => console.log(1, 'unpipe'))
+            //     // .on('finish', () => {
+            //     //     console.log('finished downloading.');
+
+            //     // console.log({
+            //     //     readable: stream.readable,
+            //     //     readableAborted: stream.readableAborted,
+            //     //     readableDidRead: stream.readableDidRead,
+            //     //     // readableEncoding: stream.readableEncoding,
+            //     //     readableEnded: stream.readableEnded,
+            //     //     readableFlowing: stream.readableFlowing,
+            //     //     readableHighWaterMark: stream.readableHighWaterMark,
+            //     //     readableLength: stream.readableLength,
+            //     //     readableObjectMode: stream.readableObjectMode
+            //     // })
+
+            //     // if (!saveDirectory)
+            //     //     StorageHelper.addSize(DOWNLOADS_DIRECTORY, [filePath])
+
+            //     // resolve(true)
+            //     // })
+            //     .on('error', (e) => { console.error(1, e); resolve(false) })
+            //     .close()
+        })
     }
 
     async openFile(patientId: string, fileId: string, filename: string): Promise<boolean> {
@@ -229,7 +286,7 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
                 console.log('shell result', await shell.openPath(filePath))
         }
 
-        if (!await this.downloadFile(patientId, fileId, filename))
+        if (!await this.downloadFile(patientId, fileId, filename) || !fs.existsSync(filePath))
             return false
 
         if (process.platform == 'darwin')

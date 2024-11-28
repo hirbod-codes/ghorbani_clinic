@@ -4,7 +4,7 @@ import { GridFSFile } from "mongodb";
 import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Paper, Stack, styled } from "@mui/material";
 import { DataGrid } from "../DataGrid";
 import { t } from "i18next";
-import { AddOutlined, DeleteOutline, DownloadOutlined } from "@mui/icons-material";
+import { AddOutlined, DeleteOutline, DownloadOutlined, LinkOutlined } from "@mui/icons-material";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 import { ColumnDef } from "@tanstack/react-table";
@@ -14,6 +14,7 @@ import { DATE_TIME, fromUnixToFormat } from "../../Lib/DateTime/date-time-helper
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { getLuxonLocale } from "../../Lib/helpers";
 import { DateTime } from "luxon";
+import { appAPI } from "src/Electron/handleAppRendererEvents";
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -35,6 +36,7 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
 
     const [deletingFileId, setDeletingFileId] = useState<string | undefined>(undefined)
     const [openingFileId, setOpeningFileId] = useState<string | undefined>(undefined)
+    const [downloadingFileId, setDownloadingFileId] = useState<string | undefined>(undefined)
 
     const initDialog: any = {
         open: false,
@@ -46,7 +48,8 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
         open: boolean,
         title?: string,
         content: string,
-        action: () => void | Promise<void>
+        yesAction: (...args: any[]) => void | Promise<void>,
+        noAction: (...args: any[]) => void | Promise<void>,
     }>(initDialog)
     const closeDialog = () => setDialog(initDialog)
 
@@ -148,44 +151,59 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                                     try {
                                         console.group('DocumentManagement', 'opensFile', 'onClick')
 
-                                        const openFile = async () => {
-                                            setOpeningFileId(row.original._id)
-                                            res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.openFile(patientId, row.original._id, row.original.filename)
-                                            console.log({ res })
-                                            setOpeningFileId(undefined)
+                                        setOpeningFileId(row.original._id)
+                                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.openFile(patientId, row.original._id, row.original.filename)
+                                        console.log({ res })
+                                        setOpeningFileId(undefined)
 
-                                            if (res.code !== 200 || res.data === false)
-                                                publish(RESULT_EVENT_NAME, {
-                                                    severity: 'error',
-                                                    message: t('DocumentManagement.failedToOpenFile')
-                                                });
-                                        }
-
-                                        let res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.fileExists(patientId, row.original._id, row.original.filename)
-                                        if (res.code < 200)
+                                        if (res.code !== 200 || res.data === false)
                                             publish(RESULT_EVENT_NAME, {
                                                 severity: 'error',
-                                                message: t('DocumentManagement.failedToFetchFile')
+                                                message: t('DocumentManagement.failedToOpenFile')
                                             });
-
-                                        if (res.data === true) {
-                                            setDialog({
-                                                action: openFile,
-                                                content: t('DocumentManagement.FileAlreadyExists,DoYouWantToDownloadAgain?'),
-                                                open: true,
-                                                title: ''
-                                            })
-                                            return
-                                        }
                                     }
                                     finally { console.groupEnd() }
                                 }}
                             >
-                                {openingFileId === row.original._id ? <CircularProgress size={20} /> : <DownloadOutlined />}
+                                {openingFileId === row.original._id ? <CircularProgress size={20} /> : <LinkOutlined />}
                             </IconButton>
                             : null
                     }
-                </Stack>
+                    {
+                        readsFile
+                            ? <IconButton
+                                onClick={async () => {
+                                    try {
+                                        console.group('DocumentManagement', 'downloadingFile', 'onClick')
+
+                                        const address = await (window as typeof window & { appAPI: appAPI }).appAPI.openDirectoryDialog()
+                                        console.log({ address })
+                                        if (!address || address.canceled || address.filePaths.length <= 0)
+                                            return
+
+                                        setDownloadingFileId(row.original._id)
+                                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadFile(patientId, row.original._id, row.original.filename, address.filePaths[0], true)
+                                        console.log({ res })
+                                        setDownloadingFileId(undefined)
+                                        if (res.code < 200 || res.data !== true)
+                                            publish(RESULT_EVENT_NAME, {
+                                                severity: 'error',
+                                                message: t('DocumentManagement.failedToFetchFile')
+                                            })
+
+                                        publish(RESULT_EVENT_NAME, {
+                                            severity: 'success',
+                                            message: t('DocumentManagement.successfullyFetchedFile')
+                                        })
+                                    }
+                                    finally { console.groupEnd() }
+                                }}
+                            >
+                                {downloadingFileId === row.original._id ? <CircularProgress size={20} /> : <DownloadOutlined />}
+                            </IconButton>
+                            : null
+                    }
+                </Stack >
 
         },
     ]
@@ -245,10 +263,14 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={closeDialog}>{t('Patients.No')}</Button>
                     <Button onClick={async () => {
-                        if (dialog.action && typeof dialog.action === 'function')
-                            await dialog.action()
+                        if (dialog.noAction && typeof dialog.noAction === 'function')
+                            await dialog.noAction()
+                        closeDialog()
+                    }}>{t('Patients.No')}</Button>
+                    <Button onClick={async () => {
+                        if (dialog.yesAction && typeof dialog.yesAction === 'function')
+                            await dialog.yesAction()
                         closeDialog()
                     }}>{t('Patients.Yes')}</Button>
                 </DialogActions>
