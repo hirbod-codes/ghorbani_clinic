@@ -6,17 +6,6 @@ import { db, handleDbEvents } from './Electron/Database/main';
 import path from 'path';
 import { writeFileSync } from 'fs';
 
-import * as fs from 'fs'
-import { APP_DIRECTORY } from './directories';
-
-console.log({
-    stat:fs.statSync(APP_DIRECTORY),
-    statFs:fs.statfsSync(APP_DIRECTORY),
-    ls: fs.readdirSync(APP_DIRECTORY),
-})
-
-if(0)
-{
 const c = readConfig()
 
 if (!c.appIdentifier || !c.appName || !c.port)
@@ -106,4 +95,3 @@ app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0)
         createWindow()
 });
-}
