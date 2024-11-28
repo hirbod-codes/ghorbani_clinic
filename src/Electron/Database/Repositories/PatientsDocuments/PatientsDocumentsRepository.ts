@@ -40,21 +40,30 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
         const bucket = await this.getPatientsDocumentsBucket();
 
         for (const file of files) {
-            const upload = bucket.openUploadStream(file.fileName, {
-                metadata: { patientId: patientId }
-            });
+            const result = await (() => new Promise<boolean>((res, rej) => {
+                const upload = bucket.openUploadStream(file.fileName, { metadata: { patientId: patientId } })
+                upload
+                    .on('close', () => { console.log('on close'); res(true) })
+                    .write(file.bytes, (e) => {
+                        console.log('write end')
 
-            upload.on('finish', function () {
-                console.log("Write Finish.");
-            });
+                        if (e) {
+                            console.error(e)
+                            res(false)
+                        }
+                        else
+                            upload.end()
+                    })
+            }))()
 
-            console.log('written result', upload.write(file.bytes, () => null));
+            console.log({ result })
 
-            upload.end();
+            if (!result)
+                return false
         }
 
-        console.log('finished uploading.');
-        return true;
+        console.log('finished uploading.')
+        return true
     }
 
     async retrieveFiles(patientId: string): Promise<GridFSFile[]> {
@@ -98,8 +107,8 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
 
         const files: string[] = [];
 
-        const f = await bucket.find({ metadata: { patientId: patientId } }).toArray();
-        console.log('found files', f.length);
+        const f = await bucket.find({ metadata: { patientId: patientId } }).toArray()
+        console.log('found files', f.length)
 
         if (f.length === 0)
             return false
@@ -119,27 +128,29 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
 
         const paths = []
         for (const doc of f) {
-            const filePath = Path.join(folderPath, doc._id.toString(), doc.filename);
-            console.log('downloadFile', 'filePath', filePath);
+            const filePath = Path.join(folderPath, doc._id.toString(), doc.filename)
+            console.log('downloadFile', 'filePath', filePath)
 
             paths.push(filePath)
 
-            const result = await (() => new Promise<boolean>((res, rej) =>
-                bucket.openDownloadStream(doc._id)
-                    .pipe(fs.createWriteStream(filePath), { end: true })
-                    .on('finish', () => res(true))
+            const result = await (() => new Promise<boolean>((res, rej) => {
+                const writeStream = fs.createWriteStream(filePath, { autoClose: true, emitClose: true })
+                const readStream = bucket.openDownloadStream(new ObjectId(doc._id))
+
+                readStream
+                    .pipe(writeStream, { end: true })
+                    .on('close', () => { console.log('close'); res(true) })
                     .on('error', (e) => { console.error(e); res(false) })
-                    .close()
-            ))()
+            }))()
 
             if (result)
-                files.push(filePath);
+                files.push(filePath)
         }
 
         if (!saveDirectory)
             StorageHelper.addSize(DOWNLOADS_DIRECTORY, paths)
 
-        console.log('finished downloading.');
+        console.log('finished downloading.')
         return true
     }
 
@@ -199,65 +210,13 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
             return false
 
         return new Promise<boolean>((resolve, reject) => {
+            const writeStream = fs.createWriteStream(filePath, { autoClose: true, emitClose: true });
             const readStream = bucket.openDownloadStream(new ObjectId(fileId))
-            const writeStream = fs.createWriteStream(filePath);
 
             readStream
-                .on('data', (chunk) => writeStream.write(chunk))
-                .on('end', () => { console.log(0, 'end'); writeStream.close(() => readStream.end()) })
-                .on('close', () => { console.log(0, 'close'); resolve(true) })
-
-            // readStream
-            //     .on('close', () => console.log(0, 'close'))
-            //     .on('data', () => console.log(0, 'data'))
-            //     .on('end', () => console.log(0, 'end'))
-            //     .on('pause', () => console.log(0, 'pause'))
-            //     .on('readable', () => console.log(0, 'readable'))
-            //     .on('resume', () => console.log(0, 'resume'))
-            //     // .on('end', () => {
-            //     //     console.log({
-            //     //         readable: stream.readable,
-            //     //         readableAborted: stream.readableAborted,
-            //     //         readableDidRead: stream.readableDidRead,
-            //     //         // readableEncoding: stream.readableEncoding,
-            //     //         readableEnded: stream.readableEnded,
-            //     //         readableFlowing: stream.readableFlowing,
-            //     //         readableHighWaterMark: stream.readableHighWaterMark,
-            //     //         readableLength: stream.readableLength,
-            //     //         readableObjectMode: stream.readableObjectMode
-            //     //     })
-            //     // })
-            //     .on('error', (e) => { console.error(0, e); resolve(false) })
-            //     .pipe(fs.createWriteStream(filePath), { end: true })
-            //     .on('close', () => console.log(1, 'close'))
-            //     .on('drain', () => console.log(1, 'drain'))
-            //     .on('finish', () => console.log(1, 'finish'))
-            //     .on('open', () => console.log(1, 'open'))
-            //     .on('pipe', () => console.log(1, 'pipe'))
-            //     .on('ready', () => console.log(1, 'ready'))
-            //     .on('unpipe', () => console.log(1, 'unpipe'))
-            //     // .on('finish', () => {
-            //     //     console.log('finished downloading.');
-
-            //     // console.log({
-            //     //     readable: stream.readable,
-            //     //     readableAborted: stream.readableAborted,
-            //     //     readableDidRead: stream.readableDidRead,
-            //     //     // readableEncoding: stream.readableEncoding,
-            //     //     readableEnded: stream.readableEnded,
-            //     //     readableFlowing: stream.readableFlowing,
-            //     //     readableHighWaterMark: stream.readableHighWaterMark,
-            //     //     readableLength: stream.readableLength,
-            //     //     readableObjectMode: stream.readableObjectMode
-            //     // })
-
-            //     // if (!saveDirectory)
-            //     //     StorageHelper.addSize(DOWNLOADS_DIRECTORY, [filePath])
-
-            //     // resolve(true)
-            //     // })
-            //     .on('error', (e) => { console.error(1, e); resolve(false) })
-            //     .close()
+                .pipe(writeStream, { end: true })
+                .on('close', () => { console.log('close'); resolve(true) })
+                .on('error', (e) => { console.error(e); resolve(false) })
         })
     }
 

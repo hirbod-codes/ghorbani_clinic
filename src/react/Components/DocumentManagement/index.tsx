@@ -4,7 +4,7 @@ import { GridFSFile } from "mongodb";
 import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Paper, Stack, styled } from "@mui/material";
 import { DataGrid } from "../DataGrid";
 import { t } from "i18next";
-import { AddOutlined, DeleteOutline, DownloadOutlined, LinkOutlined } from "@mui/icons-material";
+import { AddOutlined, DeleteOutline, DownloadOutlined, LaunchOutlined } from "@mui/icons-material";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 import { ColumnDef } from "@tanstack/react-table";
@@ -14,7 +14,7 @@ import { DATE_TIME, fromUnixToFormat } from "../../Lib/DateTime/date-time-helper
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { getLuxonLocale } from "../../Lib/helpers";
 import { DateTime } from "luxon";
-import { appAPI } from "src/Electron/handleAppRendererEvents";
+import { appAPI } from "../../../Electron/handleAppRendererEvents";
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -66,9 +66,7 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
         if (!patientId)
             return
 
-        setAdding(true)
         const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadFiles(patientId, files)
-        setAdding(false)
 
         if (res.code < 200 || res.data !== true)
             return
@@ -165,7 +163,7 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                                     finally { console.groupEnd() }
                                 }}
                             >
-                                {openingFileId === row.original._id ? <CircularProgress size={20} /> : <LinkOutlined />}
+                                {openingFileId === row.original._id ? <CircularProgress size={20} /> : <LaunchOutlined />}
                             </IconButton>
                             : null
                     }
@@ -233,11 +231,14 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                             >
                                 {t('DocumentManagement.AddDocuments')}
                                 <VisuallyHiddenInput type="file" multiple={true} onChange={async (e: any) => {
+                                    setAdding(true)
                                     const fs: { fileName: string, bytes: Buffer | Uint8Array }[] = []
                                     for (const f of (e.target.files as unknown) as File[])
                                         fs.push({ fileName: f.name, bytes: new Uint8Array(await f.arrayBuffer()) })
 
                                     await addDocument(fs)
+                                    setAdding(false)
+
                                     await fetchAndSetDocuments();
                                 }} />
                             </Button>
