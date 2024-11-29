@@ -29,7 +29,8 @@ export type Peer = {
 
 export type Config = {
     configuration?: ConfigurationStorableData,
-    DownloadsDirectorySize?: number,
+    downloadsDirectorySize?: number,
+    storage?: { [path: string]: number },
     mongodb?: MongodbConfig,
     auth?: AuthConfig,
     peers?: Peer[],

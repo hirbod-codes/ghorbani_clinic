@@ -1,61 +1,108 @@
 import fs from 'fs'
 import Path from 'path'
+import { Config, readConfig, writeConfig } from './Configuration/main'
 
 export class StorageHelper {
-    private static cache: { [path: string]: number } = {}
+    private static getConfig(): Config {
+        console.log('getConfig')
+        const c = readConfig()
+        if (!c.storage)
+            c.storage = {}
+        return c
+    }
+
+    private static setConfig(c: Config) {
+        console.log('setConfig')
+        writeConfig({ ...c })
+    }
 
     static async getSize(path: string): Promise<number | undefined> {
+        console.log('getSize', path)
+
         if (!fs.existsSync(path))
             return undefined
 
-        if (this.cache[path] === undefined)
-            this.cache[path] = await this.calculateSize(path)
+        const c = this.getConfig()
 
-        return this.cache[path]
+        if (c.storage[path] === undefined) {
+            c.storage[path] = await this.calculateSize(path)
+            this.setConfig(c)
+        }
+
+        return c.storage[path]
     }
 
     static async updateCache() {
-        for (const p in this.cache)
-            this.cache[p] = await this.calculateSize(p)
+        console.log('updateCache')
+
+        const c = this.getConfig()
+
+        for (const p of Object.keys(c.storage))
+            c.storage[p] = await this.calculateSize(p)
+        this.setConfig(c)
     }
 
-    static async addSize(directoryPath: string, paths: string[]): Promise<void> {
-        if (fs.statSync(directoryPath).isDirectory())
+    static async addSize(directoryPath: string, size: number): Promise<void> {
+        console.log('addSize', directoryPath, size)
+
+        if (!fs.statSync(directoryPath).isDirectory()) {
+            console.log('directoryPath is not a directory')
             return
+        }
+
+        const c = this.getConfig()
+
+        if (c.storage[directoryPath] === undefined)
+            c.storage[directoryPath] = size
+        else
+            c.storage[directoryPath] += size
+
+        this.setConfig(c)
+    }
+
+    static async subtractSize(directoryPath: string, size: number): Promise<void> {
+        console.log('subtractSize', directoryPath, size)
+
+        if (!fs.statSync(directoryPath).isDirectory()) {
+            console.log('directoryPath is not a directory')
+            return
+        }
+
+        const c = this.getConfig()
+
+        if (c.storage[directoryPath] === undefined)
+            return
+
+        if (c.storage[directoryPath] >= size)
+            c.storage[directoryPath] -= size
+        else
+            c.storage[directoryPath] -= 0
+
+        this.setConfig(c)
+    }
+
+    static async calculateSizes(paths: string[] | string): Promise<number> {
+        console.log('calculateSizes', paths)
+
+        if (!paths)
+            return
+
+        if (!Array.isArray(paths))
+            paths = [paths]
 
         let total = 0
         for (const p of paths)
-            if (!p.startsWith(directoryPath))
-                total += await this.calculateSize(Path.join(directoryPath, p))
-            else
-                total += await this.calculateSize(p)
+            total += await this.calculateSize(p)
 
-        if (this.cache[directoryPath] === undefined)
-            this.cache[directoryPath] = total
-        else
-            this.cache[directoryPath] += total
-    }
-
-    static async subtractSize(directoryPath: string, paths: string[]): Promise<void> {
-        if (fs.statSync(directoryPath).isDirectory())
-            return
-
-        let total = 0
-        for (const p of paths)
-            if (!p.startsWith(directoryPath))
-                total -= await this.calculateSize(Path.join(directoryPath, p))
-            else
-                total -= await this.calculateSize(p)
-
-        if (this.cache[directoryPath] === undefined)
-            this.cache[directoryPath] = total
-        else
-            this.cache[directoryPath] -= total
+        return total
     }
 
     private static async calculateSize(path: string): Promise<number> {
-        if (!fs.existsSync(path))
+        console.log('calculateSize', path)
+        if (!fs.existsSync(path)) {
+            console.log('path doesn\'t exists')
             return 0
+        }
 
         if (fs.statSync(path).isFile())
             return fs.statSync(path).size

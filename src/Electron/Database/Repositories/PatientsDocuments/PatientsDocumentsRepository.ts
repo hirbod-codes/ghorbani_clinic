@@ -126,6 +126,13 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
                 return true
         }
 
+        if (!saveDirectory) {
+            const fullSize = f.reduce((p, c) => p + c.length, 0)
+            const size = readConfig()?.downloadsDirectorySize
+            if (size !== undefined && !Number.isNaN(size) && (await StorageHelper.getSize(DOWNLOADS_DIRECTORY)) + fullSize >= size)
+                return false
+        }
+
         const paths = []
         for (const doc of f) {
             const filePath = Path.join(folderPath, doc._id.toString(), doc.filename)
@@ -148,7 +155,7 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
         }
 
         if (!saveDirectory)
-            StorageHelper.addSize(DOWNLOADS_DIRECTORY, paths)
+            await StorageHelper.addSize(DOWNLOADS_DIRECTORY, await StorageHelper.calculateSizes(paths))
 
         console.log('finished downloading.')
         return true
@@ -191,13 +198,9 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
         const filePath = saveDirectory ? Path.join(saveDirectory, filename) : Path.join(folderPath, filename)
         console.log('downloadFile', 'filePath', filePath, 'folderPath', folderPath)
 
-        if (force === false && fs.existsSync(filePath))
+        if (force === false && fs.existsSync(filePath)) {
+            console.log('file already exists, exiting...')
             return true
-
-        if (!saveDirectory) {
-            const size = readConfig()?.DownloadsDirectorySize
-            if (size !== undefined && !Number.isNaN(size) && await StorageHelper.getSize(folderPath) >= size)
-                return false
         }
 
         if (!fs.existsSync(folderPath))
@@ -206,8 +209,18 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
         const bucket = await this.getPatientsDocumentsBucket()
 
         const f = await bucket.find({ metadata: { patientId: patientId }, _id: new ObjectId(fileId), filename: filename }).toArray()
-        if (f.length === 0)
+        if (f.length !== 1) {
+            console.log('more than one file found!, exiting...')
             return false
+        }
+
+        if (!saveDirectory) {
+            const limit = readConfig()?.downloadsDirectorySize
+            if (limit !== undefined && !Number.isNaN(limit) && (await StorageHelper.getSize(DOWNLOADS_DIRECTORY)) + f[0].length >= limit) {
+                console.log('downloads directory will exceed storage limit, exiting...')
+                return false
+            }
+        }
 
         return new Promise<boolean>((resolve, reject) => {
             const writeStream = fs.createWriteStream(filePath, { autoClose: true, emitClose: true });
@@ -215,7 +228,14 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
 
             readStream
                 .pipe(writeStream, { end: true })
-                .on('close', () => { console.log('close'); resolve(true) })
+                .on('close', async () => {
+                    console.log('on close')
+                    if (!saveDirectory)
+                        await StorageHelper.addSize(DOWNLOADS_DIRECTORY, await StorageHelper.calculateSizes(filePath))
+
+                    console.log('exiting...')
+                    resolve(true)
+                })
                 .on('error', (e) => { console.error(e); resolve(false) })
         })
     }
@@ -243,17 +263,27 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
                 console.log('shell result', await shell.openExternal('file://' + filePath))
             else
                 console.log('shell result', await shell.openPath(filePath))
+
+            console.log('file already exist, exiting...')
+            return
         }
 
-        if (!await this.downloadFile(patientId, fileId, filename) || !fs.existsSync(filePath))
+        if (!await this.downloadFile(patientId, fileId, filename)) {
+            console.log('failed to download the file, exiting...')
             return false
+        }
+
+        if (!fs.existsSync(filePath)) {
+            console.log('the downloaded file doesn\'t exist, exiting...')
+            return false
+        }
 
         if (process.platform == 'darwin')
             console.log('shell result', await shell.openExternal('file://' + filePath))
         else
             console.log('shell result', await shell.openPath(filePath))
 
-        console.log('finished opening.')
+        console.log('finished opening...')
     }
 
     async deleteFiles(patientId: string): Promise<boolean> {
@@ -272,16 +302,21 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
 
         const folderPath = Path.join(DOWNLOADS_DIRECTORY, patientId)
         console.log('deleteFiles', 'folderPath', folderPath)
-        const paths = []
+        let sizes = 0
         for (const doc of cursor) {
             await bucket.delete(new ObjectId(doc._id))
 
-            if (fs.existsSync(Path.join(folderPath, doc._id.toString(), doc.filename)))
-                paths.push(Path.join(folderPath, doc._id.toString(), doc.filename))
+            const path = Path.join(folderPath, doc._id.toString(), doc.filename)
+            if (fs.existsSync(path)) {
+                const pathSize = await StorageHelper.calculateSizes(path)
+                try { fs.rmSync(path) }
+                catch (e) { continue; }
+                sizes += pathSize
+            }
         }
 
-        if (paths.length > 0)
-            StorageHelper.subtractSize(DOWNLOADS_DIRECTORY, paths)
+        if (sizes > 0)
+            StorageHelper.subtractSize(DOWNLOADS_DIRECTORY, sizes)
 
         return true
     }
@@ -300,9 +335,13 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
 
         await bucket.delete(new ObjectId(fileId))
 
-        const filePath = Path.join(DOWNLOADS_DIRECTORY, patientId, fileId, filename)
-        if (fs.existsSync(filePath))
-            StorageHelper.subtractSize(DOWNLOADS_DIRECTORY, [filePath])
+        const path = Path.join(DOWNLOADS_DIRECTORY, patientId, fileId, filename)
+        if (fs.existsSync(path)) {
+            const pathSize = await StorageHelper.calculateSizes(path)
+            try { fs.rmSync(path) }
+            catch (e) { return; }
+            await StorageHelper.subtractSize(DOWNLOADS_DIRECTORY, pathSize)
+        }
 
         return true
     }
