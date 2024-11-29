@@ -3,8 +3,6 @@ import { Grid, Button, Stack, TextField, Select, MenuItem, FormControl, Divider,
 import { useState, useContext, useEffect } from 'react';
 import { DateTime } from 'luxon'
 
-import { AddOutlined } from '@mui/icons-material';
-
 import { Patient } from '../../../Electron/Database/Models/Patient';
 import type { Visit } from '../../../Electron/Database/Models/Visit';
 import { ConfigurationContext } from '../../../react/Contexts/ConfigurationContext';

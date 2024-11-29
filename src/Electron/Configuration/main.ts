@@ -58,29 +58,50 @@ export function handleConfigEvents() {
 export function readConfig(): Config {
     const configFile = path.join(CONFIGURATION_DIRECTORY, 'config.json')
 
-    if (!fs.existsSync(configFile))
-        writeConfigSync({ appIdentifier: 'clinic', appName: `clinic-${uuidV4()}.local`, port: 3001 })
+    const initialConfig = { appIdentifier: 'clinic', appName: `clinic-${uuidV4()}.local`, port: 3001, downloadsDirectorySize: 8_000_000_000 }
+
+    if (!fs.existsSync(configFile)) {
+        writeConfigSync(initialConfig)
+        return initialConfig
+    }
 
     let configJson = fs.readFileSync(configFile).toString()
-    let c = JSON.parse(configJson)
+    let c: Config = JSON.parse(configJson)
 
-    if (c.appIdentifier && c.appName && c.port)
+    if (c.appIdentifier && c.appName && c.port && c.downloadsDirectorySize)
         return c
 
-    writeConfigSync({ ...c, appIdentifier: 'clinic', appName: `clinic-${uuidV4()}.local`, port: 3001 })
+    if (!c.downloadsDirectorySize)
+        c.downloadsDirectorySize = initialConfig.downloadsDirectorySize
+    if (!c.appIdentifier)
+        c.appIdentifier = initialConfig.appIdentifier
+    if (!c.appName)
+        c.appName = initialConfig.appName
+    if (!c.port)
+        c.port = initialConfig.port
 
-    configJson = fs.readFileSync(configFile).toString()
-    return JSON.parse(configJson)
+    writeConfigSync(c)
+
+    return c
 }
 
-export function writeConfig(config: Config): void {
-    const configFolder = path.join(CONFIGURATION_DIRECTORY)
-    const configFile = path.join(configFolder, 'config.json')
+export function writeConfig(config: Config): Promise<void> {
+    return new Promise((res, rej) => {
+        const configFolder = path.join(CONFIGURATION_DIRECTORY)
+        const configFile = path.join(configFolder, 'config.json')
 
-    if (!fs.existsSync(configFolder))
-        fs.mkdirSync(configFolder, { recursive: true })
+        if (!fs.existsSync(configFolder))
+            fs.mkdirSync(configFolder, { recursive: true })
 
-    fs.writeFile(configFile, JSON.stringify(config, undefined, 4), (err) => err ? console.error(err) : null)
+        fs.writeFile(configFile, JSON.stringify(config, undefined, 4), (err) => {
+            if (err) {
+                console.error(err)
+                rej()
+            }
+            else
+                res();
+        })
+    })
 }
 
 export function writeConfigSync(config: Config): void {

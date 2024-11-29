@@ -1,18 +1,61 @@
-import { Stack, Select, MenuItem, FormControl, InputLabel } from "@mui/material";
-import { useContext } from "react";
+import { Stack, Select, MenuItem, FormControl, InputLabel, TextField, Typography } from "@mui/material";
+import { useContext, useEffect, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { Calendar, TimeZone } from "../../Lib/DateTime";
 import { languages } from "../../i18next";
 import { t } from "i18next";
 import { getReactLocale } from "../../Lib/helpers";
 import type { Languages } from "../../Lib/Localization";
+import { configAPI } from "../../../Electron/Configuration/renderer";
 
 export function General() {
     const configuration = useContext(ConfigurationContext)
 
+    const [limit, setLimit] = useState<string>()
+
+    const setConfigDownloadsDirectorySize = async (l: number) => {
+        const c = await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig()
+        c.downloadsDirectorySize = l
+        return (window as typeof window & { configAPI: configAPI }).configAPI.writeConfig(c)
+    }
+
+    const getConfig = async () => {
+        return await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig()
+    }
+
+    useEffect(() => {
+        getConfig().then((c) => {
+            setLimit(c?.downloadsDirectorySize?.toString());
+        })
+    }, [])
+
     return (
         <>
             <Stack spacing={1} sx={{ m: 1, p: 2 }}>
+                <Stack direction='row' alignItems='center' sx={{ width: '100%' }}>
+                    <TextField
+                        sx={{ flexGrow: 2 }}
+                        variant='standard'
+                        type='text'
+                        value={Math.round(Number(limit ?? '0') / 1000_000_000).toFixed(2)}
+                        onChange={async (e) => {
+                            if (e.target.value === '') {
+                                setLimit('')
+                                return
+                            }
+
+                            let l = Number.parseInt(e.target.value)
+                            if (!l)
+                                return
+                            else
+                                setLimit((l * 1000_000_000).toString())
+
+                            await setConfigDownloadsDirectorySize(l)
+                        }}
+                        label={t('DbSettingsForm.username')}
+                    />
+                    <Typography variant='body1'>GB</Typography>
+                </Stack>
                 <FormControl variant='standard' >
                     <InputLabel id="calendar-label">{t('calendar')}</InputLabel>
                     <Select

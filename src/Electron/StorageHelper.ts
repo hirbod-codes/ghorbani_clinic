@@ -1,6 +1,6 @@
 import fs from 'fs'
 import Path from 'path'
-import { Config, readConfig, writeConfig } from './Configuration/main'
+import { Config, readConfig, writeConfigSync } from './Configuration/main'
 
 export class StorageHelper {
     private static getConfig(): Config {
@@ -13,7 +13,7 @@ export class StorageHelper {
 
     private static setConfig(c: Config) {
         console.log('setConfig')
-        writeConfig({ ...c })
+        writeConfigSync(c)
     }
 
     static async getSize(path: string): Promise<number | undefined> {
