@@ -1,5 +1,5 @@
 import { Stack, Select, MenuItem, FormControl, InputLabel, TextField, Typography } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
+import { memo, useContext, useEffect, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { Calendar, TimeZone } from "../../Lib/DateTime";
 import { languages } from "../../i18next";
@@ -8,7 +8,7 @@ import { getReactLocale } from "../../Lib/helpers";
 import type { Languages } from "../../Lib/Localization";
 import { configAPI } from "../../../Electron/Configuration/renderer";
 
-export function General() {
+export const General = memo(function General() {
     const configuration = useContext(ConfigurationContext)
 
     const [limit, setLimit] = useState<string>()
@@ -52,7 +52,7 @@ export function General() {
 
                             await setConfigDownloadsDirectorySize(l)
                         }}
-                        label={t('DbSettingsForm.username')}
+                        label={t('General.TemporaryStorageLimit')}
                     />
                     <Typography variant='body1'>GB</Typography>
                 </Stack>
@@ -100,4 +100,4 @@ export function General() {
                 </FormControl>
             </Stack></>
     )
-}
+})

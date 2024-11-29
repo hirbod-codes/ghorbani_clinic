@@ -5,8 +5,8 @@ import { Navigation } from '../Components/Navigation';
 import { AnimatedOutlet } from './AnimatedOutlet';
 import { MenuBar } from '../Components/MenuBar/MenuBar';
 import { GradientBackground } from '../Components/GradientBackground';
-import { Box, Button, Stack, Typography } from '@mui/material';
-import { memo, useCallback, useMemo, useState } from 'react';
+import { Box, Stack } from '@mui/material';
+import { memo, useMemo } from 'react';
 
 
 export const Layout = memo(function Layout() {

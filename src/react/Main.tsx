@@ -9,9 +9,19 @@ import { General } from './Pages/Settings/General';
 import { DbSettings } from './Pages/Settings/DbSettings';
 import { ThemeSettings } from './Pages/Settings/ThemeSettings';
 import { MedicalHistories } from "./Pages/MedicalHistories";
+import { useMemo } from "react";
 
 export function Main() {
     console.log('Main')
+
+    const general = useMemo(() => <General />, [])
+    const dbSettings = useMemo(() => <DbSettings />, [])
+    const themeSettings = useMemo(() => <ThemeSettings />, [])
+    const home = useMemo(() => <Home />, [])
+    const users = useMemo(() => <Users />, [])
+    const patients = useMemo(() => <Patients />, [])
+    const visits = useMemo(() => <Visits />, [])
+    const medicalHistories = useMemo(() => <MedicalHistories />, [])
 
     const router = createBrowserRouter([
         {
@@ -22,35 +32,35 @@ export function Main() {
                 {
                     index: true,
                     path: "/",
-                    element: <AnimatedLayout><Home /></AnimatedLayout>
+                    element: <AnimatedLayout>{home}</AnimatedLayout>
                 },
                 {
                     path: "/Users",
-                    element: <AnimatedLayout><Users /></AnimatedLayout>
+                    element: <AnimatedLayout>{users}</AnimatedLayout>
                 },
                 {
                     path: "/Patients",
-                    element: <AnimatedLayout><Patients /></AnimatedLayout>
+                    element: <AnimatedLayout>{patients}</AnimatedLayout>
                 },
                 {
                     path: "/Visits",
-                    element: <AnimatedLayout><Visits /></AnimatedLayout>
+                    element: <AnimatedLayout>{visits}</AnimatedLayout>
                 },
                 {
                     path: "/MedicalHistories",
-                    element: <AnimatedLayout><MedicalHistories /></AnimatedLayout>
+                    element: <AnimatedLayout>{medicalHistories}</AnimatedLayout>
                 },
                 {
                     path: "/General",
-                    element: <AnimatedLayout><General /></AnimatedLayout>
+                    element: <AnimatedLayout>{general}</AnimatedLayout>
                 },
                 {
                     path: "/DbSettings",
-                    element: <AnimatedLayout><DbSettings /></AnimatedLayout>
+                    element: <AnimatedLayout>{dbSettings}</AnimatedLayout>
                 },
                 {
                     path: "/ThemeSettings",
-                    element: <AnimatedLayout><ThemeSettings /></AnimatedLayout>
+                    element: <AnimatedLayout>{themeSettings}</AnimatedLayout>
                 },
             ]
         }

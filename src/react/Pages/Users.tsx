@@ -214,8 +214,6 @@ export const Users = memo(function Users() {
 
     useEffect(() => {
         subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
-            console.log(e);
-
             if (e?.detail === '/Users')
                 setShowGrid(true)
         })

@@ -1,15 +1,14 @@
 import { Button, CircularProgress, Dialog, DialogActions, DialogTitle, Divider, Stack } from '@mui/material'
 import DbSettingsForm from '../../../react/Components/Settings/DbSettingsForm'
 import { t } from 'i18next'
-import { useContext, useState } from 'react'
+import { memo, useContext, useState } from 'react'
 import { publish } from '../../Lib/Events'
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper'
 import { AuthContext } from '../../Contexts/AuthContext'
 import { RendererDbAPI } from '../../../Electron/Database/renderer'
-import { ipcRenderer } from 'electron'
-import { appAPI } from 'src/Electron/handleAppRendererEvents'
+import { appAPI } from '../../../Electron/handleAppRendererEvents'
 
-export function DbSettings() {
+export const DbSettings = memo(function DbSettings() {
     const auth = useContext(AuthContext)
 
     // DB Questions
@@ -126,5 +125,5 @@ export function DbSettings() {
             </Dialog>
         </>
     )
-}
+})
 

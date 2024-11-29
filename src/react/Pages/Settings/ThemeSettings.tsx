@@ -1,16 +1,16 @@
 import { darken, lighten, ThemeOptions } from '@mui/material/styles';
 import { ColorLensOutlined, ExpandMoreOutlined } from "@mui/icons-material"
 import { Accordion, AccordionDetails, AccordionSummary, Button, FormControlLabel, FormGroup, IconButton, Menu, Stack, Switch, TextField } from "@mui/material"
-import { useContext, useState } from "react";
+import { memo, useContext, useState } from "react";
 import { ConfigurationContext } from '../../Contexts/ConfigurationContext';
 import { HexAlphaColorPicker } from 'react-colorful';
 import { t } from 'i18next';
-import { configAPI } from 'src/Electron/Configuration/renderer';
+import { configAPI } from '../../../Electron/Configuration/renderer';
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
 import { publish } from '../../Lib/Events';
 import { PaletteTonalOffset } from '@mui/material/styles/createPalette';
 
-export function ThemeSettings() {
+export const ThemeSettings = memo(function ThemeSettings() {
     const c = useContext(ConfigurationContext)
 
     const [showGradientBackground, setShowGradientBackground] = useState<boolean>(c.get.showGradientBackground ?? false)
@@ -300,5 +300,5 @@ export function ThemeSettings() {
             </Menu>
         </>
     )
-}
+})
 
