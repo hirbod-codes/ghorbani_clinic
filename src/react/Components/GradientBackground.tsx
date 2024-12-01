@@ -1,9 +1,9 @@
 import { memo, useContext, useEffect, useRef, useState } from 'react';
 import { ConfigurationContext } from '../Contexts/ConfigurationContext';
-import { Box, Button, alpha, useTheme } from '@mui/material';
+import { Box, alpha, useTheme } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import { Shapes } from './Canvas/Shapes/Shapes';
-import { Gradients, RadialGradient, RectangleGradient, UpdateGradient } from './Canvas/Shapes/RectangleGradient';
+import { RadialGradient, RectangleGradient, UpdateGradient } from './Canvas/Shapes/RectangleGradient';
 
 export const GradientBackground = memo(function GradientBackground() {
     const c = useContext(ConfigurationContext)
@@ -16,9 +16,6 @@ export const GradientBackground = memo(function GradientBackground() {
     console.log('GradientBackground', { location, c })
 
     const backDropColor = alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0)
-
-    const scales = useRef<{ r1: number; g1: number; b1: number; r2: number; g2: number; b2: number; r3: number; g3: number; b3: number; }>()
-    const positions = useRef<{ position1X: number; position2X: number; position3X: number; position1Y: number; position2Y: number; position3Y: number; r11: number; r12: number; r21: number; r22: number; r31: number; r32: number; }>()
 
     const generateRadialGradient = (): RadialGradient => {
         const getColor = () => Math.round(Math.random() * 100 + 50)
@@ -36,7 +33,7 @@ export const GradientBackground = memo(function GradientBackground() {
             y0: y,
             y1: y,
             r0: Math.random() * 50 + 10,
-            r1: Math.random() * 300 + 500,
+            r1: Math.random() * 200 + 700,
         }
     }
 
@@ -175,7 +172,10 @@ export const GradientBackground = memo(function GradientBackground() {
 
         updateRadialGradients.current = [generateRadialGradient(), generateRadialGradient(), generateRadialGradient()]
 
-        if (ctxRef.current) {
+        if (ctxRef.current && shapes.shapes.length !== 3) {
+            ctxRef.current.globalAlpha = 1
+
+            shapes.shapes = []
             shapes.push(new RectangleGradient(0, 0, window.innerWidth, window.innerHeight, updateRadialGradients.current[0]))
             shapes.push(new RectangleGradient(0, 0, window.innerWidth, window.innerHeight, updateRadialGradients.current[1]))
             shapes.push(new RectangleGradient(0, 0, window.innerWidth, window.innerHeight, updateRadialGradients.current[2]))
@@ -184,18 +184,12 @@ export const GradientBackground = memo(function GradientBackground() {
         }
     }, [canvasRef.current, ctxRef.current])
 
-    // useEffect(() => {
-    //     play()
-    // }, [location])
+    useEffect(() => {
+        play()
+    }, [location])
 
     return (
         <>
-            <Button sx={{ position: 'absolute', zIndex: 100, top: '50%' }} onClick={() => {
-                startTS.current = undefined
-                elapsed.current = 0
-                play()
-            }}>Play</Button>
-
             {c.get.showGradientBackground &&
                 <>
                     <canvas

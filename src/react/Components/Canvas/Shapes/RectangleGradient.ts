@@ -3,7 +3,7 @@ import { Boundary, Draw, Point } from "../types";
 import { Shape } from "./Shape";
 import { SelectionBox } from './SelectionBox';
 import { getRadiansFromTwoPoints, lineFunction, pointFromLineDistance } from '../../../Lib/Math/2d';
-import { alpha, rgbToHex } from '@mui/material';
+import { rgbToHex } from '@mui/material';
 
 export type UpdateGradient = { steps?: { offset: number, color: { r: number; g: number; b: number; a: number; } }[], startAngle?: number, x0?: number, y0?: number, r0?: number, x1?: number, y1?: number, r1?: number }
 
@@ -81,10 +81,6 @@ export class RectangleGradient implements Shape {
                 this.canvasGradient.steps.forEach((s) => {
                     console.log('addColorStop', rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`), s)
                     radialGradient.addColorStop(s.offset, rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`))
-                    if (s.color.a === 0) {
-                        radialGradient.addColorStop(0.5,  '#000000cc')
-                        radialGradient.addColorStop(1,  '#00000000')
-                    }
                 })
                 fillStyle = radialGradient
                 break;
