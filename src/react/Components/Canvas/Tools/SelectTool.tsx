@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react"
 import { Shapes } from "../Shapes/Shapes"
 import { Draw, Position } from "../types"
-import { applyToPoint } from "transformation-matrix"
 import { getRadiansFromTwoPoints } from "../../../Lib/Math/2d"
 import { Point } from "../../../Lib/Math"
 
@@ -137,9 +136,6 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
         setOnDownHook(() => onDown)
     }, [selectedHandler, referencePoint])
 
-    return (
-        <>
-        </>
-    )
+    return (<></>)
 }
 
