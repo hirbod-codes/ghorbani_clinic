@@ -3,14 +3,15 @@ import { Boundary, Draw, Point } from "../types";
 import { Shape } from "./Shape";
 import { SelectionBox } from './SelectionBox';
 import { getRadiansFromTwoPoints, lineFunction, pointFromLineDistance } from '../../../Lib/Math/2d';
+import { alpha, rgbToHex } from '@mui/material';
 
-export type UpdateGradient = { steps?: { offset: number, color: string }[], startAngle?: number, x0?: number, y0?: number, r0?: number, x1?: number, y1?: number, r1?: number }
+export type UpdateGradient = { steps?: { offset: number, color: { r: number; g: number; b: number; a: number; } }[], startAngle?: number, x0?: number, y0?: number, r0?: number, x1?: number, y1?: number, r1?: number }
 
-export type conicGradient = { steps: { offset: number, color: string }[], mode: 'conic', startAngle: number, x0: number, y0: number }
-export type linearGradient = { steps: { offset: number, color: string }[], mode: 'linear', x0: number, y0: number, x1: number, y1: number }
-export type radialGradient = { steps: { offset: number, color: string }[], mode: 'radial', x0: number, y0: number, r0: number, x1: number, y1: number, r1: number }
+export type ConicGradient = { steps: { offset: number, color: { r: number; g: number; b: number; a: number; } }[], mode: 'conic', startAngle: number, x0: number, y0: number }
+export type LinearGradient = { steps: { offset: number, color: { r: number; g: number; b: number; a: number; } }[], mode: 'linear', x0: number, y0: number, x1: number, y1: number }
+export type RadialGradient = { steps: { offset: number, color: { r: number; g: number; b: number; a: number; } }[], mode: 'radial', x0: number, y0: number, r0: number, x1: number, y1: number, r1: number }
 
-export type Gradients = conicGradient | linearGradient | radialGradient
+export type Gradients = ConicGradient | LinearGradient | RadialGradient
 
 export class RectangleGradient implements Shape {
     private path: Path2D
@@ -53,7 +54,10 @@ export class RectangleGradient implements Shape {
                     throw new Error('invalid gradient options provided.')
 
                 const conicGradient = d.ctx.createConicGradient(this.canvasGradient.startAngle, this.canvasGradient.x0, this.canvasGradient.y0)
-                this.canvasGradient.steps.forEach((s) => conicGradient.addColorStop(s.offset, s.color))
+                this.canvasGradient.steps.forEach((s) => {
+                    console.log(rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`), s)
+                    conicGradient.addColorStop(s.offset, rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`))
+                })
                 fillStyle = conicGradient
                 break;
 
@@ -62,7 +66,10 @@ export class RectangleGradient implements Shape {
                     throw new Error('invalid gradient options provided.')
 
                 const linearGradient = d.ctx.createLinearGradient(this.canvasGradient.x0, this.canvasGradient.y0, this.canvasGradient.x1, this.canvasGradient.y1)
-                this.canvasGradient.steps.forEach((s) => linearGradient.addColorStop(s.offset, s.color))
+                this.canvasGradient.steps.forEach((s) => {
+                    console.log(rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`), s)
+                    linearGradient.addColorStop(s.offset, rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`))
+                })
                 fillStyle = linearGradient
                 break;
 
@@ -71,7 +78,14 @@ export class RectangleGradient implements Shape {
                     throw new Error('invalid gradient options provided.')
 
                 const radialGradient = d.ctx.createRadialGradient(this.canvasGradient.x0, this.canvasGradient.y0, this.canvasGradient.r0, this.canvasGradient.x1, this.canvasGradient.y1, this.canvasGradient.r1)
-                this.canvasGradient.steps.forEach((s) => radialGradient.addColorStop(s.offset, s.color))
+                this.canvasGradient.steps.forEach((s) => {
+                    console.log('addColorStop', rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`), s)
+                    radialGradient.addColorStop(s.offset, rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`))
+                    if (s.color.a === 0) {
+                        radialGradient.addColorStop(0.5,  '#000000cc')
+                        radialGradient.addColorStop(1,  '#00000000')
+                    }
+                })
                 fillStyle = radialGradient
                 break;
 
