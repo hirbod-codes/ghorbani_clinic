@@ -3,7 +3,7 @@ import * as menu from './Electron/Menu/renderer/menu'
 import * as configs from './Electron/Configuration/renderer'
 import { menuAPI } from './Electron/Menu/renderer/menuAPI'
 import { handleDbRendererEvents } from './Electron/Database/renderer'
-import { handleAppRendererEvents } from './Electron/handleAppRendererEvents'
+import { handleAppRendererEvents } from './Electron/appRendererEvents'
 
 contextBridge.exposeInMainWorld('appAPI', handleAppRendererEvents())
 

@@ -2,7 +2,7 @@ import { FileDownloadOutlined } from "@mui/icons-material";
 import { Button } from "@mui/material";
 import { t } from "i18next";
 import { useContext } from "react";
-import { appAPI } from "src/Electron/handleAppRendererEvents";
+import { appAPI } from "src/Electron/appRendererEvents";
 import { DataGridContext } from "./Context";
 
 export function ExportButton() {

@@ -6,7 +6,7 @@ import { publish } from '../../Lib/Events'
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper'
 import { AuthContext } from '../../Contexts/AuthContext'
 import { RendererDbAPI } from '../../../Electron/Database/renderer'
-import { appAPI } from '../../../Electron/handleAppRendererEvents'
+import { appAPI } from '../../../Electron/appRendererEvents'
 
 export const DbSettings = memo(function DbSettings() {
     const auth = useContext(AuthContext)

@@ -14,7 +14,7 @@ import { DATE_TIME, fromUnixToFormat } from "../../Lib/DateTime/date-time-helper
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { getLuxonLocale } from "../../Lib/helpers";
 import { DateTime } from "luxon";
-import { appAPI } from "../../../Electron/handleAppRendererEvents";
+import { appAPI } from "../../../Electron/appRendererEvents";
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
