@@ -256,11 +256,12 @@ export class Rectangle implements Shape {
         if (y !== undefined && currentPoint.y > y)
             shouldAdd = true
 
-        const decomposedMatrix = decomposeTSR(fromObject(this.transformArgs))
-        if ((decomposedMatrix.rotation.angle * 180 / Math.PI) < 0)
+        if (selectedHandler.toLowerCase().includes('top'))
             shouldAdd = !shouldAdd
 
-        if (!selectedHandler.toLowerCase().includes('bottom'))
+        const rotatedDegree = decomposeTSR(fromObject(this.transformArgs)).rotation.angle * 180 / Math.PI
+        console.log('rotatedDegree', rotatedDegree)
+        if (rotatedDegree < -90 || rotatedDegree > 90)
             shouldAdd = !shouldAdd
 
         return shouldAdd ? distance : -distance
