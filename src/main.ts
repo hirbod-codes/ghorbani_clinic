@@ -1,10 +1,10 @@
 import os from 'os'
-import { app, BrowserWindow, dialog, ipcMain } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import { handleMenuEvents } from './Electron/Menu/menu';
 import { handleConfigEvents, readConfig, writeConfigSync } from './Electron/Configuration/main';
 import { db, handleDbEvents } from './Electron/Database/main';
 import path from 'path';
-import fs from 'fs';
+import { handleAppMainEvents } from './Electron/appMainEvents';
 
 const c = readConfig()
 
@@ -59,38 +59,6 @@ const createWindow = (): void => {
 };
 
 app.on('ready', async () => {
-    ipcMain.on('relaunch-app', () => {
-        app.relaunch()
-        app.exit()
-    })
-
-    ipcMain.handle('save-file', (_e, { content, path }: { content: string, path: string }) => {
-        try {
-            if (!fs.existsSync(path) || !fs.statSync(path).isDirectory())
-                return false
-
-            fs.writeFileSync(path, content)
-            return true
-        } catch (e) {
-            console.error(e)
-            return false
-        }
-    })
-
-    ipcMain.handle('save-file-dialog', async (_e, options?: { defaultPath?: string, message?: string, buttonLabel?: string, title?: string }) => {
-        try { return await dialog.showSaveDialog(mainWindow, { properties: ['createDirectory', 'showHiddenFiles'], ...options, title: options?.title ?? 'Save file' }) }
-        catch (e) { console.error(e) }
-    })
-
-    ipcMain.handle('open-directory-dialog', async (_e, options?: { defaultPath?: string, message?: string, buttonLabel?: string, title?: string }) => {
-        try { return await dialog.showOpenDialog(mainWindow, { properties: ['createDirectory', 'openDirectory', 'showHiddenFiles'], ...options, title: options?.title ?? 'Open directory' }) }
-        catch (e) { console.error(e) }
-    })
-
-    ipcMain.handle('open-file-dialog', async (_e, options?: { defaultPath?: string, message?: string, buttonLabel?: string, title?: string }) => {
-        try { return await dialog.showOpenDialog(mainWindow, { properties: ['createDirectory', 'openFile', 'multiSelections', 'showHiddenFiles'], ...options, title: options?.title ?? 'Open file' }) }
-        catch (e) { console.error(e) }
-    })
 
     handleConfigEvents()
 
@@ -99,6 +67,8 @@ app.on('ready', async () => {
     await handleDbEvents()
 
     createWindow()
+
+    handleAppMainEvents(mainWindow)
 
     const c = readConfig()
     if (app.isPackaged && !c.mongodb)
