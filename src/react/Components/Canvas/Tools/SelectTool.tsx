@@ -3,6 +3,7 @@ import { Shapes } from "../Shapes/Shapes"
 import { Draw, Position } from "../types"
 import { getRadiansFromTwoPoints } from "../../../Lib/Math/2d"
 import { Point } from "../../../Lib/Math"
+import { Stack, Typography } from "@mui/material"
 
 export type SelectToolProps = {
     shapes: Shapes,
@@ -18,6 +19,7 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
     const [referencePoint, setReferencePoint] = useState<Point>(undefined)
 
     const [shouldScale, setShouldScale] = useState<boolean>(false)
+    const [pointerPosition, setPointerPosition] = useState<Point>()
 
     const onDown = (draw: Draw) => {
         setReferencePoint(draw.currentPoint)
@@ -61,6 +63,7 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
     }
 
     const onHoverHook = (draw: Draw) => {
+        setPointerPosition(draw.currentPoint)
         if (!shapes.hasSelection() || selectedHandler)
             return
 
@@ -136,6 +139,13 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
         setOnDownHook(() => onDown)
     }, [selectedHandler, referencePoint])
 
-    return (<></>)
+    return (<>
+        {pointerPosition &&
+            <Stack direction='row' spacing={2}>
+                <Typography>{pointerPosition.x.toFixed(0)}</Typography>
+                <Typography>{pointerPosition.y.toFixed(0)}</Typography>
+            </Stack>
+        }
+    </>)
 }
 

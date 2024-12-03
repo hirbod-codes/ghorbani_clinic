@@ -133,7 +133,7 @@ export class Line implements Shape {
         return false
     }
 
-    draw(d: Draw): void {
+    draw(d: Draw, w?: number): void {
         if (!d)
             return
 
@@ -145,67 +145,59 @@ export class Line implements Shape {
             return
 
         let width = Number(this.lineWidth);
-        if (this.mode !== 'eraser' && this.isPressureSensitive && d.e.pointerType === 'pen')
-            width += (Math.pow(d.e.pressure, 2) * Number(this.pressureMagnitude));
 
-        let startPoint = prevPoint ?? currentPoint
+        if (!w) {
+            if (this.mode !== 'eraser' && this.isPressureSensitive && d.e.pointerType === 'pen')
+                width += (Math.pow(d.e.pressure, 2) * Number(this.pressureMagnitude));
+        }
+        else
+            width = w
 
-        d.ctx.save()
+        if (!prevPoint)
+            return
 
-        ctx.beginPath()
+        this.internalDraw(d.ctx, prevPoint, currentPoint, width, this.stroke, 'round')
 
-        const lineColor = this.stroke
-        ctx.lineWidth = width
-        ctx.strokeStyle = lineColor
-        ctx.fillStyle = lineColor
-        ctx.lineJoin = 'round'
+        if (this.points.length === 0)
+            this.addPoint(prevPoint, width)
+        this.addPoint(currentPoint, width)
+    }
+
+    private internalDraw(ctx: CanvasRenderingContext2D, prevPoint: Point, currentPoint: Point, lineWidth: number, strokeStyle: string | CanvasGradient | CanvasPattern, lineJoin: CanvasLineJoin) {
+        ctx.save()
+
+        ctx.lineWidth = lineWidth
+        ctx.strokeStyle = strokeStyle
+        ctx.fillStyle = strokeStyle
+        ctx.lineJoin = lineJoin
 
         if (this.transformArgs)
-            d.ctx.setTransform(this.transformArgs)
+            ctx.setTransform(this.transformArgs)
 
-        ctx.moveTo(startPoint.x, startPoint.y)
+        ctx.beginPath()
+        ctx.moveTo(prevPoint.x, prevPoint.y)
         ctx.lineTo(currentPoint.x, currentPoint.y)
-
         ctx.stroke()
 
         ctx.beginPath()
-        ctx.arc(startPoint.x, startPoint.y, width / 2, 0, 2 * Math.PI)
+        ctx.arc(prevPoint.x, prevPoint.y, lineWidth / 2, 0, 2 * Math.PI)
         ctx.fill()
 
-        this.points.push({ ...currentPoint, lineWidth: width })
+        ctx.restore()
+    }
 
-        d.ctx.restore()
+    private addPoint(point: Point, lineWidth: number) {
+        return new Promise<number>((r, rej) => {
+            r(0)
+            this.points.push({ ...point, lineWidth })
+        })
     }
 
     redraw(d: Draw): void {
-        d.ctx.save()
-
-        d.ctx.beginPath()
-
-        d.ctx.strokeStyle = this.stroke
-        d.ctx.lineWidth = this.lineWidth
-        d.ctx.strokeStyle = this.stroke
-        d.ctx.fillStyle = this.stroke
-        d.ctx.lineJoin = 'round'
-
-        if (this.transformArgs)
-            d.ctx.setTransform(this.transformArgs)
-
-        d.ctx.moveTo(this.points[0].x, this.points[0].y)
-
-        for (let i = 0; i < this.points.length; i++) {
-            const point = this.points[i];
-
-            d.ctx.lineWidth = point.lineWidth
-            d.ctx.lineTo(point.x, point.y)
-        }
-
-        d.ctx.stroke()
-
-        d.ctx.beginPath()
-        d.ctx.arc(this.points[0].x, this.points[0].y, this.points[0].lineWidth / 2, 0, 2 * Math.PI)
-        d.ctx.fill()
-
-        d.ctx.restore()
+        for (let i = 0; i < this.points.length; i++)
+            if (i === 0)
+                continue
+            else
+                this.internalDraw(d.ctx, this.points[i - 1], this.points[i], this.points[i].lineWidth, this.stroke, 'round')
     }
 }
