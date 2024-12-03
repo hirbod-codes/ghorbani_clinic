@@ -19,7 +19,7 @@ export type PencilToolProps = {
     mode?: 'pencil' | 'eraser'
 }
 
-export function PencilTool({ shapes, canvasBackground, setOnDraw,setOnHoverHook, setOnUpHook, setOnDownHook, mode = 'pencil' }: PencilToolProps) {
+export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, setOnDownHook, mode = 'pencil' }: PencilToolProps) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
     const theme = useTheme()
@@ -47,10 +47,6 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw,setOnHoverHook,
         setInstance(undefined)
         setHasMoved(false)
     }
-    const [pointerPosition, setPointerPosition] = useState<Point>()
-    const onHoverHook = (draw: Draw) => {
-        setPointerPosition(draw.currentPoint)
-    }
 
     const onDraw = (draw: Draw) => {
         if (!draw)
@@ -65,7 +61,6 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw,setOnHoverHook,
 
     useEffect(() => {
         setOnDraw(() => onDraw)
-        setOnHoverHook(() => onHoverHook)
         setOnUpHook(() => onUp)
         setOnDownHook(() => onDown)
     }, [color, lineWidth, instance, hasMoved])
@@ -73,12 +68,6 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw,setOnHoverHook,
     return (
         <>
             <Stack spacing={3} direction='row' alignItems='center' sx={{ width: 'max-content' }}>
-                {pointerPosition &&
-                    <Stack direction='row' spacing={2}>
-                        <Typography>{pointerPosition.x.toFixed(0)}</Typography>
-                        <Typography>{pointerPosition.y.toFixed(0)}</Typography>
-                    </Stack>
-                }
                 <div>
                     <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ backgroundColor: color }}>
                         <ColorLensOutlined sx={{ color: theme.palette.getContrastText(color) }} />

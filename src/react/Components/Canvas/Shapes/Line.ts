@@ -37,11 +37,13 @@ export class Line implements Shape {
     }
 
     updateWidth(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): void {
-        return
+        throw new Error("Method not implemented.");
+
     }
 
     updateHeight(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): void {
-        return
+        throw new Error("Method not implemented.");
+
     }
 
     translate(previousPoint: Point, currentPoint: Point): void {
