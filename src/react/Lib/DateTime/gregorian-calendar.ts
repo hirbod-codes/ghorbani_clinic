@@ -32,7 +32,20 @@ export const GREGORIAN_MONTHS_EN = [
     'December',
 ]
 
+export const GREGORIAN_WEEK_DAYS_EN = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
+export const GREGORIAN_WEEK_DAYS_FA = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
+
 export const GREGORIAN_EPOCH = 1721425.5;
+
+export function getGregorianWeekDays(locale = 'en'): string[] {
+    if (locale == 'en')
+        return GREGORIAN_WEEK_DAYS_EN
+    else if (locale == 'fa')
+        return GREGORIAN_WEEK_DAYS_FA
+    else
+        throw new Error('Invalid value provided for locale parameter')
+}
 
 /**
  * Is a given year a leap year in the Gregorian calendar ?

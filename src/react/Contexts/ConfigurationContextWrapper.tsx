@@ -12,7 +12,6 @@ import { prefixer } from 'stylis';
 import rtlPlugin from 'stylis-plugin-rtl';
 import DbSettingsForm from '../Components/Settings/DbSettingsForm';
 import { configAPI } from '../../Electron/Configuration/renderer';
-import { BorderAllRounded } from '@mui/icons-material';
 
 // Create rtl cache
 const rtlCache = createCache({

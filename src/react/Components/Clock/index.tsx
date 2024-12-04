@@ -1,4 +1,4 @@
-import { Stack, Typography, useTheme } from "@mui/material"
+import { Paper, Stack, Typography, useTheme } from "@mui/material"
 import { DateTime } from "luxon"
 import { useContext, useEffect, useState } from "react"
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext"
@@ -34,14 +34,16 @@ export function Clock() {
 
     return (
         <>
-            <Stack direction='column' alignItems='center' sx={{ borderWidth: '1px', borderColor: theme.palette.grey[400] }}>
-                <Typography variant="body1">
-                    {date}
-                </Typography>
-                <Typography variant="body1">
-                    {time}
-                </Typography>
-            </Stack>
+            <Paper sx={{p:2}}>
+                <Stack direction='column' alignItems='center' sx={{ borderWidth: '1px', borderColor: theme.palette.grey[400] }}>
+                    <Typography variant="body1">
+                        {date}
+                    </Typography>
+                    <Typography variant="body1">
+                        {time}
+                    </Typography>
+                </Stack>
+            </Paper>
         </>
     )
 }

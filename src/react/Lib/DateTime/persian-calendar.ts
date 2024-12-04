@@ -55,7 +55,14 @@ export const PERSIAN_MONTHS_EN = [
 
 export const PERSIAN_EPOCH = 1948320.5;
 
-export const PERSIAN_WEEKDAYS_EN = ["Yekshanbeh", "Doshanbeh", "Seshhanbeh", "Chaharshanbeh", "Panjshanbeh", "Jomeh", "Shanbeh"]
+export function getPersianWeekDays(locale = 'en'): string[] {
+    if (locale == 'en')
+        return PERSIAN_WEEK_DAYS_EN
+    else if (locale == 'fa')
+        return PERSIAN_WEEK_DAYS_FA
+    else
+        throw new Error('Invalid value provided for locale parameter')
+}
 
 export function getPersianMonths(isLeapYear: boolean, locale = 'en'): { name: string, days: number }[] {
     let keys
