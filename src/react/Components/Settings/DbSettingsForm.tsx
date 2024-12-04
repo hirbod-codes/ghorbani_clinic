@@ -99,6 +99,7 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                                     })
 
                                     result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.initializeDb()
+                                    setLoading(false)
                                     if (!result) {
                                         publish(RESULT_EVENT_NAME, {
                                             severity: 'error',
@@ -112,8 +113,8 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                                         severity: 'success',
                                         message: t('DbSettingsForm.databaseInitialized')
                                     })
-                                } finally {
-                                    setLoading(false)
+                                } catch (e) {
+                                    console.error(e)
                                 }
                             }}
                         >
