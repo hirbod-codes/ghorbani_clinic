@@ -1,11 +1,12 @@
-import { ArrowLeftOutlined, ArrowRightOutlined, RemoveOutlined } from "@mui/icons-material";
-import { Box, Chip, Divider, Grid, IconButton, Paper, Stack, Typography } from "@mui/material";
+import { Divider, Paper, Stack, Typography } from "@mui/material";
 import { memo, useContext, useEffect, useReducer, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { fromUnix } from "../../Lib/DateTime/date-time-helpers";
 import { DateTime } from "luxon";
 import { CalendarManager } from "./CalendarManager";
 import { CalendarScope } from "./index.d";
+import { NextPrevButtons } from "./NextPrevButtons";
+import { Slide } from "./Slide";
 
 export type CalendarProps = {
     validScopes?: CalendarScope[],
@@ -100,13 +101,16 @@ export const Calendar = memo(function Calendar({ onYearSelect, onMonthSelect, on
             <Stack direction='column' divider={<Divider />} spacing={1} sx={{ p: 1 }} >
                 <Stack direction='row' alignItems='center' sx={{ p: 1 }} spacing={1}>
                     <NextPrevButtons onPrev={() => { calendarManager.previous(); rerender() }} onNext={() => { calendarManager.next(); rerender() }} />
+
                     <Divider orientation="vertical" variant='middle' sx={{ height: '2rem' }} />
+
                     <Stack direction='row' justifyContent='center' sx={{ flexGrow: 2 }}>
                         <Typography textAlign='center' onClick={onTitleClick} sx={{ cursor: 'pointer' }}>
                             {calendarManager.getTitle()}
                         </Typography>
                     </Stack>
                 </Stack>
+
                 <Slide
                     columns={columns}
                     collection={collection}
@@ -117,41 +121,3 @@ export const Calendar = memo(function Calendar({ onYearSelect, onMonthSelect, on
         </Paper>
     )
 })
-
-export function NextPrevButtons({ onPrev, onNext }: { onPrev: () => void, onNext: () => void }) {
-    return (
-        <Stack direction='row'>
-            <IconButton onClick={onPrev}>
-                <ArrowLeftOutlined />
-            </IconButton>
-            <IconButton onClick={onNext}>
-                <ArrowRightOutlined />
-            </IconButton>
-        </Stack>
-    )
-}
-
-export type SlideProps = {
-    columns: number;
-    collection: (string | number)[];
-    headers?: string[]
-    onElmClick?: (value: string | number, i: number) => void | Promise<void>;
-}
-
-export function Slide({ columns, collection, headers, onElmClick }: SlideProps) {
-    return (
-        <>
-            <Grid container columns={columns} textAlign='center' spacing={0}>
-                {headers && headers.map((e, i) => <Grid key={i} item xs={1}><Typography textAlign='center'>{e}</Typography></Grid>)}
-                {collection.map((e, i) =>
-                    e === null
-                        ? <Grid key={i} item xs={1}></Grid>
-                        : <Grid key={i} item xs={1}>
-                            <Chip sx={{ m: 1 }} label={e} variant="outlined" onClick={async () => { if (onElmClick) await onElmClick(e, i) }} />
-                        </Grid>
-                )}
-            </Grid>
-        </>
-    )
-}
-
