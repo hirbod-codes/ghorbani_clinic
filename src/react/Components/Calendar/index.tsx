@@ -1,6 +1,6 @@
 import { ArrowLeftOutlined, ArrowRightOutlined, RemoveOutlined } from "@mui/icons-material";
 import { Box, Chip, Divider, Grid, IconButton, Paper, Stack, Typography } from "@mui/material";
-import { useContext, useEffect, useReducer, useState } from "react";
+import { memo, useContext, useEffect, useReducer, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { fromUnix } from "../../Lib/DateTime/date-time-helpers";
 import { DateTime } from "luxon";
@@ -8,19 +8,19 @@ import { CalendarManager } from "./CalendarManager";
 import { CalendarScope } from "./index.d";
 
 export type CalendarProps = {
-    validScopes: CalendarScope[],
+    validScopes?: CalendarScope[],
     onYearSelect?: (year: number) => void | Promise<void>,
     onMonthSelect?: (year: number, month: number) => void | Promise<void>,
     onDaySelect?: (year: number, month: number, day: number) => void | Promise<void>
 }
 
-export function Calendar({ validScopes, onYearSelect, onMonthSelect, onDaySelect }: CalendarProps) {
+export const Calendar = memo(function Calendar({ onYearSelect, onMonthSelect, onDaySelect, validScopes = ['days', 'months', 'years'] }: CalendarProps) {
     if (!validScopes || validScopes.length === 0)
         throw new Error('No scope provided')
 
     const locale = useContext(ConfigurationContext).get.locale
 
-    const [, rerender] = useReducer(x => x, 0)
+    const [, rerender] = useReducer(x => x + 1, 0)
 
     const { date } = fromUnix(locale, DateTime.utc().toUnixInteger())
     const [calendarManager, setCalendarManager] = useState(new CalendarManager(locale.calendar, date.year, date.month, locale.code, locale))
@@ -30,17 +30,21 @@ export function Calendar({ validScopes, onYearSelect, onMonthSelect, onDaySelect
     }, [locale])
 
     const onTitleClick = () => {
-        const scope = calendarManager.getScope()
-        if (scope === 'years')
-            return
-        else if (scope === 'months') {
-            if (!validScopes.includes('years'))
+        switch (calendarManager.getScope()) {
+            case 'years':
                 return
-            calendarManager.setScope('years', calendarManager.selectedYear, calendarManager.selectedMonth)
-        } else if (scope === 'days') {
-            if (!validScopes.includes('months'))
-                return
-            calendarManager.setScope('months', calendarManager.selectedYear, calendarManager.selectedMonth)
+
+            case 'months':
+                if (!validScopes.includes('years'))
+                    return
+                calendarManager.setScope('years', calendarManager.selectedYear, calendarManager.selectedMonth)
+                break;
+
+            case 'days':
+                if (!validScopes.includes('months'))
+                    return
+                calendarManager.setScope('months', calendarManager.selectedYear, calendarManager.selectedMonth)
+                break;
         }
 
         rerender()
@@ -49,7 +53,7 @@ export function Calendar({ validScopes, onYearSelect, onMonthSelect, onDaySelect
     const onElmClick = (value: string | number, i: number) => {
         switch (calendarManager.getScope()) {
             case 'years':
-                if (!validScopes.includes('years'))
+                if (!validScopes.includes('months'))
                     break;
                 calendarManager.setScope('months', value as number, calendarManager.selectedMonth)
                 if (onYearSelect)
@@ -57,7 +61,7 @@ export function Calendar({ validScopes, onYearSelect, onMonthSelect, onDaySelect
                 rerender()
                 break;
             case 'months':
-                if (!validScopes.includes('months'))
+                if (!validScopes.includes('days'))
                     break;
                 calendarManager.setScope('days', calendarManager.selectedYear, i + 1)
                 if (onMonthSelect)
@@ -65,8 +69,6 @@ export function Calendar({ validScopes, onYearSelect, onMonthSelect, onDaySelect
                 rerender()
                 break;
             case 'days':
-                if (!validScopes.includes('days'))
-                    break;
                 if (onDaySelect)
                     onDaySelect(calendarManager.selectedYear, calendarManager.selectedMonth, i + 1)
                 rerender()
@@ -79,11 +81,11 @@ export function Calendar({ validScopes, onYearSelect, onMonthSelect, onDaySelect
         case 'days':
             columns = 7
             collection = calendarManager.getScopeValues() as number[]
-            headers = calendarManager.getWeekDays()
+            headers = calendarManager.getWeekDays().map(e => e.slice(0, 3))
             break;
         case 'months':
             columns = 3
-            collection = calendarManager.getScopeValues().map(e => e.name)
+            collection = calendarManager.getScopeValues().map(e => e.name.slice(0, 3))
             break;
         case 'years':
             columns = 7
@@ -91,13 +93,13 @@ export function Calendar({ validScopes, onYearSelect, onMonthSelect, onDaySelect
             break;
     }
 
-    console.log('Calendar', { locale, collection, columns })
+    console.log('Calendar', { locale, collection, columns, calendarManager })
 
     return (
-        <Paper sx={{ p: 2 }}>
+        <Paper sx={{ overflow: 'auto', minWidth: '25rem' }}>
             <Stack direction='column' divider={<Divider />} spacing={1} sx={{ p: 1 }} >
                 <Stack direction='row' alignItems='center' sx={{ p: 1 }} spacing={1}>
-                    <NextPrevButtons onPrev={calendarManager.previous} onNext={calendarManager.next} />
+                    <NextPrevButtons onPrev={() => { calendarManager.previous(); rerender() }} onNext={() => { calendarManager.next(); rerender() }} />
                     <Divider orientation="vertical" variant='middle' sx={{ height: '2rem' }} />
                     <Stack direction='row' justifyContent='center' sx={{ flexGrow: 2 }}>
                         <Typography textAlign='center' onClick={onTitleClick} sx={{ cursor: 'pointer' }}>
@@ -107,14 +109,14 @@ export function Calendar({ validScopes, onYearSelect, onMonthSelect, onDaySelect
                 </Stack>
                 <Slide
                     columns={columns}
-                    collection={calendarManager.getScope() === 'months' ? calendarManager.getScopeValues().map(e => e.name) : calendarManager.getScopeValues()}
+                    collection={collection}
                     headers={headers}
                     onElmClick={onElmClick}
                 />
             </Stack>
         </Paper>
     )
-}
+})
 
 export function NextPrevButtons({ onPrev, onNext }: { onPrev: () => void, onNext: () => void }) {
     return (
@@ -139,13 +141,13 @@ export type SlideProps = {
 export function Slide({ columns, collection, headers, onElmClick }: SlideProps) {
     return (
         <>
-            <Grid container columns={columns} textAlign='center'>
-                {headers.map((e, i) => <Grid key={i} item xs={1}><Typography textAlign='center'>{e}</Typography></Grid>)}
+            <Grid container columns={columns} textAlign='center' spacing={0}>
+                {headers && headers.map((e, i) => <Grid key={i} item xs={1}><Typography textAlign='center'>{e}</Typography></Grid>)}
                 {collection.map((e, i) =>
                     e === null
                         ? <Grid key={i} item xs={1}></Grid>
                         : <Grid key={i} item xs={1}>
-                            <Chip sx={{ m: 1 }} label={<Typography textAlign='center'>{e}</Typography>} variant="outlined" onClick={async () => { if (onElmClick) await onElmClick(e, i) }} />
+                            <Chip sx={{ m: 1 }} label={e} variant="outlined" onClick={async () => { if (onElmClick) await onElmClick(e, i) }} />
                         </Grid>
                 )}
             </Grid>

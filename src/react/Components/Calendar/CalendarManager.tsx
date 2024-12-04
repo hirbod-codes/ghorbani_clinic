@@ -40,6 +40,10 @@ export class CalendarManager {
         this.selectedYear = year;
         this.selectedMonth = month;
         this.scope = scope;
+        
+        this.setMonths(year);
+        this.setDays(year, month);
+        this.setYears(year - 19, 20);
     }
 
     getScopeValues(): number[] | { name: string; days: number; }[] {
@@ -147,7 +151,6 @@ export class CalendarManager {
                 break;
 
             case 'years':
-                this.selectedYear += 1;
                 this.setYears(this.years[0] + 20, 20);
                 break;
 
@@ -175,8 +178,7 @@ export class CalendarManager {
                 break;
 
             case 'years':
-                this.selectedYear += 1;
-                this.setYears(this.years[0] + 20, 20);
+                this.setYears(this.years[0] - 20, 20);
                 break;
 
             default:
