@@ -64,7 +64,7 @@ export const DbSettings = memo(function DbSettings() {
 
                                     if (result === true) {
                                         publish(RESULT_EVENT_NAME, {
-                                            severity: 'error',
+                                            severity: 'success',
                                             message: t('DbSettings.successfullySeededDB')
                                         });
                                         setOpenSeedQuestion(false);
