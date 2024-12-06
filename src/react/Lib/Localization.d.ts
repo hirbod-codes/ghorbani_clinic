@@ -6,7 +6,7 @@ export type Languages = 'en' | 'fa'
 
 export type Direction = 'ltr' | 'rtl'
 
-export type Locale = {
+export type Local = {
     zone: TimeZone,
     calendar: Calendar,
     code: Languages,

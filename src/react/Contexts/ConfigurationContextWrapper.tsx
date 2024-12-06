@@ -2,7 +2,7 @@ import { CssBaseline, GlobalStyles, Modal, PaletteMode, Paper, SimplePaletteColo
 import { useState, useRef, ReactNode, useEffect, memo, useMemo } from 'react';
 import { Localization, enUS } from '@mui/material/locale';
 import { useTranslation } from "react-i18next";
-import type { Locale } from '../Lib/Localization';
+import type { Local } from '../Lib/Localization';
 import type { Calendar, TimeZone } from '../Lib/DateTime';
 import { ConfigurationContext, ConfigurationData, ConfigurationStorableData } from './ConfigurationContext';
 import { getLocale, getReactLocale } from '../Lib/helpers';
@@ -28,7 +28,7 @@ export const ConfigurationContextWrapper = memo(function ConfigurationContextWra
     const { t, i18n } = useTranslation();
 
     const initialThemeMode: PaletteMode = useMediaQuery('(prefers-color-scheme: dark)') ? 'dark' : 'light';
-    const getInitialLocale: Locale = ({ calendar: 'Persian', zone: 'Asia/Tehran', code: getLocale(enUS), direction: 'ltr' });
+    const getInitialLocale: Local = ({ calendar: 'Persian', zone: 'Asia/Tehran', code: getLocale(enUS), direction: 'ltr' });
     const initialThemeOptions: ThemeOptions = {
         palette: {
             mode: initialThemeMode,

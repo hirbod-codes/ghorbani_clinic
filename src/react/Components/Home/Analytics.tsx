@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { t } from "i18next";
 import { Button, CircularProgress, Grid, Stack, Typography } from "@mui/material";
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
@@ -10,7 +10,7 @@ import { publish } from "../../Lib/Events";
 import { motion } from "framer-motion";
 
 
-export function Analytics() {
+export const Analytics = memo(function Analytics() {
     const [initLoading, setInitLoading] = useState<boolean>(true);
 
     const [visitsCount, setVisitsCount] = useState<number | undefined>(undefined);
@@ -187,4 +187,4 @@ export function Analytics() {
             </Grid >
         </>
     );
-}
+})

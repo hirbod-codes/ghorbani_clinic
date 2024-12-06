@@ -2,10 +2,10 @@ import { createContext } from "react";
 import { Localization } from "@mui/material/locale";
 import { PaletteMode, Theme, ThemeOptions } from "@mui/material";
 import { Calendar, TimeZone } from "../Lib/DateTime";
-import { Locale } from "../Lib/Localization";
+import { Local } from "../Lib/Localization";
 
 export type ConfigurationStorableData = {
-    locale: Locale,
+    locale: Local,
     themeOptions: ThemeOptions,
     canvas?: {
         backgroundColor: string

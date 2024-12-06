@@ -1,11 +1,11 @@
 import { Paper, Stack, Typography, useTheme } from "@mui/material"
 import { DateTime } from "luxon"
-import { useContext, useEffect, useState } from "react"
+import { memo, useContext, useEffect, useState } from "react"
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext"
 import { fromUnixToFormat } from "../../Lib/DateTime/date-time-helpers"
 import { getLuxonLocale } from "../../Lib/helpers"
 
-export function Clock() {
+export const Clock = memo(function Clock() {
     const theme = useTheme()
     const configuration = useContext(ConfigurationContext)
 
@@ -34,7 +34,7 @@ export function Clock() {
 
     return (
         <>
-            <Paper sx={{p:2}}>
+            <Paper sx={{ p: 2 }}>
                 <Stack direction='column' alignItems='center' sx={{ borderWidth: '1px', borderColor: theme.palette.grey[400] }}>
                     <Typography variant="body1">
                         {date}
@@ -46,5 +46,5 @@ export function Clock() {
             </Paper>
         </>
     )
-}
+})
 

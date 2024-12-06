@@ -20,6 +20,7 @@ import { ConfigurationError } from "../Configuration/Exceptions/ConfigurationErr
 import { ConnectionError } from "./Exceptions/ConnectionError";
 import { authRepository, privilegesRepository } from "./main";
 import { resources } from "./Repositories/Auth/resources";
+import { BadRequest } from "./Exceptions/BadRequest";
 
 export class MongoDB implements dbAPI {
     private static db: Db | null = null
@@ -425,7 +426,9 @@ export class MongoDB implements dbAPI {
             console.error('error in main process')
             console.error('error', error)
             console.error('error json', JSON.stringify(error, undefined, 4))
-            if (error instanceof Unauthorized)
+            if (error instanceof BadRequest)
+                return JSON.stringify({ code: 400 })
+            else if (error instanceof Unauthorized)
                 return JSON.stringify({ code: 403 })
             else if (error instanceof Unauthenticated)
                 return JSON.stringify({ code: 401 })

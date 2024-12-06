@@ -3,14 +3,14 @@ import { fromDateTimePartsToFormat } from "../../Lib/DateTime/date-time-helpers"
 import { getGregorianMonths, isLeapGregorianYear, getGregorianWeekDays } from "../../Lib/DateTime/gregorian-calendar";
 import { getPersianMonths, isLeapPersianYear, getPersianWeekDays } from "../../Lib/DateTime/persian-calendar";
 import { getLocale, getReactLocale } from "../../Lib/helpers";
-import { Languages, Locale } from "../../Lib/Localization";
+import { Languages, Local } from "../../Lib/Localization";
 import { CalendarScope } from "./index.d";
 
 export class CalendarManager {
     private type: CalendarType;
     private scope: CalendarScope = 'days';
     private code: Languages;
-    private locale: Locale;
+    private locale: Local;
     selectedYear: number;
     selectedMonth: number;
 
@@ -18,7 +18,7 @@ export class CalendarManager {
     months: { name: string; days: number; }[];
     years: number[];
 
-    constructor(type: CalendarType, selectedYear: number, selectedMonth: number, code: Languages, locale: Locale) {
+    constructor(type: CalendarType, selectedYear: number, selectedMonth: number, code: Languages, locale: Local) {
         this.type = type;
         this.selectedYear = selectedYear;
         this.selectedMonth = selectedMonth;
@@ -40,7 +40,7 @@ export class CalendarManager {
         this.selectedYear = year;
         this.selectedMonth = month;
         this.scope = scope;
-        
+
         this.setMonths(year);
         this.setDays(year, month);
         this.setYears(year - 19, 20);

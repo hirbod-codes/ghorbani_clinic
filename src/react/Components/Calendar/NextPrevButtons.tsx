@@ -1,7 +1,8 @@
-import { ArrowLeftOutlined, ArrowRightOutlined} from "@mui/icons-material";
+import { ArrowLeftOutlined, ArrowRightOutlined } from "@mui/icons-material";
 import { IconButton, Stack } from "@mui/material";
+import { memo } from "react";
 
-export function NextPrevButtons({ onPrev, onNext }: { onPrev: () => void, onNext: () => void }) {
+export const NextPrevButtons = memo(function NextPrevButtons({ onPrev, onNext }: { onPrev: () => void, onNext: () => void }) {
     return (
         <Stack direction='row'>
             <IconButton onClick={onPrev}>
@@ -12,4 +13,4 @@ export function NextPrevButtons({ onPrev, onNext }: { onPrev: () => void, onNext
             </IconButton>
         </Stack>
     )
-}
+})

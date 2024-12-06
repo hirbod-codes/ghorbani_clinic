@@ -86,7 +86,7 @@ export async function seedPatientsVisits(patientCount: number, patientsCollectio
             let tryCount = 0
             while (tryCount < 3)
                 try {
-                    const patientCreatedAt = DateTime.fromISO(faker.date.between({ from: '2019-01-01T00:00:00.000Z', to: '2024-01-01T00:00:00.000Z' }).toISOString())
+                    const patientCreatedAt = DateTime.fromISO(faker.date.between({ from: DateTime.utc().minus({ months: 3 }).toISO(), to: DateTime.utc().plus({ months: 3 }).toISO() }).toISOString())
                     const gender = faker.datatype.boolean(0.5) ? 'male' : 'female'
                     const age = faker.number.int({ min: 8, max: 60 })
                     let patient = {

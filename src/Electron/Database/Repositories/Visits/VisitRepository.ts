@@ -10,6 +10,8 @@ import { Unauthenticated } from "../../Exceptions/Unauthenticated";
 import { authRepository, privilegesRepository } from "../../main";
 import { resources } from "../Auth/resources";
 import { getFields } from "../../Models/helpers";
+import { BadRequest } from "../../Exceptions/BadRequest";
+import { number } from "yup";
 
 export class VisitRepository extends MongoDB implements IVisitRepository {
     async handleEvents(): Promise<void> {
@@ -17,7 +19,9 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         ipcMain.handle('get-visits-estimated-count', async () => await this.handleErrors(async () => await this.getVisitsEstimatedCount()))
         ipcMain.handle('get-expired-visits-count', async () => await this.handleErrors(async () => await this.getExpiredVisitsCount()))
         ipcMain.handle('get-expired-visits', async () => await this.handleErrors(async () => await this.getExpiredVisits()))
-        ipcMain.handle('get-visits', async (_e, { patientIdOffset, count }: { patientIdOffset?: string | number, count?: number }) => await this.handleErrors(async () => await this.getVisits(patientIdOffset as any, count)))
+        ipcMain.handle('get-visits-by-date', async (_e, { startDate, endDate }: { startDate: number, endDate: number }) => await this.handleErrors(async () => await this.getVisitsByDate(startDate, endDate)))
+        ipcMain.handle('get-visits-by-patient-id', async (_e, { patientId }: { patientId: string }) => await this.handleErrors(async () => await this.getVisitsByPatientId(patientId)))
+        ipcMain.handle('get-visits', async (_e, { offset, count }: { offset: number, count: number }) => await this.handleErrors(async () => await this.getVisits(offset, count)))
         ipcMain.handle('update-visit', async (_e, { visit }: { visit: Visit }) => await this.handleErrors(async () => await this.updateVisit(visit)))
         ipcMain.handle('delete-visit', async (_e, { id }: { id: string }) => await this.handleErrors(async () => await this.deleteVisit(id)))
     }
@@ -68,25 +72,63 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         return (await (await this.getVisitsCollection()).find({ due: { $lt: nowTs } }).toArray())
     }
 
-    async getVisits(): Promise<Visit[]>
-    async getVisits(patientId: string): Promise<Visit[]>
-    async getVisits(offset: number, count: number): Promise<Visit[]>
-    async getVisits(patientIdOffset?: string | number, count?: number): Promise<Visit[]> {
+    async getVisitsByDate(startDate: number, endDate: number): Promise<Visit[]> {
+        if (startDate > endDate)
+            throw new Error('Invalid start and end date provided')
+
+        console.log('Authenticating...')
         const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();
 
+        console.log('Authorizing...')
         const privileges = await privilegesRepository.getAccessControl();
         if (!privileges.can(user.roleName).read(resources.VISIT).granted)
             throw new Unauthorized()
 
-        let visits: Visit[]
-        if (patientIdOffset === undefined || typeof patientIdOffset === 'string')
-            visits = await (await this.getVisitsCollection()).find(patientIdOffset ? { patientId: new ObjectId(patientIdOffset as string) } : undefined).sort('due', -1).toArray()
-        else if (typeof patientIdOffset === 'number' || typeof patientIdOffset === 'bigint')
-            visits = await (await this.getVisitsCollection()).find().limit(count).skip(patientIdOffset * count).sort('due', -1).toArray()
-        else
-            throw new Error('Invalid value provided for parameter patientIdOffset')
+        const visits: Visit[] = await (await this.getVisitsCollection()).find({ $and: [{ due: { $lte: endDate } }, { due: { $gte: startDate } }] }).sort('due', -1).toArray()
+
+        const readableVisits = extractKeysRecursive(visits, getFields(readableFields, privileges.can(user.roleName).read(resources.VISIT).attributes));
+
+        return readableVisits
+    }
+
+    async getVisitsByPatientId(patientId: string): Promise<Visit[]> {
+        console.log('Authenticating...')
+        const user = await authRepository.getAuthenticatedUser()
+        if (!user)
+            throw new Unauthenticated();
+
+        console.log('Authorizing...')
+        const privileges = await privilegesRepository.getAccessControl();
+        if (!privileges.can(user.roleName).read(resources.VISIT).granted)
+            throw new Unauthorized()
+
+        const visits: Visit[] = await (await this.getVisitsCollection()).find({ patientId: new ObjectId(patientId) }).sort('due', -1).toArray()
+
+        const readableVisits = extractKeysRecursive(visits, getFields(readableFields, privileges.can(user.roleName).read(resources.VISIT).attributes));
+
+        return readableVisits
+    }
+
+    async getVisits(offset: number, count: number): Promise<Visit[]> {
+        console.log({ offset, count });
+        if (!number().required().min(0).isValidSync(offset) || !number().required().min(1).isValidSync(count))
+            throw new BadRequest('Invalid data for getVisits method of VisitRepository.')
+
+        console.log({ offset, count });
+
+        console.log('Authenticating...')
+        const user = await authRepository.getAuthenticatedUser()
+        if (!user)
+            throw new Unauthenticated();
+
+        console.log('Authorizing...')
+        const privileges = await privilegesRepository.getAccessControl();
+        if (!privileges.can(user.roleName).read(resources.VISIT).granted)
+            throw new Unauthorized()
+
+        const visits: Visit[] = await (await this.getVisitsCollection()).find().limit(count).skip(offset * count).sort('due', -1).toArray()
 
         const readableVisits = extractKeysRecursive(visits, getFields(readableFields, privileges.can(user.roleName).read(resources.VISIT).attributes));
 

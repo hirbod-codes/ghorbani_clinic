@@ -13,9 +13,15 @@ export type CalendarProps = {
     onYearSelect?: (year: number) => void | Promise<void>,
     onMonthSelect?: (year: number, month: number) => void | Promise<void>,
     onDaySelect?: (year: number, month: number, day: number) => void | Promise<void>
+    onYearPointerOver?: (year: number) => void | Promise<void>,
+    onMonthPointerOver?: (year: number, month: number) => void | Promise<void>,
+    onDayPointerOver?: (year: number, month: number, day: number) => void | Promise<void>
+    onYearPointerOut?: (year: number) => void | Promise<void>,
+    onMonthPointerOut?: (year: number, month: number) => void | Promise<void>,
+    onDayPointerOut?: (year: number, month: number, day: number) => void | Promise<void>
 }
 
-export const Calendar = memo(function Calendar({ onYearSelect, onMonthSelect, onDaySelect, validScopes = ['days', 'months', 'years'] }: CalendarProps) {
+export const Calendar = memo(function Calendar({ validScopes = ['days', 'months', 'years'], onYearSelect, onMonthSelect, onDaySelect, onYearPointerOver, onMonthPointerOver, onDayPointerOver, onYearPointerOut, onMonthPointerOut, onDayPointerOut }: CalendarProps) {
     if (!validScopes || validScopes.length === 0)
         throw new Error('No scope provided')
 
@@ -25,10 +31,6 @@ export const Calendar = memo(function Calendar({ onYearSelect, onMonthSelect, on
 
     const { date } = fromUnix(locale, DateTime.utc().toUnixInteger())
     const [calendarManager, setCalendarManager] = useState(new CalendarManager(locale.calendar, date.year, date.month, locale.code, locale))
-
-    useEffect(() => {
-        setCalendarManager(new CalendarManager(locale.calendar, date.year, date.month, locale.code, locale))
-    }, [locale])
 
     const onTitleClick = () => {
         switch (calendarManager.getScope()) {
@@ -72,7 +74,48 @@ export const Calendar = memo(function Calendar({ onYearSelect, onMonthSelect, on
             case 'days':
                 if (onDaySelect)
                     onDaySelect(calendarManager.selectedYear, calendarManager.selectedMonth, i + 1)
-                rerender()
+                break;
+        }
+    }
+
+    const onPointerOver = (value: string | number, i: number) => {
+        switch (calendarManager.getScope()) {
+            case 'years':
+                if (!validScopes.includes('months'))
+                    break;
+                if (onYearPointerOver)
+                    onYearPointerOver(value as number)
+                break;
+            case 'months':
+                if (!validScopes.includes('days'))
+                    break;
+                if (onMonthPointerOver)
+                    onMonthPointerOver(calendarManager.selectedYear, i + 1)
+                break;
+            case 'days':
+                if (onDayPointerOver)
+                    onDayPointerOver(calendarManager.selectedYear, calendarManager.selectedMonth, i + 1)
+                break;
+        }
+    }
+
+    const onPointerOut = (value: string | number, i: number) => {
+        switch (calendarManager.getScope()) {
+            case 'years':
+                if (!validScopes.includes('months'))
+                    break;
+                if (onYearPointerOut)
+                    onYearPointerOut(value as number)
+                break;
+            case 'months':
+                if (!validScopes.includes('days'))
+                    break;
+                if (onMonthPointerOut)
+                    onMonthPointerOut(calendarManager.selectedYear, i + 1)
+                break;
+            case 'days':
+                if (onDayPointerOut)
+                    onDayPointerOut(calendarManager.selectedYear, calendarManager.selectedMonth, i + 1)
                 break;
         }
     }
@@ -116,6 +159,8 @@ export const Calendar = memo(function Calendar({ onYearSelect, onMonthSelect, on
                     collection={collection}
                     headers={headers}
                     onElmClick={onElmClick}
+                    onPointerOver={onPointerOver}
+                    onPointerOut={onPointerOut}
                 />
             </Stack>
         </Paper>

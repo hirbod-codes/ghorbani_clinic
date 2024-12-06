@@ -1,4 +1,4 @@
-import { MutableRefObject, PointerEvent, useEffect, useRef, useState } from 'react'
+import { MutableRefObject, PointerEvent, useRef, useState } from 'react'
 import { Draw, Point } from './types'
 import { isCanvasEmpty } from './helpers'
 
@@ -100,38 +100,6 @@ export const useDraw = (
 
         return { x, y }
     }
-
-    // const preventDefault = (e: PointerEvent | MouseEvent | TouchEvent) => { e.preventDefault(); e.stopPropagation() }
-
-    // useEffect(() => {
-    //     console.log('useDraw', 'useEffect1');
-
-    //     canvasRef.current?.addEventListener('mousedown', preventDefault, { passive: false })
-    //     canvasRef.current?.addEventListener('touchstart', preventDefault, { passive: false })
-    //     canvasRef.current?.addEventListener('pointerdown', onDown)
-
-    //     canvasRef.current?.addEventListener('pointermove', onMove)
-    //     canvasRef.current?.addEventListener('mousemove', preventDefault)
-    //     canvasRef.current?.addEventListener('touchmove', preventDefault)
-
-    //     canvasRef.current?.addEventListener('mouseup', preventDefault, { passive: false })
-    //     canvasRef.current?.addEventListener('touchend', preventDefault, { passive: false })
-    //     canvasRef.current?.addEventListener('pointerup', onUp)
-
-    //     return () => {
-    //         canvasRef.current?.removeEventListener('mousedown', preventDefault)
-    //         canvasRef.current?.removeEventListener('touchstart', preventDefault)
-    //         canvasRef.current?.removeEventListener('pointerdown', onDown)
-
-    //         canvasRef.current?.removeEventListener('pointermove', onMove)
-    //         canvasRef.current?.removeEventListener('mousemove', preventDefault)
-    //         canvasRef.current?.removeEventListener('touchmove', preventDefault)
-
-    //         canvasRef.current?.removeEventListener('mouseup', preventDefault)
-    //         canvasRef.current?.removeEventListener('touchend', preventDefault)
-    //         canvasRef.current?.removeEventListener('pointerup', onUp)
-    //     }
-    // }, [draw, canvasRef, canvasRef.current])
 
     return { onDown, clear, empty, onUp, onMove, pointerDown }
 }

@@ -1,12 +1,54 @@
-import { Box, Grid } from "@mui/material";
+import { Box, CircularProgress, Grid, Paper, Typography } from "@mui/material";
 import { SearchPatientField } from "../Components/Search/SearchPatientField";
 import { Analytics } from "../Components/Home/Analytics";
 import { Clock } from "../Components/Clock";
-import { memo } from "react";
+import { memo, useCallback, useContext, useState } from "react";
 import { Calendar } from "../Components/Calendar";
+import { getVisitsInDate } from "../Components/Visits/helpers";
+import { ConfigurationContext } from "../Contexts/ConfigurationContext";
+import { Visit } from "src/Electron/Database/Models/Visit";
+import { AnimatedCard } from "../Components/AnimatedCard";
+import { DateTime } from "luxon";
+import { toLocalDateTime, toLocalFormat } from "../Lib/DateTime/date-time-helpers";
 
 export const Home = memo(function Home() {
-    console.log('Home')
+    const locale = useContext(ConfigurationContext).get.locale
+
+
+    const [cardKey, setCardKey] = useState<number>()
+    const [showVisitsStats, setShowVisitsStats] = useState<boolean>(false)
+
+    const [visits, setVisits] = useState<Visit[]>(undefined)
+    const [patientsCount, setPatientsCount] = useState<number>(undefined)
+    const [fetchingVisits, setFetchingVisits] = useState<boolean>(false)
+
+    console.log('Home', { visits, patientsCount, showVisitsStats, fetchingVisits, d: toLocalDateTime(DateTime.utc().toUnixInteger(), { calendar: 'Gregorian', code: 'en', direction: 'ltr', zone: 'UTC' }).toISO() })
+
+    const onOver = useCallback(async (year: number, month: number, day: number) => {
+        console.log('onEnter``````````````````````````````````````````````````````````````')
+
+        setCardKey(day)
+        setShowVisitsStats(true)
+
+        setFetchingVisits(true)
+        const vs = await getVisitsInDate({ year, month, day }, locale)
+        setFetchingVisits(false)
+        if (!vs || vs.length <= 0)
+            return
+
+        setVisits(vs)
+
+        let c: string[] = []
+        vs.forEach(v => { if (!c.includes(v.patientId as string)) c.push(v.patientId as string) })
+        setPatientsCount(c.length)
+    }, [])
+
+    const onOut = (y: number, m: number, d: number) => {
+        console.log('onLeave``````````````````````````````````````````````````````````````')
+        setVisits(undefined)
+        setPatientsCount(undefined)
+        setShowVisitsStats(false)
+    }
 
     return (
         <>
@@ -21,8 +63,22 @@ export const Home = memo(function Home() {
                     <Clock />
                 </Grid>
 
-                <Grid item xs={0} sm={3}>
-                    <Calendar />
+                <Grid item xs={0} sm={4}>
+                    <Paper sx={{ zIndex: 20, border: '1px solid red', width: '30rem' }}>
+                        <Calendar onDayPointerOver={onOver} onDayPointerOut={onOut} />
+
+                        <Paper sx={{ position: 'relative', zIndex: -10 }} >
+                            <AnimatedCard
+                                animationKey={cardKey}
+                                open={showVisitsStats}
+                                paperProps={{ sx: { minWidth: '10rem', minHeight: '10rem' } }}
+                            >
+                                {fetchingVisits && <CircularProgress />}
+                                {!fetchingVisits && patientsCount && <Typography>Patients count: {patientsCount}</Typography>}
+                                {!fetchingVisits && visits && visits.length && <Typography>Visits length: {visits.length}</Typography>}
+                            </AnimatedCard>
+                        </Paper>
+                    </Paper>
                 </Grid>
                 <Grid item xs={0} sm={9}></Grid>
 

@@ -1,4 +1,4 @@
-import { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent, memo } from "react";
 import { t } from "i18next";
 import { CircularProgress, InputAdornment, TextField } from "@mui/material";
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
@@ -8,8 +8,7 @@ import { ManagePatient } from "../Patients/ManagePatient";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 
-
-export function SearchPatientField() {
+export const SearchPatientField = memo(function SearchPatientField() {
     const [loading, setLoading] = useState<boolean>(false);
     const [socialId, setSocialId] = useState<string | undefined>(undefined);
     const [patient, setPatient] = useState<Patient | undefined>(undefined);
@@ -67,4 +66,4 @@ export function SearchPatientField() {
             />
         </>
     );
-}
+})
