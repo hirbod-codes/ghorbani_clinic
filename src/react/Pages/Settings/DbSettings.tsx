@@ -1,4 +1,4 @@
-import { Button, CircularProgress, Dialog, DialogActions, DialogTitle, Divider, Stack } from '@mui/material'
+import { Button, CircularProgress, Dialog, DialogActions, DialogTitle, Divider, Grid, Stack } from '@mui/material'
 import DbSettingsForm from '../../../react/Components/Settings/DbSettingsForm'
 import { t } from 'i18next'
 import { memo, useContext, useState } from 'react'
@@ -18,23 +18,49 @@ export const DbSettings = memo(function DbSettings() {
     const [seeding, setSeeding] = useState<boolean>(false)
     const [truncating, setTruncating] = useState<boolean>(false)
 
+    const [checkingConnectionHealth, setCheckingConnectionHealth] = useState<boolean>(false)
+    const [connectionHealth, setConnectionHealth] = useState<boolean>(false)
+    const checkConnectionHealth = async () => {
+        const result = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.checkConnectionHealth()
+        console.log('checkConnectionHealth', { result: Boolean(result) })
+        setConnectionHealth(Boolean(result))
+    }
+
+    console.log('DbSettings', { openSeedQuestion, openTruncateDbQuestion, seeding, truncating, checkingConnectionHealth, connectionHealth });
+
     return (
         <>
-            <Stack p={2} spacing={2} direction='column'>
-                <Stack spacing={2} direction='row'>
-                    <Button variant='contained' onClick={() => setOpenSeedQuestion(true)}>
-                        {t("DbSettings.Seed")}
-                    </Button>
+            <Grid container>
+                <Grid item sm={3} />
+                <Grid item xs={12} sm={6}>
 
-                    <Button color='error' variant='contained' onClick={() => setOpenTruncateDbQuestion(true)}>
-                        {t("DbSettings.Truncate")}
-                    </Button>
-                </Stack>
+                    <Stack p={2} spacing={2} direction='column'>
+                        <Stack spacing={2} direction='row'>
+                            <Button variant='contained' onClick={() => setOpenSeedQuestion(true)}>
+                                {t("DbSettings.Seed")}
+                            </Button>
 
-                <Divider />
+                            <Button color='success' variant='contained' onClick={() => setOpenTruncateDbQuestion(true)}>
+                                {t("DbSettings.Truncate")}
+                            </Button>
 
-                <DbSettingsForm noTitle />
-            </Stack>
+                            <Button
+                                color={connectionHealth ? 'success' : 'error'}
+                                endIcon={checkingConnectionHealth && <CircularProgress size={30} />}
+                                variant='contained'
+                                onClick={async () => { setCheckingConnectionHealth(true); await checkConnectionHealth(); setCheckingConnectionHealth(false) }}
+                            >
+                                {t("DbSettings.CheckConnection")}
+                            </Button>
+                        </Stack>
+
+                        <Divider />
+
+                        <DbSettingsForm noTitle />
+                    </Stack>
+                </Grid>
+                <Grid item sm={3} />
+            </Grid >
 
             <Dialog
                 open={openSeedQuestion}

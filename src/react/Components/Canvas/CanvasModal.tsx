@@ -1,5 +1,5 @@
 import { Modal, Paper, Slide } from "@mui/material"
-import { Canvas } from "./Canvas";
+import { Canvas } from ".";
 
 export function CanvasModal({ open, onClose, title, defaultContent, onChange }: { open: boolean; onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void; title?: string; defaultContent?: string | undefined; onChange?: (content: string) => void | Promise<void> }) {
     console.log('CanvasModal', { open, onClose, title, defaultContent, onChange })

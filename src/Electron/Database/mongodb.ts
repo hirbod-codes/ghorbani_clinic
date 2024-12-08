@@ -26,12 +26,25 @@ export class MongoDB implements dbAPI {
     private static db: Db | null = null
 
     async handleEvents(): Promise<void> {
+        ipcMain.handle('check-connection-health', async () => await this.checkConnectionHealth())
         ipcMain.handle('truncate', async () => await this.truncate())
         ipcMain.handle('seed', async () => await this.seed())
         ipcMain.handle('initialize-db', async () => await this.initializeDb())
         ipcMain.handle('get-config', async () => await this.getConfig())
         ipcMain.handle('update-config', async (_e, { config }: { config: MongodbConfig }) => await this.updateConfig(config))
         ipcMain.handle('search-for-db-service', async (_e, { databaseName, supportsTransaction = false, auth }: { databaseName?: string, supportsTransaction: boolean, auth?: { username: string, password: string } }) => await this.searchForDbService(databaseName, supportsTransaction, auth))
+    }
+
+    async checkConnectionHealth(): Promise<boolean> {
+        try {
+            const db = await this.getDb(await this.getClient(), false)
+            const stats = await db.stats()
+            console.log({ stats })
+            return stats.ok as boolean
+        } catch (error) {
+            console.error(error)
+            return false
+        }
     }
 
     async getConfig(): Promise<MongodbConfig> {

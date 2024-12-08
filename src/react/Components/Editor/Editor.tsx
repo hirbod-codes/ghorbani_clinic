@@ -1,7 +1,7 @@
 import { CloudDoneOutlined, CloudUploadOutlined, DarkModeOutlined, DrawOutlined, LightModeOutlined, RemoveRedEyeOutlined, SaveAltOutlined, TypeSpecimenOutlined } from "@mui/icons-material"
-import { Backdrop, Box, Divider, IconButton, Stack, Typography } from "@mui/material"
+import { Backdrop, Box, Divider, IconButton, Stack, Tooltip, Typography } from "@mui/material"
 import { t } from "i18next";
-import { useState, useRef, useEffect, useContext } from "react"
+import { useState, useRef, useEffect, useContext, memo } from "react"
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
@@ -23,7 +23,7 @@ export type EditorProps = {
     onChange?: (text?: string, canvasId?: string) => void | Promise<void>;
 }
 
-export function Editor({ hideCanvas = false, hideTextEditor = false, title, text: inputText, canvasId: inputCanvasId, onSave, onChange, setHasUnsavedChanges: setHasUnsavedChangesProperty }: EditorProps) {
+export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor = false, title, text: inputText, canvasId: inputCanvasId, onSave, onChange, setHasUnsavedChanges: setHasUnsavedChangesProperty }: EditorProps) {
     const theme = useContext(ConfigurationContext).get.theme
     const [loading, setLoading] = useState<boolean>(false)
 
@@ -69,7 +69,7 @@ export function Editor({ hideCanvas = false, hideTextEditor = false, title, text
     const [canvasBackground, setCanvasBackground] = useState<string>(theme.palette.common.white)
     const canvas = useRef<HTMLCanvasElement>()
 
-    console.log('Editor', { title, loading, inputText, canvasId, text, status, canvas: canvas.current, imageSrc, contentHasUnsavedChanges, canvasHasUnsavedChanges, canvasBackground })
+    console.log('Editor', { title, loading, inputText, canvasId, text, status, canvas: canvas.current, imageSrc, contentHasUnsavedChanges, canvasHasUnsavedChanges })
 
     const saveContent = async () => {
         try {
@@ -113,7 +113,7 @@ export function Editor({ hideCanvas = false, hideTextEditor = false, title, text
                         width: canvas.current?.width,
                         height: canvas.current?.height,
                         colorSpace: 'srgb',
-                        backgroundColor: canvasBackground,
+                        backgroundColor: canvas.current.style.backgroundColor,
                         type,
                         data,
                     })
@@ -257,8 +257,7 @@ export function Editor({ hideCanvas = false, hideTextEditor = false, title, text
         try {
             console.group('Editor', 'useEffect')
 
-            init()
-                .finally(() => console.groupEnd())
+            init().finally(() => console.groupEnd())
         }
         finally { console.groupEnd() }
     }, [status, canvas.current, inputCanvasId, inputText, canvasId])
@@ -284,18 +283,24 @@ export function Editor({ hideCanvas = false, hideTextEditor = false, title, text
                         <IconButton onClick={() => {
                             setStatus('showing')
                         }}>
-                            <RemoveRedEyeOutlined />
+                            <Tooltip title={t('Editor.View')}>
+                                <RemoveRedEyeOutlined />
+                            </Tooltip>
                         </IconButton>
 
                         {!hideTextEditor &&
                             <IconButton onClick={() => setStatus('typing')}>
-                                <TypeSpecimenOutlined />
+                                <Tooltip title={t('Editor.Notes')}>
+                                    <TypeSpecimenOutlined />
+                                </Tooltip>
                             </IconButton>
                         }
 
                         {!hideCanvas &&
                             <IconButton onClick={() => setStatus('drawing')}>
-                                <DrawOutlined />
+                                <Tooltip title={t('Editor.WhiteBoard')}>
+                                    <DrawOutlined />
+                                </Tooltip>
                             </IconButton>
                         }
                     </Stack>
@@ -354,21 +359,12 @@ export function Editor({ hideCanvas = false, hideTextEditor = false, title, text
                                 <IconButton onClick={saveCanvas} color={canvasHasUnsavedChanges ? 'warning' : 'default'}>
                                     {canvasHasUnsavedChanges ? <CloudUploadOutlined color='warning' /> : <CloudDoneOutlined color='success' />}
                                 </IconButton>
-                                <IconButton
-                                    onClick={() => {
-                                        setCanvasBackground(canvasBackground === theme.palette.common.black ? theme.palette.common.white : theme.palette.common.black)
-                                        setCanvasHasUnsavedChanges(true)
-                                    }}
-                                >
-                                    {canvasBackground === theme.palette.common.white ? <LightModeOutlined /> : <DarkModeOutlined />}
-                                </IconButton>
                             </Stack>
                         }
 
                         <Box sx={{ flexGrow: 2, overflow: 'hidden' }}>
                             <Canvas
                                 canvasRef={canvas}
-                                canvasBackground={canvasBackground}
                                 onChange={async (empty) => {
                                     setCanvasHasUnsavedChanges(true);
                                     if (onChange)
@@ -381,4 +377,4 @@ export function Editor({ hideCanvas = false, hideTextEditor = false, title, text
             </Stack >
         </>
     )
-}
+})

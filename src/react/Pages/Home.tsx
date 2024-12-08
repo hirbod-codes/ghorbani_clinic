@@ -22,7 +22,7 @@ export const Home = memo(function Home() {
     const [patientsCount, setPatientsCount] = useState<number>(undefined)
     const [fetchingVisits, setFetchingVisits] = useState<boolean>(false)
 
-    console.log('Home', { visits, patientsCount, showVisitsStats, fetchingVisits, d: toLocalDateTime(DateTime.utc().toUnixInteger(), { calendar: 'Gregorian', code: 'en', direction: 'ltr', zone: 'UTC' }).toISO() })
+    console.log('Home', { visits, patientsCount, showVisitsStats, fetchingVisits })
 
     const onOver = useCallback(async (year: number, month: number, day: number) => {
         console.log('onEnter``````````````````````````````````````````````````````````````')
@@ -64,9 +64,7 @@ export const Home = memo(function Home() {
                 </Grid>
 
                 <Grid item xs={0} sm={4}>
-                    <Paper sx={{ zIndex: 20, border: '1px solid red', width: '30rem' }}>
-                        <Calendar onDayPointerOver={onOver} onDayPointerOut={onOut} />
-
+                    <Paper elevation={3} sx={{ zIndex: 20, overflow: 'visible', minWidth: '25rem', p: 0.5, backgroundImage: 'linear-gradient(23deg, #0000ff00, #004cff70)' }}>
                         <Paper sx={{ position: 'relative', zIndex: -10 }} >
                             <AnimatedCard
                                 animationKey={cardKey}
@@ -78,6 +76,8 @@ export const Home = memo(function Home() {
                                 {!fetchingVisits && visits && visits.length && <Typography>Visits length: {visits.length}</Typography>}
                             </AnimatedCard>
                         </Paper>
+
+                        <Calendar onDayPointerOver={onOver} onDayPointerOut={onOut} />
                     </Paper>
                 </Grid>
                 <Grid item xs={0} sm={9}></Grid>

@@ -19,6 +19,7 @@ export type RendererDbAPI =
     FileRendererEvents &
     CanvasRendererEvents &
     {
+        checkConnectionHealth: () => Promise<boolean>,
         truncate: () => Promise<boolean>,
         seed: () => Promise<boolean>,
         initializeDb: () => Promise<boolean>,
@@ -30,6 +31,7 @@ export type RendererDbAPI =
 export function handleDbRendererEvents(): RendererDbAPI {
     return {
         ...{
+            checkConnectionHealth: async (): Promise<boolean> => await ipcRenderer.invoke('check-connection-health'),
             truncate: async (): Promise<boolean> => await ipcRenderer.invoke('truncate'),
             seed: async (): Promise<boolean> => await ipcRenderer.invoke('seed'),
             initializeDb: async (): Promise<boolean> => await ipcRenderer.invoke('initialize-db'),

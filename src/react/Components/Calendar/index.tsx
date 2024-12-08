@@ -140,29 +140,27 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
     console.log('Calendar', { locale, collection, columns, calendarManager })
 
     return (
-        <Paper sx={{ overflow: 'auto', minWidth: '25rem' }}>
-            <Stack direction='column' divider={<Divider />} spacing={1} sx={{ p: 1 }} >
-                <Stack direction='row' alignItems='center' sx={{ p: 1 }} spacing={1}>
-                    <NextPrevButtons onPrev={() => { calendarManager.previous(); rerender() }} onNext={() => { calendarManager.next(); rerender() }} />
+        <Stack direction='column' divider={<Divider />} spacing={0.2}>
+            <Stack direction='row' alignItems='center' spacing={0.2}>
+                <NextPrevButtons onPrev={() => { calendarManager.previous(); rerender() }} onNext={() => { calendarManager.next(); rerender() }} />
 
-                    <Divider orientation="vertical" variant='middle' sx={{ height: '2rem' }} />
+                <Divider orientation="vertical" variant='middle' sx={{ height: '2rem' }} />
 
-                    <Stack direction='row' justifyContent='center' sx={{ flexGrow: 2 }}>
-                        <Typography textAlign='center' onClick={onTitleClick} sx={{ cursor: 'pointer' }}>
-                            {calendarManager.getTitle()}
-                        </Typography>
-                    </Stack>
+                <Stack direction='row' justifyContent='center' sx={{ flexGrow: 2 }}>
+                    <Typography textAlign='center' onClick={onTitleClick} sx={{ cursor: 'pointer' }}>
+                        {calendarManager.getTitle()}
+                    </Typography>
                 </Stack>
-
-                <Slide
-                    columns={columns}
-                    collection={collection}
-                    headers={headers}
-                    onElmClick={onElmClick}
-                    onPointerOver={onPointerOver}
-                    onPointerOut={onPointerOut}
-                />
             </Stack>
-        </Paper>
+
+            <Slide
+                columns={columns}
+                collection={collection}
+                headers={headers}
+                onElmClick={onElmClick}
+                onPointerOver={onPointerOver}
+                onPointerOut={onPointerOut}
+            />
+        </Stack>
     )
 })
