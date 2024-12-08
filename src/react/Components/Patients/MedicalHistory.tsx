@@ -1,4 +1,4 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Grid, IconButton, List, ListItem, ListItemText, Paper, Stack, Typography } from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Grid, IconButton, List, ListItem, ListItemText, Paper, Stack, Tooltip, Typography } from "@mui/material";
 import { t } from "i18next";
 import { useState, useMemo, useContext, useEffect } from 'react'
 import { PatientsMedicalHistory } from "../../../Electron/Database/Models/Patient";
@@ -74,7 +74,9 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                                         // using Stack component because alignItems='start' will make dividers invisible!!
                                         <Stack direction='row' justifyContent='start'>
                                             <IconButton size="small" onClick={() => setIsEditingHistories(true)}>
-                                                <EditOutlined />
+                                                <Tooltip title={t('MedicalHistories.Edit')}>
+                                                    <EditOutlined />
+                                                </Tooltip>
                                             </IconButton>
                                         </Stack>
                                     }

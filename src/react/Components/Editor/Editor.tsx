@@ -11,6 +11,7 @@ import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { SaveIcon } from "../Icons/SaveIcon";
 import LoadingScreen from "../LoadingScreen";
 import { isCanvasEmpty } from "../Canvas/helpers";
+import { Canvas as CanvasModel } from "../../../Electron/Database/Models/Canvas";
 
 export type EditorProps = {
     hideCanvas?: boolean;
@@ -46,6 +47,8 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
     const [contentHasUnsavedChanges, setContentHasUnsavedChangesState] = useState<boolean>(false)
     const [canvasHasUnsavedChanges, setCanvasHasUnsavedChangesState] = useState<boolean>(false)
 
+    const [backgroundColor, setBackgroundColor] = useState<string>()
+
     const setCanvasHasUnsavedChanges = (state: boolean) => {
         setCanvasHasUnsavedChangesState(state)
 
@@ -66,7 +69,6 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                 setHasUnsavedChangesProperty(canvasHasUnsavedChanges)
     }
 
-    const [canvasBackground, setCanvasBackground] = useState<string>(theme.palette.common.white)
     const canvas = useRef<HTMLCanvasElement>()
 
     console.log('Editor', { title, loading, inputText, canvasId, text, status, canvas: canvas.current, imageSrc, contentHasUnsavedChanges, canvasHasUnsavedChanges })
@@ -108,15 +110,16 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                 const data = dataUrl.split(',')[1]
                 console.log({ dataUrl, type, data })
 
-                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(
-                    {
-                        width: canvas.current?.width,
-                        height: canvas.current?.height,
-                        colorSpace: 'srgb',
-                        backgroundColor: canvas.current.style.backgroundColor,
-                        type,
-                        data,
-                    })
+                const c: CanvasModel = {
+                    width: canvas.current?.width,
+                    height: canvas.current?.height,
+                    colorSpace: 'srgb',
+                    backgroundColor: canvas.current.style.backgroundColor,
+                    type,
+                    data,
+                }
+                console.log({ canvasModel: c })
+                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(c)
 
                 console.log({ res })
                 if (res.code !== 200 || !res.data) {
@@ -220,7 +223,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                     setImageSrc(src);
 
                     if (data.backgroundColor)
-                        setCanvasBackground(data.backgroundColor)
+                        setBackgroundColor(data.backgroundColor)
 
                     // if src is not different than previous imageSrc then this event wouldn't fire
                     imageRef.current.onload = () => setLoading(false)
@@ -235,7 +238,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                     }
 
                     if (data.backgroundColor)
-                        setCanvasBackground(data.backgroundColor)
+                        canvas.current.style.backgroundColor = data.backgroundColor
 
                     const image = new Image()
                     image.onload = () => {
@@ -326,7 +329,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                         }
 
                         {canvasId &&
-                            <img ref={imageRef} src={imageSrc} style={{ backgroundColor: canvasBackground }} />
+                            <img ref={imageRef} src={imageSrc} style={{ backgroundColor }} />
                         }
                     </Stack>
                 }

@@ -1,5 +1,5 @@
-import { Backdrop, Box, CircularProgress, Divider, IconButton, Paper, Stack, Tooltip, useTheme } from "@mui/material";
-import { MutableRefObject, useEffect, useRef, useState } from "react";
+import { Backdrop, Box, CircularProgress, Divider, hexToRgb, IconButton, Paper, Stack, Tooltip, useTheme } from "@mui/material";
+import { MutableRefObject, useEffect, useReducer, useRef, useState } from "react";
 import { Draw } from "./types";
 import { useDraw } from "./useDraw";
 import { CancelPresentationOutlined, CheckBoxOutlineBlankOutlined, DarkModeOutlined, EditOutlined, LightModeOutlined, NearMeOutlined, PrintOutlined, RestartAltOutlined } from "@mui/icons-material";
@@ -47,6 +47,8 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
 
     const theme = useTheme()
 
+    const [, rerender] = useReducer(x => x + 1, 0)
+
     const [loading, setLoading] = useState<boolean>(false)
 
     const [shapes, setShapes] = useState<Shapes>(new Shapes([]))
@@ -58,7 +60,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
 
     const [tool, setTool] = useState<Tool>('pencil')
 
-    const { onDown, onUp, onMove, pointerDown, clear, empty } = useDraw(canvasRef, onChange, draw, onHoverHook, onDownHook, onUpHook)
+    const { onDown, onUp, onMove, clear } = useDraw(canvasRef, onChange, draw, onHoverHook, onDownHook, onUpHook)
 
     const printRef = useRef<HTMLImageElement>()
     const print = useReactToPrint({ onAfterPrint: () => { setLoading(false); printRef.current.src = undefined } })
@@ -76,8 +78,10 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
     }, [canvasRef.current])
 
     useEffect(() => {
-        if (canvasRef.current && canvasBackgroundInit)
+        if (canvasRef.current && canvasRef.current.style && canvasBackgroundInit) {
             canvasRef.current.style.backgroundColor = canvasBackgroundInit
+            rerender()
+        }
     }, [canvasRef.current, canvasBackgroundInit])
 
     return (
@@ -104,12 +108,20 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                         </Tooltip>
                         <Tooltip title={t('Canvas.BackgroundColor')}>
                             <IconButton onClick={() => {
-                                if (canvasRef.current.style.backgroundColor === theme.palette.common.white)
+                                if (!canvasRef?.current?.style)
+                                    return
+
+                                if (canvasRef?.current?.style.backgroundColor === hexToRgb(theme.palette.common.white))
                                     canvasRef.current.style.backgroundColor = theme.palette.common.black
                                 else
                                     canvasRef.current.style.backgroundColor = theme.palette.common.white
+
+                                rerender()
+
+                                if (onChange && shapes.shapes.length > 0)
+                                    onChange(false)
                             }}>
-                                {canvasRef.current.style.backgroundColor === theme.palette.common.white ? <LightModeOutlined fontSize='inherit' /> : <DarkModeOutlined fontSize='inherit' />}
+                                {canvasRef.current?.style.backgroundColor === theme.palette.common.white ? <LightModeOutlined fontSize='inherit' /> : <DarkModeOutlined fontSize='inherit' />}
                             </IconButton>
                         </Tooltip>
                         <Tooltip title={t('Canvas.ClearCanvas')}>
@@ -164,7 +176,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                     transition={mainTransition}
                                     style={{ height: '100%', width: '100%', overflow: 'hidden', position: 'absolute' }}
                                 >
-                                    <SelectTool shapes={shapes} setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current.style.backgroundColor} />
+                                    <SelectTool shapes={shapes} setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor} />
                                 </motion.div>
                             }
 
@@ -178,7 +190,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                     transition={mainTransition}
                                     style={{ height: '100%', width: '100%', overflow: 'hidden', position: 'absolute' }}
                                 >
-                                    <PencilTool shapes={shapes} setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current.style.backgroundColor} />
+                                    <PencilTool shapes={shapes} setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor} />
                                 </motion.div>
                             }
 
@@ -192,7 +204,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                     transition={mainTransition}
                                     style={{ height: '100%', width: '100%', overflow: 'hidden', position: 'absolute' }}
                                 >
-                                    <PencilTool shapes={shapes} mode='eraser' setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current.style.backgroundColor} />
+                                    <PencilTool shapes={shapes} mode='eraser' setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor} />
                                 </motion.div>
                             }
 
@@ -206,7 +218,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                     transition={mainTransition}
                                     style={{ height: '100%', width: '100%', overflow: 'hidden', position: 'absolute' }}
                                 >
-                                    <RectangleTool shapes={shapes} setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current.style.backgroundColor} />
+                                    <RectangleTool shapes={shapes} setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor} />
                                 </motion.div>
                             }
 
@@ -234,7 +246,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
             </Box>
 
             <div style={{ display: 'none' }}>
-                <img ref={printRef} style={{ backgroundColor: canvasRef.current.style.backgroundColor }} />
+                <img ref={printRef} style={{ backgroundColor: canvasRef.current?.style.backgroundColor }} />
             </div>
         </>
     )

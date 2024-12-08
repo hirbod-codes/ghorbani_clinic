@@ -2,7 +2,7 @@ import { AddOutlined, Done, RemoveOutlined, SearchOutlined } from "@mui/icons-ma
 import { CircularProgress, IconButton, InputAdornment, List, ListItem, ListItemIcon, ListItemText, Paper, Stack, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Typography, Checkbox, Divider, Box } from "@mui/material";
 import { AnimatePresence, motion } from "framer-motion";
 import { t } from "i18next";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { MedicalHistory } from "../../../Electron/Database/Models/MedicalHistory";
 import { mainTransition } from "../../Styles/animations";
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
@@ -12,6 +12,7 @@ import { resources } from "../../../Electron/Database/Repositories/Auth/resource
 import { publish } from "../../Lib/Events";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { EditorModal } from "../Editor/EditorModal";
+import { AnimatedList } from "../Animations/AnimatedList";
 
 const xOffset = 100;
 const delay = 100
@@ -137,75 +138,53 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
                 <Box sx={{ flexGrow: 2, overflow: 'hidden', width: '100%' }}>
                     <Stack direction='column' justifyContent='space-between' sx={{ height: '100%', width: '100%' }}>
                         <Paper sx={{ height: '48%', width: '100%', p: 2, overflow: 'auto' }} elevation={3}>
-                            <AnimatePresence mode='wait'>
-                                <List>
-                                    {
-                                        medicalHistories.map((md, i) =>
-                                            <motion.div
-                                                key={i}
-                                                initial='enter'
-                                                animate='active'
-                                                exit='exit'
-                                                variants={{ ...variants }}
-                                                transition={mainTransition}
-                                                style={{ width: '100%' }}
-                                            >
-                                                <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={2} sx={{ width: '100%' }}>
-                                                    {selectable === true &&
-                                                        <Checkbox size='small' checked={selection?.find(f => f === md.name) !== undefined} onChange={(e) => setSelection((old) => {
-                                                            if (old.find(f => f === md.name) !== undefined)
-                                                                return old.filter(f => f !== md.name)
-                                                            else
-                                                                return [...old, md.name]
-                                                        })} />
-                                                    }
-                                                    <Typography variant='body1' sx={{ overflow: 'auto' }}>
-                                                        {md.name}
-                                                    </Typography>
-                                                    {deletesMedicalHistory && deletable &&
-                                                        <IconButton onClick={() => deleteMedicalHistory(md._id as string)}>
-                                                            <TrashIcon color="red" />
-                                                        </IconButton>
-                                                    }
-                                                </Stack>
-                                            </motion.div>
-                                        )
-                                    }
-                                </List>
-                            </AnimatePresence>
+                            <AnimatedList
+                                collection={medicalHistories.map((md, i) => ({
+                                    key: md.name,
+                                    elm:
+                                        <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={2} sx={{ width: '100%' }}>
+                                            {selectable === true &&
+                                                <Checkbox size='small' checked={selection?.find(f => f === md.name) !== undefined} onChange={(e) => setSelection((old) => {
+                                                    if (old.find(f => f === md.name) !== undefined)
+                                                        return old.filter(f => f !== md.name)
+                                                    else
+                                                        return [...old, md.name]
+                                                })} />
+                                            }
+                                            <Typography variant='body1' sx={{ overflow: 'auto' }}>
+                                                {md.name}
+                                            </Typography>
+                                            {deletesMedicalHistory && deletable &&
+                                                <IconButton onClick={() => deleteMedicalHistory(md._id as string)}>
+                                                    <TrashIcon color="red" />
+                                                </IconButton>
+                                            }
+                                        </Stack>
+                                }))}
+                                withDelay={true}
+                            />
                         </Paper>
 
                         <Divider orientation="horizontal" />
 
                         {selectable &&
                             <Paper sx={{ height: '48%', width: '100%', p: 2, overflow: 'auto' }} elevation={3}>
-                                <AnimatePresence mode='wait'>
-                                    <List sx={{ overflowY: 'auto' }}>
-                                        {
-                                            selection?.map((name, i) =>
-                                                <motion.div
-                                                    key={i}
-                                                    initial='enter'
-                                                    animate='active'
-                                                    exit='exit'
-                                                    variants={{ ...variants }}
-                                                    transition={mainTransition}
-                                                    style={{ width: '100%' }}
-                                                >
-                                                    <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={2} sx={{ width: '100%' }}>
-                                                        <Typography variant='body1' sx={{ overflow: 'auto' }}>
-                                                            {name}
-                                                        </Typography>
+                                <AnimatedList
+                                    collection={selection.map((name, i) => ({
+                                        key: name,
+                                        elm:
+                                            <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={2} sx={{ width: '100%' }}>
+                                                <Typography variant='body1' sx={{ overflow: 'auto' }}>
+                                                    {name}
+                                                </Typography>
 
-                                                        <IconButton onClick={() => setSelection(selection.filter(f => f !== name))}>
-                                                            <RemoveOutlined color="error" />
-                                                        </IconButton>
-                                                    </Stack>
-                                                </motion.div>
-                                            )
-                                        }
-                                    </List>
-                                </AnimatePresence>
+                                                <IconButton onClick={() => setSelection(selection.filter(f => f !== name))}>
+                                                    <RemoveOutlined color="error" />
+                                                </IconButton>
+                                            </Stack>
+                                    }))}
+                                    withDelay={true}
+                                />
                             </Paper>
                         }
                     </Stack>

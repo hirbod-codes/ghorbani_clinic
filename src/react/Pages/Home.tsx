@@ -8,8 +8,6 @@ import { getVisitsInDate } from "../Components/Visits/helpers";
 import { ConfigurationContext } from "../Contexts/ConfigurationContext";
 import { Visit } from "src/Electron/Database/Models/Visit";
 import { AnimatedCard } from "../Components/AnimatedCard";
-import { DateTime } from "luxon";
-import { toLocalDateTime, toLocalFormat } from "../Lib/DateTime/date-time-helpers";
 
 export const Home = memo(function Home() {
     const locale = useContext(ConfigurationContext).get.locale
@@ -43,12 +41,12 @@ export const Home = memo(function Home() {
         setPatientsCount(c.length)
     }, [])
 
-    const onOut = (y: number, m: number, d: number) => {
+    const onOut = useCallback((y: number, m: number, d: number) => {
         console.log('onLeave``````````````````````````````````````````````````````````````')
         setVisits(undefined)
         setPatientsCount(undefined)
         setShowVisitsStats(false)
-    }
+    }, [])
 
     return (
         <>
