@@ -95,7 +95,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
             }
 
             <Box sx={{ height: '100%', userSelect: 'none' }}>
-                <Stack direction='column' alignItems='start' sx={{ height: '100%' }}>
+                <Stack direction='column' alignItems='stretch' sx={{ height: '100%' }}>
                     <Stack direction='row' alignItems='center' sx={{ width: 'max-content' }}>
                         <Tooltip title={t('Canvas.Print')}>
                             <IconButton onClick={() => {
@@ -121,7 +121,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                 if (onChange && shapes.shapes.length > 0)
                                     onChange(false)
                             }}>
-                                {canvasRef.current?.style.backgroundColor === theme.palette.common.white ? <LightModeOutlined fontSize='inherit' /> : <DarkModeOutlined fontSize='inherit' />}
+                                {canvasRef.current?.style.backgroundColor === hexToRgb(theme.palette.common.white) ? <LightModeOutlined fontSize='inherit' /> : <DarkModeOutlined fontSize='inherit' />}
                             </IconButton>
                         </Tooltip>
                         <Tooltip title={t('Canvas.ClearCanvas')}>
@@ -134,37 +134,37 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                         </Tooltip>
                     </Stack>
 
-                    <div style={{ /**width: '7rem',*/ height: '4rem', overflowX: 'auto', overflowY: 'hidden' }}>
-                        <Stack direction='row' alignItems='center' sx={{ width: 'max-content' }}>
-                            <Tooltip title={t('Canvas.Select')}>
-                                <IconButton onClick={() => setTool('select')}>
-                                    <NearMeOutlined color={tool === 'select' ? 'success' : undefined} />
-                                </IconButton>
-                            </Tooltip>
+                    <Divider variant='fullWidth' />
 
-                            <Tooltip title={t('Canvas.Pencil')}>
-                                <IconButton onClick={() => setTool('pencil')}>
-                                    <EditOutlined color={tool === 'pencil' ? 'success' : undefined} />
-                                </IconButton>
-                            </Tooltip>
+                    <Stack direction='row' alignItems='center' sx={{ width: 'max-content' }}>
+                        <Tooltip title={t('Canvas.Select')}>
+                            <IconButton onClick={() => setTool('select')}>
+                                <NearMeOutlined color={tool === 'select' ? 'success' : undefined} />
+                            </IconButton>
+                        </Tooltip>
 
-                            <Tooltip title={t('Canvas.Eraser')}>
-                                <IconButton onClick={() => setTool('eraser')}>
-                                    <EraserIcon color={tool === 'eraser' ? theme.palette.success[theme.palette.mode] : undefined} />
-                                </IconButton>
-                            </Tooltip>
+                        <Tooltip title={t('Canvas.Pencil')}>
+                            <IconButton onClick={() => setTool('pencil')}>
+                                <EditOutlined color={tool === 'pencil' ? 'success' : undefined} />
+                            </IconButton>
+                        </Tooltip>
 
-                            <Tooltip title={t('Canvas.Rectangle')}>
-                                <IconButton onClick={() => setTool('rectangle')}>
-                                    <CheckBoxOutlineBlankOutlined color={tool === 'rectangle' ? 'success' : undefined} />
-                                </IconButton>
-                            </Tooltip>
-                        </Stack>
-                    </div>
+                        <Tooltip title={t('Canvas.Eraser')}>
+                            <IconButton onClick={() => setTool('eraser')}>
+                                <EraserIcon color={tool === 'eraser' ? theme.palette.success[theme.palette.mode] : undefined} />
+                            </IconButton>
+                        </Tooltip>
 
-                    <Divider variant='middle' />
+                        <Tooltip title={t('Canvas.Rectangle')}>
+                            <IconButton onClick={() => setTool('rectangle')}>
+                                <CheckBoxOutlineBlankOutlined color={tool === 'rectangle' ? 'success' : undefined} />
+                            </IconButton>
+                        </Tooltip>
+                    </Stack>
 
-                    <Box sx={{ height: '4rem', overflowX: 'auto', overflowY: 'hidden', width: '100%', pt: 1, position: 'relative' }}>
+                    <Divider variant='fullWidth' />
+
+                    <Box sx={{ height: '4rem', overflowX: 'hidden', overflowY: 'hidden', width: '100%', pt: 1, m: 1, position: 'relative', boxShadow: 'inset 0 0 13px 0px black' }}>
                         <AnimatePresence mode="sync">
                             {tool === 'select' &&
                                 <motion.div
@@ -174,9 +174,11 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                     exit='exit'
                                     variants={variants}
                                     transition={mainTransition}
-                                    style={{ height: '100%', width: '100%', overflow: 'hidden', position: 'absolute' }}
+                                    style={{ height: '100%', width: '100%', position: 'absolute' }}
                                 >
-                                    <SelectTool shapes={shapes} setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor} />
+                                    <div style={{ height: '100%',width: '100%', paddingBottom: 1, overflowX: 'auto' }}>
+                                        <SelectTool shapes={shapes} setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor} />
+                                    </div>
                                 </motion.div>
                             }
 
@@ -188,9 +190,11 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                     exit='exit'
                                     variants={variants}
                                     transition={mainTransition}
-                                    style={{ height: '100%', width: '100%', overflow: 'hidden', position: 'absolute' }}
+                                    style={{ height: '100%', width: '100%', position: 'absolute' }}
                                 >
-                                    <PencilTool shapes={shapes} setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor} />
+                                    <div style={{ width: '100%', paddingBottom: 1,overflowX: 'auto' }}>
+                                        <PencilTool shapes={shapes} setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor} />
+                                    </div>
                                 </motion.div>
                             }
 
@@ -202,9 +206,11 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                     exit='exit'
                                     variants={variants}
                                     transition={mainTransition}
-                                    style={{ height: '100%', width: '100%', overflow: 'hidden', position: 'absolute' }}
+                                    style={{ height: '100%', width: '100%', position: 'absolute' }}
                                 >
-                                    <PencilTool shapes={shapes} mode='eraser' setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor} />
+                                    <div style={{ width: '100%', overflowX: 'auto' }}>
+                                        <PencilTool shapes={shapes} mode='eraser' setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor} />
+                                    </div>
                                 </motion.div>
                             }
 
@@ -216,9 +222,11 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                     exit='exit'
                                     variants={variants}
                                     transition={mainTransition}
-                                    style={{ height: '100%', width: '100%', overflow: 'hidden', position: 'absolute' }}
+                                    style={{ height: '100%', width: '100%', position: 'absolute' }}
                                 >
-                                    <RectangleTool shapes={shapes} setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor} />
+                                    <div style={{ width: '100%', overflowX: 'auto' }}>
+                                        <RectangleTool shapes={shapes} setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor} />
+                                    </div>
                                 </motion.div>
                             }
 

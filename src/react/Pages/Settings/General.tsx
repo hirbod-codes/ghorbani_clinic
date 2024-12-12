@@ -7,6 +7,10 @@ import { t } from "i18next";
 import { getReactLocale } from "../../Lib/helpers";
 import type { Languages } from "../../Lib/Localization";
 import { configAPI } from "../../../Electron/Configuration/renderer";
+import { Button } from "@mui/material";
+import { appAPI } from "src/Electron/appRendererEvents";
+import { publish } from "../../Lib/Events";
+import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 
 export const General = memo(function General() {
     const configuration = useContext(ConfigurationContext)
@@ -32,6 +36,20 @@ export const General = memo(function General() {
     return (
         <>
             <Stack spacing={1} sx={{ m: 1, p: 2 }}>
+                <Button onClick={async () => {
+                    const r = await (window as typeof window & { appAPI: appAPI }).appAPI.setAppIcon()
+                    console.log({ r })
+                    if (r)
+                        publish(RESULT_EVENT_NAME, {
+                            severity: 'success',
+                            message: t('General.successfullyChangedIcon')
+                        })
+                    else
+                        publish(RESULT_EVENT_NAME, {
+                            severity: 'error',
+                            message: t('General.failedToChangeIcon')
+                        })
+                }}>{t('General.changeIcon')}</Button>
                 <Stack direction='row' alignItems='center' sx={{ width: '100%' }}>
                     <TextField
                         sx={{ flexGrow: 2 }}

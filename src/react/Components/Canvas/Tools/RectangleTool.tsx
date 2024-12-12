@@ -23,8 +23,8 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
     const [anchorType, setAnchorType] = useState<'stroke' | 'fill'>('fill')
     const [color, setColor] = useState<string>('#ffffff')
 
-    const [stroke, setStroke] = useState<string | CanvasGradient | CanvasPattern>('#ff0000')
-    const [fill, setFill] = useState<string | CanvasGradient | CanvasPattern>('#00ff00')
+    const [stroke, setStroke] = useState<string | CanvasGradient | CanvasPattern>('#000000')
+    const [fill, setFill] = useState<string | CanvasGradient | CanvasPattern>('#00000000')
 
     const [lineWidth, setLineWidth] = useState<string>('1.2')
 
@@ -43,7 +43,7 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
             return
 
         const helper = shapes.helper as Rectangle
-        if (helper && hasMoved) 
+        if (helper && hasMoved)
             shapes.push(new Rectangle(helper.x, helper.y, helper.w, helper.h, Number(lineWidth), stroke, fill))
 
         shapes.helper = undefined
@@ -96,8 +96,8 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
                 <div>
                     <Button
                         variant='outlined'
-                        sx={{ borderColor: fill as string, color: fill as string }}
-                        startIcon={<ColorLensOutlined sx={{ color: 'white' }} />}
+                        sx={{ borderColor: fill as string }}
+                        startIcon={<ColorLensOutlined sx={{ color: fill as string }} />}
                         onClick={(e) => {
                             setColor(fill as string)
                             setAnchorType('fill')
@@ -111,8 +111,8 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
                 <div>
                     <Button
                         variant='outlined'
-                        sx={{ borderColor: stroke as string, color: theme.palette.getContrastText(theme.palette.background.default) }}
-                        startIcon={<ColorLensOutlined sx={{ color: theme.palette.getContrastText(theme.palette.background.default) }} />}
+                        sx={{ borderColor: stroke as string }}
+                        startIcon={<ColorLensOutlined sx={{ color: stroke as string }} />}
                         onClick={(e) => {
                             setColor(stroke as string)
                             setAnchorType('stroke')

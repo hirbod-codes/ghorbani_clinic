@@ -182,7 +182,7 @@ export class Rectangle implements Shape {
 
     private getHorizontalDistance(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): number {
         if (!selectedHandler.toLowerCase().includes('left') && !selectedHandler.toLowerCase().includes('right'))
-            return
+            return 0
 
         const handlersBoundaries = selectionBox.getHandlersBoundaries()
 
@@ -194,7 +194,7 @@ export class Rectangle implements Shape {
 
         const distance = pointFromLineDistance(p1, p2, currentPoint)
         if (Number.isNaN(distance) || distance === Infinity)
-            return
+            return 0
 
         let shouldAdd: boolean
 
@@ -202,7 +202,7 @@ export class Rectangle implements Shape {
         console.log({ y })
 
         if (y === Infinity)
-            return
+            return 0
 
         if (y === undefined && currentPoint.x < p1.x)
             shouldAdd = false
@@ -226,7 +226,7 @@ export class Rectangle implements Shape {
 
     private getVerticalDistance(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): number {
         if (!selectedHandler.toLowerCase().includes('top') && !selectedHandler.toLowerCase().includes('bottom'))
-            return
+            return 0
 
         const handlersBoundaries = selectionBox.getHandlersBoundaries()
 
@@ -238,14 +238,14 @@ export class Rectangle implements Shape {
 
         const distance = pointFromLineDistance(p1, p2, currentPoint)
         if (Number.isNaN(distance) || distance === Infinity)
-            return
+            return 0
 
         let shouldAdd: boolean
 
         let y = lineFunction(p1, p2, currentPoint.x)
 
         if (y === Infinity)
-            return
+            return 0
 
         if (y === undefined && currentPoint.x < p1.x)
             shouldAdd = false

@@ -275,7 +275,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                 </Backdrop >
             }
 
-            <Stack direction='column' spacing={1} sx={{ width: '100%', height: '100%' }}>
+            <Stack direction='column' alignItems='stretch' spacing={1} sx={{ width: '100%', height: '100%' }}>
                 <Stack direction='row' justifyContent='space-between' alignContent='center' sx={{ overflow: 'auto' }}>
                     <Box sx={{ overflow: 'auto', textWrap: 'nowrap' }}>
                         <Typography variant='h6'>
@@ -309,33 +309,38 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                     </Stack>
                 </Stack>
 
-                <Divider />
 
                 {status === 'showing'
                     &&
-                    <Stack direction='column' spacing={1} sx={{ pr: 1, overflow: 'auto', flexGrow: 2, width: '100%' }}>
-                        {text &&
-                            <>
-                                <Typography variant='h5'>
-                                    {t('Editor.description')}
-                                </Typography>
+                    <>
+                        <Divider />
 
-                                <Divider />
+                        <Stack direction='column' spacing={1} sx={{ pr: 1, overflow: 'auto', flexGrow: 2, width: '100%' }}>
+                            {text &&
+                                <>
+                                    <Typography variant='h5'>
+                                        {t('Editor.description')}
+                                    </Typography>
 
-                                <div dangerouslySetInnerHTML={{ __html: text }} />
+                                    <Divider />
 
-                                <Divider />
-                            </>
-                        }
+                                    <div dangerouslySetInnerHTML={{ __html: text }} />
 
-                        {canvasId &&
-                            <img ref={imageRef} src={imageSrc} style={{ backgroundColor }} />
-                        }
-                    </Stack>
+                                    <Divider />
+                                </>
+                            }
+
+                            {canvasId &&
+                                <img ref={imageRef} src={imageSrc} style={{ backgroundColor }} />
+                            }
+                        </Stack>
+                    </>
                 }
 
                 {!hideTextEditor && status === 'typing' &&
                     <>
+                        <Divider />
+
                         {onSave &&
                             <Stack direction='row' justifyContent='start' alignContent='center'>
                                 <IconButton onClick={saveContent} color={contentHasUnsavedChanges ? 'warning' : 'default'}>
@@ -343,6 +348,9 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                                 </IconButton>
                             </Stack>
                         }
+
+                        <Divider />
+
                         <TextEditor
                             text={inputText}
                             onChange={async (html) => {
@@ -357,6 +365,8 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
 
                 {!hideCanvas && status === 'drawing' &&
                     <>
+                        <Divider />
+
                         {onSave &&
                             <Stack direction='row' justifyContent='start' alignContent='center'>
                                 <IconButton onClick={saveCanvas} color={canvasHasUnsavedChanges ? 'warning' : 'default'}>
@@ -364,6 +374,8 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                                 </IconButton>
                             </Stack>
                         }
+
+                        <Divider />
 
                         <Box sx={{ flexGrow: 2, overflow: 'hidden' }}>
                             <Canvas
