@@ -1,6 +1,6 @@
 import { animate } from "framer-motion";
 import { useEffect, useRef } from "react";
-import { numericCounterTransitions } from "../../Styles/animations";
+import { numericCounterTransitions } from "../../../Styles/animations";
 
 export function AnimatedCounter({ start = 0, end }: { start?: number; end: number; }) {
     const nodeRef = useRef<HTMLParagraphElement>();

@@ -44,7 +44,7 @@ import { getLuxonLocale } from '../../Lib/helpers'
 import { ConfigurationContext } from '../../Contexts/ConfigurationContext'
 
 export type DataGridProps = {
-    configName: string,
+    configName?: string,
     data: any[],
     overWriteColumns?: ColumnDef<any>[];
     additionalColumns?: ColumnDef<any>[];
@@ -159,14 +159,16 @@ export function DataGrid({
                     newCp.right = newCp.right.filter(f => f !== l)
             })
 
-            const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-            console.log({ ...c });
+            if (configName) {
+                const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+                console.log({ ...c });
 
-            if (!c.columnPinningModels)
-                c.columnPinningModels = {}
+                if (!c.columnPinningModels)
+                    c.columnPinningModels = {}
 
-            c.columnPinningModels[configName] = newCp;
-            (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
+                c.columnPinningModels[configName] = newCp;
+                (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
+            }
 
             setColumnPinning(newCp);
         },
@@ -180,13 +182,15 @@ export function DataGrid({
             else
                 co = updaterOrValue(undefined)
 
-            const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+            if (configName) {
+                const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
 
-            if (!c.columnOrderModels)
-                c.columnOrderModels = {}
+                if (!c.columnOrderModels)
+                    c.columnOrderModels = {}
 
-            c.columnOrderModels[configName] = co;
-            (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
+                c.columnOrderModels[configName] = co;
+                (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
+            }
 
             setColumnOrder(co);
         },
@@ -200,13 +204,15 @@ export function DataGrid({
             else
                 cv = updaterOrValue(undefined)
 
-            const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+            if (configName) {
+                const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
 
-            if (!c.columnVisibilityModels)
-                c.columnVisibilityModels = {}
+                if (!c.columnVisibilityModels)
+                    c.columnVisibilityModels = {}
 
-            c.columnVisibilityModels[configName] = cv;
-            (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
+                c.columnVisibilityModels[configName] = cv;
+                (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
+            }
 
             setColumnVisibility(cv)
         },
@@ -214,7 +220,7 @@ export function DataGrid({
         getPaginationRowModel: hasPagination && !onPagination ? getPaginationRowModel() : undefined,
     }))
 
-    if (!headerNodes || headerNodes.length === 0)
+    if (headerNodes === undefined)
         headerNodes = [
             <ColumnVisibilityButton />,
             <DensityButton />,
@@ -226,7 +232,7 @@ export function DataGrid({
     if (appendHeaderNodes && appendHeaderNodes.length !== 0)
         headerNodes = headerNodes.concat(appendHeaderNodes)
 
-    if (hasPagination === true && (!footerNodes || footerNodes.length === 0))
+    if (hasPagination === true && footerNodes === undefined)
         footerNodes = [
             <Pagination paginationLimitOptions={paginationLimitOptions} onPagination={async (l, o) => {
                 console.log({ l, o })
@@ -245,54 +251,55 @@ export function DataGrid({
         footerNodes = footerNodes.concat(appendFooterNodes)
 
     useEffect(() => {
-        (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
-            .then((c) => {
-                if (c?.columnVisibilityModels && c.columnVisibilityModels[configName]) {
-                    setColumnVisibility(c.columnVisibilityModels[configName])
-                    table.setColumnVisibility(c.columnVisibilityModels[configName])
-                }
-                else {
-                    setColumnVisibility(defaultColumnVisibilityModel)
-                    table.setColumnVisibility(defaultColumnVisibilityModel)
-                    if (!c.columnVisibilityModels)
-                        c.columnVisibilityModels = {}
-                    c.columnVisibilityModels[configName] = defaultColumnVisibilityModel
-                }
+        if (configName)
+            (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+                .then((c) => {
+                    if (c?.columnVisibilityModels && c.columnVisibilityModels[configName]) {
+                        setColumnVisibility(c.columnVisibilityModels[configName])
+                        table.setColumnVisibility(c.columnVisibilityModels[configName])
+                    }
+                    else {
+                        setColumnVisibility(defaultColumnVisibilityModel)
+                        table.setColumnVisibility(defaultColumnVisibilityModel)
+                        if (!c.columnVisibilityModels)
+                            c.columnVisibilityModels = {}
+                        c.columnVisibilityModels[configName] = defaultColumnVisibilityModel
+                    }
 
-                if (c?.columnOrderModels && c.columnOrderModels[configName]) {
-                    setColumnOrder(c.columnOrderModels[configName])
-                    table.setColumnOrder(c.columnOrderModels[configName])
-                } else {
-                    setColumnOrder(defaultColumnOrderModel)
-                    table.setColumnOrder(defaultColumnOrderModel)
-                    if (!c.columnOrderModels)
-                        c.columnOrderModels = {}
-                    c.columnOrderModels[configName] = defaultColumnOrderModel
-                }
+                    if (c?.columnOrderModels && c.columnOrderModels[configName]) {
+                        setColumnOrder(c.columnOrderModels[configName])
+                        table.setColumnOrder(c.columnOrderModels[configName])
+                    } else {
+                        setColumnOrder(defaultColumnOrderModel)
+                        table.setColumnOrder(defaultColumnOrderModel)
+                        if (!c.columnOrderModels)
+                            c.columnOrderModels = {}
+                        c.columnOrderModels[configName] = defaultColumnOrderModel
+                    }
 
-                if (c?.columnPinningModels && c.columnPinningModels[configName]) {
-                    setColumnPinning(c.columnPinningModels[configName])
-                    table.setColumnPinning(c.columnPinningModels[configName])
-                } else {
-                    setColumnPinning(defaultColumnPinningModel)
-                    table.setColumnPinning(defaultColumnPinningModel)
-                    if (!c.columnPinningModels)
-                        c.columnPinningModels = {}
-                    c.columnPinningModels[configName] = defaultColumnPinningModel
-                }
+                    if (c?.columnPinningModels && c.columnPinningModels[configName]) {
+                        setColumnPinning(c.columnPinningModels[configName])
+                        table.setColumnPinning(c.columnPinningModels[configName])
+                    } else {
+                        setColumnPinning(defaultColumnPinningModel)
+                        table.setColumnPinning(defaultColumnPinningModel)
+                        if (!c.columnPinningModels)
+                            c.columnPinningModels = {}
+                        c.columnPinningModels[configName] = defaultColumnPinningModel
+                    }
 
-                if (c?.tableDensity && c?.tableDensity[configName])
-                    setDensity(c?.tableDensity[configName])
-                else {
-                    setDensity(defaultTableDensity)
-                    if (!c.tableDensity)
-                        c.tableDensity = {}
-                    c.tableDensity[configName] = defaultTableDensity
-                }
+                    if (c?.tableDensity && c?.tableDensity[configName])
+                        setDensity(c?.tableDensity[configName])
+                    else {
+                        setDensity(defaultTableDensity)
+                        if (!c.tableDensity)
+                            c.tableDensity = {}
+                        c.tableDensity[configName] = defaultTableDensity
+                    }
 
-                (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c);
-                setHasInit(true)
-            })
+                    (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c);
+                    setHasInit(true)
+                })
     }, [])
 
     console.log('DataGrid', { data, columns, pagination, columnPinning, columnVisibility, columnOrder, headerNodes, footerNodes })
@@ -335,13 +342,15 @@ export function DataGrid({
                         sensors={sensors}
                     >
                         <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '0.5rem 0', overflow: 'hidden', border: `1px solid ${theme.palette.grey[500]}`, borderRadius: `${theme.shape.borderRadius}px`, textWrap: 'nowrap' }}>
-                            <Stack direction='row' sx={{ p: 1 }}>
-                                {...headerNodes.map((n, i) =>
-                                    <Fragment key={i}>
-                                        {n}
-                                    </Fragment>
-                                )}
-                            </Stack>
+                            {headerNodes.length > 0 &&
+                                <Stack direction='row' sx={{ p: 1 }}>
+                                    {...headerNodes.map((n, i) =>
+                                        <Fragment key={i}>
+                                            {n}
+                                        </Fragment>
+                                    )}
+                                </Stack>
+                            }
                             {loading
                                 ? <LoadingScreen />
                                 : (
@@ -382,13 +391,15 @@ export function DataGrid({
                                         </div>
                                 )
                             }
-                            <Stack direction='row' sx={{ p: 1 }}>
-                                {...footerNodes.map((n, i) =>
-                                    <Fragment key={i}>
-                                        {n}
-                                    </Fragment>
-                                )}
-                            </Stack>
+                            {footerNodes.length > 0 &&
+                                <Stack direction='row' sx={{ p: 1 }}>
+                                    {...footerNodes.map((n, i) =>
+                                        <Fragment key={i}>
+                                            {n}
+                                        </Fragment>
+                                    )}
+                                </Stack>
+                            }
                         </div>
                     </DndContext>
                 </div >
