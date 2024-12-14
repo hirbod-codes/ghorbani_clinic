@@ -1,57 +1,27 @@
 import { ipcMain } from 'electron'
 import fs from 'fs'
 import path from 'path'
-import { v4 as uuidV4 } from 'uuid';
-import { CONFIGURATION_DIRECTORY } from '../../directories';
-import type { ConfigurationStorableData } from "../../react/Contexts/ConfigurationContext"
-import { User } from '../Database/Models/User';
-import { ColumnPinningState, VisibilityState } from '@tanstack/react-table';
-import { Density } from 'src/react/Components/DataGrid/Context';
-
-export type MongodbConfig = {
-    supportsTransaction: boolean;
-    url: string;
-    databaseName: string;
-    auth?: {
-        username: string;
-        password: string;
-    };
-};
-
-export type AuthConfig = { users: User[] }
-
-export type Peer = {
-    isMaster: boolean,
-    hostName: string,
-    port: number,
-    ip: string
-}
-
-export type Config = {
-    configuration?: ConfigurationStorableData,
-    downloadsDirectorySize?: number,
-    storage?: { [path: string]: number },
-    mongodb?: MongodbConfig,
-    auth?: AuthConfig,
-    peers?: Peer[],
-    appIdentifier?: string,
-    appName?: string,
-    isMaster?: boolean,
-    port?: number,
-    ip?: string,
-    columnPinningModels?: { [k: string]: ColumnPinningState },
-    columnVisibilityModels?: { [k: string]: VisibilityState },
-    columnOrderModels?: { [k: string]: string[] },
-    tableDensity?: { [k: string]: Density }
-}
+import { v4 as uuidV4 } from 'uuid'
+import { CONFIGURATION_DIRECTORY } from '../../directories'
+import type { Config as RendererConfig } from './renderer.d'
+import type { Config } from './main.d'
+import { mixed } from 'yup'
 
 export function handleConfigEvents() {
     ipcMain.handle('read-config', () => {
-        return readConfig()
+        return readConfig()?.rendererConfig ?? {}
     })
 
-    ipcMain.on('write-config', (_e, { config }: { config: Config }) => {
-        writeConfigSync(config)
+    ipcMain.on('write-config', (_e, { config }: { config: RendererConfig }) => {
+        try {
+            if (!mixed<RendererConfig>().required().isValidSync(config)) {
+                console.warn('Invalid configuration data provided by renderer process.')
+                return
+            } else
+                config = mixed<RendererConfig>().required().cast(config)
+
+            writeConfigSync({ ...readConfig(), rendererConfig: config })
+        } catch (e) { console.error(e) }
     })
 }
 

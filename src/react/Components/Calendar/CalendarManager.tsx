@@ -2,7 +2,7 @@ import { Calendar as CalendarType, Date } from "../../Lib/DateTime";
 import { fromDateTimePartsToFormat } from "../../Lib/DateTime/date-time-helpers";
 import { getGregorianMonths, isLeapGregorianYear, getGregorianWeekDays } from "../../Lib/DateTime/gregorian-calendar";
 import { getPersianMonths, isLeapPersianYear, getPersianWeekDays } from "../../Lib/DateTime/persian-calendar";
-import { getLocale, getReactLocale } from "../../Lib/helpers";
+import { getLanguageCode, getMuiLocale } from "../../Lib/helpers";
 import { Languages, Local } from "../../Lib/Localization";
 import { CalendarScope } from "./index.d";
 
@@ -92,8 +92,8 @@ export class CalendarManager {
             return;
 
         this.months = this.type === 'Persian'
-            ? getPersianMonths(isLeapPersianYear(year), getLocale(getReactLocale(this.code)))
-            : getGregorianMonths(isLeapGregorianYear(year), getLocale(getReactLocale(this.code)));
+            ? getPersianMonths(isLeapPersianYear(year), getLanguageCode(getMuiLocale(this.code)))
+            : getGregorianMonths(isLeapGregorianYear(year), getLanguageCode(getMuiLocale(this.code)));
     }
 
     getDays(): number[] {

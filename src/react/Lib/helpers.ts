@@ -1,10 +1,10 @@
 import { Localization, enUS, faIR } from "@mui/material/locale"
-import { string } from "yup"
+import { mixed, string } from "yup"
 import { i18n } from 'i18next';
-import { Languages } from "./Localization";
+import type { LanguageCodes } from "../../Electron/Configuration/renderer.d";
 
-export function getLocale(locale: Localization): Languages {
-    switch (locale) {
+export function getLanguageCode(muiLocal: Localization): LanguageCodes {
+    switch (muiLocal) {
         case enUS:
             return 'en'
         case faIR:
@@ -14,11 +14,11 @@ export function getLocale(locale: Localization): Languages {
     }
 }
 
-export function getReactLocale(code: Languages): Localization
-export function getReactLocale(i18n: i18n): Localization
-export function getReactLocale(arg: Languages | i18n): Localization {
+export function getMuiLocale(languageCode: LanguageCodes): Localization
+export function getMuiLocale(i18n: i18n): Localization
+export function getMuiLocale(arg: LanguageCodes | i18n): Localization {
     let language
-    if (string().required().min(2).isValidSync(arg))
+    if (string().required().min(1).isValidSync(arg))
         language = arg
     else
         language = arg.language
@@ -33,15 +33,18 @@ export function getReactLocale(arg: Languages | i18n): Localization {
     }
 }
 
-export function getLuxonLocale(code: Languages): string
+export function getLuxonLocale(code: LanguageCodes): string
 export function getLuxonLocale(i18n: i18n): string
-export function getLuxonLocale(arg: i18n | Languages): string {
+export function getLuxonLocale(arg: i18n | LanguageCodes): string {
+    if (mixed<i18n>().required().isValidSync(arg))
+        arg = (arg as i18n).language as LanguageCodes;
+
     switch (arg) {
         case 'en':
             return 'en-US'
         case 'fa':
             return 'fa-IR'
         default:
-            throw new Error('Unknown language encountered: ' + arg.toString())
+            throw new Error('Unknown language encountered')
     }
 }

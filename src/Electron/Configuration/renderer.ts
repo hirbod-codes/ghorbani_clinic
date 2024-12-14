@@ -1,13 +1,9 @@
 import { ipcRenderer } from 'electron'
-import { Config } from './main'
-
-export type configAPI = {
-    readConfig: () => Promise<Config>,
-    writeConfig: (config: Config) => void
-}
+import type { Config } from './renderer.d'
+import { mixed } from 'yup'
 
 export function writeConfig(config: Config) {
-    ipcRenderer.send('write-config', { config })
+    ipcRenderer.send('write-config', { config: mixed<Config>().required().cast(config) })
 }
 
 export async function readConfig(): Promise<Config> {

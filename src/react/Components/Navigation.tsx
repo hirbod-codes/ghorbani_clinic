@@ -5,7 +5,7 @@ import { memo, useContext, useState } from 'react';
 import { AuthContext } from '../Contexts/AuthContext';
 import { ConfigurationContext } from '../Contexts/ConfigurationContext';
 import { resources } from '../../Electron/Database/Repositories/Auth/resources';
-import { getReactLocale } from '../Lib/helpers';
+import { getMuiLocale } from '../Lib/helpers';
 import { useNavigate } from 'react-router-dom';
 
 export const Navigation = memo(function Navigation() {
@@ -161,7 +161,7 @@ export const Navigation = memo(function Navigation() {
                                 }
                             </IconButton>
                         }
-                        <IconButton size='medium' onClick={() => configuration.set.updateTheme(theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.get.locale.direction, getReactLocale(configuration.get.locale.code))}>
+                        <IconButton size='medium' onClick={() => configuration.set.updateTheme(theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.get.locale.direction, getMuiLocale(configuration.get.locale.code))}>
                             {theme.palette.mode == 'light' ? <LightModeOutlined fontSize='inherit' /> : <DarkModeOutlined fontSize='inherit' />}
                         </IconButton>
                     </Toolbar>

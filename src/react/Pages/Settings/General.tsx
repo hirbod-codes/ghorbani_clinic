@@ -4,7 +4,7 @@ import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { Calendar, TimeZone } from "../../Lib/DateTime";
 import { languages } from "../../i18next";
 import { t } from "i18next";
-import { getReactLocale } from "../../Lib/helpers";
+import { getMuiLocale } from "../../Lib/helpers";
 import type { Languages } from "../../Lib/Localization";
 import { configAPI } from "../../../Electron/Configuration/renderer";
 import { Button } from "@mui/material";
@@ -77,7 +77,7 @@ export const General = memo(function General() {
                 <FormControl variant='standard' >
                     <InputLabel id="calendar-label">{t('calendar')}</InputLabel>
                     <Select
-                        onChange={(e) => configuration.set.updateLocale(e.target.value as Calendar, configuration.get.locale.direction, getReactLocale(configuration.get.locale.code))}
+                        onChange={(e) => configuration.set.updateLocale(e.target.value as Calendar, configuration.get.locale.direction, getMuiLocale(configuration.get.locale.code))}
                         labelId="calendar-label"
                         id='calendar'
                         value={configuration.get.locale.calendar}
@@ -90,7 +90,7 @@ export const General = memo(function General() {
                 <FormControl variant='standard'>
                     <InputLabel id="language-label">{t('language')}</InputLabel>
                     <Select
-                        onChange={(e) => configuration.set.updateLocale(configuration.get.locale.calendar, languages.find(v => v.code === e.target.value).direction, getReactLocale(e.target.value as Languages))}
+                        onChange={(e) => configuration.set.updateLocale(configuration.get.locale.calendar, languages.find(v => v.code === e.target.value).direction, getMuiLocale(e.target.value as Languages))}
                         labelId="language-label"
                         id='language'
                         value={languages.find(v => v.code === configuration.get.locale.code).code}
