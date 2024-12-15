@@ -18,11 +18,13 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
     const [databaseName, setDatabaseName] = useState<string>('')
 
     const init = async () => {
-        setUsername('')
-        setPassword('')
-        setSupportsTransaction(false)
-        setUrl('')
-        setDatabaseName('primaryDb')
+        const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readDbConfig();
+
+        setUsername(c?.auth.username ?? '')
+        setPassword(c?.auth.password ?? '')
+        setSupportsTransaction(c?.supportsTransaction ?? false)
+        setUrl(c?.url ?? '')
+        setDatabaseName(c?.databaseName ?? 'primaryDb')
     }
 
     useEffect(() => {

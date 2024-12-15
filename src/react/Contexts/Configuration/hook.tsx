@@ -86,10 +86,9 @@ export function useConfigurationHook() {
     const [isConfigurationContextReady, setIsConfigurationContextReady] = useState<boolean>(false);
     useEffect(() => {
         if (!isConfigurationContextReady) {
-            console.group('hasFetchedConfig-readConfig');
             (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
                 .then((c) => {
-                    console.log('hasFetchedConfig-readConfig', 'c', c);
+                    console.log({ c });
 
                     if (c) {
                         document.dir = c.local.direction
@@ -103,7 +102,6 @@ export function useConfigurationHook() {
                         throw new Error('Configuration data not found')
 
                     setIsConfigurationContextReady(true)
-                    console.groupEnd()
                 })
         }
     }, [])

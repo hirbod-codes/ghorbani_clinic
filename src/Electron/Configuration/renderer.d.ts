@@ -1,8 +1,10 @@
 import { ColumnPinningState, VisibilityState } from '@tanstack/react-table'
 import { Density } from '../../react/Components/DataGrid/Context'
 import { ThemeOptions } from '@mui/material'
+import { MongodbConfig } from './main.d'
 
 export type configAPI = {
+    readDbConfig: () => Promise<MongodbConfig>,
     readConfig: () => Promise<Config>,
     writeConfig: (config: Config) => void
 }

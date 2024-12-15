@@ -4,10 +4,14 @@ import path from 'path'
 import { v4 as uuidV4 } from 'uuid'
 import { CONFIGURATION_DIRECTORY } from '../../directories'
 import type { Config as RendererConfig } from './renderer.d'
-import type { Config } from './main.d'
+import type { Config, MongodbConfig } from './main.d'
 import { mixed } from 'yup'
 
 export function handleConfigEvents() {
+    ipcMain.handle('read-db-config', () => {
+        return readDbConfig()
+    })
+
     ipcMain.handle('read-config', () => {
         return readConfig()?.rendererConfig ?? {}
     })
@@ -23,6 +27,20 @@ export function handleConfigEvents() {
             writeConfigSync({ ...readConfig(), rendererConfig: config })
         } catch (e) { console.error(e) }
     })
+}
+
+export function readDbConfig(): MongodbConfig | undefined {
+    const configFile = path.join(CONFIGURATION_DIRECTORY, 'config.json')
+    if (!fs.existsSync(configFile))
+        return undefined
+
+    let configJson = fs.readFileSync(configFile).toString()
+    let c: Config = JSON.parse(configJson)
+
+    if (!mixed<MongodbConfig>().required().isValidSync(c))
+        return undefined
+
+    return mixed<MongodbConfig>().required().cast(c)
 }
 
 export function readConfig(): Config {
