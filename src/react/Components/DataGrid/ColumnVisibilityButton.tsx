@@ -8,7 +8,7 @@ export function ColumnVisibilityButton() {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
     const open = Boolean(anchorEl)
 
-    const table = useContext(DataGridContext).table
+    const table = useContext(DataGridContext)!.table!
 
     return (
         <>

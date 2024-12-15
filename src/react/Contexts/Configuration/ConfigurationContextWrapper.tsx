@@ -5,7 +5,7 @@ import { CacheProvider } from '@emotion/react';
 import createCache from '@emotion/cache';
 import { prefixer } from 'stylis';
 import rtlPlugin from 'stylis-plugin-rtl';
-import { useConfigurationHook } from './Configuration/hook';
+import { useConfigurationHook } from './hook';
 
 // Create rtl cache
 const rtlCache = createCache({
@@ -23,7 +23,7 @@ export const ConfigurationContextWrapper = memo(function ConfigurationContextWra
 
     const { updateTheme, updateLocal, setShowGradientBackground, isConfigurationContextReady, ...configuration } = useConfigurationHook()
 
-    console.log('-------------ConfigurationContextWrapper', { configuration, isConfigurationContextReady })
+    console.log('-------------ConfigurationContextWrapper', { window, configuration, isConfigurationContextReady })
 
     return (
         <>

@@ -28,9 +28,9 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
 
     const [lineWidth, setLineWidth] = useState<string>('1.2')
 
-    const [instance, setInstance] = useState<Rectangle>(undefined)
+    const [instance, setInstance] = useState<Rectangle | undefined>(undefined)
     const [hasMoved, setHasMoved] = useState<boolean>(false)
-    const [referencePoint, setReferencePoint] = useState<Point>(undefined)
+    const [referencePoint, setReferencePoint] = useState<Point | undefined>(undefined)
 
     const onDown = (draw: Draw) => {
         setReferencePoint(draw.currentPoint)

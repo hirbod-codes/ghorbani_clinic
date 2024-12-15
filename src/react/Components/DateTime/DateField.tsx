@@ -2,16 +2,16 @@ import { TextField, Select, MenuItem, ButtonGroup, InputLabel, FormControl } fro
 import { useState, useContext } from 'react';
 import { DateTime } from 'luxon';
 import { Date } from '../../Lib/DateTime';
-import { ConfigurationContext } from '../../Contexts/ConfigurationContext';
+import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext';
 import { getLocaleMonths } from '../../Lib/DateTime/date-time-helpers';
 
 export function DateField({ defaultDate, width = '7rem', onChange, variant }: { defaultDate?: Date; width?: string; onChange?: (date: Date) => void; variant?: "standard" | "outlined" | "filled"; }) {
-    const local = useContext(ConfigurationContext).local;
+    const local = useContext(ConfigurationContext)!.local;
     const localeMonths = getLocaleMonths(local, DateTime.local({ zone: local.zone }).year);
 
-    const [year, setYear] = useState<number>(undefined);
-    const [month, setMonth] = useState<number>(undefined);
-    const [day, setDay] = useState<number>(undefined);
+    const [year, setYear] = useState<number | undefined>(undefined);
+    const [month, setMonth] = useState<number | undefined>(undefined);
+    const [day, setDay] = useState<number | undefined>(undefined);
 
     if (!year && defaultDate?.year)
         setYear(defaultDate.year);
@@ -36,7 +36,8 @@ export function DateField({ defaultDate, width = '7rem', onChange, variant }: { 
                                 setYear(Number(e.target.value));
                             else {
                                 setYear(Number(e.target.value));
-                                onChange({ year: year, month: month, day: day });
+                                if (onChange)
+                                    onChange({ year: Number(e.target.value), month, day });
                             }
                         } catch (error) { console.error('year', error); return; }
                     }} />
@@ -53,7 +54,8 @@ export function DateField({ defaultDate, width = '7rem', onChange, variant }: { 
                                     setMonth(month);
                                 else {
                                     setMonth(month);
-                                    onChange({ year: year, month: month, day: day });
+                                    if (onChange)
+                                        onChange({ year, month, day });
                                 }
                             } catch (error) { console.error('month', error); return; }
                         }}
@@ -74,7 +76,8 @@ export function DateField({ defaultDate, width = '7rem', onChange, variant }: { 
                                 setDay(day);
                             else {
                                 setDay(day);
-                                onChange({ year: year, month: month, day: day });
+                                if (onChange)
+                                    onChange({ year: year, month: month, day: day });
                             }
                         } catch (error) { console.error('day', error); return; }
                     }} />

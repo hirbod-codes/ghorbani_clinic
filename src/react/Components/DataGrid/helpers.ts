@@ -2,7 +2,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { useTheme } from "@mui/material";
 import { Column } from "@tanstack/react-table";
 import { CSSProperties, useContext } from "react";
-import { ConfigurationContext } from '../../Contexts/ConfigurationContext';
+import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext';
 
 export const getColumns = (data: any[], overWriteColumns?: ColumnDef<any>[], additionalColumns?: ColumnDef<any>[], orderedColumnsFields?: string[]): ColumnDef<any>[] => {
     if (!data || data.length === 0)
@@ -53,7 +53,7 @@ export const getColumns = (data: any[], overWriteColumns?: ColumnDef<any>[], add
 
 export function getCommonPinningStyles(column: Column<any>): CSSProperties {
     const theme = useTheme();
-    const direction = useContext(ConfigurationContext).local.direction
+    const direction = useContext(ConfigurationContext)!.local.direction
 
     const isPinned = column.getIsPinned();
     const isLastLeftPinnedColumn = isPinned === 'left' && column.getIsLastColumn('left');

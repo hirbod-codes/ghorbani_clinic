@@ -73,8 +73,8 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
         return true
     }
 
-    const createsMedicalHistory = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).create(resources.MEDICAL_HISTORY), [auth])
-    const deletesMedicalHistory = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.MEDICAL_HISTORY), [auth])
+    const createsMedicalHistory = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).create(resources.MEDICAL_HISTORY), [auth])
+    const deletesMedicalHistory = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).delete(resources.MEDICAL_HISTORY), [auth])
 
     const deleteMedicalHistory = async (id: string) =>
         setDialog({
@@ -87,7 +87,7 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
                     const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteMedicalHistoryById(id)
                     console.log({ res })
 
-                    if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1) {
+                    if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.deletedCount !== 1) {
                         publish(RESULT_EVENT_NAME, {
                             severity: 'error',
                             message: t('MedicalHistories.failedToDeleteMedicalHistory')
@@ -203,14 +203,17 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
                 }
                 hideCanvas={true}
                 title={t('MedicalHistories.creationModalTitle')}
-                onSave={async (address, canvasId) => {
+                onSave={async (mh, canvasId) => {
                     try {
                         console.group('MedicalHistories', 'Address', 'onSave')
-                        console.log({ address, canvasId })
+                        console.log({ address: mh, canvasId })
 
-                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createMedicalHistory({ name: address })
+                        if (!mh)
+                            return
+
+                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createMedicalHistory({ name: mh })
                         console.log({ res })
-                        if (res.code !== 200 || !res.data.acknowledged) {
+                        if (res.code !== 200 || !res.data || !res.data.acknowledged) {
                             publish(RESULT_EVENT_NAME, {
                                 severity: 'error',
                                 message: t('MedicalHistories.failedToUpdatePatientAddress')

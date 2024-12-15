@@ -1,6 +1,7 @@
 import fs from 'fs'
 import Path from 'path'
-import { Config, readConfig, writeConfigSync } from './Configuration/main'
+import { Config } from './Configuration/main.d'
+import { readConfig, writeConfigSync } from './Configuration/main'
 
 export class StorageHelper {
     private static getConfig(): Config {
@@ -24,12 +25,12 @@ export class StorageHelper {
 
         const c = this.getConfig()
 
-        if (c.storage[path] === undefined) {
-            c.storage[path] = await this.calculateSize(path)
+        if (c.storage![path] === undefined) {
+            c.storage![path] = await this.calculateSize(path)
             this.setConfig(c)
         }
 
-        return c.storage[path]
+        return c.storage![path]
     }
 
     static async updateCache() {
@@ -37,8 +38,8 @@ export class StorageHelper {
 
         const c = this.getConfig()
 
-        for (const p of Object.keys(c.storage))
-            c.storage[p] = await this.calculateSize(p)
+        for (const p of Object.keys(c.storage!))
+            c.storage![p] = await this.calculateSize(p)
         this.setConfig(c)
     }
 
@@ -52,10 +53,10 @@ export class StorageHelper {
 
         const c = this.getConfig()
 
-        if (c.storage[directoryPath] === undefined)
-            c.storage[directoryPath] = size
+        if (c.storage![directoryPath] === undefined)
+            c.storage![directoryPath] = size
         else
-            c.storage[directoryPath] += size
+            c.storage![directoryPath] += size
 
         this.setConfig(c)
     }
@@ -70,13 +71,13 @@ export class StorageHelper {
 
         const c = this.getConfig()
 
-        if (c.storage[directoryPath] === undefined)
+        if (c.storage![directoryPath] === undefined)
             return
 
-        if (c.storage[directoryPath] >= size)
-            c.storage[directoryPath] -= size
+        if (c.storage![directoryPath] >= size)
+            c.storage![directoryPath] -= size
         else
-            c.storage[directoryPath] -= 0
+            c.storage![directoryPath] -= 0
 
         this.setConfig(c)
     }
@@ -84,8 +85,11 @@ export class StorageHelper {
     static async calculateSizes(paths: string[] | string): Promise<number> {
         console.log('calculateSizes', paths)
 
-        if (!paths)
-            return
+        if (!Array.isArray(paths) && (paths as string).trim() === '')
+            return 0
+
+        if (Array.isArray(paths) && paths.length === 0)
+            return 0
 
         if (!Array.isArray(paths))
             paths = [paths]

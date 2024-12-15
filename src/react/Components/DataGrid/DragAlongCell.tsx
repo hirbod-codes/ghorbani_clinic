@@ -49,7 +49,7 @@ export const DragAlongCell = ({ cell }: { cell: Cell<any, unknown>; }) => {
         ...getCommonPinningStyles(cell.column),
     };
 
-    switch (useContext(DataGridContext).density.value) {
+    switch (useContext(DataGridContext)!.density.value) {
         case 'compact':
             style.paddingTop = '0.25rem';
             style.paddingBottom = '0.25rem';

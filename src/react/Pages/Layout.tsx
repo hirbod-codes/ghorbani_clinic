@@ -1,4 +1,4 @@
-import { ConfigurationContextWrapper } from '../Contexts/ConfigurationContextWrapper';
+import { ConfigurationContextWrapper } from '../Contexts/Configuration/ConfigurationContextWrapper';
 import { AuthContextWrapper } from '../Contexts/AuthContextWrapper';
 import { ResultWrapper } from '../Contexts/ResultWrapper';
 import { Navigation } from '../Components/Navigation';

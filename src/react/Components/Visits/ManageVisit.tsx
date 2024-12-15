@@ -5,19 +5,19 @@ import { AddOutlined, Close, ExpandMore } from '@mui/icons-material';
 
 import { DateTime } from 'luxon';
 import type { Visit } from '../../../Electron/Database/Models/Visit';
-import { ConfigurationContext } from '../../../react/Contexts/ConfigurationContext';
+import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext';
 import { DateTimeField } from '../DateTime/DateTimeField';
 import { t } from 'i18next';
 import { EditorModal } from '../Editor/EditorModal';
-import { toDateTime, toDateTimeView, toFormat } from 'src/react/Lib/DateTime/date-time-helpers';
+import { toDateTime, toDateTimeView, toFormat } from '../../Lib/DateTime/date-time-helpers';
 
-export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId?: string; defaultVisits?: Visit[]; onChange?: (visits: Visit[]) => void; }) {
-    const local = useContext(ConfigurationContext).local;
+export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId: string; defaultVisits?: Visit[]; onChange?: (visits: Visit[]) => void; }) {
+    const local = useContext(ConfigurationContext)!.local;
 
     const getDefaultVisit = (): Visit => {
         return {
             schemaVersion: 'v0.0.1',
-            patientId: patientId ?? undefined,
+            patientId: patientId,
             due: DateTime.local({ zone: local.zone }).toUnixInteger(),
             createdAt: DateTime.local({ zone: local.zone }).toUnixInteger(),
             updatedAt: DateTime.local({ zone: local.zone }).toUnixInteger(),
@@ -26,11 +26,11 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
 
     const [showDiagnosis, setShowDiagnosis] = useState<boolean>(false)
     const [showTreatments, setShowTreatments] = useState<boolean>(false)
-    const [activeVisitIndex, setActiveVisitIndex] = useState<number>();
+    const [activeVisitIndex, setActiveVisitIndex] = useState<number | undefined>(undefined);
     const [visits, setVisits] = useState<Visit[]>([]);
 
     useEffect(() => {
-        setVisits([...defaultVisits]);
+        setVisits([...defaultVisits ?? []]);
     }, [defaultVisits])
 
     return (
@@ -40,16 +40,20 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                 onClose={() => {
                     setShowDiagnosis(false)
                 }}
-                text={visits[activeVisitIndex]?.diagnosis?.text}
-                canvasId={visits[activeVisitIndex]?.diagnosis?.canvas as string}
+                text={activeVisitIndex !== undefined ? visits[activeVisitIndex]?.diagnosis?.text : ''}
+                canvasId={activeVisitIndex !== undefined ? visits[activeVisitIndex]?.diagnosis?.canvas as string : ''}
                 title={t('ManageVisits.diagnosis')}
                 onSave={async (diagnosis, canvasId) => {
+                    if (activeVisitIndex === undefined)
+                        return
+
                     console.log('ManageVisits', 'diagnosis', 'onChange', diagnosis, canvasId)
 
                     if (visits[activeVisitIndex].diagnosis)
                         visits[activeVisitIndex].diagnosis = { text: diagnosis, canvas: canvasId }
 
-                    onChange([...visits])
+                    if (onChange)
+                        onChange([...visits])
                     setVisits([...visits])
                 }}
             />
@@ -58,16 +62,20 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                 onClose={() => {
                     setShowTreatments(false)
                 }}
-                text={visits[activeVisitIndex]?.treatments?.text}
-                canvasId={visits[activeVisitIndex]?.treatments?.canvas as string}
+                text={activeVisitIndex !== undefined ? visits[activeVisitIndex]?.treatments?.text : ''}
+                canvasId={activeVisitIndex !== undefined ? visits[activeVisitIndex]?.treatments?.canvas as string : ''}
                 title={t('ManageVisits.treatments')}
                 onSave={async (treatments, canvasId) => {
+                    if (activeVisitIndex === undefined)
+                        return
+
                     console.log('ManageVisits', 'treatments', 'onChange', treatments, canvasId)
 
                     if (visits[activeVisitIndex].treatments)
                         visits[activeVisitIndex].treatments = { text: treatments, canvas: canvasId }
 
-                    onChange([...visits])
+                    if (onChange)
+                        onChange([...visits])
                     setVisits([...visits])
                 }}
             />
@@ -86,7 +94,9 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                                         onChange={(dateTime) => {
                                             const convertedDate = toDateTimeView(toDateTime({ date: dateTime.date, time: dateTime.time }, { ...local, calendar: 'Gregorian', zone: 'UTC' }, local));
                                             visits[i].due = DateTime.local(convertedDate.date.year, convertedDate.date.month, convertedDate.date.day, convertedDate.time.hour, convertedDate.time.minute, convertedDate.time.second, { zone: 'UTC' }).toUnixInteger();
-                                            onChange([...visits])
+
+                                            if (onChange)
+                                                onChange([...visits])
                                             setVisits([...visits])
                                         }}
                                         defaultDate={toDateTimeView(toDateTime(visits[i].due, local)).date}
@@ -115,7 +125,8 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                             color="error"
                             onClick={() => {
                                 visits.pop();
-                                onChange([...visits])
+                                if (onChange)
+                                    onChange([...visits])
                                 setVisits([...visits])
                             }}
                         >
@@ -126,7 +137,8 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                         color="success"
                         onClick={() => {
                             visits.push(getDefaultVisit());
-                            onChange([...visits])
+                            if (onChange)
+                                onChange([...visits])
                             setVisits([...visits]);
                         }}
                     >

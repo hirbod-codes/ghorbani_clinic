@@ -1,10 +1,15 @@
 import os from 'os'
+import path from 'path';
+import fs from 'fs';
+import { CONFIGURATION_FILE } from './directories';
 import { app, BrowserWindow } from 'electron';
 import { handleMenuEvents } from './Electron/Menu/menu';
 import { handleConfigEvents, readConfig, writeConfigSync } from './Electron/Configuration/main';
 import { db, handleDbEvents } from './Electron/Database/main';
-import path from 'path';
 import { handleAppMainEvents } from './Electron/appMainEvents';
+
+if (!app.isPackaged && fs.existsSync(CONFIGURATION_FILE))
+    fs.rmSync(CONFIGURATION_FILE)
 
 const c = readConfig()
 

@@ -148,15 +148,15 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
 
         const privilegedFields = getFields(updatableFields, privileges.can(user.roleName).update(resources.VISIT).attributes);
 
-        visit = Object.fromEntries(Object.entries(visit).filter(arr => (updatableFields as string[]).includes(arr[0])));
-        Object.keys(visit).forEach(k => {
+        const updatableVisit = Object.fromEntries(Object.entries(visit).filter(arr => (updatableFields as string[]).includes(arr[0])));
+        Object.keys(updatableVisit).forEach(k => {
             if (!privilegedFields.includes(k))
                 throw new Unauthorized();
         });
 
-        visit.updatedAt = DateTime.utc().toUnixInteger();
+        updatableVisit.updatedAt = DateTime.utc().toUnixInteger();
 
-        return (await (await this.getVisitsCollection()).updateOne({ _id: new ObjectId(id) }, { $set: { ...visit } }, { upsert: true }))
+        return (await (await this.getVisitsCollection()).updateOne({ _id: new ObjectId(id) }, { $set: { ...updatableVisit } }, { upsert: true }))
     }
 
     async deleteVisit(id: string): Promise<DeleteResult> {

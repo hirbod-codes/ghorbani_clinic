@@ -91,7 +91,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
         return f
     }
 
-    downloadCanvas(id: string): Promise<Canvas> {
+    downloadCanvas(id: string): Promise<Canvas | null> {
         return new Promise(async (res, rej) => {
             const authenticated = await authRepository.getAuthenticatedUser()
             if (authenticated == null)
@@ -130,7 +130,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
                     chunks.push(chunk)
                 })
                 .on('end', () => {
-                    res({ ...f[0].metadata, data: fromByteArray(Buffer.concat(chunks)) })
+                    res({ ...f[0].metadata as any, data: fromByteArray(Buffer.concat(chunks)) })
                     console.log('downloadCanvas', 'finished downloading.')
                 })
                 .on('error', (err) => {
@@ -142,9 +142,11 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
 
     async downloadCanvases(ids: string[]): Promise<Canvas[]> {
         const files: Canvas[] = []
-        ids.forEach(async (id) => {
-            files.push(await this.downloadCanvas(id))
-        });
+        for (const id of ids) {
+            let canvas = await this.downloadCanvas(id)
+            if (canvas !== undefined && canvas !== null)
+                files.push(canvas)
+        }
 
         return files
     }
@@ -167,7 +169,7 @@ export class CanvasRepository extends MongoDB implements ICanvasRepository {
 
         const f = await bucket.find({ _id: new ObjectId(id) }).toArray();
         if (f.length === 0)
-            return null;
+            return;
 
         console.log('found files', f.length);
 

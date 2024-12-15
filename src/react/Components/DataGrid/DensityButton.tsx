@@ -8,7 +8,7 @@ export function DensityButton() {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
     const open = Boolean(anchorEl)
 
-    const ctx = useContext(DataGridContext)
+    const ctx = useContext(DataGridContext)!
 
     return (
         <>

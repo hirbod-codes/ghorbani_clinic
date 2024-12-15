@@ -14,8 +14,8 @@ export type SelectToolProps = {
 }
 
 export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook, setOnUpHook, setOnDownHook }: SelectToolProps) {
-    const [selectedHandler, setSelectedHandler] = useState<Position | 'rotate' | 'move'>(undefined)
-    const [referencePoint, setReferencePoint] = useState<Point>(undefined)
+    const [selectedHandler, setSelectedHandler] = useState<Position | 'rotate' | 'move' | undefined>(undefined)
+    const [referencePoint, setReferencePoint] = useState<Point | undefined>(undefined)
 
     const [shouldScale, setShouldScale] = useState<boolean>(false)
 
@@ -24,7 +24,7 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
         shapes.select(draw.ctx, draw.currentPoint)
         shapes.draw(draw)
 
-        if (!shapes.hasSelection())
+        if (!shapes.hasSelection() || shapes.selectionBox === undefined)
             return
 
         setSelectedHandler(shapes.selectionBox.isInside(draw.ctx, draw.currentPoint))
@@ -41,7 +41,7 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
 
         const shape = shapes.getSelectedShape()
 
-        if (!draw.prevPoint)
+        if (!draw.prevPoint || !shape || !shapes.selectionBox)
             return
 
         if (selectedHandler === 'move')
@@ -61,7 +61,7 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
     }
 
     const onHoverHook = (draw: Draw) => {
-        if (!shapes.hasSelection() || selectedHandler)
+        if (!shapes.hasSelection() || selectedHandler || !shapes.selectionBox || !draw.canvasRef.current)
             return
 
         const direction = shapes.selectionBox.isInside(draw.ctx, draw.currentPoint)
@@ -84,7 +84,9 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
                 return;
         }
 
-        const centerPoint: Point = shapes.getSelectedShape().getCenterPoint()
+        const centerPoint: Point | undefined = shapes.getSelectedShape()?.getCenterPoint()
+        if (!centerPoint)
+            return
         const rad = getRadiansFromTwoPoints(centerPoint, draw.currentPoint)
 
         const r = Math.floor(rad / (2 * Math.PI / 16))

@@ -3,7 +3,7 @@ import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { t } from "i18next";
 import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, IconButton, Paper, Stack, useTheme } from "@mui/material";
 import { DATE, toFormat } from "../Lib/DateTime/date-time-helpers";
-import { ConfigurationContext } from "../Contexts/ConfigurationContext";
+import { ConfigurationContext } from "../Contexts/Configuration/ConfigurationContext";
 import { Patient } from "../../Electron/Database/Models/Patient";
 import { AddOutlined, DeleteOutline, EditOutlined, RefreshOutlined } from "@mui/icons-material";
 import { AuthContext } from "../Contexts/AuthContext";
@@ -24,10 +24,10 @@ import { DocumentManagement } from "../Components/DocumentManagement";
 
 export const Patients = memo(function Patients() {
     const auth = useContext(AuthContext)
-    const configuration = useContext(ConfigurationContext)
+    const configuration = useContext(ConfigurationContext)!
     const navigate = useNavigate()
 
-    if (!auth?.accessControl?.can(auth.user.roleName).read(resources.PATIENT).granted)
+    if (!auth?.accessControl?.can(auth?.user?.roleName ?? '').read(resources.PATIENT).granted)
         navigate('/')
 
     const initDialog: any = {
@@ -116,10 +116,10 @@ export const Patients = memo(function Patients() {
                 })
     }, [])
 
-    const readsMedicalHistories = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).read(resources.MEDICAL_HISTORY), [auth])
-    const createsPatient = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).create(resources.PATIENT), [auth])
-    const updatesPatient = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).update(resources.PATIENT), [auth])
-    const deletesPatient = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.PATIENT), [auth])
+    const readsMedicalHistories = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth.user.roleName).read(resources.MEDICAL_HISTORY), [auth])
+    const createsPatient = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).create(resources.PATIENT), [auth])
+    const updatesPatient = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).update(resources.PATIENT), [auth])
+    const deletesPatient = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).delete(resources.PATIENT), [auth])
 
     const overWriteColumns: ColumnDef<any>[] = [
         {
@@ -230,7 +230,7 @@ export const Patients = memo(function Patients() {
                                                 const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deletePatient(row.original._id)
                                                 setDeletingPatientId(undefined)
 
-                                                if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1)
+                                                if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.deletedCount !== 1)
                                                     publish(RESULT_EVENT_NAME, {
                                                         severity: 'error',
                                                         message: t('Patients.failedToDeletePatient')
@@ -302,7 +302,7 @@ export const Patients = memo(function Patients() {
             </Grid>
 
             <Modal open={showingDocuments} onClose={() => setShowingDocuments(false)}>
-                <DocumentManagement patientId={activePatientId} />
+                <DocumentManagement patientId={activePatientId!} />
             </Modal>
 
             <ManagePatient
@@ -332,7 +332,7 @@ export const Patients = memo(function Patients() {
 
                         const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updatePatient({ ...p, address: { text: address, canvas: canvasId } })
                         console.log({ res })
-                        if (res.code !== 200 || !res.data.acknowledged || res.data.matchedCount !== 1) {
+                        if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.matchedCount !== 1) {
                             publish(RESULT_EVENT_NAME, {
                                 severity: 'error',
                                 message: t('Patients.failedToUpdatePatientAddress')
@@ -371,7 +371,7 @@ export const Patients = memo(function Patients() {
 
                         const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updatePatient({ ...p, medicalHistory: mh })
                         console.log({ res })
-                        if (res.code !== 200 || !res.data.acknowledged || res.data.matchedCount !== 1) {
+                        if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.matchedCount !== 1) {
                             publish(RESULT_EVENT_NAME, {
                                 severity: 'error',
                                 message: t('Patients.failedToUpdatePatientMedicalHistory')

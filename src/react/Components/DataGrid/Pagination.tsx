@@ -10,10 +10,10 @@ export type PaginationProps = {
     setPaginationLimitChange?: (paginationLimit: number) => void | Promise<void>
 }
 
-export function Pagination({ paginationLimitOptions, onPagination, setPaginationLimitChange }: PaginationProps) {
+export function Pagination({ paginationLimitOptions = [10, 25, 50, 100], onPagination, setPaginationLimitChange }: PaginationProps) {
     const theme = useTheme()
 
-    const table = useContext(DataGridContext).table
+    const table = useContext(DataGridContext)!.table!
 
     const [paginationLimit, setPaginationLimit] = useState<number>(paginationLimitOptions[0])
 
@@ -35,7 +35,8 @@ export function Pagination({ paginationLimitOptions, onPagination, setPagination
                         label={t('DataGrid.paginationLimit')}
                         onChange={(e) => {
                             setPaginationLimit(e.target.value as number);
-                            setPaginationLimitChange(e.target.value as number)
+                            if (setPaginationLimitChange)
+                                setPaginationLimitChange(e.target.value as number)
                             setPage(0)
                         }}
                     >

@@ -4,7 +4,7 @@ import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { t } from "i18next";
 import { Button, CircularProgress, Grid, IconButton, Paper } from "@mui/material";
 import { DATE, toFormat } from "../Lib/DateTime/date-time-helpers";
-import { ConfigurationContext } from "../Contexts/ConfigurationContext";
+import { ConfigurationContext } from "../Contexts/Configuration/ConfigurationContext";
 import { Visit } from "../../Electron/Database/Models/Visit";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish, subscribe } from "../Lib/Events";
@@ -19,10 +19,10 @@ import { ColumnDef } from "@tanstack/react-table";
 
 export const Visits = memo(function Visits() {
     const auth = useContext(AuthContext)
-    const configuration = useContext(ConfigurationContext)
+    const configuration = useContext(ConfigurationContext)!
     const navigate = useNavigate()
 
-    if (!auth.accessControl?.can(auth.user.roleName).read(resources.VISIT).granted)
+    if (!auth!.accessControl?.can(auth!.user?.roleName ?? '').read(resources.VISIT).granted)
         navigate('/')
 
     const [page, setPage] = useState({ offset: 0, limit: 10 })
@@ -108,7 +108,7 @@ export const Visits = memo(function Visits() {
         })
     }, [])
 
-    const deletesVisit = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.VISIT), [auth])
+    const deletesVisit = useMemo(() => auth!.user && auth!.accessControl && auth!.accessControl.can(auth!.user?.roleName ?? '').delete(resources.VISIT), [auth])
 
     const overWriteColumns: ColumnDef<any>[] = [
         {
@@ -157,7 +157,7 @@ export const Visits = memo(function Visits() {
                             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteVisit(row.original._id)
                             setDeletingVisitId(undefined)
 
-                            if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1) {
+                            if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.deletedCount !== 1) {
                                 publish(RESULT_EVENT_NAME, {
                                     severity: 'error',
                                     message: t('Visits.failedToDeleteVisit')
@@ -218,15 +218,15 @@ export const Visits = memo(function Visits() {
                 onClose={() => {
                     setShowDiagnosis(undefined)
                 }}
-                text={visits.find(f => f._id === showDiagnosis)?.diagnosis.text}
-                canvasId={visits.find(f => f._id === showDiagnosis)?.diagnosis.canvas as string}
+                text={visits.find(f => f._id === showDiagnosis)?.diagnosis?.text}
+                canvasId={visits.find(f => f._id === showDiagnosis)?.diagnosis?.canvas as string}
                 title={t('Visits.diagnosis')}
                 onSave={async (diagnosis, canvasId) => {
                     console.log('ManageVisits', 'diagnosis', 'onChange', diagnosis, canvasId)
 
-                    if (visits.find(f => f._id === showDiagnosis).diagnosis) {
-                        visits.find(f => f._id === showDiagnosis).diagnosis = { text: diagnosis, canvas: canvasId }
-                        updateVisit(visits.find(f => f._id === showDiagnosis))
+                    if (visits.find(f => f._id === showDiagnosis)) {
+                        visits.find(f => f._id === showDiagnosis)!.diagnosis = { text: diagnosis, canvas: canvasId }
+                        updateVisit(visits.find(f => f._id === showDiagnosis)!)
                     }
                 }}
             />
@@ -235,15 +235,15 @@ export const Visits = memo(function Visits() {
                 onClose={() => {
                     setShowTreatments(undefined)
                 }}
-                text={visits.find(f => f._id === showTreatments)?.treatments.text}
-                canvasId={visits.find(f => f._id === showTreatments)?.treatments.canvas as string}
+                text={visits.find(f => f._id === showTreatments)?.treatments?.text}
+                canvasId={visits.find(f => f._id === showTreatments)?.treatments?.canvas as string}
                 title={t('Visits.treatments')}
                 onSave={async (treatments, canvasId) => {
                     console.log('ManageVisits', 'treatments', 'onChange', treatments, canvasId)
 
-                    if (visits.find(f => f._id === showTreatments).treatments) {
-                        visits.find(f => f._id === showTreatments).treatments = { text: treatments, canvas: canvasId }
-                        updateVisit(visits.find(f => f._id === showTreatments))
+                    if (visits.find(f => f._id === showTreatments)) {
+                        visits.find(f => f._id === showTreatments)!.treatments = { text: treatments, canvas: canvasId }
+                        updateVisit(visits.find(f => f._id === showTreatments)!)
                     }
                 }}
             />

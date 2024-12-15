@@ -16,7 +16,7 @@ export const SearchPatientField = memo(function SearchPatientField() {
     console.log('SearchPatientField', { loading, socialId, patient });
 
     const onSocialIdChange = async (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        if (e.target.value.trim().length > 10 || e.target.value.trim().match(/\D+/)?.length > 0)
+        if (e.target.value.trim().length > 10 || (e.target.value.trim().match(/\D+/)?.length ?? 1) > 0)
             return;
 
         setSocialId(e.target.value.trim());

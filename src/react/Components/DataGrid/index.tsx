@@ -41,7 +41,7 @@ import { getColumns } from './helpers'
 import LoadingScreen from '../LoadingScreen'
 import { AnimatePresence } from 'framer-motion'
 import { getLuxonLocale } from '../../Lib/helpers'
-import { ConfigurationContext } from '../../Contexts/ConfigurationContext'
+import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext'
 
 export type DataGridProps = {
     configName?: string,
@@ -87,7 +87,7 @@ export function DataGrid({
     defaultTableDensity = 'compact'
 }: DataGridProps) {
     const theme = useTheme()
-    const configuration = useContext(ConfigurationContext)
+    const configuration = useContext(ConfigurationContext)!
 
     if (!pagination)
         pagination = { pageIndex: 0, pageSize: 10 }
@@ -106,7 +106,7 @@ export function DataGrid({
         })
 
     const [density, setDensity] = useState<Density>('compact')
-    const [columnOrder, setColumnOrder] = useState<string[]>((columns ?? []).map(c => c.id))
+    const [columnOrder, setColumnOrder] = useState<string[]>((columns ?? []).map(c => c.id).filter(f => f !== undefined))
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
     const [columnPinning, setColumnPinning] = useState<ColumnPinningState>({ left: ['counter'], right: [] })
 
@@ -138,29 +138,29 @@ export function DataGrid({
             if (typeof updaterOrValue !== 'function')
                 cp = updaterOrValue
             else
-                cp = updaterOrValue(undefined)
+                cp = updaterOrValue(columnPinning)
 
             if (!cp.left) cp.left = []
             if (!cp.right) cp.right = []
 
-            const newCp: ColumnPinningState = { left: [...columnPinning.left], right: [...columnPinning.right] }
+            const newCp: ColumnPinningState = { left: [...columnPinning.left ?? []], right: [...columnPinning.right ?? []] }
 
             cp.left.forEach(l => {
-                if (columnPinning.left.find(f => f === l) === undefined)
-                    newCp.left.push(l)
+                if (columnPinning.left?.find(f => f === l) === undefined)
+                    newCp.left!.push(l)
                 else
-                    newCp.left = newCp.left.filter(f => f !== l)
+                    newCp.left! = newCp.left!.filter(f => f !== l)
             })
 
             cp.right.forEach(l => {
-                if (columnPinning.right.find(f => f === l) === undefined)
-                    newCp.right.push(l)
+                if (columnPinning.right?.find(f => f === l) === undefined)
+                    newCp.right!.push(l)
                 else
-                    newCp.right = newCp.right.filter(f => f !== l)
+                    newCp.right! = newCp.right!.filter(f => f !== l)
             })
 
             if (configName) {
-                const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+                const c = (await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig())!
                 console.log({ ...c });
 
                 if (!c.columnPinningModels)
@@ -180,10 +180,10 @@ export function DataGrid({
             if (typeof updaterOrValue !== 'function')
                 co = updaterOrValue
             else
-                co = updaterOrValue(undefined)
+                co = updaterOrValue(columnOrder)
 
             if (configName) {
-                const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+                const c = (await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig())!
 
                 if (!c.columnOrderModels)
                     c.columnOrderModels = {}
@@ -202,10 +202,10 @@ export function DataGrid({
             if (typeof updaterOrValue !== 'function')
                 cv = updaterOrValue
             else
-                cv = updaterOrValue(undefined)
+                cv = updaterOrValue(columnVisibility)
 
             if (configName) {
-                const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+                const c = (await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig())!
 
                 if (!c.columnVisibilityModels)
                     c.columnVisibilityModels = {}
@@ -261,43 +261,43 @@ export function DataGrid({
                     else {
                         setColumnVisibility(defaultColumnVisibilityModel)
                         table.setColumnVisibility(defaultColumnVisibilityModel)
-                        if (!c.columnVisibilityModels)
-                            c.columnVisibilityModels = {}
-                        c.columnVisibilityModels[configName] = defaultColumnVisibilityModel
+                        if (!c!.columnVisibilityModels)
+                            c!.columnVisibilityModels = {}
+                        c!.columnVisibilityModels[configName] = defaultColumnVisibilityModel
                     }
 
                     if (c?.columnOrderModels && c.columnOrderModels[configName]) {
-                        setColumnOrder(c.columnOrderModels[configName])
-                        table.setColumnOrder(c.columnOrderModels[configName])
+                        setColumnOrder(c!.columnOrderModels[configName])
+                        table.setColumnOrder(c!.columnOrderModels[configName])
                     } else {
                         setColumnOrder(defaultColumnOrderModel)
                         table.setColumnOrder(defaultColumnOrderModel)
-                        if (!c.columnOrderModels)
-                            c.columnOrderModels = {}
-                        c.columnOrderModels[configName] = defaultColumnOrderModel
+                        if (!c!.columnOrderModels)
+                            c!.columnOrderModels = {}
+                        c!.columnOrderModels[configName] = defaultColumnOrderModel
                     }
 
                     if (c?.columnPinningModels && c.columnPinningModels[configName]) {
-                        setColumnPinning(c.columnPinningModels[configName])
-                        table.setColumnPinning(c.columnPinningModels[configName])
+                        setColumnPinning(c!.columnPinningModels[configName])
+                        table.setColumnPinning(c!.columnPinningModels[configName])
                     } else {
                         setColumnPinning(defaultColumnPinningModel)
                         table.setColumnPinning(defaultColumnPinningModel)
-                        if (!c.columnPinningModels)
-                            c.columnPinningModels = {}
-                        c.columnPinningModels[configName] = defaultColumnPinningModel
+                        if (!c!.columnPinningModels)
+                            c!.columnPinningModels = {}
+                        c!.columnPinningModels[configName] = defaultColumnPinningModel
                     }
 
-                    if (c?.tableDensity && c?.tableDensity[configName])
+                    if (c?.tableDensity && c.tableDensity[configName])
                         setDensity(c?.tableDensity[configName])
                     else {
                         setDensity(defaultTableDensity)
-                        if (!c.tableDensity)
-                            c.tableDensity = {}
-                        c.tableDensity[configName] = defaultTableDensity
+                        if (!c!.tableDensity)
+                            c!.tableDensity = {}
+                        c!.tableDensity[configName] = defaultTableDensity
                     }
 
-                    (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c);
+                    (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c!);
                     setHasInit(true)
                 })
     }, [])
@@ -310,12 +310,14 @@ export function DataGrid({
                 table, density: {
                     value: density,
                     set: async (d) => {
-                        const c = await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig()
+                        const c = (await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig())!
                         if (!c?.tableDensity)
                             c.tableDensity = {}
 
-                        c.tableDensity[configName] = d
-                        await (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
+                        if (configName) {
+                            c.tableDensity[configName] = d
+                            await (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
+                        }
 
                         setDensity(d)
                     }

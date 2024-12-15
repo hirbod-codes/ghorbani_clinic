@@ -1,13 +1,13 @@
 import { Paper, Stack, Typography, useTheme } from "@mui/material"
 import { DateTime } from "luxon"
 import { memo, useContext, useEffect, useState } from "react"
-import { ConfigurationContext } from "../../Contexts/ConfigurationContext"
+import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext"
 import { toFormat } from "../../Lib/DateTime/date-time-helpers"
 import { getLuxonLocale } from "../../Lib/helpers"
 
 export const Clock = memo(function Clock() {
     const theme = useTheme()
-    const configuration = useContext(ConfigurationContext)
+    const configuration = useContext(ConfigurationContext)!
 
     const getDate = () => localizeNumbers(toFormat(DateTime.utc().toUnixInteger(), configuration.local, undefined, 'cccc y/M/d'), getLuxonLocale(configuration.local.language))
     const getTime = () => localizeNumbers(DateTime.utc().setZone(configuration.local.zone).toFormat('HH:mm:ss'), getLuxonLocale(configuration.local.language))

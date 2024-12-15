@@ -6,8 +6,8 @@ export type Draw = {
     ctx: CanvasRenderingContext2D
     currentPoint: Point
     prevPoint?: Point
-    e: PointerEvent<HTMLCanvasElement>
-    canvasRef: MutableRefObject<HTMLCanvasElement | undefined>
+    e?: PointerEvent<HTMLCanvasElement>
+    canvasRef: MutableRefObject<HTMLCanvasElement | null>
 }
 
 export type Position = 'topLeft' | 'top' | 'topRight' | 'right' | 'bottomRight' | 'bottom' | 'bottomLeft' | 'left'

@@ -12,7 +12,7 @@ export const ResultWrapper = memo(function ResultWrapper({ children }: { childre
 
     const memoizedChildren = useMemo(() => children, [])
 
-    subscribe(RESULT_EVENT_NAME, (e?: CustomEvent) => { setResult(e?.detail); setResultOpen(true) })
+    subscribe(RESULT_EVENT_NAME, (e?: any) => { setResult(e?.detail); setResultOpen(true) })
 
     console.log('-------------ResultContextWrapper', '{ result }')
 

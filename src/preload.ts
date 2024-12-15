@@ -1,9 +1,9 @@
-import { contextBridge, ipcRenderer } from 'electron'
+import { contextBridge } from 'electron'
 import * as menu from './Electron/Menu/renderer/menu'
-import * as configs from './Electron/Configuration/renderer'
 import { menuAPI } from './Electron/Menu/renderer/menuAPI'
-import { handleDbRendererEvents } from './Electron/Database/renderer'
-import { handleAppRendererEvents } from './Electron/appRendererEvents'
+import { handleRendererEvents as handleConfigurationRendererEvents } from './Electron/Configuration/renderer'
+import { handleRendererEvents as handleDbRendererEvents } from './Electron/Database/renderer'
+import { handleRendererEvents as handleAppRendererEvents } from './Electron/appRendererEvents'
 
 contextBridge.exposeInMainWorld('appAPI', handleAppRendererEvents())
 
@@ -17,9 +17,6 @@ contextBridge.exposeInMainWorld('menuAPI', {
     isWindowMaximized: menu.isWindowMaximized,
 } as menuAPI)
 
-contextBridge.exposeInMainWorld('configAPI', {
-    readConfig: configs.readConfig,
-    writeConfig: configs.writeConfig,
-} as configs.configAPI)
+contextBridge.exposeInMainWorld('configAPI', handleConfigurationRendererEvents())
 
 contextBridge.exposeInMainWorld('dbAPI', handleDbRendererEvents())

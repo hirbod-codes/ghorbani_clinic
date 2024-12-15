@@ -2,7 +2,7 @@ import { useContext, useEffect, useMemo, useState } from "react"
 import { MedicalHistory } from "../../../Electron/Database/Models/MedicalHistory"
 import { useNavigate } from "react-router-dom"
 import { AuthContext } from "../../../react/Contexts/AuthContext"
-import { ConfigurationContext } from "../../../react/Contexts/ConfigurationContext"
+import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext"
 import { resources } from "../../../Electron/Database/Repositories/Auth/resources"
 import { RendererDbAPI } from "../../../Electron/Database/renderer"
 import { publish } from "../../../react/Lib/Events"
@@ -19,10 +19,10 @@ import { MedicalHistorySearch } from "./MedicalHistorySearch"
 
 export function MedicalHistoryDataGrid() {
     const auth = useContext(AuthContext)
-    const configuration = useContext(ConfigurationContext)
+    const configuration = useContext(ConfigurationContext)!
     const navigate = useNavigate()
 
-    if (!auth?.accessControl?.can(auth.user.roleName).read(resources.MEDICAL_HISTORY).granted)
+    if (!auth?.accessControl?.can(auth?.user?.roleName ?? '').read(resources.MEDICAL_HISTORY).granted)
         navigate('/')
 
     const initDialog: any = {
@@ -93,8 +93,8 @@ export function MedicalHistoryDataGrid() {
                 })
     }, [])
 
-    const createsMedicalHistory = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).create(resources.MEDICAL_HISTORY), [auth])
-    const deletesMedicalHistory = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.MEDICAL_HISTORY), [auth])
+    const createsMedicalHistory = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).create(resources.MEDICAL_HISTORY), [auth])
+    const deletesMedicalHistory = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).delete(resources.MEDICAL_HISTORY), [auth])
 
     const overWriteColumns: ColumnDef<any>[] = [
         {
@@ -135,7 +135,7 @@ export function MedicalHistoryDataGrid() {
                                 const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteMedicalHistoryById(row.original._id)
                                 setDeletingMedicalHistoryId(undefined)
 
-                                if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1)
+                                if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.deletedCount !== 1)
                                     publish(RESULT_EVENT_NAME, {
                                         severity: 'error',
                                         message: t('MedicalHistories.failedToDeleteMedicalHistory')
@@ -193,14 +193,17 @@ export function MedicalHistoryDataGrid() {
                 onClose={() => setCreatingMedicalHistory(false)}
                 hideCanvas={true}
                 title={t('MedicalHistories.creationModalTitle')}
-                onSave={async (address, canvasId) => {
+                onSave={async (mh, canvasId) => {
                     try {
                         console.group('MedicalHistories', 'Address', 'onSave')
-                        console.log({ address, canvasId })
+                        console.log({ address: mh, canvasId })
 
-                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createMedicalHistory({ name: address })
+                        if (mh === undefined)
+                            return
+
+                        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createMedicalHistory({ name: mh })
                         console.log({ res })
-                        if (res.code !== 200 || !res.data.acknowledged) {
+                        if (res.code !== 200 || !res.data || !res.data.acknowledged) {
                             publish(RESULT_EVENT_NAME, {
                                 severity: 'error',
                                 message: t('MedicalHistories.failedToUpdatePatientAddress')

@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import { numericCounterTransitions } from "../../../Styles/animations";
 
 export function AnimatedCounter({ start = 0, end }: { start?: number; end: number; }) {
-    const nodeRef = useRef<HTMLParagraphElement>();
+    const nodeRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         const controls = animate(start, end, {
@@ -15,7 +15,7 @@ export function AnimatedCounter({ start = 0, end }: { start?: number; end: numbe
         });
 
         return () => controls.stop()
-    }, [])
+    }, [nodeRef.current])
 
     return (
         <div ref={nodeRef} />

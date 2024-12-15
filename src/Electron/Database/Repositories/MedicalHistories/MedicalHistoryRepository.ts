@@ -8,6 +8,7 @@ import { Unauthenticated } from "../../Exceptions/Unauthenticated";
 import { Unauthorized } from "../../Exceptions/Unauthorized";
 import { resources } from "../Auth/resources";
 import { DateTime } from "luxon";
+import { BadRequest } from "../../Exceptions/BadRequest";
 
 export class MedicalHistoryRepository extends MongoDB implements IMedicalHistoryRepository {
     async handleEvents(): Promise<void> {
@@ -19,7 +20,7 @@ export class MedicalHistoryRepository extends MongoDB implements IMedicalHistory
         ipcMain.handle('delete-medical-history-by-name', async (_e, { name }: { name: string }) => await this.handleErrors(async () => await this.deleteMedicalHistoryByName(name)))
     }
 
-    async createMedicalHistory(medicalHistory: MedicalHistory): Promise<InsertOneResult<Document>> {
+    async createMedicalHistory(medicalHistory: MedicalHistory): Promise<InsertOneResult<MedicalHistory>> {
         const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();
@@ -28,9 +29,12 @@ export class MedicalHistoryRepository extends MongoDB implements IMedicalHistory
             throw new Unauthorized()
 
         if (!medicalHistorySchema.isValidSync(medicalHistory))
-            throw new Error('Invalid medicalHistory info provided.');
+            throw new BadRequest('Invalid medicalHistory info provided.');
 
         medicalHistory = medicalHistorySchema.cast(medicalHistory);
+        if (medicalHistory === undefined)
+            throw new BadRequest('Invalid medicalHistory info provided.');
+
         medicalHistory.schemaVersion = 'v0.0.1';
         medicalHistory.createdAt = DateTime.utc().toUnixInteger();
         medicalHistory.updatedAt = DateTime.utc().toUnixInteger();
@@ -51,7 +55,7 @@ export class MedicalHistoryRepository extends MongoDB implements IMedicalHistory
         return await (await this.getMedicalHistoriesCollection()).find().limit(count).skip(offset * count).sort('createdAt', -1).toArray()
     }
 
-    async getMedicalHistory(name: string): Promise<MedicalHistory> {
+    async getMedicalHistory(name: string): Promise<MedicalHistory | null> {
         const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();

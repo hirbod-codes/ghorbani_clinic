@@ -22,7 +22,7 @@ export class SelectionBox {
     private fillStyle: string | CanvasGradient | CanvasPattern
     private strokeStyle: string | CanvasGradient | CanvasPattern
 
-    private boundaries: Boundaries = undefined
+    private boundaries: Boundaries | undefined = undefined
 
     constructor(shape: Shape, rectanglesWidth = 15, offset = 30, fillStyle: string | CanvasGradient | CanvasPattern = 'cyan', strokeStyle: string | CanvasGradient | CanvasPattern = 'cyan') {
         this.shape = shape
@@ -48,16 +48,16 @@ export class SelectionBox {
         if (this.shape.transformArgs)
             ctx.setTransform(this.shape.transformArgs)
 
-        if (ctx.isPointInPath(this.paths.rotate, point.x, point.y))
+        if (this.paths.rotate && ctx.isPointInPath(this.paths.rotate, point.x, point.y))
             result = 'rotate'
 
-        if (ctx.isPointInPath(this.paths.move, point.x, point.y))
+        if (this.paths.move && ctx.isPointInPath(this.paths.move, point.x, point.y))
             result = 'move'
 
         for (const k in this.paths)
             if (k === 'move' || k === 'rotate' || !this.paths[k as Position])
                 continue
-            else if (ctx.isPointInPath(this.paths[k as Position], point.x, point.y)) {
+            else if (this.paths[k as Position] && ctx.isPointInPath(this.paths[k as Position]!, point.x, point.y)) {
                 result = k as Position
                 break
             }
@@ -126,9 +126,9 @@ export class SelectionBox {
                 ctx.setTransform(this.shape.transformArgs)
 
             const boundary = boundaries[key as Position]
-            this.paths[key as Position].rect(boundary.topLeft.x, boundary.topLeft.y, boundary.right.x - boundary.left.x, boundary.bottom.y - boundary.top.y)
+            this.paths[key as Position]!.rect(boundary.topLeft.x, boundary.topLeft.y, boundary.right.x - boundary.left.x, boundary.bottom.y - boundary.top.y)
 
-            ctx.fill(this.paths[key as Position])
+            ctx.fill(this.paths[key as Position]!)
 
             ctx.restore()
         }

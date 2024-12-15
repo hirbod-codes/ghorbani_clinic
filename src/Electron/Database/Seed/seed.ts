@@ -61,14 +61,14 @@ export async function seedUsersRoles(usersCollection: Collection<User>, privileg
         await usersCollection.deleteMany()
         await privilegesCollection.deleteMany()
 
-        let result = await privilegesCollection.insertMany(privileges)
+        let privilegesResult = await privilegesCollection.insertMany(privileges)
 
-        if (!result.acknowledged || result.insertedCount !== privileges.length)
+        if (!privilegesResult.acknowledged || privilegesResult.insertedCount !== privileges.length)
             throw new Error('Failure while trying to seed privileges')
 
-        result = await usersCollection.insertMany(users)
+        let usersResult = await usersCollection.insertMany(users)
 
-        if (!result.acknowledged || result.insertedCount !== users.length)
+        if (!usersResult.acknowledged || usersResult.insertedCount !== users.length)
             throw new Error('Failure while trying to seed users')
     }
     catch (err) {

@@ -5,7 +5,7 @@ import { DateTime } from 'luxon'
 
 import { Patient } from '../../../Electron/Database/Models/Patient';
 import type { Visit } from '../../../Electron/Database/Models/Visit';
-import { ConfigurationContext } from '../../../react/Contexts/ConfigurationContext';
+import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext';
 import { DateField } from '../DateTime/DateField';
 import { ManageVisits } from '../Visits/ManageVisit';
 import LoadingScreen from '../LoadingScreen';
@@ -16,7 +16,8 @@ import { publish } from '../../Lib/Events';
 import { MedicalHistory } from './MedicalHistory';
 import { EditorModal } from '../Editor/EditorModal';
 import { DocumentManagement } from '../DocumentManagement';
-import { toDateTime, toDateTimeView } from 'src/react/Lib/DateTime/date-time-helpers';
+import { toDateTime, toDateTimeView } from '../../Lib/DateTime/date-time-helpers';
+import { MainProcessResponse } from 'src/Electron/types';
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -43,7 +44,7 @@ async function getVisits(patientId?: string): Promise<Visit[] | undefined> {
 }
 
 export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void, inputPatient?: Patient }) {
-    const locale = useContext(ConfigurationContext).local
+    const locale = useContext(ConfigurationContext)!.local
 
     const [socialIdError, setSocialIdError] = useState<boolean>(false)
 
@@ -52,7 +53,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
     const [showMedicalHistory, setShowMedicalHistory] = useState<boolean>(false)
     const [showAddress, setShowAddress] = useState<boolean>(false)
 
-    const [patient, setPatient] = useState<Patient>(inputPatient)
+    const [patient, setPatient] = useState<Patient | undefined>(inputPatient)
     const [visits, setVisits] = useState<Visit[]>([])
 
     const [files, setFiles] = useState<{ fileName: string, bytes: Buffer | Uint8Array }[]>([])
@@ -82,12 +83,12 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
     }, [inputPatient])
 
     const submit = async () => {
-        let id = undefined, response = undefined
+        let id: string | undefined = undefined, response: MainProcessResponse<boolean> | undefined = undefined
 
         try {
             if (inputPatient) {
-                id = patient?._id
-                const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.updatePatient(patient);
+                id = patient!._id!.toString()
+                const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.updatePatient(patient!);
                 if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.matchedCount !== 1 || res.data.modifiedCount !== 1)
                     throw new Error(t('ManagePatient.failedToUpdatePatient'))
                 for (const visit of visits) {
@@ -97,8 +98,8 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                 }
             }
             else {
-                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createPatient(patient)
-                if (res.code !== 200 || res.data.acknowledged !== true || res.data.insertedId.toString() === '')
+                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createPatient(patient!)
+                if (res.code !== 200 || !res.data || res.data.acknowledged !== true || res.data.insertedId.toString() === '')
                     throw new Error(t('ManagePatient.failedToRegisterPatient'))
 
                 id = res.data.insertedId.toString()
@@ -107,12 +108,12 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                     visit.patientId = id
                     if (visit._id) {
                         const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.updateVisit(visit);
-                        if (res.code !== 200 || !res.data.acknowledged)
+                        if (res.code !== 200 || !res.data || !res.data.acknowledged)
                             throw new Error(t('ManagePatient.failedToRegisterPatientVisits'))
                     }
                     else {
                         const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.createVisit(visit);
-                        if (res.code !== 200 || !res.data.acknowledged || res.data.insertedId.toString() === '')
+                        if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.insertedId.toString() === '')
                             throw new Error(t('ManagePatient.failedToRegisterPatientVisits'))
                     }
                 }
@@ -186,7 +187,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                         <Typography variant='body1'>
                                                             {t('ManagePatient.firstName')}
                                                         </Typography>
-                                                        <TextField variant='standard' onChange={(e) => setPatient({ ...patient, firstName: e.target.value })} id='firstName' value={patient?.firstName ?? ''} sx={{ width: '7rem' }} />
+                                                        <TextField variant='standard' onChange={(e) => setPatient({ ...patient!, firstName: e.target.value })} id='firstName' value={patient?.firstName ?? ''} sx={{ width: '7rem' }} />
                                                     </Stack>
 
                                                     {/* Last name */}
@@ -194,7 +195,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                         <Typography variant='body1'>
                                                             {t('ManagePatient.lastName')}
                                                         </Typography>
-                                                        <TextField variant='standard' onChange={(e) => setPatient({ ...patient, lastName: e.target.value })} id='lastName' value={patient?.lastName ?? ''} sx={{ width: '7rem' }} />
+                                                        <TextField variant='standard' onChange={(e) => setPatient({ ...patient!, lastName: e.target.value })} id='lastName' value={patient?.lastName ?? ''} sx={{ width: '7rem' }} />
                                                     </Stack>
 
                                                     {/* Address */}
@@ -206,7 +207,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                         onClose={() => setShowAddress(false)}
                                                         text={patient?.address?.text}
                                                         canvasId={patient?.address?.canvas as string}
-                                                        onSave={(address, canvasId) => setPatient({ ...patient, address: { text: address, canvas: canvasId } })}
+                                                        onSave={(address, canvasId) => setPatient({ ...patient!, address: { text: address, canvas: canvasId } })}
                                                         title={t('ManagePatient.address')}
                                                     />
 
@@ -219,7 +220,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                         onClose={() => setShowMedicalHistory(false)}
                                                         inputMedicalHistory={patient?.medicalHistory}
                                                         onSave={(mh) => {
-                                                            setPatient({ ...patient, medicalHistory: mh });
+                                                            setPatient({ ...patient!, medicalHistory: mh });
                                                             setShowMedicalHistory(false)
                                                         }}
                                                     />
@@ -269,7 +270,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                                 const now = DateTime.local({ zone: locale.zone })
 
                                                                 setPatient({
-                                                                    ...patient,
+                                                                    ...patient!,
                                                                     age: now.year - birthDate.date.year,
                                                                     birthDate: DateTime.local(birthDate.date.year, birthDate.date.month, birthDate.date.day, { zone: locale.zone }).toUnixInteger(),
                                                                 })
@@ -283,7 +284,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                             {t('ManagePatient.gender')}
                                                         </Typography>
                                                         <FormControl variant='standard' >
-                                                            <Select onChange={(e) => setPatient({ ...patient, gender: e.target.value })} value={patient?.gender ?? ''} sx={{ width: '7rem' }} >
+                                                            <Select onChange={(e) => setPatient({ ...patient!, gender: e.target.value })} value={patient?.gender ?? ''} sx={{ width: '7rem' }} >
                                                                 <MenuItem value='male'>male</MenuItem>
                                                                 <MenuItem value='female'>female</MenuItem>
                                                             </Select>
@@ -297,7 +298,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
 
                                             {/* Manage Visits */}
                                             <Grid item xs={11}>
-                                                <ManageVisits onChange={(visits: Visit[]) => setVisits(visits)} defaultVisits={visits} />
+                                                {patient && <ManageVisits patientId={patient._id! as string} onChange={(visits: Visit[]) => setVisits(visits)} defaultVisits={visits} />}
                                             </Grid>
 
                                             <Grid item xs={11}>

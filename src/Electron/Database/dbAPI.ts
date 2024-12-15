@@ -6,13 +6,13 @@ import { Visit } from "./Models/Visit"
 import { User } from "./Models/User"
 import { MedicalHistory } from "./Models/MedicalHistory"
 import { Canvas } from "./Models/Canvas"
-import { MongodbConfig } from "../Configuration/main"
+import { MongodbConfig } from "../Configuration/main.d"
 
 export type dbAPI = {
     truncate: () => Promise<boolean>,
     seed: () => Promise<boolean>,
     initializeDb: () => Promise<boolean>,
-    getConfig: () => Promise<MongodbConfig>;
+    getConfig: () => Promise<MongodbConfig | undefined>;
     updateConfig: (config: MongodbConfig) => Promise<boolean>;
     searchForDbService: (databaseName?: string, supportsTransaction?: boolean, auth?: { username: string, password: string }) => Promise<boolean>;
 }
@@ -49,7 +49,7 @@ export type IPrivilegesRepository = dbAPI & {
 export type IPatientRepository = dbAPI & {
     handleEvents(): Promise<void>;
     createPatient(patient: Patient): Promise<InsertOneResult>;
-    getPatientWithVisits(socialId: string): Promise<Patient & { visits: Visit[] }>;
+    getPatientWithVisits(socialId: string): Promise<Patient & { visits: Visit[] } | null>;
     getPatientsEstimatedCount(): Promise<number>;
     getPatient(socialId: string): Promise<Patient | null>;
     getPatients(offset: number, count: number): Promise<Patient[]>;
@@ -60,10 +60,10 @@ export type IPatientRepository = dbAPI & {
 
 export type IMedicalHistoryRepository = dbAPI & {
     handleEvents(): Promise<void>;
-    createMedicalHistory(medicalHistory: MedicalHistory): Promise<InsertOneResult>;
+    createMedicalHistory(medicalHistory: MedicalHistory): Promise<InsertOneResult<MedicalHistory>>;
     getMedicalHistories(offset: number, count: number): Promise<MedicalHistory[]>;
     searchMedicalHistories(searchStr: string): Promise<MedicalHistory[]>;
-    getMedicalHistory(name: string): Promise<MedicalHistory>;
+    getMedicalHistory(name: string): Promise<MedicalHistory | null>;
     deleteMedicalHistoryById(id: string): Promise<DeleteResult>;
     deleteMedicalHistoryByName(name: string): Promise<DeleteResult>;
 }
@@ -97,7 +97,7 @@ export type ICanvasRepository = dbAPI & {
     handleEvents(): Promise<void>;
     uploadCanvas(canvas: Canvas): Promise<string>;
     retrieveCanvases(id: string): Promise<GridFSFile[]>;
-    downloadCanvas(id: string): Promise<Canvas>;
+    downloadCanvas(id: string): Promise<Canvas | null>;
     downloadCanvases(ids: string[]): Promise<Canvas[]>;
     openCanvas(id: string): Promise<void>;
     deleteCanvas(id: string): Promise<boolean>;

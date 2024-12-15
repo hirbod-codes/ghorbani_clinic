@@ -1,6 +1,6 @@
-import { Divider, Paper, Stack, Typography } from "@mui/material";
-import { memo, useContext, useEffect, useReducer, useState } from "react";
-import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
+import { Divider, Stack, Typography } from "@mui/material";
+import { memo, useContext, useReducer, useState } from "react";
+import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 import { toDateTime, toDateTimeView } from "../../Lib/DateTime/date-time-helpers";
 import { DateTime } from "luxon";
 import { CalendarManager } from "./CalendarManager";
@@ -25,7 +25,7 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
     if (!validScopes || validScopes.length === 0)
         throw new Error('No scope provided')
 
-    const local = useContext(ConfigurationContext).local
+    let local = useContext(ConfigurationContext)!.local
 
     const [, rerender] = useReducer(x => x + 1, 0)
 
@@ -120,7 +120,7 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
         }
     }
 
-    let collection: (string | number)[], headers: string[], columns = 12
+    let collection: (string | number)[], headers: string[] | undefined = undefined, columns = 12
     switch (calendarManager.getScope()) {
         case 'days':
             columns = 7

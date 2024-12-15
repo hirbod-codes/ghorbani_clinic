@@ -10,7 +10,8 @@ import { getCommonPinningStyles } from "./helpers";
 
 export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>; }) => {
     const theme = useTheme()
-    const table = useContext(DataGridContext).table
+    const ctx = useContext(DataGridContext)!
+    const table = ctx.table!
 
     const { attributes, isDragging, listeners, setNodeRef, transform, transition } = useSortable({
         transition: {
@@ -33,7 +34,7 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
         ...getCommonPinningStyles(header.column),
     };
 
-    switch (useContext(DataGridContext).density.value) {
+    switch (ctx.density.value) {
         case 'compact':
             style.paddingTop = '1rem';
             style.paddingBottom = '1rem';

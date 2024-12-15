@@ -3,16 +3,16 @@ import { SelectionBox } from "./SelectionBox";
 import { Shape } from "./Shape";
 
 export class Shapes {
-    helper: Shape = undefined
-    selectionBox: SelectionBox = undefined
+    helper: Shape | undefined = undefined
+    selectionBox: SelectionBox | undefined = undefined
     shapes: Shape[]
-    private selectionIndex: number
+    private selectionIndex: number | undefined
 
     constructor(shapes: Shape[] = []) {
         this.shapes = shapes
     }
 
-    at(index: number): Shape {
+    at(index: number): Shape | undefined {
         return this.shapes.at(index)
     }
 
@@ -78,6 +78,9 @@ export class Shapes {
     }
 
     draw(draw: Draw) {
+        if (!draw.canvasRef.current)
+            return
+
         draw.ctx.clearRect(0, 0, draw.canvasRef.current.width, draw.canvasRef.current.height)
 
         for (let i = 0; i < this.shapes.length; i++) {
@@ -90,7 +93,7 @@ export class Shapes {
             this.helper.redraw(draw)
 
         if (this.selectionBox) {
-            this.selectionBox = new SelectionBox(this.shapes[this.selectionIndex])
+            this.selectionBox = new SelectionBox(this.shapes[this.selectionIndex!])
             this.selectionBox.redraw(draw)
         }
     }

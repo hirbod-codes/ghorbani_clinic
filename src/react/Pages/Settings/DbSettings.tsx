@@ -129,7 +129,7 @@ export const DbSettings = memo(function DbSettings() {
 
                             if (result === true) {
                                 setOpenTruncateDbQuestion(false);
-                                await auth.logout();
+                                await auth!.logout();
                                 window.location.reload();
                                 (window as typeof window & { dbAPI: appAPI; }).dbAPI.reLaunch()
                             }

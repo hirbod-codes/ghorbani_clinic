@@ -203,12 +203,12 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
             throw new Error('id field is not provided, to update the privilege')
 
         const id = privilege._id
-        privilege = Object.fromEntries(Object.entries(privilege).filter(arr => updatableFields.includes(arr[0] as any)))
-        privilege.updatedAt = DateTime.utc().toUnixInteger()
+        const updatablePrivilege = Object.fromEntries(Object.entries(privilege).filter(arr => updatableFields.includes(arr[0] as any)))
+        updatablePrivilege.updatedAt = DateTime.utc().toUnixInteger()
 
-        console.log(funcName, 'casted privilege', JSON.stringify(privilege, undefined, 4))
+        console.log(funcName, 'casted privilege', JSON.stringify(updatablePrivilege, undefined, 4))
 
-        const result = await (await this.getPrivilegesCollection()).updateOne({ _id: new ObjectId(id), role: { $ne: roles.ADMIN } }, { $set: { ...privilege } });
+        const result = await (await this.getPrivilegesCollection()).updateOne({ _id: new ObjectId(id), role: { $ne: roles.ADMIN } }, { $set: { ...updatablePrivilege } });
         console.log(funcName, 'result', JSON.stringify(result, undefined, 4))
 
         return result
@@ -284,14 +284,15 @@ export class PrivilegesRepository extends MongoDB implements IPrivilegesReposito
         console.log(funcName, 'authorized')
 
         this.startTransaction()
+        const updatablePrivileges = []
         try {
             for (let i = 0; i < privileges.length; i++) {
                 const id = privileges[i]._id
-                privileges[i] = Object.fromEntries(Object.entries(privileges[i]).filter(arr => updatableFields.includes(arr[0] as any)))
-                privileges[i].updatedAt = DateTime.utc().toUnixInteger()
-                console.log(funcName, 'casted privileges[i]', JSON.stringify(privileges[i], undefined, 4))
+                const updatablePrivilege = Object.fromEntries(Object.entries(privileges[i]).filter(arr => updatableFields.includes(arr[0] as any)))
+                updatablePrivilege.updatedAt = DateTime.utc().toUnixInteger()
+                console.log(funcName, 'casted updatablePrivilege', JSON.stringify(updatablePrivilege, undefined, 4))
 
-                const result = await (await this.getPrivilegesCollection(this.transactionClient)).updateOne({ _id: new ObjectId(id), role: { $ne: roles.ADMIN } }, { $set: { ...privileges[i] } }, { session: this.session })
+                const result = await (await this.getPrivilegesCollection(this.transactionClient)).updateOne({ _id: new ObjectId(id), role: { $ne: roles.ADMIN } }, { $set: { ...updatablePrivilege } }, { session: this.session })
                 console.log(funcName, 'result', JSON.stringify(result, undefined, 4))
             }
 

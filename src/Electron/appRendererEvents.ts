@@ -9,7 +9,7 @@ export type appAPI = {
     setAppIcon: () => Promise<boolean>;
 }
 
-export function handleAppRendererEvents(): appAPI {
+export function handleRendererEvents(): appAPI {
     return {
         reLaunch: () => ipcRenderer.send('relaunch-app'),
         saveFile: ({ content, path }: { content: string, path: string }): Promise<boolean> => ipcRenderer.invoke('save-file', { content, path }),

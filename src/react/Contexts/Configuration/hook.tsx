@@ -16,25 +16,24 @@ export function useConfigurationHook() {
         },
         direction: getInitialLocale.direction
     }
-    const defaultConfiguration: Config & { theme: Theme } = {
+    const defaultConfiguration: Config = {
         local: getInitialLocale,
         themeOptions: initialThemeOptions,
-        theme: createTheme(initialThemeOptions, getMuiLocale(i18n))
     };
 
-    const [configuration, setConfiguration] = useState<Config & { theme: Theme }>(defaultConfiguration);
+    const [configuration, setConfiguration] = useState<Config & { theme: Theme }>({ ...defaultConfiguration, theme: createTheme(initialThemeOptions, getMuiLocale(i18n)) });
 
     const updateTheme = (mode?: PaletteMode, direction?: 'rtl' | 'ltr', muiLocal?: Localization, themeOptions?: ThemeOptions) => {
-        mode = mode ?? configuration.themeOptions.palette.mode;
-        direction = direction ?? configuration.themeOptions.direction;
+        mode = mode ?? configuration.themeOptions.palette!.mode;
+        direction = direction ?? configuration.themeOptions.direction!;
         muiLocal = muiLocal ?? getMuiLocale(configuration.local.language)
         themeOptions = themeOptions ?? configuration.themeOptions;
 
         configuration.themeOptions = themeOptions
-        configuration.themeOptions.palette.mode = mode
-        const primaryMainColor = (configuration.themeOptions.palette.primary as SimplePaletteColorOptions)?.main;
+        configuration.themeOptions.palette!.mode = mode
+        const primaryMainColor = (configuration.themeOptions.palette!.primary as SimplePaletteColorOptions)?.main;
         if (primaryMainColor) {
-            (configuration.themeOptions.palette.primary as SimplePaletteColorOptions).main = rgbToHex(mode === 'dark' ? darken(primaryMainColor, 0.125) : lighten(primaryMainColor, 0.125))
+            (configuration.themeOptions.palette!.primary as SimplePaletteColorOptions).main = rgbToHex(mode === 'dark' ? darken(primaryMainColor, 0.125) : lighten(primaryMainColor, 0.125))
         }
         configuration.themeOptions.direction = direction;
 
@@ -90,16 +89,18 @@ export function useConfigurationHook() {
                 .then((c) => {
                     console.log({ c });
 
-                    if (c) {
-                        document.dir = c.local.direction
-                        c.themeOptions.direction = c.local.direction
-                        setConfiguration({
-                            ...c,
-                            theme: createTheme(c.themeOptions, getMuiLocale(c.local.language))
-                        });
-                        i18n.changeLanguage(c.local.language);
-                    } else
-                        throw new Error('Configuration data not found')
+                    if (c === undefined) {
+                        (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(defaultConfiguration)
+                        c = defaultConfiguration
+                    }
+
+                    document.dir = c.local.direction
+                    c.themeOptions.direction = c.local.direction
+                    setConfiguration({
+                        ...c,
+                        theme: createTheme(c.themeOptions, getMuiLocale(c.local.language))
+                    });
+                    i18n.changeLanguage(c.local.language);
 
                     setIsConfigurationContextReady(true)
                 })

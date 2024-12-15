@@ -4,13 +4,13 @@ import { Visit } from "../../../Electron/Database/Models/Visit";
 import { AnimatedCard } from "../../Components/Animations/AnimatedCard";
 import { Calendar as CalendarComponent } from "../../Components/Calendar";
 import { getVisitsInDate } from "../../Components/Visits/helpers";
-import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
+import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 import { DataGrid } from "../../Components/DataGrid";
 import LoadingScreen from "../../Components/LoadingScreen";
 import { t } from "i18next";
 
 export function Calendar() {
-    const locale = useContext(ConfigurationContext).local
+    const locale = useContext(ConfigurationContext)!.local
 
     const [cardKey, setCardKey] = useState<number>()
     const [showVisitsStats, setShowVisitsStats] = useState<boolean>(false)
@@ -57,7 +57,7 @@ export function Calendar() {
 
             <Paper sx={{ position: 'absolute', top: 0, zIndex: -1, width: '100%' }} >
                 <AnimatedCard
-                    animationKey={cardKey}
+                    animationKey={cardKey ?? 0}
                     open={showVisitsStats}
                     paperProps={{ sx: { minWidth: '10rem', maxWidth: '20rem', minHeight: '10rem' } }}
                 >

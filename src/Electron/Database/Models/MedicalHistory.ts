@@ -3,7 +3,7 @@ import { InferType, array, mixed, number, object, string } from "yup"
 
 export const collectionName = 'medicalHistories'
 
-export const medicalHistorySchema = object().optional().shape({
+export const medicalHistorySchema = object().required().shape({
     schemaVersion: string().optional().min(6).max(10),
     _id: mixed<string | ObjectId>().optional(),
     name: string().required(),

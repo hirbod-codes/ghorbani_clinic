@@ -1,7 +1,7 @@
 import { createContext } from "react";
 import { Localization } from "@mui/material/locale";
 import { PaletteMode, Theme, ThemeOptions } from "@mui/material";
-import type { Calendar, Config, TimeZone } from "../../Electron/Configuration/renderer.d";
+import type { Calendar, Config, TimeZone } from "../../../Electron/Configuration/renderer.d";
 
 export type ConfigurationSetter = {
     replaceTheme: (theme: ThemeOptions) => void,

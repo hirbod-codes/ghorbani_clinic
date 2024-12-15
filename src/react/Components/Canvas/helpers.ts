@@ -1,10 +1,12 @@
 import { MutableRefObject } from "react";
 
-export function isCanvasEmpty(ref: MutableRefObject<HTMLCanvasElement>) {
+export function isCanvasEmpty(ref: MutableRefObject<HTMLCanvasElement | null>) {
     if (!ref.current)
         return true
 
     const context = ref.current.getContext('2d');
+    if (!context)
+        return true
 
     const pixelBuffer = new Uint32Array(context.getImageData(0, 0, ref.current.width, ref.current.height).data.buffer)
 

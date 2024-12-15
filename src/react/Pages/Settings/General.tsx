@@ -1,6 +1,6 @@
 import { Stack, Select, MenuItem, FormControl, InputLabel, TextField, Typography } from "@mui/material";
 import { memo, useContext, useEffect, useState } from "react";
-import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
+import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 import { languages } from "../../i18next";
 import { t } from "i18next";
 import { getMuiLocale } from "../../Lib/helpers";
@@ -12,12 +12,12 @@ import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { Calendar, configAPI, TimeZone } from "src/Electron/Configuration/renderer.d";
 
 export const General = memo(function General() {
-    const configuration = useContext(ConfigurationContext)
+    const configuration = useContext(ConfigurationContext)!
 
     const [limit, setLimit] = useState<string>()
 
     const setConfigDownloadsDirectorySize = async (l: number) => {
-        const c = await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig()
+        const c = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
         c.downloadsDirectorySize = l
         return (window as typeof window & { configAPI: configAPI }).configAPI.writeConfig(c)
     }
@@ -89,10 +89,10 @@ export const General = memo(function General() {
                 <FormControl variant='standard'>
                     <InputLabel id="language-label">{t('language')}</InputLabel>
                     <Select
-                        onChange={(e) => configuration.updateLocal(configuration.local.calendar, languages.find(v => v.code === e.target.value).direction, getMuiLocale(e.target.value as Languages))}
+                        onChange={(e) => configuration.updateLocal(configuration.local.calendar, languages.find(v => v.code === e.target.value)!.direction, getMuiLocale(e.target.value as Languages))}
                         labelId="language-label"
                         id='language'
-                        value={languages.find(v => v.code === configuration.local.language).code}
+                        value={languages.find(v => v.code === configuration.local.language)!.code}
                         fullWidth
                     >
                         {

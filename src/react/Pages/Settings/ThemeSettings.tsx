@@ -2,7 +2,7 @@ import { darken, lighten, ThemeOptions } from '@mui/material/styles';
 import { ColorLensOutlined, ExpandMoreOutlined } from "@mui/icons-material"
 import { Accordion, AccordionDetails, AccordionSummary, Button, FormControlLabel, FormGroup, IconButton, Menu, Stack, Switch, TextField } from "@mui/material"
 import { memo, useContext, useState } from "react";
-import { ConfigurationContext } from '../../Contexts/ConfigurationContext';
+import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext';
 import { HexAlphaColorPicker } from 'react-colorful';
 import { t } from 'i18next';
 import { configAPI } from '../../../Electron/Configuration/renderer.d';
@@ -12,7 +12,7 @@ import { PaletteTonalOffset } from '@mui/material/styles/createPalette';
 import { getMuiLocale } from '../../../react/Lib/helpers';
 
 export const ThemeSettings = memo(function ThemeSettings() {
-    const c = useContext(ConfigurationContext)
+    const c = useContext(ConfigurationContext)!
 
     const [showGradientBackground, setShowGradientBackground] = useState<boolean>(c.showGradientBackground ?? false)
     const [loadingGradientBackground, setLoadingGradientBackground] = useState(false)
@@ -38,7 +38,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
     const updateShowGradientBackground = async (v: boolean) => {
         setLoadingGradientBackground(true)
 
-        const conf = await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig()
+        const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
 
         conf.showGradientBackground = v;
 
@@ -84,8 +84,8 @@ export const ThemeSettings = memo(function ThemeSettings() {
 
                         const options: ThemeOptions = c.themeOptions
 
-                        options.palette.contrastThreshold = value
-                        c.updateTheme(c.themeOptions.palette.mode, c.local.direction, getMuiLocale(c.local.language), options)
+                        options.palette!.contrastThreshold = value
+                        c.updateTheme(c.themeOptions.palette!.mode, c.local.direction, getMuiLocale(c.local.language), options)
 
                     }}
                 />
@@ -112,8 +112,8 @@ export const ThemeSettings = memo(function ThemeSettings() {
 
                         const options: ThemeOptions = c.themeOptions
 
-                        options.palette.tonalOffset = value
-                        c.updateTheme(c.themeOptions.palette.mode, c.local.direction, getMuiLocale(c.local.language), options)
+                        options.palette!.tonalOffset = value
+                        c.updateTheme(c.themeOptions.palette!.mode, c.local.direction, getMuiLocale(c.local.language), options)
                     }}
                 />
 
@@ -258,44 +258,44 @@ export const ThemeSettings = memo(function ThemeSettings() {
                         switch (focusedColor) {
                             case 'primary':
                                 setPrimaryColor(color)
-                                options.palette.primary = { main: color }
+                                options.palette!.primary = { main: color }
                                 break;
 
                             case 'secondary':
                                 setSecondaryColor(color)
-                                options.palette.secondary = { main: color }
+                                options.palette!.secondary = { main: color }
                                 break;
 
                             case 'success':
                                 setSuccessColor(color)
-                                options.palette.success = { main: color }
+                                options.palette!.success = { main: color }
                                 break;
 
                             case 'error':
                                 setErrorColor(color)
-                                options.palette.error = { main: color }
+                                options.palette!.error = { main: color }
                                 break;
 
                             case 'info':
                                 setInfoColor(color)
-                                options.palette.info = { main: color }
+                                options.palette!.info = { main: color }
                                 break;
 
                             case 'warning':
                                 setWarningColor(color)
-                                options.palette.warning = { main: color }
+                                options.palette!.warning = { main: color }
                                 break;
 
                             case 'background':
                                 // setBackgroundColor(color)
-                                // options.palette.background = { default: color, paper: color }
+                                // options.palette!.background = { default: color, paper: color }
                                 break;
 
                             default:
                                 break;
                         }
 
-                        c.updateTheme(c.themeOptions.palette.mode, c.local.direction, getMuiLocale(c.local.language), options)
+                        c.updateTheme(c.themeOptions.palette!.mode, c.local.direction, getMuiLocale(c.local.language), options)
                     }} />
                 </Stack>
             </Menu>

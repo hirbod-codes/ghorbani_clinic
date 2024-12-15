@@ -120,12 +120,12 @@ export function toDateTime(dateTime: number | DateTime | DateTimeView, toLocal: 
         throw new Error('Invalid arguments provided to toDateTime function.')
 
     if (number().required().isValidSync(dateTime))
-        return toDateTime(toDateTimeView(DateTime.fromSeconds(dateTime)), toLocal, fromLocal)
+        return toDateTime(toDateTimeView(DateTime.fromSeconds(dateTime)), toLocal, { zone: 'UTC', calendar: 'Gregorian', direction: 'ltr', language: 'en' })
     else if (dateTime instanceof DateTime)
-        return toDateTime(toDateTimeView(dateTime), toLocal, fromLocal)
+        return toDateTime(toDateTimeView(dateTime), toLocal, fromLocal!)
     else if (mixed<DateTimeView>().required().isValidSync(dateTime)) {
         let convertedDateTime = dateTime
-        if (toLocal.calendar !== fromLocal.calendar)
+        if (toLocal.calendar !== fromLocal!.calendar)
             switch (toLocal.calendar) {
                 case 'Persian':
                     convertedDateTime = { ...dateTime, date: gregorianToPersian({ year: dateTime.date.year, month: dateTime.date.month, day: dateTime.date.day }) }
@@ -141,15 +141,16 @@ export function toDateTime(dateTime: number | DateTime | DateTimeView, toLocal: 
         switch (toLocal.calendar) {
             case 'Persian':
                 let gregorianDateTime = dateTime
-                if (toLocal.calendar === fromLocal.calendar)
+                if (toLocal.calendar === fromLocal!.calendar)
                     gregorianDateTime = { ...dateTime, date: persianToGregorian(dateTime.date) }
-                return DateTime.local(gregorianDateTime.date.year, gregorianDateTime.date.month, gregorianDateTime.date.day, gregorianDateTime.time.hour, gregorianDateTime.time.minute, gregorianDateTime.time.second, gregorianDateTime.time.millisecond, { locale: getLuxonLocale(fromLocal.language), zone: fromLocal.zone })
+                console.log({ gregorianDateTime })
+                return DateTime.local(gregorianDateTime.date.year, gregorianDateTime.date.month, gregorianDateTime.date.day, gregorianDateTime.time.hour, gregorianDateTime.time.minute, gregorianDateTime.time.second, gregorianDateTime.time?.millisecond ?? 0, { locale: getLuxonLocale(fromLocal!.language), zone: fromLocal!.zone })
                     .setLocale(getLuxonLocale(toLocal.language))
                     .setZone(toLocal.zone)
                     .set(convertedDateTime as DateObjectUnits)
 
             case 'Gregorian':
-                return DateTime.local(convertedDateTime.date.year, convertedDateTime.date.month, convertedDateTime.date.day, convertedDateTime.time.hour, convertedDateTime.time.minute, convertedDateTime.time.second, convertedDateTime.time.millisecond, { locale: getLuxonLocale(fromLocal.language), zone: fromLocal.zone })
+                return DateTime.local(convertedDateTime.date.year, convertedDateTime.date.month, convertedDateTime.date.day, convertedDateTime.time.hour, convertedDateTime.time.minute, convertedDateTime.time.second, convertedDateTime.time?.millisecond ?? 0, { locale: getLuxonLocale(fromLocal!.language), zone: fromLocal!.zone })
                     .setLocale(getLuxonLocale(toLocal.language))
                     .setZone(toLocal.zone)
 

@@ -3,7 +3,7 @@ import { alpha, darken, lighten, Drawer, Stack, List, ListItemButton, ListItemIc
 import { t } from 'i18next';
 import { memo, useContext, useState } from 'react';
 import { AuthContext } from '../Contexts/AuthContext';
-import { ConfigurationContext } from '../Contexts/ConfigurationContext';
+import { ConfigurationContext } from '../Contexts/Configuration/ConfigurationContext';
 import { resources } from '../../Electron/Database/Repositories/Auth/resources';
 import { getMuiLocale } from '../Lib/helpers';
 import { useNavigate } from 'react-router-dom';
@@ -13,15 +13,15 @@ export const Navigation = memo(function Navigation() {
 
     const auth = useContext(AuthContext)
     const theme = useTheme()
-    const configuration = useContext(ConfigurationContext)
+    const configuration = useContext(ConfigurationContext)!
 
     // Navigation
     const [openDrawer, setOpenDrawer] = useState(false)
 
-    const readsUsers = auth.accessControl && auth.user && auth.accessControl.can(auth.user.roleName).read(resources.USER).granted
-    const readsPatients = auth.accessControl && auth.user && auth.accessControl.can(auth.user.roleName).read(resources.PATIENT).granted
-    const readsVisits = auth.accessControl && auth.user && auth.accessControl.can(auth.user.roleName).read(resources.VISIT).granted
-    const readsMedicalHistories = auth.accessControl && auth.user && auth.accessControl.can(auth.user.roleName).read(resources.MEDICAL_HISTORY).granted
+    const readsUsers = auth?.accessControl && auth?.user && auth?.accessControl.can(auth?.user?.roleName ?? '').read(resources.USER).granted
+    const readsPatients = auth?.accessControl && auth?.user && auth?.accessControl.can(auth?.user?.roleName ?? '').read(resources.PATIENT).granted
+    const readsVisits = auth?.accessControl && auth?.user && auth?.accessControl.can(auth?.user?.roleName ?? '').read(resources.VISIT).granted
+    const readsMedicalHistories = auth?.accessControl && auth?.user && auth?.accessControl.can(auth?.user?.roleName ?? '').read(resources.MEDICAL_HISTORY).granted
 
     console.log('Navigation', { auth, theme, configuration })
 
@@ -139,11 +139,11 @@ export const Navigation = memo(function Navigation() {
                         </IconButton>
                         <Typography color={theme.palette.text.primary} variant='h6' component='div' sx={{ flexGrow: 1 }}>
                             {/* Title */}
-                            {auth.user?.username}
+                            {auth?.user?.username}
                         </Typography>
                         {
-                            auth.user &&
-                            <IconButton size='medium' onClick={async () => await auth.logout()}>
+                            auth?.user &&
+                            <IconButton size='medium' onClick={async () => await auth?.logout()}>
                                 {
                                     auth?.isAuthLoading
                                         ? <CircularProgress size='small' />
@@ -152,8 +152,8 @@ export const Navigation = memo(function Navigation() {
                             </IconButton>
                         }
                         {
-                            !auth.isAuthLoading && !auth.user &&
-                            <IconButton size='medium' onClick={() => auth.showModal()}>
+                            !auth?.isAuthLoading && !auth?.user &&
+                            <IconButton size='medium' onClick={() => auth?.showModal()}>
                                 {
                                     auth?.isAuthLoading
                                         ? <CircularProgress size='small' />

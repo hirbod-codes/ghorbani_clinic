@@ -14,7 +14,7 @@ export class CalendarManager {
     selectedYear: number;
     selectedMonth: number;
 
-    days: number[];
+    days: (number | null)[];
     months: { name: string; days: number; }[];
     years: number[];
 
@@ -46,7 +46,7 @@ export class CalendarManager {
         this.setYears(year - 19, 20);
     }
 
-    getScopeValues(): number[] | { name: string; days: number; }[] {
+    getScopeValues(): (number | null)[] | { name: string; days: number; }[] {
         switch (this.scope) {
             case 'days':
                 return this.days;
@@ -96,7 +96,7 @@ export class CalendarManager {
             : getGregorianMonths(isLeapGregorianYear(year), getLanguageCode(getMuiLocale(this.languageCodes)));
     }
 
-    getDays(): number[] {
+    getDays(): (number | null)[] {
         return this.days;
     }
 

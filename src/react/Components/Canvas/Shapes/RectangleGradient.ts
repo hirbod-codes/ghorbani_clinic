@@ -237,7 +237,7 @@ export class RectangleGradient implements Shape {
 
     private getHorizontalDistance(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): number {
         if (!selectedHandler.toLowerCase().includes('left') && !selectedHandler.toLowerCase().includes('right'))
-            return
+            return 0
 
         const handlersBoundaries = selectionBox.getHandlersBoundaries()
 
@@ -249,15 +249,15 @@ export class RectangleGradient implements Shape {
 
         const distance = pointFromLineDistance(p1, p2, currentPoint)
         if (Number.isNaN(distance) || distance === Infinity)
-            return
+            return 0
 
-        let shouldAdd: boolean
+        let shouldAdd: boolean | undefined = undefined
 
         let y = lineFunction(p1, p2, currentPoint.x)
         console.log({ y })
 
         if (y === Infinity)
-            return
+            return 0
 
         if (y === undefined && currentPoint.x < p1.x)
             shouldAdd = false
@@ -267,6 +267,9 @@ export class RectangleGradient implements Shape {
             shouldAdd = false
         if (y !== undefined && currentPoint.y > y)
             shouldAdd = true
+
+        if (shouldAdd === undefined)
+            throw new Error('Logic Errors')
 
         if (!selectedHandler.toLowerCase().includes('right'))
             shouldAdd = !shouldAdd
@@ -281,7 +284,7 @@ export class RectangleGradient implements Shape {
 
     private getVerticalDistance(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): number {
         if (!selectedHandler.toLowerCase().includes('top') && !selectedHandler.toLowerCase().includes('bottom'))
-            return
+            return 0
 
         const handlersBoundaries = selectionBox.getHandlersBoundaries()
 
@@ -293,14 +296,14 @@ export class RectangleGradient implements Shape {
 
         const distance = pointFromLineDistance(p1, p2, currentPoint)
         if (Number.isNaN(distance) || distance === Infinity)
-            return
+            return 0
 
-        let shouldAdd: boolean
+        let shouldAdd: boolean | undefined = undefined
 
         let y = lineFunction(p1, p2, currentPoint.x)
 
         if (y === Infinity)
-            return
+            return 0
 
         if (y === undefined && currentPoint.x < p1.x)
             shouldAdd = false
@@ -311,11 +314,14 @@ export class RectangleGradient implements Shape {
         if (y !== undefined && currentPoint.y > y)
             shouldAdd = true
 
-        const decomposedMatrix = decomposeTSR(fromObject(this.transformArgs))
-        if ((decomposedMatrix.rotation.angle * 180 / Math.PI) < 0)
-            shouldAdd = !shouldAdd
+        if (shouldAdd === undefined)
+            throw new Error('Logic Errors')
 
         if (!selectedHandler.toLowerCase().includes('bottom'))
+            shouldAdd = !shouldAdd
+
+        const decomposedMatrix = decomposeTSR(fromObject(this.transformArgs))
+        if ((decomposedMatrix.rotation.angle * 180 / Math.PI) < 0)
             shouldAdd = !shouldAdd
 
         return shouldAdd ? distance : -distance

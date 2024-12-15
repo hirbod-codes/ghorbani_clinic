@@ -16,7 +16,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
     const [fetchRoleFailed, setFetchRoleFailed] = useState<boolean>(false)
     const [finishing, setFinishing] = useState<boolean>(false)
     const [loading, setLoading] = useState<boolean>(true)
-    const [resources, setResources] = useState<Resource[] | undefined>(undefined)
+    const [resources, setResources] = useState<Resource[]>([])
     const [roleName, setRoleName] = useState<string | undefined>(undefined)
 
     const fetchRole = async () => {
@@ -24,7 +24,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
         if (!roleName && defaultRole) {
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPrivileges(defaultRole)
             console.log('ManageRole', 'fetchRole', 'res', res)
-            if (res.code !== 200) {
+            if (res.code !== 200 || !res.data) {
                 setFetchRoleFailed(true)
                 return
             }
@@ -46,18 +46,18 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                 if (index < 0)
                     continue
 
-                let attributes = filteredPrivileges[i].attributes.split(', ')
-                if (attributes.includes('*'))
+                let attributes = filteredPrivileges[i].attributes?.split(', ')
+                if (attributes?.includes('*'))
                     attributes = attributes.filter(f => f !== '*').concat(getAttributes(filteredPrivileges[i].resource, filteredPrivileges[i].action))
                 const excludedAttributes: string[] = []
-                attributes = attributes.filter((v, i, arr) => {
+                attributes = attributes?.filter((v, i, arr) => {
                     if (v.includes('!')) {
                         excludedAttributes.push(v.replace('!', ''))
                         return false
                     }
                     return true
                 })
-                attributes = attributes.filter((v, i, arr) => {
+                attributes = attributes?.filter((v, i, arr) => {
                     if (excludedAttributes.includes(v))
                         return false
                     return true
@@ -127,7 +127,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
             }
             else {
                 const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createRole(privileges)
-                if (res.code !== 200 || !res.data.acknowledged || res.data.insertedCount <= 0) {
+                if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.insertedCount <= 0) {
                     publish(RESULT_EVENT_NAME, {
                         severity: 'error',
                         message: t('ManageRole.roleCreateFailure')
@@ -217,6 +217,9 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                                                             edge="end"
                                                             disabled={a === '_id'}
                                                             onChange={() => {
+                                                                if (!resources[i].read)
+                                                                    resources[i].read = []
+
                                                                 if (r.read?.includes(a))
                                                                     resources[i].read = resources[i].read?.filter(elm => elm !== a) ?? undefined
                                                                 else
@@ -256,6 +259,9 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                                                 <Checkbox
                                                     edge="end"
                                                     onChange={() => {
+                                                        if (!resources[i].update)
+                                                            resources[i].update = []
+
                                                         if (r.update?.includes(a))
                                                             resources[i].update = resources[i].update?.filter(elm => elm !== a) ?? undefined
                                                         else

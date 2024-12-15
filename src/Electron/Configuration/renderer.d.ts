@@ -4,8 +4,8 @@ import { ThemeOptions } from '@mui/material'
 import { MongodbConfig } from './main.d'
 
 export type configAPI = {
-    readDbConfig: () => Promise<MongodbConfig>,
-    readConfig: () => Promise<Config>,
+    readDbConfig: () => Promise<MongodbConfig | undefined>,
+    readConfig: () => Promise<Config | undefined>,
     writeConfig: (config: Config) => void
 }
 

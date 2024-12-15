@@ -1,4 +1,4 @@
-import { IconButton, Menu, Stack, TextField, Typography, useTheme } from "@mui/material";
+import { IconButton, Menu, Stack, TextField, useTheme } from "@mui/material";
 import { useEffect, useState } from "react";
 import { Draw } from "../types";
 import { ColorLensOutlined, RestartAltOutlined } from "@mui/icons-material";
@@ -7,7 +7,6 @@ import { HexAlphaColorPicker } from "react-colorful";
 import { PenConnectIcon } from "../../Icons/PenConnectIcon";
 import { Line } from "../Shapes/Line";
 import { Shapes } from "../Shapes/Shapes";
-import { Point } from "../../../Lib/Math";
 
 export type PencilToolProps = {
     shapes: Shapes,
@@ -33,7 +32,7 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
     if (mode === 'eraser' && color !== canvasBackground)
         setColor(canvasBackground)
 
-    const [instance, setInstance] = useState<Line>(undefined)
+    const [instance, setInstance] = useState<Line | undefined>(undefined)
     const [hasMoved, setHasMoved] = useState<boolean>(false)
 
     const onDown = (draw: Draw) => {
@@ -41,7 +40,7 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
     }
 
     const onUp = (draw: Draw) => {
-        if (hasMoved)
+        if (hasMoved && instance !== undefined)
             shapes.push(instance)
 
         setInstance(undefined)

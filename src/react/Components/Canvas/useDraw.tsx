@@ -3,7 +3,7 @@ import { Draw, Point } from './types'
 import { isCanvasEmpty } from './helpers'
 
 export const useDraw = (
-    canvasRef: MutableRefObject<HTMLCanvasElement | undefined>,
+    canvasRef: MutableRefObject<HTMLCanvasElement | null>,
     onChange?: (empty?: boolean) => void | Promise<void>,
     onDraw?: (draw: Draw) => void,
     onHoverHook?: (draw: Draw) => void,
@@ -13,7 +13,7 @@ export const useDraw = (
     const [empty, setEmpty] = useState(true)
     const [pointerDown, setPointerDown] = useState(false)
 
-    const prevPoint = useRef<null | Point>(null)
+    const prevPoint = useRef<Point | undefined>(undefined)
 
     const ctx = canvasRef.current?.getContext('2d', { willReadFrequently: true })
 
@@ -22,21 +22,23 @@ export const useDraw = (
         e.stopPropagation()
         setPointerDown(true)
 
-        if (onPointerDownHook) {
+        if (onPointerDownHook && ctx) {
             const point = computePointInCanvas(e.clientX, e.clientY)
-            onPointerDownHook({ ctx, currentPoint: point, prevPoint: prevPoint.current, e, canvasRef })
+            if (point)
+                onPointerDownHook({ ctx, currentPoint: point, prevPoint: prevPoint.current, e, canvasRef })
         }
     }
 
     const onUp = (e: PointerEvent<HTMLCanvasElement>) => {
         e.preventDefault()
         e.stopPropagation()
-        prevPoint.current = null
+        prevPoint.current = undefined
         setPointerDown(false)
 
-        if (onPointerUpHook) {
+        if (onPointerUpHook && ctx) {
             const point = computePointInCanvas(e.clientX, e.clientY)
-            onPointerUpHook({ ctx, currentPoint: point, prevPoint: prevPoint.current, e, canvasRef })
+            if (point)
+                onPointerUpHook({ ctx, currentPoint: point, prevPoint: prevPoint.current, e, canvasRef })
         }
     }
 

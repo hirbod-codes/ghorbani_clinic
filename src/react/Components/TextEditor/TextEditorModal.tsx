@@ -9,7 +9,7 @@ export type TextEditorModalProps = TextEditorProps & {
     open: boolean;
     onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void;
     onChange: () => void | Promise<void>;
-    onSave: (text: string) => void | Promise<void>;
+    onSave: (text?: string) => void | Promise<void>;
 }
 
 export function TextEditorModal({ open, onClose, onSave: onChange, onSave, placeholder, text: inputText }: TextEditorModalProps) {

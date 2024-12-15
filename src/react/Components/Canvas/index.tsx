@@ -36,14 +36,14 @@ const variants = {
 export type Tool = 'pencil' | 'eraser' | 'rectangle' | 'circle' | 'select'
 
 export type CanvasProps = {
-    canvasRef?: MutableRefObject<HTMLCanvasElement>,
+    canvasRef?: MutableRefObject<HTMLCanvasElement | null>,
     onChange?: (empty?: boolean) => void | Promise<void>
     canvasBackground?: string
 }
 
 export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onChange }: CanvasProps) {
     if (!canvasRef)
-        canvasRef = useRef()
+        canvasRef = useRef<HTMLCanvasElement | null>(null)
 
     const theme = useTheme()
 
@@ -53,23 +53,26 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
 
     const [shapes, setShapes] = useState<Shapes>(new Shapes([]))
 
-    const [onDownHook, setOnDownHook] = useState<(draw: Draw) => void>(undefined)
-    const [onUpHook, setOnUpHook] = useState<(draw: Draw) => void>(undefined)
-    const [onHoverHook, setOnHoverHook] = useState<(draw: Draw) => void>(undefined)
-    const [draw, setDraw] = useState<(draw: Draw) => void>(undefined)
+    const [onDownHook, setOnDownHook] = useState<((draw: Draw) => void) | undefined>(undefined)
+    const [onUpHook, setOnUpHook] = useState<((draw: Draw) => void) | undefined>(undefined)
+    const [onHoverHook, setOnHoverHook] = useState<((draw: Draw) => void) | undefined>(undefined)
+    const [draw, setDraw] = useState<((draw: Draw) => void) | undefined>(undefined)
 
     const [tool, setTool] = useState<Tool>('pencil')
 
     const { onDown, onUp, onMove, clear } = useDraw(canvasRef, onChange, draw, onHoverHook, onDownHook, onUpHook)
 
-    const printRef = useRef<HTMLImageElement>()
-    const print = useReactToPrint({ onAfterPrint: () => { setLoading(false); printRef.current.src = undefined } })
+    const printRef = useRef<HTMLImageElement | null>(null)
+    const print = useReactToPrint({ onAfterPrint: () => { setLoading(false); if (printRef.current) printRef.current.src = '' } })
 
-    const resizeCanvas = (canvasRef: MutableRefObject<HTMLCanvasElement>) => {
+    const resizeCanvas = (canvasRef: MutableRefObject<HTMLCanvasElement | null>) => {
+        if (!canvasRef.current)
+            return
+
         canvasRef.current.width = canvasRef.current.clientWidth
         canvasRef.current.height = canvasRef.current.clientHeight
         const ctx = canvasRef.current.getContext('2d')
-        ctx.scale(1, 1)
+        ctx?.scale(1, 1)
     }
 
     useEffect(() => {
@@ -99,9 +102,12 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                     <Stack direction='row' alignItems='center' sx={{ width: 'max-content' }}>
                         <Tooltip title={t('Canvas.Print')}>
                             <IconButton onClick={() => {
-                                printRef.current.src = canvasRef.current.toDataURL()
+                                if (!printRef.current)
+                                    return
+
+                                printRef.current.src = canvasRef.current?.toDataURL() ?? ''
                                 setLoading(true)
-                                print(null, () => printRef.current);
+                                print(null, () => printRef.current!);
                             }}>
                                 <PrintOutlined />
                             </IconButton>
@@ -176,8 +182,8 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                     transition={mainTransition}
                                     style={{ height: '100%', width: '100%', position: 'absolute' }}
                                 >
-                                    <div style={{ height: '100%',width: '100%', paddingBottom: 1, overflowX: 'auto' }}>
-                                        <SelectTool shapes={shapes} setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor} />
+                                    <div style={{ height: '100%', width: '100%', paddingBottom: 1, overflowX: 'auto' }}>
+                                        <SelectTool shapes={shapes} setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor ?? '#fff'} />
                                     </div>
                                 </motion.div>
                             }
@@ -192,8 +198,8 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                     transition={mainTransition}
                                     style={{ height: '100%', width: '100%', position: 'absolute' }}
                                 >
-                                    <div style={{ width: '100%', paddingBottom: 1,overflowX: 'auto' }}>
-                                        <PencilTool shapes={shapes} setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor} />
+                                    <div style={{ width: '100%', paddingBottom: 1, overflowX: 'auto' }}>
+                                        <PencilTool shapes={shapes} setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor ?? '#fff'} />
                                     </div>
                                 </motion.div>
                             }
@@ -209,7 +215,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                     style={{ height: '100%', width: '100%', position: 'absolute' }}
                                 >
                                     <div style={{ width: '100%', overflowX: 'auto' }}>
-                                        <PencilTool shapes={shapes} mode='eraser' setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor} />
+                                        <PencilTool shapes={shapes} mode='eraser' setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor ?? '#fff'} />
                                     </div>
                                 </motion.div>
                             }
@@ -225,7 +231,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                     style={{ height: '100%', width: '100%', position: 'absolute' }}
                                 >
                                     <div style={{ width: '100%', overflowX: 'auto' }}>
-                                        <RectangleTool shapes={shapes} setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor} />
+                                        <RectangleTool shapes={shapes} setOnDraw={setDraw} setOnHoverHook={setOnHoverHook} setOnDownHook={setOnDownHook} setOnUpHook={setOnUpHook} canvasBackground={canvasRef.current?.style.backgroundColor ?? '#fff'} />
                                     </div>
                                 </motion.div>
                             }

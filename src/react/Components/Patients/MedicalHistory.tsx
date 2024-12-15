@@ -38,7 +38,7 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
     const [dialog, setDialog] = useState(initDialog)
     const closeDialog = () => setDialog(initDialog)
 
-    const updateMedicalHistory = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).update(resources.MEDICAL_HISTORY), [auth])
+    const updateMedicalHistory = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).update(resources.MEDICAL_HISTORY), [auth])
 
     useEffect(() => {
         setMedicalHistory(inputMedicalHistory)

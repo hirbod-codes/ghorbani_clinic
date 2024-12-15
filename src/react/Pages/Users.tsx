@@ -7,7 +7,7 @@ import { resources } from "../../Electron/Database/Repositories/Auth/resources";
 import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { User } from '../../Electron/Database/Models/User';
 import { DATE, toFormat } from '../Lib/DateTime/date-time-helpers';
-import { ConfigurationContext } from '../Contexts/ConfigurationContext';
+import { ConfigurationContext } from '../Contexts/Configuration/ConfigurationContext';
 import { AuthContext } from "../Contexts/AuthContext";
 import ManageUser from "../Components/ManageUser";
 import { ManageRole } from "../Components/ManageRole";
@@ -20,11 +20,11 @@ import LoadingScreen from "../Components/LoadingScreen";
 import { ColumnDef } from "@tanstack/react-table";
 
 export const Users = memo(function Users() {
-    const configuration = useContext(ConfigurationContext)
+    const configuration = useContext(ConfigurationContext)!
     const auth = useContext(AuthContext)
     const navigate = useNavigate()
 
-    if (!auth.accessControl?.can(auth.user.roleName).read(resources.USER).granted)
+    if (!auth!.accessControl?.can(auth!.user?.roleName ?? '').read(resources.USER).granted)
         navigate('/')
 
     const [roles, setRoles] = useState<string[] | undefined>(undefined)
@@ -49,7 +49,7 @@ export const Users = memo(function Users() {
         setLoading(true)
         const response = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getRoles()
         setLoading(false)
-        if (response.code !== 200)
+        if (response.code !== 200 || !response.data)
             return
 
         const filteredRoles = response.data.filter(r => r !== staticRoles.ADMIN)
@@ -61,7 +61,7 @@ export const Users = memo(function Users() {
         setLoading(true)
         const response = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getUsers()
         setLoading(false)
-        if (response.code !== 200)
+        if (response.code !== 200 || !response.data)
             return
 
         setUsers(response.data)
@@ -89,7 +89,7 @@ export const Users = memo(function Users() {
             setDeletingUser(id)
             const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteUser(id)
             setDeletingUser(undefined)
-            if (res.code !== 200 || !res.data.acknowledged || res.data.deletedCount !== 1) {
+            if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.deletedCount !== 1) {
                 publish(RESULT_EVENT_NAME, {
                     severity: 'error',
                     message: t('Users.failedToDelete'),
@@ -155,16 +155,16 @@ export const Users = memo(function Users() {
         },
     ]
 
-    const createsUser = auth.accessControl?.can(auth.user.roleName).create(resources.USER).granted ?? false
-    const createsRole = auth.accessControl?.can(auth.user.roleName).create(resources.PRIVILEGE).granted ?? false
-    const readsUser = auth.accessControl?.can(auth.user.roleName).read(resources.USER).granted ?? false
-    const readsRole = auth.accessControl?.can(auth.user.roleName).read(resources.PRIVILEGE).granted ?? false
-    const updatesUser = auth.accessControl?.can(auth.user.roleName).update(resources.USER).granted ?? false
-    const updatesRole = auth.accessControl?.can(auth.user.roleName).update(resources.PRIVILEGE).granted ?? false
-    const deletesUser = auth.accessControl?.can(auth.user.roleName).delete(resources.USER).granted ?? false
-    const deletesRole = auth.accessControl?.can(auth.user.roleName).delete(resources.PRIVILEGE).granted ?? false
+    const createsUser = auth!.accessControl?.can(auth!.user?.roleName ?? '').create(resources.USER).granted ?? false
+    const createsRole = auth!.accessControl?.can(auth!.user?.roleName ?? '').create(resources.PRIVILEGE).granted ?? false
+    const readsUser = auth!.accessControl?.can(auth!.user?.roleName ?? '').read(resources.USER).granted ?? false
+    const readsRole = auth!.accessControl?.can(auth!.user?.roleName ?? '').read(resources.PRIVILEGE).granted ?? false
+    const updatesUser = auth!.accessControl?.can(auth!.user?.roleName ?? '').update(resources.USER).granted ?? false
+    const updatesRole = auth!.accessControl?.can(auth!.user?.roleName ?? '').update(resources.PRIVILEGE).granted ?? false
+    const deletesUser = auth!.accessControl?.can(auth!.user?.roleName ?? '').delete(resources.USER).granted ?? false
+    const deletesRole = auth!.accessControl?.can(auth!.user?.roleName ?? '').delete(resources.PRIVILEGE).granted ?? false
 
-    const additionalColumns: ColumnDef<any>[] = (deletesUser || updatesUser) && [
+    const additionalColumns: ColumnDef<any>[] = (deletesUser || updatesUser) ? [
         {
             id: 'actions',
             accessorKey: 'actions',
@@ -184,8 +184,8 @@ export const Users = memo(function Users() {
                             onClick={async () => {
                                 await deleteUser(row.original._id);
                                 await updateRows(role)
-                                if (auth.user._id === row.original.id)
-                                    await auth.logout()
+                                if (auth!.user?._id === row.original.id)
+                                    await auth!.logout()
                             }}
                         >
                             {deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
@@ -193,7 +193,7 @@ export const Users = memo(function Users() {
                     }
                 </Stack>
         }
-    ]
+    ] : []
 
     const refresh = async () => {
         const r = await fetchRoles()

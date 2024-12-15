@@ -7,7 +7,7 @@ import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 import { TextEditor } from "../TextEditor/TextEditor";
 import { Canvas } from "../Canvas";
-import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
+import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 import { SaveIcon } from "../Icons/SaveIcon";
 import LoadingScreen from "../LoadingScreen";
 import { isCanvasEmpty } from "../Canvas/helpers";
@@ -20,12 +20,12 @@ export type EditorProps = {
     text?: string | undefined;
     canvasId?: string;
     setHasUnsavedChanges?: (state: boolean) => void
-    onSave?: (text: string, canvasId?: string) => void | Promise<void>;
+    onSave?: (text?: string, canvasId?: string) => void | Promise<void>;
     onChange?: (text?: string, canvasId?: string) => void | Promise<void>;
 }
 
 export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor = false, title, text: inputText, canvasId: inputCanvasId, onSave, onChange, setHasUnsavedChanges: setHasUnsavedChangesProperty }: EditorProps) {
-    const theme = useContext(ConfigurationContext).theme
+    const theme = useContext(ConfigurationContext)!.theme
     const [loading, setLoading] = useState<boolean>(false)
 
     const [text, setText] = useState<string | undefined>(inputText)
@@ -40,7 +40,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
             setCanvasId(inputCanvasId);
     }, [inputCanvasId])
 
-    const imageRef = useRef<HTMLImageElement>()
+    const imageRef = useRef<HTMLImageElement | null>(null)
     const [imageSrc, setImageSrc] = useState<string>()
     const [status, setStatus] = useState<string>('showing')
 
@@ -69,7 +69,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                 setHasUnsavedChangesProperty(canvasHasUnsavedChanges)
     }
 
-    const canvas = useRef<HTMLCanvasElement>()
+    const canvas = useRef<HTMLCanvasElement | null>(null)
 
     console.log('Editor', { title, loading, inputText, canvasId, text, status, canvas: canvas.current, imageSrc, contentHasUnsavedChanges, canvasHasUnsavedChanges })
 
@@ -102,10 +102,16 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
 
             setLoading(true)
 
-            let id = undefined
+            let id: string | undefined = undefined
+
+            if (!canvas.current)
+                return
 
             if (!isCanvasEmpty(canvas)) {
                 const dataUrl = canvas.current?.toDataURL()
+                if (!dataUrl)
+                    return
+
                 const type = dataUrl.split(',')[0].replace(';base64', '').replace('data:', '')
                 const data = dataUrl.split(',')[1]
                 console.log({ dataUrl, type, data })
@@ -242,7 +248,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
 
                     const image = new Image()
                     image.onload = () => {
-                        canvas.current.getContext('2d', { willReadFrequently: true }).drawImage(image, 0, 0);
+                        canvas.current?.getContext('2d', { willReadFrequently: true })?.drawImage(image, 0, 0);
                         setLoading(false)
                     }
                     image.src = 'data:image/png;base64,' + data.data

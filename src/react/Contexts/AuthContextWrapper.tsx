@@ -4,7 +4,7 @@ import { RendererDbAPI } from '../../Electron/Database/renderer';
 import { User } from '../../Electron/Database/Models/User';
 import { AuthContext } from './AuthContext';
 import { AccessControl } from 'accesscontrol';
-import { ConfigurationContext } from './ConfigurationContext';
+import { ConfigurationContext } from './Configuration/ConfigurationContext';
 import { Modal, Paper, Slide } from '@mui/material';
 import { LoginForm } from '../Components/Auth/LoginForm';
 import { RESULT_EVENT_NAME } from './ResultWrapper';
@@ -34,7 +34,7 @@ export const AuthContextWrapper = memo(function AuthContextWrapper({ children }:
             // throw error;
         }
     };
-    const fetchUser = async (): Promise<User | undefined> => {
+    const fetchUser = async (): Promise<User | undefined | null> => {
         try {
             console.log('AuthContextWrapper', 'fetchUser')
             const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.getAuthenticatedUser();
@@ -155,8 +155,8 @@ export const AuthContextWrapper = memo(function AuthContextWrapper({ children }:
     const memoizedChildren = useMemo(() => children, [])
 
     useEffect(() => {
-        console.log('AuthContextWrapper', 'useEffect', 'should init?', !hasInitialized.current && !isAuthLoading.current && configuration?.hasFetchedConfig && !configuration?.showDbConfigurationModal && (!auth.user || !auth.ac))
-        if (!hasInitialized.current && !isAuthLoading.current && configuration?.hasFetchedConfig && !configuration?.showDbConfigurationModal && (!auth.user || !auth.ac))
+        console.log('AuthContextWrapper', 'useEffect', 'should init?', !hasInitialized.current && !isAuthLoading.current && configuration?.isConfigurationContextReady && (!auth.user || !auth.ac))
+        if (!hasInitialized.current && !isAuthLoading.current && configuration?.isConfigurationContextReady && (!auth.user || !auth.ac))
             init()
     }, [])
 

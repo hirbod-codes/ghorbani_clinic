@@ -1,17 +1,17 @@
 import { memo, useContext, useEffect, useRef, useState } from 'react';
-import { ConfigurationContext } from '../Contexts/ConfigurationContext';
+import { ConfigurationContext } from '../Contexts/Configuration/ConfigurationContext';
 import { Box, alpha, useTheme } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import { Shapes } from './Canvas/Shapes/Shapes';
 import { RadialGradient, RectangleGradient, UpdateGradient } from './Canvas/Shapes/RectangleGradient';
 
 export const GradientBackground = memo(function GradientBackground() {
-    const c = useContext(ConfigurationContext)
+    const c = useContext(ConfigurationContext)!
     const theme = useTheme()
     const location = useLocation();
 
     const [shapes, setShapes] = useState<Shapes>(new Shapes([]))
-    const canvasRef = useRef<HTMLCanvasElement>()
+    const canvasRef = useRef<HTMLCanvasElement | null>(null)
 
     console.log('GradientBackground', { location, c })
 
@@ -39,7 +39,7 @@ export const GradientBackground = memo(function GradientBackground() {
 
     const getValueByEaseInOut = (elapsed: number, duration: number, change: number): number => (change / 2) * ((1 - Math.cos(elapsed / (duration * 1000))))
 
-    const updateRadialGradients = useRef<RadialGradient[]>()
+    const updateRadialGradients = useRef<RadialGradient[] | undefined>(undefined)
     const tickCount = useRef<number>(0)
 
     const animateRadialGradient = (c: CanvasRenderingContext2D, elapsed: number, shape: RectangleGradient, targetRadialGradient: RadialGradient) => {
@@ -134,10 +134,13 @@ export const GradientBackground = memo(function GradientBackground() {
         return true
     }
 
-    const startTS = useRef<number>(undefined);
-    const elapsed = useRef<number>(undefined);
-    const ctxRef = useRef<CanvasRenderingContext2D>()
+    const startTS = useRef<number | undefined>(undefined);
+    const elapsed = useRef<number | undefined>(undefined);
+    const ctxRef = useRef<CanvasRenderingContext2D | null>(null)
     const animate = (ts: number) => {
+        if (!ctxRef.current || !updateRadialGradients.current || !canvasRef.current)
+            return
+
         if (startTS.current === undefined)
             startTS.current = ts;
 
@@ -152,10 +155,10 @@ export const GradientBackground = memo(function GradientBackground() {
             for (let i = 0; i < shapes.shapes.length; i++)
                 if (!(shapes.shapes[i] instanceof RectangleGradient))
                     return
-                else if (animateRadialGradient(ctxRef.current, elapsed.current, shapes.shapes[i] as RectangleGradient, updateRadialGradients.current[i]) === false)
+                else if (animateRadialGradient(ctxRef.current!, elapsed.current, shapes.shapes[i] as RectangleGradient, updateRadialGradients.current[i]) === false)
                     return
 
-            shapes.draw({ ctx: ctxRef.current, canvasRef, currentPoint: { x: 0, y: 0 }, e: null })
+            shapes.draw({ ctx: ctxRef.current, canvasRef, currentPoint: { x: 0, y: 0 } })
         }
 
         window.requestAnimationFrame(animate);
@@ -180,7 +183,7 @@ export const GradientBackground = memo(function GradientBackground() {
             shapes.push(new RectangleGradient(0, 0, window.innerWidth, window.innerHeight, updateRadialGradients.current[1]))
             shapes.push(new RectangleGradient(0, 0, window.innerWidth, window.innerHeight, updateRadialGradients.current[2]))
 
-            shapes.draw({ ctx: ctxRef.current, canvasRef, currentPoint: { x: 0, y: 0 }, e: null })
+            shapes.draw({ ctx: ctxRef.current, canvasRef, currentPoint: { x: 0, y: 0 } })
         }
     }, [canvasRef.current, ctxRef.current])
 

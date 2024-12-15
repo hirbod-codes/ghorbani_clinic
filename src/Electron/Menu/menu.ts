@@ -4,11 +4,13 @@ import { template } from './Templates/MainMenu'
 export function handleMenuEvents() {
     ipcMain.on('open-menu', (e) => {
         const menu = Menu.buildFromTemplate(template)
-        menu.popup({ window: BrowserWindow.fromWebContents(e.sender) })
+        menu.popup({ window: BrowserWindow.fromWebContents(e.sender) ?? undefined })
     })
 
     ipcMain.on('minimize', () => {
         const browserWindow = BrowserWindow.getFocusedWindow()
+        if (!browserWindow)
+            return
 
         if (browserWindow.minimizable)
             browserWindow.minimize()
@@ -16,6 +18,8 @@ export function handleMenuEvents() {
 
     ipcMain.on('maximize', () => {
         const browserWindow = BrowserWindow.getFocusedWindow()
+        if (!browserWindow)
+            return
 
         if (browserWindow.maximizable)
             browserWindow.maximize()
@@ -23,12 +27,16 @@ export function handleMenuEvents() {
 
     ipcMain.on('unmaximize', () => {
         const browserWindow = BrowserWindow.getFocusedWindow()
+        if (!browserWindow)
+            return
 
         browserWindow.unmaximize()
     })
 
     ipcMain.on('maxUnmax', () => {
         const browserWindow = BrowserWindow.getFocusedWindow()
+        if (!browserWindow)
+            return
 
         if (browserWindow.isMaximized())
             browserWindow.unmaximize()
@@ -38,12 +46,16 @@ export function handleMenuEvents() {
 
     ipcMain.on('close', () => {
         const browserWindow = BrowserWindow.getFocusedWindow()
+        if (!browserWindow)
+            return
 
         browserWindow.close()
     })
 
     ipcMain.handle('isMaximized', () => {
         const browserWindow = BrowserWindow.getFocusedWindow()
+        if (!browserWindow)
+            return
 
         if (browserWindow !== null)
             return browserWindow.isMaximized()

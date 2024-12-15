@@ -10,7 +10,8 @@ import type { dbAPI } from "./dbAPI";
 import { ipcMain } from "electron";
 import { Unauthorized } from "./Exceptions/Unauthorized";
 import { Unauthenticated } from "./Exceptions/Unauthenticated";
-import { MongodbConfig, readConfig, writeConfigSync } from "../Configuration/main";
+import { MongodbConfig } from "../Configuration/main.d";
+import { readConfig, writeConfigSync } from "../Configuration/main";
 import { Privilege } from "./Models/Privilege";
 import { User } from "./Models/User";
 import { bonjour } from '../BonjourService';
@@ -47,8 +48,8 @@ export class MongoDB implements dbAPI {
         }
     }
 
-    async getConfig(): Promise<MongodbConfig> {
-        return readConfig().mongodb
+    async getConfig(): Promise<MongodbConfig | undefined> {
+        return readConfig()?.mongodb
     }
 
     protected transactionClient: MongoClient | undefined = undefined
@@ -59,7 +60,7 @@ export class MongoDB implements dbAPI {
 
         console.log(funcName, 'called')
 
-        const supportsTransaction = readConfig().mongodb.supportsTransaction
+        const supportsTransaction = readConfig()?.mongodb?.supportsTransaction
         if (!supportsTransaction) {
             console.log(funcName, 'Transactions are not supported.')
             return
@@ -76,13 +77,13 @@ export class MongoDB implements dbAPI {
 
         console.log(funcName, 'called')
 
-        const supportsTransaction = readConfig().mongodb.supportsTransaction
+        const supportsTransaction = readConfig()?.mongodb?.supportsTransaction
         if (!supportsTransaction) {
             console.log(funcName, 'Transactions are not supported.')
             return
         }
 
-        await this.session.abortTransaction()
+        await this.session?.abortTransaction()
     }
 
     async commitTransaction(): Promise<void> {
@@ -90,13 +91,13 @@ export class MongoDB implements dbAPI {
 
         console.log(funcName, 'called')
 
-        const supportsTransaction = readConfig().mongodb.supportsTransaction
+        const supportsTransaction = readConfig().mongodb?.supportsTransaction
         if (!supportsTransaction) {
             console.log(funcName, 'Transactions are not supported.')
             return
         }
 
-        await this.session.commitTransaction()
+        await this.session?.commitTransaction()
     }
 
     async endSession(): Promise<void> {
@@ -104,13 +105,13 @@ export class MongoDB implements dbAPI {
 
         console.log(funcName, 'called')
 
-        const supportsTransaction = readConfig().mongodb.supportsTransaction
+        const supportsTransaction = readConfig().mongodb?.supportsTransaction
         if (!supportsTransaction) {
             console.log(funcName, 'Transactions are not supported.')
             return
         }
 
-        await this.session.endSession()
+        await this.session?.endSession()
     }
 
     async updateConfig(config: MongodbConfig): Promise<boolean> {
@@ -128,7 +129,7 @@ export class MongoDB implements dbAPI {
                 bonjour.unpublishAll(() => {
                     console.log('bonjour service unpublished all of the previous services.')
 
-                    bonjour.publish({ name: 'clinic-db', type: 'mongodb', protocol: 'tcp', port: Number(c.mongodb.url.split('://')[1]?.split(':')[1]), disableIPv6: true })
+                    bonjour.publish({ name: 'clinic-db', type: 'mongodb', protocol: 'tcp', port: Number(config.url.split('://')[1]?.split(':')[1]), disableIPv6: true })
                     console.log('new bonjour service has published.')
                 })
 
@@ -153,6 +154,11 @@ export class MongoDB implements dbAPI {
 
                 browser.on('up', (s: Service) => {
                     console.log('found service')
+
+                    if (s.referer === undefined) {
+                        resolve(false)
+                        return
+                    }
 
                     const c = readConfig()
                     writeConfigSync({
@@ -211,11 +217,11 @@ export class MongoDB implements dbAPI {
         }
     }
 
-    async getDb(client?: MongoClient, useCache = true): Promise<Db | null> {
+    async getDb(client?: MongoClient, useCache = true): Promise<Db> {
         console.group('getDb')
 
         try {
-            if (useCache)
+            if (useCache && MongoDB.db)
                 return MongoDB.db
 
             const c = readConfig()

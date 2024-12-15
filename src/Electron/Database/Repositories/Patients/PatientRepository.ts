@@ -54,7 +54,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         return await (await this.getPatientsCollection()).estimatedDocumentCount()
     }
 
-    async getPatientWithVisits(socialId: string): Promise<Patient & { visits: Visit[] }> {
+    async getPatientWithVisits(socialId: string): Promise<Patient & { visits: Visit[] } | null> {
         const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();
@@ -103,7 +103,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!permission.granted)
             throw new Unauthorized()
 
-        const patient: Patient = await (await this.getPatientsCollection()).findOne({ socialId: socialId });
+        const patient = await (await this.getPatientsCollection()).findOne({ socialId: socialId });
         if (!patient)
             return null
 
@@ -189,15 +189,15 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
 
         const id = patient._id;
 
-        patient = Object.fromEntries(Object.entries(patient).filter(arr => (updatableFields as string[]).includes(arr[0])));
-        Object.keys(patient).forEach(k => {
+        const updatablePatient = Object.fromEntries(Object.entries(patient).filter(arr => (updatableFields as string[]).includes(arr[0])));
+        Object.keys(updatablePatient).forEach(k => {
             if (!getFields(updatableFields, permission.attributes).includes(k))
                 throw new Unauthorized();
         });
 
-        patient.updatedAt = DateTime.utc().toUnixInteger();
+        updatablePatient.updatedAt = DateTime.utc().toUnixInteger();
 
-        return (await (await this.getPatientsCollection()).updateOne({ _id: new ObjectId(id) }, { $set: { ...patient } }, { upsert: false }))
+        return (await (await this.getPatientsCollection()).updateOne({ _id: new ObjectId(id) }, { $set: { ...updatablePatient } }, { upsert: false }))
     }
 
     async deletePatient(id: string): Promise<DeleteResult> {

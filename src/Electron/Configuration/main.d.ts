@@ -1,4 +1,4 @@
-import type { ConfigurationStorableData } from "../../react/Contexts/ConfigurationContext"
+import type { ConfigurationStorableData } from "../../react/Contexts/Configuration/ConfigurationContext"
 import { User } from '../Database/Models/User'
 import type { Config as RendererConfig } from './renderer'
 

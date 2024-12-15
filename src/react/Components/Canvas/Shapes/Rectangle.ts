@@ -196,7 +196,7 @@ export class Rectangle implements Shape {
         if (Number.isNaN(distance) || distance === Infinity)
             return 0
 
-        let shouldAdd: boolean
+        let shouldAdd: boolean | undefined = undefined
 
         let y = lineFunction(p1, p2, currentPoint.x)
         console.log({ y })
@@ -212,6 +212,9 @@ export class Rectangle implements Shape {
             shouldAdd = false
         if (y !== undefined && currentPoint.y > y)
             shouldAdd = true
+
+        if(shouldAdd===undefined)
+            throw new Error('Logic error!!')
 
         if (!selectedHandler.toLowerCase().includes('right'))
             shouldAdd = !shouldAdd
@@ -240,7 +243,7 @@ export class Rectangle implements Shape {
         if (Number.isNaN(distance) || distance === Infinity)
             return 0
 
-        let shouldAdd: boolean
+        let shouldAdd: boolean | undefined = undefined
 
         let y = lineFunction(p1, p2, currentPoint.x)
 
@@ -255,6 +258,9 @@ export class Rectangle implements Shape {
             shouldAdd = false
         if (y !== undefined && currentPoint.y > y)
             shouldAdd = true
+
+        if(shouldAdd===undefined)
+            throw new Error('Logic error!!')
 
         if (selectedHandler.toLowerCase().includes('top'))
             shouldAdd = !shouldAdd

@@ -1,19 +1,18 @@
 import { ipcMain } from 'electron'
 import fs from 'fs'
-import path from 'path'
 import { v4 as uuidV4 } from 'uuid'
-import { CONFIGURATION_DIRECTORY } from '../../directories'
+import { CONFIGURATION_DIRECTORY, CONFIGURATION_FILE } from '../../directories'
 import type { Config as RendererConfig } from './renderer.d'
-import type { Config, MongodbConfig } from './main.d'
+import type { Config } from './main.d'
 import { mixed } from 'yup'
 
 export function handleConfigEvents() {
     ipcMain.handle('read-db-config', () => {
-        return readDbConfig()
+        return readConfig()?.mongodb
     })
 
     ipcMain.handle('read-config', () => {
-        return readConfig()?.rendererConfig ?? {}
+        return readConfig()?.rendererConfig
     })
 
     ipcMain.on('write-config', (_e, { config }: { config: RendererConfig }) => {
@@ -29,31 +28,15 @@ export function handleConfigEvents() {
     })
 }
 
-export function readDbConfig(): MongodbConfig | undefined {
-    const configFile = path.join(CONFIGURATION_DIRECTORY, 'config.json')
-    if (!fs.existsSync(configFile))
-        return undefined
-
-    let configJson = fs.readFileSync(configFile).toString()
-    let c: Config = JSON.parse(configJson)
-
-    if (!mixed<MongodbConfig>().required().isValidSync(c))
-        return undefined
-
-    return mixed<MongodbConfig>().required().cast(c)
-}
-
 export function readConfig(): Config {
-    const configFile = path.join(CONFIGURATION_DIRECTORY, 'config.json')
-
     const initialConfig = { appIdentifier: 'clinic', appName: `clinic-${uuidV4()}.local`, port: 3001, downloadsDirectorySize: 8_000_000_000 }
 
-    if (!fs.existsSync(configFile)) {
+    if (!fs.existsSync(CONFIGURATION_FILE)) {
         writeConfigSync(initialConfig)
         return initialConfig
     }
 
-    let configJson = fs.readFileSync(configFile).toString()
+    let configJson = fs.readFileSync(CONFIGURATION_FILE).toString()
     let c: Config = JSON.parse(configJson)
 
     if (c.appIdentifier && c.appName && c.port && c.downloadsDirectorySize)
@@ -75,13 +58,10 @@ export function readConfig(): Config {
 
 export function writeConfig(config: Config): Promise<void> {
     return new Promise((res, rej) => {
-        const configFolder = path.join(CONFIGURATION_DIRECTORY)
-        const configFile = path.join(configFolder, 'config.json')
+        if (!fs.existsSync(CONFIGURATION_DIRECTORY))
+            fs.mkdirSync(CONFIGURATION_DIRECTORY, { recursive: true })
 
-        if (!fs.existsSync(configFolder))
-            fs.mkdirSync(configFolder, { recursive: true })
-
-        fs.writeFile(configFile, JSON.stringify(config, undefined, 4), (err) => {
+        fs.writeFile(CONFIGURATION_FILE, JSON.stringify(config, undefined, 4), (err) => {
             if (err) {
                 console.error(err)
                 rej()
@@ -93,11 +73,8 @@ export function writeConfig(config: Config): Promise<void> {
 }
 
 export function writeConfigSync(config: Config): void {
-    const configFolder = path.join(CONFIGURATION_DIRECTORY)
-    const configFile = path.join(configFolder, 'config.json')
+    if (!fs.existsSync(CONFIGURATION_DIRECTORY))
+        fs.mkdirSync(CONFIGURATION_DIRECTORY, { recursive: true })
 
-    if (!fs.existsSync(configFolder))
-        fs.mkdirSync(configFolder, { recursive: true })
-
-    fs.writeFileSync(configFile, JSON.stringify(config))
+    fs.writeFileSync(CONFIGURATION_FILE, JSON.stringify(config))
 }

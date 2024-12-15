@@ -7,7 +7,7 @@ export const collectionName = 'visits'
 export const visitSchema = object().required().shape({
     schemaVersion: string().optional().min(6).max(10),
     _id: mixed<string | ObjectId>().optional(),
-    patientId: mixed<string | ObjectId>().optional().required(),
+    patientId: mixed<string | ObjectId>().required(),
     due: number().required(),
     diagnosis: contentSchema,
     treatments: contentSchema,

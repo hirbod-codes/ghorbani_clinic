@@ -11,7 +11,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { AuthContext } from "../../Contexts/AuthContext";
 import { resources } from "../../../Electron/Database/Repositories/Auth/resources";
 import { DATE_TIME, toFormat } from "../../Lib/DateTime/date-time-helpers";
-import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
+import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 import { getLuxonLocale } from "../../Lib/helpers";
 import { DateTime } from "luxon";
 import { appAPI } from "../../../Electron/appRendererEvents";
@@ -29,7 +29,7 @@ const VisuallyHiddenInput = styled('input')({
 });
 
 export function DocumentManagement({ patientId }: { patientId: string }) {
-    const configuration = useContext(ConfigurationContext)
+    const configuration = useContext(ConfigurationContext)!
     const auth = useContext(AuthContext)
     const [files, setFiles] = useState<GridFSFile[]>([])
     const [adding, setAdding] = useState<boolean>(false)
@@ -77,9 +77,9 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
         })
     }
 
-    const createsFile = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).create(resources.FILE), [auth])
-    const readsFile = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).read(resources.FILE), [auth])
-    const deletesFile = useMemo(() => auth.user && auth.accessControl && auth.accessControl.can(auth.user.roleName).delete(resources.FILE), [auth])
+    const createsFile = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).create(resources.FILE), [auth])
+    const readsFile = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).read(resources.FILE), [auth])
+    const deletesFile = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).delete(resources.FILE), [auth])
 
     const overWriteColumns: ColumnDef<any>[] = [
         {
