@@ -6,7 +6,7 @@ import { roles as staticRoles } from "../../Electron/Database/Repositories/Auth/
 import { resources } from "../../Electron/Database/Repositories/Auth/resources";
 import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { User } from '../../Electron/Database/Models/User';
-import { DATE, fromUnixToFormat } from '../Lib/DateTime/date-time-helpers';
+import { DATE, toFormat } from '../Lib/DateTime/date-time-helpers';
 import { ConfigurationContext } from '../Contexts/ConfigurationContext';
 import { AuthContext } from "../Contexts/AuthContext";
 import ManageUser from "../Components/ManageUser";
@@ -146,12 +146,12 @@ export const Users = memo(function Users() {
         {
             accessorKey: 'createdAt',
             id: 'createdAt',
-            cell: ({ getValue }) => fromUnixToFormat(configuration.get.locale, Number(getValue() as string), DATE),
+            cell: ({ getValue }) => toFormat(Number(getValue() as string), configuration.local, undefined, DATE),
         },
         {
             accessorKey: 'updatedAt',
             id: 'updatedAt',
-            cell: ({ getValue }) => fromUnixToFormat(configuration.get.locale, Number(getValue() as string), DATE),
+            cell: ({ getValue }) => toFormat(Number(getValue() as string), configuration.local, undefined, DATE),
         },
     ]
 
@@ -163,13 +163,6 @@ export const Users = memo(function Users() {
     const updatesRole = auth.accessControl?.can(auth.user.roleName).update(resources.PRIVILEGE).granted ?? false
     const deletesUser = auth.accessControl?.can(auth.user.roleName).delete(resources.USER).granted ?? false
     const deletesRole = auth.accessControl?.can(auth.user.roleName).delete(resources.PRIVILEGE).granted ?? false
-
-    const overWriteColumns: ColumnDef<any>[] = [
-        {
-            accessorKey: '_id',
-            id: '_id',
-        }
-    ]
 
     const additionalColumns: ColumnDef<any>[] = (deletesUser || updatesUser) && [
         {

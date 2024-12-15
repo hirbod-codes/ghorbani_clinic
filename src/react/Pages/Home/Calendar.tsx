@@ -1,6 +1,6 @@
 import { useCallback, useContext, useState } from "react";
-import { CircularProgress, Paper, Stack, Typography } from "@mui/material";
-import { Visit } from "src/Electron/Database/Models/Visit";
+import { Paper, Stack, Typography } from "@mui/material";
+import { Visit } from "../../../Electron/Database/Models/Visit";
 import { AnimatedCard } from "../../Components/Animations/AnimatedCard";
 import { Calendar as CalendarComponent } from "../../Components/Calendar";
 import { getVisitsInDate } from "../../Components/Visits/helpers";
@@ -10,7 +10,7 @@ import LoadingScreen from "../../Components/LoadingScreen";
 import { t } from "i18next";
 
 export function Calendar() {
-    const locale = useContext(ConfigurationContext).get.locale
+    const locale = useContext(ConfigurationContext).local
 
     const [cardKey, setCardKey] = useState<number>()
     const [showVisitsStats, setShowVisitsStats] = useState<boolean>(false)

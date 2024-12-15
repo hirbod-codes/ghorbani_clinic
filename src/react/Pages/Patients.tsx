@@ -2,7 +2,7 @@ import { useState, useContext, useEffect, memo, useMemo } from "react";
 import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { t } from "i18next";
 import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, IconButton, Paper, Stack, useTheme } from "@mui/material";
-import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
+import { DATE, toFormat } from "../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../Contexts/ConfigurationContext";
 import { Patient } from "../../Electron/Database/Models/Patient";
 import { AddOutlined, DeleteOutline, EditOutlined, RefreshOutlined } from "@mui/icons-material";
@@ -141,7 +141,7 @@ export const Patients = memo(function Patients() {
         {
             accessorKey: 'socialId',
             id: 'socialId',
-            cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.get.locale.code), { trailingZeroDisplay: 'auto', minimumIntegerDigits: 10, useGrouping: false }).format(getValue() as Intl.StringNumericLiteral)
+            cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.local.language), { trailingZeroDisplay: 'auto', minimumIntegerDigits: 10, useGrouping: false }).format(getValue() as Intl.StringNumericLiteral)
         },
         {
             accessorKey: '_id',
@@ -150,27 +150,27 @@ export const Patients = memo(function Patients() {
         {
             accessorKey: 'age',
             id: 'age',
-            cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.get.locale.code)).format(Number(getValue() as string))
+            cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.local.language)).format(Number(getValue() as string))
         },
         {
             accessorKey: 'phoneNumber',
             id: 'phoneNumber',
-            cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.get.locale.code), { trailingZeroDisplay: 'auto', minimumIntegerDigits: 11, useGrouping: false }).format(getValue() as Intl.StringNumericLiteral)
+            cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.local.language), { trailingZeroDisplay: 'auto', minimumIntegerDigits: 11, useGrouping: false }).format(getValue() as Intl.StringNumericLiteral)
         },
         {
             accessorKey: 'birthDate',
             id: 'birthDate',
-            cell: (props) => fromUnixToFormat(configuration.get.locale, props.getValue() as number, DATE),
+            cell: (props) => toFormat(props.getValue() as number, configuration.local, undefined, DATE),
         },
         {
             accessorKey: 'createdAt',
             id: 'createdAt',
-            cell: (props) => fromUnixToFormat(configuration.get.locale, props.getValue() as number, DATE),
+            cell: (props) => toFormat(props.getValue() as number, configuration.local, undefined, DATE),
         },
         {
             accessorKey: 'updatedAt',
             id: 'updatedAt',
-            cell: (props) => fromUnixToFormat(configuration.get.locale, props.getValue() as number, DATE),
+            cell: (props) => toFormat(props.getValue() as number, configuration.local, undefined, DATE),
         },
     ]
 

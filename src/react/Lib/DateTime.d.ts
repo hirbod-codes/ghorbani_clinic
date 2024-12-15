@@ -21,7 +21,3 @@ export type DateTimeView = {
 export type GregorianDate = Date
 
 export type PersianDate = Date
-
-export type TimeZone = 'UTC' | 'Asia/Tehran'
-
-export type Calendar = 'Persian' | 'Gregorian'

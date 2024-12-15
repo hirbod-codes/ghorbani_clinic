@@ -1,8 +1,7 @@
 import { AddOutlined, Done, RemoveOutlined, SearchOutlined } from "@mui/icons-material";
-import { CircularProgress, IconButton, InputAdornment, List, ListItem, ListItemIcon, ListItemText, Paper, Stack, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Typography, Checkbox, Divider, Box } from "@mui/material";
-import { AnimatePresence, motion } from "framer-motion";
+import { CircularProgress, IconButton, InputAdornment, Paper, Stack, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Typography, Checkbox, Divider, Box } from "@mui/material";
 import { t } from "i18next";
-import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import { useContext, useEffect, useMemo, useState } from "react";
 import { MedicalHistory } from "../../../Electron/Database/Models/MedicalHistory";
 import { mainTransition } from "../../Styles/animations";
 import { RendererDbAPI } from "../../../Electron/Database/renderer";

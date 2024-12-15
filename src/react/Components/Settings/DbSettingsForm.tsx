@@ -4,7 +4,7 @@ import { t } from 'i18next';
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
 import { publish } from '../../Lib/Events';
 import { dbAPI } from '../../../Electron/Database/dbAPI';
-import { configAPI } from '../../../Electron/Configuration/renderer';
+import { configAPI } from '../../../Electron/Configuration/renderer.d';
 
 export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean }) {
     const [tabValue, setTabValue] = useState<number>(0);
@@ -18,18 +18,11 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
     const [databaseName, setDatabaseName] = useState<string>('')
 
     const init = async () => {
-        console.group('init')
-
-        const config = await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig();
-        console.log({ c: config })
-
-        setUsername(config.mongodb?.auth?.username ?? '')
-        setPassword(config.mongodb?.auth?.password ?? '')
-        setSupportsTransaction(config.mongodb?.supportsTransaction ?? false)
-        setUrl(config.mongodb?.url ?? '')
-        setDatabaseName(config.mongodb?.databaseName ?? 'primaryDb')
-
-        console.groupEnd()
+        setUsername('')
+        setPassword('')
+        setSupportsTransaction(false)
+        setUrl('')
+        setDatabaseName('primaryDb')
     }
 
     useEffect(() => {

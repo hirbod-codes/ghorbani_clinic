@@ -190,7 +190,7 @@ export const GradientBackground = memo(function GradientBackground() {
 
     return (
         <>
-            {c.get.showGradientBackground &&
+            {c.showGradientBackground &&
                 <>
                     <canvas
                         ref={canvasRef}

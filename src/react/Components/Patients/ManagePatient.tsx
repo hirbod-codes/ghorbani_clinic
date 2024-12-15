@@ -7,8 +7,6 @@ import { Patient } from '../../../Electron/Database/Models/Patient';
 import type { Visit } from '../../../Electron/Database/Models/Visit';
 import { ConfigurationContext } from '../../../react/Contexts/ConfigurationContext';
 import { DateField } from '../DateTime/DateField';
-import { fromDateTimeParts } from '../../../react/Lib/DateTime/date-time-helpers';
-import { fromUnix } from '../../../react/Lib/DateTime/date-time-helpers';
 import { ManageVisits } from '../Visits/ManageVisit';
 import LoadingScreen from '../LoadingScreen';
 import { t } from 'i18next';
@@ -18,6 +16,7 @@ import { publish } from '../../Lib/Events';
 import { MedicalHistory } from './MedicalHistory';
 import { EditorModal } from '../Editor/EditorModal';
 import { DocumentManagement } from '../DocumentManagement';
+import { toDateTime, toDateTimeView } from 'src/react/Lib/DateTime/date-time-helpers';
 
 const VisuallyHiddenInput = styled('input')({
     clip: 'rect(0 0 0 0)',
@@ -35,7 +34,7 @@ async function getVisits(patientId?: string): Promise<Visit[] | undefined> {
     if (!patientId)
         return undefined
 
-    const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getVisits(patientId)
+    const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getVisitsByPatientId(patientId)
     console.log({ res })
     if (res.code !== 200)
         return undefined
@@ -44,7 +43,7 @@ async function getVisits(patientId?: string): Promise<Visit[] | undefined> {
 }
 
 export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void, inputPatient?: Patient }) {
-    const locale = useContext(ConfigurationContext).get.locale
+    const locale = useContext(ConfigurationContext).local
 
     const [socialIdError, setSocialIdError] = useState<boolean>(false)
 
@@ -265,7 +264,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                         <DateField
                                                             width='4rem'
                                                             onChange={(date) => {
-                                                                const birthDate = fromDateTimeParts({ ...locale, calendar: 'Gregorian' }, locale, date)
+                                                                const birthDate = toDateTimeView(toDateTime({ date, time: { hour: 0, minute: 0, second: 0 } }, { ...locale, calendar: 'Gregorian' }, locale))
 
                                                                 const now = DateTime.local({ zone: locale.zone })
 
@@ -275,7 +274,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                                                     birthDate: DateTime.local(birthDate.date.year, birthDate.date.month, birthDate.date.day, { zone: locale.zone }).toUnixInteger(),
                                                                 })
                                                             }}
-                                                            defaultDate={patient?.birthDate ? fromUnix(locale, patient?.birthDate).date : undefined} />
+                                                            defaultDate={patient?.birthDate ? toDateTimeView(toDateTime(patient?.birthDate, locale)).date : undefined} />
                                                     </Stack>
 
                                                     {/* Gender */}

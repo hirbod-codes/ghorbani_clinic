@@ -1,16 +1,15 @@
 import { Stack, Select, MenuItem, FormControl, InputLabel, TextField, Typography } from "@mui/material";
 import { memo, useContext, useEffect, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
-import { Calendar, TimeZone } from "../../Lib/DateTime";
 import { languages } from "../../i18next";
 import { t } from "i18next";
 import { getMuiLocale } from "../../Lib/helpers";
 import type { Languages } from "../../Lib/Localization";
-import { configAPI } from "../../../Electron/Configuration/renderer";
 import { Button } from "@mui/material";
-import { appAPI } from "src/Electron/appRendererEvents";
+import { appAPI } from "../../../Electron/appRendererEvents";
 import { publish } from "../../Lib/Events";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
+import { Calendar, configAPI, TimeZone } from "src/Electron/Configuration/renderer.d";
 
 export const General = memo(function General() {
     const configuration = useContext(ConfigurationContext)
@@ -29,7 +28,7 @@ export const General = memo(function General() {
 
     useEffect(() => {
         getConfig().then((c) => {
-            setLimit(c?.downloadsDirectorySize?.toString());
+            setLimit(((c?.downloadsDirectorySize ?? 2_000_000_000) / 1_000_000_000).toFixed(1).toString());
         })
     }, [])
 
@@ -37,18 +36,18 @@ export const General = memo(function General() {
         <>
             <Stack spacing={1} sx={{ m: 1, p: 2 }}>
                 <Button onClick={async () => {
-                    const r = await (window as typeof window & { appAPI: appAPI }).appAPI.setAppIcon()
-                    console.log({ r })
-                    if (r)
-                        publish(RESULT_EVENT_NAME, {
-                            severity: 'success',
-                            message: t('General.successfullyChangedIcon')
-                        })
-                    else
-                        publish(RESULT_EVENT_NAME, {
-                            severity: 'error',
-                            message: t('General.failedToChangeIcon')
-                        })
+                    // const r = await (window as typeof window & { appAPI: appAPI }).appAPI.appAPIAppIcon()
+                    // console.log({ r })
+                    // if (r)
+                    //     publish(RESULT_EVENT_NAME, {
+                    //         severity: 'success',
+                    //         message: t('General.successfullyChangedIcon')
+                    //     })
+                    // else
+                    //     publish(RESULT_EVENT_NAME, {
+                    //         severity: 'error',
+                    //         message: t('General.failedToChangeIcon')
+                    //     })
                 }}>{t('General.changeIcon')}</Button>
                 <Stack direction='row' alignItems='center' sx={{ width: '100%' }}>
                     <TextField
@@ -77,10 +76,10 @@ export const General = memo(function General() {
                 <FormControl variant='standard' >
                     <InputLabel id="calendar-label">{t('calendar')}</InputLabel>
                     <Select
-                        onChange={(e) => configuration.set.updateLocale(e.target.value as Calendar, configuration.get.locale.direction, getMuiLocale(configuration.get.locale.code))}
+                        onChange={(e) => configuration.updateLocal(e.target.value as Calendar, configuration.local.direction, getMuiLocale(configuration.local.language))}
                         labelId="calendar-label"
                         id='calendar'
-                        value={configuration.get.locale.calendar}
+                        value={configuration.local.calendar}
                         fullWidth
                     >
                         <MenuItem value='Persian'>{t('persianCalendarName')}</MenuItem>
@@ -90,10 +89,10 @@ export const General = memo(function General() {
                 <FormControl variant='standard'>
                     <InputLabel id="language-label">{t('language')}</InputLabel>
                     <Select
-                        onChange={(e) => configuration.set.updateLocale(configuration.get.locale.calendar, languages.find(v => v.code === e.target.value).direction, getMuiLocale(e.target.value as Languages))}
+                        onChange={(e) => configuration.updateLocal(configuration.local.calendar, languages.find(v => v.code === e.target.value).direction, getMuiLocale(e.target.value as Languages))}
                         labelId="language-label"
                         id='language'
-                        value={languages.find(v => v.code === configuration.get.locale.code).code}
+                        value={languages.find(v => v.code === configuration.local.language).code}
                         fullWidth
                     >
                         {
@@ -106,10 +105,10 @@ export const General = memo(function General() {
                 <FormControl variant='standard' >
                     <InputLabel id="time-zone-label">{t('timeZone')}</InputLabel>
                     <Select
-                        onChange={(e) => configuration.set.updateTimeZone(e.target.value as TimeZone)}
+                        onChange={(e) => configuration.updateLocal(configuration.local.calendar, configuration.local.direction, getMuiLocale(configuration.local.language), e.target.value as TimeZone)}
                         labelId="time-zone-label"
                         id='time-zone'
-                        value={configuration.get.locale.zone}
+                        value={configuration.local.zone}
                         fullWidth
                     >
                         <MenuItem value='Asia/Tehran'>{t('Asia/Tehran')}</MenuItem>

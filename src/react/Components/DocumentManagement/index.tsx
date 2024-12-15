@@ -10,7 +10,7 @@ import { publish } from "../../Lib/Events";
 import { ColumnDef } from "@tanstack/react-table";
 import { AuthContext } from "../../Contexts/AuthContext";
 import { resources } from "../../../Electron/Database/Repositories/Auth/resources";
-import { DATE_TIME, fromUnixToFormat } from "../../Lib/DateTime/date-time-helpers";
+import { DATE_TIME, toFormat } from "../../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
 import { getLuxonLocale } from "../../Lib/helpers";
 import { DateTime } from "luxon";
@@ -87,7 +87,7 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
             id: 'uploadDate',
             cell: (props) => {
                 console.log(props.getValue());
-                return fromUnixToFormat(configuration.get.locale, DateTime.fromISO(props.getValue() as string).toUnixInteger(), DATE_TIME)
+                return toFormat(DateTime.fromISO(props.getValue() as string).toUnixInteger(), configuration.local, undefined, DATE_TIME)
             },
         },
         {
@@ -99,7 +99,7 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                 if (!n || Number.isNaN(n))
                     return '-'
 
-                return new Intl.NumberFormat(getLuxonLocale(configuration.get.locale.code)).format(Math.round(n / 1000)) + ' kb';
+                return new Intl.NumberFormat(getLuxonLocale(configuration.local.language)).format(Math.round(n / 1000)) + ' kb';
             }
         },
     ]

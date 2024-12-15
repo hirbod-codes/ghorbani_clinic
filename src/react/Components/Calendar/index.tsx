@@ -1,7 +1,7 @@
 import { Divider, Paper, Stack, Typography } from "@mui/material";
 import { memo, useContext, useEffect, useReducer, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/ConfigurationContext";
-import { fromUnix } from "../../Lib/DateTime/date-time-helpers";
+import { toDateTime, toDateTimeView } from "../../Lib/DateTime/date-time-helpers";
 import { DateTime } from "luxon";
 import { CalendarManager } from "./CalendarManager";
 import { CalendarScope } from "./index.d";
@@ -25,12 +25,12 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
     if (!validScopes || validScopes.length === 0)
         throw new Error('No scope provided')
 
-    const locale = useContext(ConfigurationContext).get.locale
+    const local = useContext(ConfigurationContext).local
 
     const [, rerender] = useReducer(x => x + 1, 0)
 
-    const { date } = fromUnix(locale, DateTime.utc().toUnixInteger())
-    const [calendarManager, setCalendarManager] = useState(new CalendarManager(locale.calendar, date.year, date.month, locale.code, locale))
+    const { date } = toDateTimeView(toDateTime(DateTime.utc().toUnixInteger(), local))
+    const [calendarManager, setCalendarManager] = useState(new CalendarManager(local.calendar, date.year, date.month, local.language, local))
 
     const onTitleClick = () => {
         switch (calendarManager.getScope()) {
@@ -137,7 +137,7 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
             break;
     }
 
-    console.log('Calendar', { locale, collection, columns, calendarManager })
+    console.log('Calendar', { locale: local, collection, columns, calendarManager })
 
     return (
         <Stack direction='column' divider={<Divider />} spacing={0.2}>

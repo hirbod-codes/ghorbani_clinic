@@ -3,7 +3,7 @@ import { DataGrid } from "../Components/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { t } from "i18next";
 import { Button, CircularProgress, Grid, IconButton, Paper } from "@mui/material";
-import { DATE, fromUnixToFormat } from "../Lib/DateTime/date-time-helpers";
+import { DATE, toFormat } from "../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../Contexts/ConfigurationContext";
 import { Visit } from "../../Electron/Database/Models/Visit";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
@@ -128,17 +128,17 @@ export const Visits = memo(function Visits() {
         {
             id: 'due',
             accessorKey: 'due',
-            cell: ({ getValue }) => fromUnixToFormat(configuration.get.locale, Number(getValue() as string), DATE),
+            cell: ({ getValue }) => toFormat(Number(getValue() as string), configuration.local, undefined, DATE),
         },
         {
             id: 'createdAt',
             accessorKey: 'createdAt',
-            cell: ({ getValue }) => fromUnixToFormat(configuration.get.locale, Number(getValue() as string), DATE),
+            cell: ({ getValue }) => toFormat(Number(getValue() as string), configuration.local, undefined, DATE),
         },
         {
             id: 'updatedAt',
             accessorKey: 'updatedAt',
-            cell: ({ getValue }) => fromUnixToFormat(configuration.get.locale, Number(getValue() as string), DATE),
+            cell: ({ getValue }) => toFormat(Number(getValue() as string), configuration.local, undefined, DATE),
         },
     ]
 

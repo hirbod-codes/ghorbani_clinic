@@ -25,7 +25,7 @@ export type EditorProps = {
 }
 
 export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor = false, title, text: inputText, canvasId: inputCanvasId, onSave, onChange, setHasUnsavedChanges: setHasUnsavedChangesProperty }: EditorProps) {
-    const theme = useContext(ConfigurationContext).get.theme
+    const theme = useContext(ConfigurationContext).theme
     const [loading, setLoading] = useState<boolean>(false)
 
     const [text, setText] = useState<string | undefined>(inputText)

@@ -23,6 +23,7 @@ export type Local = {
 }
 
 export type Config = {
+    downloadsDirectorySize?: number,
     local: Local,
     themeOptions: ThemeOptions,
     canvas?: {

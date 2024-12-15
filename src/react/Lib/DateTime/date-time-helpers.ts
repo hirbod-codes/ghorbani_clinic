@@ -1,97 +1,97 @@
 import { getGregorianMonths, gregorian_to_jd, isLeapGregorianYear, jd_to_gregorian } from "./gregorian-calendar"
 import { getPersianMonths, isLeapPersianYear, jd_to_persian, persian_to_jd } from "./persian-calendar"
 import { DateObjectUnits, DateTime } from "luxon"
-import type { Date, Time, GregorianDate, PersianDate, Calendar, DateTimeView } from '../DateTime'
-import type { Local } from "../Localization"
+import type { Date, Time, GregorianDate, PersianDate, DateTimeView } from '../DateTime'
 import { mixed, number } from "yup"
 import { getLuxonLocale } from "../helpers"
+import { Calendar, Local } from "../../../Electron/Configuration/renderer.d"
 
 export const DATE_TIME = 'cccc d/M/y H:m:s'
 export const DATE = 'cccc d/M/y'
 export const TIME = 'H:m:s'
 
-export function toLocalDateTime(date: number, locale: Local): DateTime
-export function toLocalDateTime(date: DateTimeView, locale: Local): DateTime
-export function toLocalDateTime(date: DateTimeView | number, locale: Local): DateTime {
-    if (number().required().isValidSync(date))
-        date = fromUnix(locale, date)
+// export function toLocalDateTime(date: number, locale: Local): DateTime
+// export function toLocalDateTime(date: DateTimeView, locale: Local): DateTime
+// export function toLocalDateTime(date: DateTimeView | number, locale: Local): DateTime {
+//     if (number().required().isValidSync(date))
+//         date = fromUnix(locale, date)
 
-    return DateTime.local(date.date.year, date.date.month, date.date.day, date.time.hour, date.time.minute, date.time.second, 0, { locale: getLuxonLocale(locale.code), zone: locale.zone })
-}
+//     return DateTime.local(date.date.year, date.date.month, date.date.day, date.time.hour, date.time.minute, date.time.second, 0, { locale: getLuxonLocale(locale.language), zone: locale.zone })
+// }
+// export function toLocalFormat(date: number, locale: Local, format?: string): string 
+// export function toLocalFormat(date: number, locale: Local, format?: string): string
+// export function toLocalFormat(date: DateTimeView, locale: Local, format?: string): string
+// export function toLocalFormat(date: DateTimeView | number, locale: Local, format = DATE_TIME): string {
+//     return toLocalDateTime(date as any, locale).toFormat(format)
+// }
 
-export function toLocalFormat(date: number, locale: Local, format?: string): string
-export function toLocalFormat(date: DateTimeView, locale: Local, format?: string): string
-export function toLocalFormat(date: DateTimeView | number, locale: Local, format = DATE_TIME): string {
-    return toLocalDateTime(date as any, locale).toFormat(format)
-}
+// export function fromUnix(toLocale: Local, unixTimestamp: number): DateTimeView {
+//     const dateTime = DateTime.fromSeconds(unixTimestamp).setZone(toLocale.zone).setLocale(getLuxonLocale(toLocale.language))
 
-export function fromUnix(toLocale: Local, unixTimestamp: number): DateTimeView {
-    const dateTime = DateTime.fromSeconds(unixTimestamp).setZone(toLocale.zone).setLocale(getLuxonLocale(toLocale.code))
+//     return fromDateTimeToParts(toLocale, 'Gregorian', dateTime)
+// }
 
-    return fromDateTimeToParts(toLocale, 'Gregorian', dateTime)
-}
+// export function fromUnixToFormat(toLocale: Local, unixTimestamp: number, format = DATE_TIME): string {
+//     return toLocalFormat(fromUnix(toLocale, unixTimestamp), toLocale, format)
+// }
 
-export function fromUnixToFormat(toLocale: Local, unixTimestamp: number, format = DATE_TIME): string {
-    return toLocalFormat(fromUnix(toLocale, unixTimestamp), toLocale, format)
-}
+// export function fromDateTimeParts(toLocale: Local, fromLocale: Local, date: Date, time?: Time): DateTimeView {
+//     if (!time)
+//         time = { hour: 0, minute: 0, second: 0 }
 
-export function fromDateTimeParts(toLocale: Local, fromLocale: Local, date: Date, time?: Time): DateTimeView {
-    if (!time)
-        time = { hour: 0, minute: 0, second: 0 }
+//     const dateTime = DateTime
+//         .local(date.year, date.month, date.day, time.hour, time.minute, time.second, { zone: fromLocale.zone })
+//         .setZone(toLocale.zone)
+//         .setLocale(getLuxonLocale(toLocale.language))
 
-    const dateTime = DateTime
-        .local(date.year, date.month, date.day, time.hour, time.minute, time.second, { zone: fromLocale.zone })
-        .setZone(toLocale.zone)
-        .setLocale(getLuxonLocale(toLocale.code))
+//     return fromDateTimeToParts(toLocale, fromLocale.calendar, dateTime)
+// }
 
-    return fromDateTimeToParts(toLocale, fromLocale.calendar, dateTime)
-}
+// export function fromDateTimePartsToFormat(toLocale: Local, fromLocale: Local, date: Date, time?: Time, format = DATE_TIME): string {
+//     return toLocalFormat(fromDateTimeParts(toLocale, fromLocale, date, time), toLocale, format)
+// }
 
-export function fromDateTimePartsToFormat(toLocale: Local, fromLocale: Local, date: Date, time?: Time, format = DATE_TIME): string {
-    return toLocalFormat(fromDateTimeParts(toLocale, fromLocale, date, time), toLocale, format)
-}
+// export function fromDateTimeToParts(toLocale: Local, fromCalendar: Calendar, dateTime: DateTime): DateTimeView {
+//     dateTime = dateTime
+//         .setZone(toLocale.zone)
+//         .setLocale(getLuxonLocale(toLocale.language))
 
-export function fromDateTimeToParts(toLocale: Local, fromCalendar: Calendar, dateTime: DateTime): DateTimeView {
-    dateTime = dateTime
-        .setZone(toLocale.zone)
-        .setLocale(getLuxonLocale(toLocale.code))
+//     let date
+//     if (toLocale.calendar === fromCalendar)
+//         date = { year: dateTime.year, month: dateTime.month, day: dateTime.day }
+//     else
+//         switch (toLocale.calendar) {
+//             case 'Persian':
+//                 date = gregorianToPersian({ year: dateTime.year, month: dateTime.month, day: dateTime.day })
+//                 break;
 
-    let date
-    if (toLocale.calendar === fromCalendar)
-        date = { year: dateTime.year, month: dateTime.month, day: dateTime.day }
-    else
-        switch (toLocale.calendar) {
-            case 'Persian':
-                date = gregorianToPersian({ year: dateTime.year, month: dateTime.month, day: dateTime.day })
-                break;
+//             case 'Gregorian':
+//                 date = persianToGregorian({ year: dateTime.year, month: dateTime.month, day: dateTime.day })
+//                 break;
 
-            case 'Gregorian':
-                date = persianToGregorian({ year: dateTime.year, month: dateTime.month, day: dateTime.day })
-                break;
+//             default:
+//                 throw new Error('invalid value for calendar provided.')
+//         }
 
-            default:
-                throw new Error('invalid value for calendar provided.')
-        }
+//     return {
+//         date,
+//         time: {
+//             hour: dateTime.hour,
+//             minute: dateTime.minute,
+//             second: dateTime.second,
+//         }
+//     }
+// }
 
-    return {
-        date,
-        time: {
-            hour: dateTime.hour,
-            minute: dateTime.minute,
-            second: dateTime.second,
-        }
-    }
-}
-
-export function fromDateTimeToFormat(toLocale: Local, fromCalendar: Calendar, dateTime: DateTime, format = DATE_TIME): string {
-    return toLocalFormat(fromDateTimeToParts(toLocale, fromCalendar, dateTime), toLocale, format)
-}
+// export function fromDateTimeToFormat(toLocale: Local, fromCalendar: Calendar, dateTime: DateTime, format = DATE_TIME): string {
+//     return toLocalFormat(fromDateTimeToParts(toLocale, fromCalendar, dateTime), toLocale, format)
+// }
 
 export function getLocaleMonths(locale: Local, year: number): { name: string, days: number }[] {
     if (locale.calendar === 'Persian')
-        return getPersianMonths(isLeapPersianYear(year), locale.code)
+        return getPersianMonths(isLeapPersianYear(year), locale.language)
     if (locale.calendar === 'Gregorian')
-        return getGregorianMonths(isLeapGregorianYear(year), locale.code)
+        return getGregorianMonths(isLeapGregorianYear(year), locale.language)
 
     throw new Error('An unknown calendar requested.')
 }
@@ -143,14 +143,14 @@ export function toDateTime(dateTime: number | DateTime | DateTimeView, toLocal: 
                 let gregorianDateTime = dateTime
                 if (toLocal.calendar === fromLocal.calendar)
                     gregorianDateTime = { ...dateTime, date: persianToGregorian(dateTime.date) }
-                return DateTime.local(gregorianDateTime.date.year, gregorianDateTime.date.month, gregorianDateTime.date.day, gregorianDateTime.time.hour, gregorianDateTime.time.minute, gregorianDateTime.time.second, gregorianDateTime.time.millisecond, { locale: getLuxonLocale(fromLocal.code), zone: fromLocal.zone })
-                    .setLocale(getLuxonLocale(toLocal.code))
+                return DateTime.local(gregorianDateTime.date.year, gregorianDateTime.date.month, gregorianDateTime.date.day, gregorianDateTime.time.hour, gregorianDateTime.time.minute, gregorianDateTime.time.second, gregorianDateTime.time.millisecond, { locale: getLuxonLocale(fromLocal.language), zone: fromLocal.zone })
+                    .setLocale(getLuxonLocale(toLocal.language))
                     .setZone(toLocal.zone)
                     .set(convertedDateTime as DateObjectUnits)
 
             case 'Gregorian':
-                return DateTime.local(convertedDateTime.date.year, convertedDateTime.date.month, convertedDateTime.date.day, convertedDateTime.time.hour, convertedDateTime.time.minute, convertedDateTime.time.second, convertedDateTime.time.millisecond, { locale: getLuxonLocale(fromLocal.code), zone: fromLocal.zone })
-                    .setLocale(getLuxonLocale(toLocal.code))
+                return DateTime.local(convertedDateTime.date.year, convertedDateTime.date.month, convertedDateTime.date.day, convertedDateTime.time.hour, convertedDateTime.time.minute, convertedDateTime.time.second, convertedDateTime.time.millisecond, { locale: getLuxonLocale(fromLocal.language), zone: fromLocal.zone })
+                    .setLocale(getLuxonLocale(toLocal.language))
                     .setZone(toLocal.zone)
 
             default:
@@ -174,4 +174,11 @@ export function toDateTimeView(dateTime: DateTime): DateTimeView {
             millisecond: dateTime.millisecond,
         }
     }
+}
+
+export function toFormat(timestamp: number, toLocal: Local, fromLocal?: Local, format?: string): string
+export function toFormat(dateTime: DateTime, toLocal: Local, fromLocal: Local, format?: string): string
+export function toFormat(dateTime: DateTimeView, toLocal: Local, fromLocal: Local, format?: string): string
+export function toFormat(dateTime: number | DateTime | DateTimeView, toLocal: Local, fromLocal?: Local, format = DATE_TIME): string {
+    return toDateTime(dateTime as any, toLocal, fromLocal).toFormat(format)
 }

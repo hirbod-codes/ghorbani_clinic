@@ -9,7 +9,7 @@ import { publish } from "../../../react/Lib/Events"
 import { RESULT_EVENT_NAME } from "../../../react/Contexts/ResultWrapper"
 import { t } from "i18next"
 import { ColumnDef } from "@tanstack/react-table"
-import { DATE, fromUnixToFormat } from "../../../react/Lib/DateTime/date-time-helpers"
+import { DATE, toFormat } from "../../../react/Lib/DateTime/date-time-helpers"
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, CircularProgress, IconButton, Stack } from "@mui/material"
 import { AddOutlined, DeleteOutline, RefreshOutlined, SearchOutlined } from "@mui/icons-material"
 import { DataGrid } from "../DataGrid"
@@ -109,12 +109,12 @@ export function MedicalHistoryDataGrid() {
         {
             accessorKey: 'createdAt',
             id: 'createdAt',
-            cell: (props) => fromUnixToFormat(configuration.get.locale, props.getValue() as number, DATE),
+            cell: (props) => toFormat(props.getValue() as number, configuration.local, undefined, DATE),
         },
         {
             accessorKey: 'updatedAt',
             id: 'updatedAt',
-            cell: (props) => fromUnixToFormat(configuration.get.locale, props.getValue() as number, DATE),
+            cell: (props) => toFormat(props.getValue() as number, configuration.local, undefined, DATE),
         },
     ]
 
@@ -184,7 +184,7 @@ export function MedicalHistoryDataGrid() {
                 />}
 
             <Modal open={searchModalOpen} onClose={() => setSearchModalOpen(false)} >
-                <MedicalHistorySearch creatable deletable/>
+                <MedicalHistorySearch creatable deletable />
             </Modal>
 
             {/* Medical history creation, Name field */}

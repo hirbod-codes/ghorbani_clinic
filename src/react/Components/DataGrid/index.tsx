@@ -29,7 +29,7 @@ import {
 // needed for row & cell level scope DnD setup
 import { Stack, useTheme } from '@mui/material'
 import { t } from 'i18next'
-import { configAPI } from 'src/Electron/Configuration/renderer'
+import { configAPI } from '../../../Electron/Configuration/renderer.d'
 import { DraggableTableHeader } from './DraggableTableHeader'
 import { DragAlongCell } from './DragAlongCell'
 import { ColumnVisibilityButton } from './ColumnVisibilityButton'
@@ -102,7 +102,7 @@ export function DataGrid({
         columns.unshift({
             id: 'counter',
             accessorKey: 'counter',
-            cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.get.locale.code), { trailingZeroDisplay: 'auto', minimumIntegerDigits: 1, useGrouping: false }).format(getValue() as Intl.StringNumericLiteral)
+            cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.local.language), { trailingZeroDisplay: 'auto', minimumIntegerDigits: 1, useGrouping: false }).format(getValue() as Intl.StringNumericLiteral)
         })
 
     const [density, setDensity] = useState<Density>('compact')

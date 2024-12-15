@@ -161,7 +161,7 @@ export const Navigation = memo(function Navigation() {
                                 }
                             </IconButton>
                         }
-                        <IconButton size='medium' onClick={() => configuration.set.updateTheme(theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.get.locale.direction, getMuiLocale(configuration.get.locale.code))}>
+                        <IconButton size='medium' onClick={() => configuration.updateTheme(theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.local.direction, getMuiLocale(configuration.local.language))}>
                             {theme.palette.mode == 'light' ? <LightModeOutlined fontSize='inherit' /> : <DarkModeOutlined fontSize='inherit' />}
                         </IconButton>
                     </Toolbar>

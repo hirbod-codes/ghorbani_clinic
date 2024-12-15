@@ -53,7 +53,7 @@ export const getColumns = (data: any[], overWriteColumns?: ColumnDef<any>[], add
 
 export function getCommonPinningStyles(column: Column<any>): CSSProperties {
     const theme = useTheme();
-    const direction = useContext(ConfigurationContext).get.locale.direction
+    const direction = useContext(ConfigurationContext).local.direction
 
     const isPinned = column.getIsPinned();
     const isLastLeftPinnedColumn = isPinned === 'left' && column.getIsLastColumn('left');

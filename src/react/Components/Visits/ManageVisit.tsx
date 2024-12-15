@@ -6,21 +6,21 @@ import { AddOutlined, Close, ExpandMore } from '@mui/icons-material';
 import { DateTime } from 'luxon';
 import type { Visit } from '../../../Electron/Database/Models/Visit';
 import { ConfigurationContext } from '../../../react/Contexts/ConfigurationContext';
-import { fromUnixToFormat, fromDateTimeParts, fromUnix } from '../../../react/Lib/DateTime/date-time-helpers';
 import { DateTimeField } from '../DateTime/DateTimeField';
 import { t } from 'i18next';
 import { EditorModal } from '../Editor/EditorModal';
+import { toDateTime, toDateTimeView, toFormat } from 'src/react/Lib/DateTime/date-time-helpers';
 
 export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId?: string; defaultVisits?: Visit[]; onChange?: (visits: Visit[]) => void; }) {
-    const locale = useContext(ConfigurationContext).get.locale;
+    const local = useContext(ConfigurationContext).local;
 
     const getDefaultVisit = (): Visit => {
         return {
             schemaVersion: 'v0.0.1',
             patientId: patientId ?? undefined,
-            due: DateTime.local({ zone: locale.zone }).toUnixInteger(),
-            createdAt: DateTime.local({ zone: locale.zone }).toUnixInteger(),
-            updatedAt: DateTime.local({ zone: locale.zone }).toUnixInteger(),
+            due: DateTime.local({ zone: local.zone }).toUnixInteger(),
+            createdAt: DateTime.local({ zone: local.zone }).toUnixInteger(),
+            updatedAt: DateTime.local({ zone: local.zone }).toUnixInteger(),
         }
     }
 
@@ -77,20 +77,20 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                         <Accordion key={i} defaultExpanded elevation={2} sx={{ width: '100%' }}>
                             <AccordionSummary expandIcon={<ExpandMore />}>
                                 <Typography>
-                                    {visits[i]?.due && fromUnixToFormat(locale, visits[i].due)}
+                                    {visits[i]?.due && toFormat(visits[i].due, local)}
                                 </Typography>
                             </AccordionSummary>
                             <AccordionDetails>
                                 <Stack direction='column' alignItems={'center'} spacing={2} divider={<Divider orientation='horizontal' variant='middle' flexItem />} sx={{ width: '100%' }}>
                                     <DateTimeField
                                         onChange={(dateTime) => {
-                                            const convertedDate = fromDateTimeParts({ ...locale, calendar: 'Gregorian', zone: 'UTC' }, locale, dateTime.date, dateTime.time);
+                                            const convertedDate = toDateTimeView(toDateTime({ date: dateTime.date, time: dateTime.time }, { ...local, calendar: 'Gregorian', zone: 'UTC' }, local));
                                             visits[i].due = DateTime.local(convertedDate.date.year, convertedDate.date.month, convertedDate.date.day, convertedDate.time.hour, convertedDate.time.minute, convertedDate.time.second, { zone: 'UTC' }).toUnixInteger();
                                             onChange([...visits])
                                             setVisits([...visits])
                                         }}
-                                        defaultDate={fromUnix(locale, visits[i].due).date}
-                                        defaultTime={fromUnix(locale, visits[i].due).time}
+                                        defaultDate={toDateTimeView(toDateTime(visits[i].due, local)).date}
+                                        defaultTime={toDateTimeView(toDateTime(visits[i].due, local)).time}
                                     />
 
                                     <Stack direction='row' alignItems='center' justifyContent='space-evenly' divider={<Divider orientation='horizontal' variant='middle' flexItem />} sx={{ width: '100%' }}>

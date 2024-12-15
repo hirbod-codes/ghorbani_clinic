@@ -5,15 +5,16 @@ import { memo, useContext, useState } from "react";
 import { ConfigurationContext } from '../../Contexts/ConfigurationContext';
 import { HexAlphaColorPicker } from 'react-colorful';
 import { t } from 'i18next';
-import { configAPI } from '../../../Electron/Configuration/renderer';
+import { configAPI } from '../../../Electron/Configuration/renderer.d';
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
 import { publish } from '../../Lib/Events';
 import { PaletteTonalOffset } from '@mui/material/styles/createPalette';
+import { getMuiLocale } from '../../../react/Lib/helpers';
 
 export const ThemeSettings = memo(function ThemeSettings() {
     const c = useContext(ConfigurationContext)
 
-    const [showGradientBackground, setShowGradientBackground] = useState<boolean>(c.get.showGradientBackground ?? false)
+    const [showGradientBackground, setShowGradientBackground] = useState<boolean>(c.showGradientBackground ?? false)
     const [loadingGradientBackground, setLoadingGradientBackground] = useState(false)
 
     const [colorPickerValue, setColorPickerValue] = useState<string>('#000000')
@@ -23,32 +24,32 @@ export const ThemeSettings = memo(function ThemeSettings() {
     const [focusedColor, setFocusedColor] = useState<'primary' | 'secondary' | 'success' | 'error' | 'info' | 'warning' | 'success' | 'background'>('primary')
 
     // string is added so we can input float numbers in text fields
-    const [contrastThreshold, setContrastThreshold] = useState<number | string>(c.get.theme.palette.contrastThreshold)
-    const [tonalOffset, setTonalOffset] = useState<PaletteTonalOffset | string>(c.get.theme.palette.tonalOffset)
+    const [contrastThreshold, setContrastThreshold] = useState<number | string>(c.theme.palette.contrastThreshold)
+    const [tonalOffset, setTonalOffset] = useState<PaletteTonalOffset | string>(c.theme.palette.tonalOffset)
 
-    const [primaryColor, setPrimaryColor] = useState<string>(c.get.theme.palette.primary.main)
-    const [secondaryColor, setSecondaryColor] = useState<string>(c.get.theme.palette.secondary.main)
-    const [errorColor, setErrorColor] = useState<string>(c.get.theme.palette.error.main)
-    const [infoColor, setInfoColor] = useState<string>(c.get.theme.palette.info.main)
-    const [warningColor, setWarningColor] = useState<string>(c.get.theme.palette.warning.main)
-    const [successColor, setSuccessColor] = useState<string>(c.get.theme.palette.success.main)
-    const [backgroundColor, setBackgroundColor] = useState<string>(c.get.theme.palette.background.default)
+    const [primaryColor, setPrimaryColor] = useState<string>(c.theme.palette.primary.main)
+    const [secondaryColor, setSecondaryColor] = useState<string>(c.theme.palette.secondary.main)
+    const [errorColor, setErrorColor] = useState<string>(c.theme.palette.error.main)
+    const [infoColor, setInfoColor] = useState<string>(c.theme.palette.info.main)
+    const [warningColor, setWarningColor] = useState<string>(c.theme.palette.warning.main)
+    const [successColor, setSuccessColor] = useState<string>(c.theme.palette.success.main)
+    const [backgroundColor, setBackgroundColor] = useState<string>(c.theme.palette.background.default)
 
     const updateShowGradientBackground = async (v: boolean) => {
         setLoadingGradientBackground(true)
 
         const conf = await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig()
 
-        conf.configuration.showGradientBackground = v;
+        conf.showGradientBackground = v;
 
         await (window as typeof window & { configAPI: configAPI }).configAPI.writeConfig(conf)
         setLoadingGradientBackground(false)
 
-        c.set.setShowGradientBackground(v)
+        c.setShowGradientBackground(v)
         setShowGradientBackground(v)
     }
 
-    console.log('ThemeSettings', { c, contrastThreshold, tonalOffset, primaryColor, secondaryColor, errorColor, infoColor, warningColor, successColor, anchorEl, themeJson: JSON.stringify(c.get.theme, undefined, 4) })
+    console.log('ThemeSettings', { c, contrastThreshold, tonalOffset, primaryColor, secondaryColor, errorColor, infoColor, warningColor, successColor, anchorEl, themeJson: JSON.stringify(c.theme, undefined, 4) })
 
     return (
         <>
@@ -81,10 +82,10 @@ export const ThemeSettings = memo(function ThemeSettings() {
                             return
                         }
 
-                        const options: ThemeOptions = c.get.themeOptions
+                        const options: ThemeOptions = c.themeOptions
 
                         options.palette.contrastThreshold = value
-                        c.set.replaceTheme(options)
+                        c.updateTheme(c.themeOptions.palette.mode, c.local.direction, getMuiLocale(c.local.language), options)
 
                     }}
                 />
@@ -109,10 +110,10 @@ export const ThemeSettings = memo(function ThemeSettings() {
                             return
                         }
 
-                        const options: ThemeOptions = c.get.themeOptions
+                        const options: ThemeOptions = c.themeOptions
 
                         options.palette.tonalOffset = value
-                        c.set.replaceTheme(options)
+                        c.updateTheme(c.themeOptions.palette.mode, c.local.direction, getMuiLocale(c.local.language), options)
                     }}
                 />
 
@@ -252,7 +253,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
             >
                 <Stack direction='column' alignItems='start' spacing={1} sx={{ m: 0, p: 2 }}>
                     <HexAlphaColorPicker color={colorPickerValue} onChange={(color) => {
-                        const options: ThemeOptions = c.get.themeOptions
+                        const options: ThemeOptions = c.themeOptions
 
                         switch (focusedColor) {
                             case 'primary':
@@ -294,7 +295,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                 break;
                         }
 
-                        c.set.replaceTheme(options)
+                        c.updateTheme(c.themeOptions.palette.mode, c.local.direction, getMuiLocale(c.local.language), options)
                     }} />
                 </Stack>
             </Menu>

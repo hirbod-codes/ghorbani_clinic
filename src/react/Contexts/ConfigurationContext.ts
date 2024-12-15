@@ -1,8 +1,7 @@
 import { createContext } from "react";
 import { Localization } from "@mui/material/locale";
 import { PaletteMode, Theme, ThemeOptions } from "@mui/material";
-import { Calendar, TimeZone } from "../Lib/DateTime";
-import type { Config } from "../../Electron/Configuration/renderer.d";
+import type { Calendar, Config, TimeZone } from "../../Electron/Configuration/renderer.d";
 
 export type ConfigurationSetter = {
     replaceTheme: (theme: ThemeOptions) => void,
@@ -18,7 +17,7 @@ export type Configuration = Config & {
     updateTheme: (mode?: PaletteMode, direction?: 'rtl' | 'ltr', muiLocal?: Localization, themeOptions?: ThemeOptions) => void | Promise<void>,
     updateLocal: (calendar?: Calendar, direction?: 'rtl' | 'ltr', muiLocal?: Localization, zone?: TimeZone) => void | Promise<void>,
     setShowGradientBackground: (v: boolean) => void | Promise<void>,
-    isConfigurationContextReady: boolean
+    isConfigurationContextReady: boolean,
 }
 
 export const ConfigurationContext = createContext<Configuration | undefined>(undefined);

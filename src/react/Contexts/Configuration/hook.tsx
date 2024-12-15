@@ -1,9 +1,8 @@
 import { PaletteMode, SimplePaletteColorOptions, Theme, ThemeOptions, createTheme, darken, lighten, rgbToHex, useMediaQuery } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "react-i18next";
-import type { Calendar, TimeZone } from '../../Lib/DateTime';
 import { getLanguageCode, getMuiLocale } from '../../Lib/helpers';
-import type { Config, configAPI, Local } from '../../../Electron/Configuration/renderer.d';
+import type { Calendar, Config, configAPI, Local, TimeZone } from '../../../Electron/Configuration/renderer.d';
 import { enUS, Localization } from '@mui/material/locale';
 
 export function useConfigurationHook() {

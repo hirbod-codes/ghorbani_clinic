@@ -6,8 +6,8 @@ import { ConfigurationContext } from '../../Contexts/ConfigurationContext';
 import { getLocaleMonths } from '../../Lib/DateTime/date-time-helpers';
 
 export function DateField({ defaultDate, width = '7rem', onChange, variant }: { defaultDate?: Date; width?: string; onChange?: (date: Date) => void; variant?: "standard" | "outlined" | "filled"; }) {
-    const locale = useContext(ConfigurationContext).get.locale;
-    const localeMonths = getLocaleMonths(locale, DateTime.local({ zone: locale.zone }).year);
+    const local = useContext(ConfigurationContext).local;
+    const localeMonths = getLocaleMonths(local, DateTime.local({ zone: local.zone }).year);
 
     const [year, setYear] = useState<number>(undefined);
     const [month, setMonth] = useState<number>(undefined);
