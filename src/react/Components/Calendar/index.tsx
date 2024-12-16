@@ -29,7 +29,7 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
 
     const [, rerender] = useReducer(x => x + 1, 0)
 
-    const { date } = toDateTimeView(toDateTime(DateTime.utc().toUnixInteger(), local))
+    const { date } = toDateTimeView(DateTime.utc().toUnixInteger(), local)
     const [calendarManager, setCalendarManager] = useState(new CalendarManager(local.calendar, date.year, date.month, local.language, local))
 
     const onTitleClick = () => {

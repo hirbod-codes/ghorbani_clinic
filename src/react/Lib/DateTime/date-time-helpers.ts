@@ -113,67 +113,119 @@ export function gregorianToPersian(date: GregorianDate): PersianDate {
 }
 
 export function toDateTime(timestamp: number, toLocal: Local, fromLocal?: Local): DateTime
-export function toDateTime(dateTime: DateTime, toLocal: Local, fromLocal: Local): DateTime
+export function toDateTime(dateTime: DateTime, toLocal: Local, fromLocal?: Local): DateTime
 export function toDateTime(dateTime: DateTimeView, toLocal: Local, fromLocal: Local): DateTime
 export function toDateTime(dateTime: number | DateTime | DateTimeView, toLocal: Local, fromLocal?: Local): DateTime {
+    console.log({ dateTime, toLocal, fromLocal })
+
     if (!mixed<Local>().required().isValidSync(toLocal) || !mixed<Local>().optional().isValidSync(toLocal))
         throw new Error('Invalid arguments provided to toDateTime function.')
 
-    if (number().required().isValidSync(dateTime))
-        return toDateTime(toDateTimeView(DateTime.fromSeconds(dateTime)), toLocal, { zone: 'UTC', calendar: 'Gregorian', direction: 'ltr', language: 'en' })
+    if (typeof dateTime === 'number' || typeof dateTime === 'bigint')
+        return toDateTime(DateTime.fromSeconds(dateTime, { zone: 'UTC' }), toLocal, { zone: 'UTC', calendar: 'Gregorian', direction: 'ltr', language: 'en' })
     else if (dateTime instanceof DateTime)
-        return toDateTime(toDateTimeView(dateTime), toLocal, fromLocal!)
-    else if (mixed<DateTimeView>().required().isValidSync(dateTime)) {
-        let convertedDateTime = dateTime
-        if (toLocal.calendar !== fromLocal!.calendar)
-            switch (toLocal.calendar) {
-                case 'Persian':
-                    convertedDateTime = { ...dateTime, date: gregorianToPersian({ year: dateTime.date.year, month: dateTime.date.month, day: dateTime.date.day }) }
-                    break;
+        return dateTime.setLocale(getLuxonLocale(toLocal.language)).setZone(toLocal.zone)
 
-                case 'Gregorian':
-                    convertedDateTime = { ...dateTime, date: persianToGregorian({ year: dateTime.date.year, month: dateTime.date.month, day: dateTime.date.day }) }
-                    break;
+    let convertedDateTimeView: DateTimeView
+    if (fromLocal!.calendar === 'Persian')
+        convertedDateTimeView = { time: dateTime.time, date: persianToGregorian(dateTime.date) }
+    else
+        convertedDateTimeView = dateTime
 
-                default:
-                    throw new Error('invalid value for calendar provided.')
-            }
-        switch (toLocal.calendar) {
-            case 'Persian':
-                let gregorianDateTime = dateTime
-                if (toLocal.calendar === fromLocal!.calendar)
-                    gregorianDateTime = { ...dateTime, date: persianToGregorian(dateTime.date) }
-                console.log({ gregorianDateTime })
-                return DateTime.local(gregorianDateTime.date.year, gregorianDateTime.date.month, gregorianDateTime.date.day, gregorianDateTime.time.hour, gregorianDateTime.time.minute, gregorianDateTime.time.second, gregorianDateTime.time?.millisecond ?? 0, { locale: getLuxonLocale(fromLocal!.language), zone: fromLocal!.zone })
-                    .setLocale(getLuxonLocale(toLocal.language))
-                    .setZone(toLocal.zone)
-                    .set(convertedDateTime as DateObjectUnits)
+    return DateTime
+        .local(convertedDateTimeView.date.year,
+            convertedDateTimeView.date.month,
+            convertedDateTimeView.date.day,
+            dateTime.time.hour,
+            dateTime.time.minute,
+            dateTime.time.second,
+            dateTime.time?.millisecond ?? 0,
+            { locale: getLuxonLocale(fromLocal!.language), zone: fromLocal!.zone, outputCalendar: toLocal.calendar === 'Gregorian' ? undefined : toLocal.calendar })
+        .setLocale(getLuxonLocale(toLocal.language))
+        .setZone(toLocal.zone)
 
-            case 'Gregorian':
-                return DateTime.local(convertedDateTime.date.year, convertedDateTime.date.month, convertedDateTime.date.day, convertedDateTime.time.hour, convertedDateTime.time.minute, convertedDateTime.time.second, convertedDateTime.time?.millisecond ?? 0, { locale: getLuxonLocale(fromLocal!.language), zone: fromLocal!.zone })
-                    .setLocale(getLuxonLocale(toLocal.language))
-                    .setZone(toLocal.zone)
-
-            default:
-                throw new Error('invalid value for calendar provided.')
-        }
-    } else
-        throw new Error('Invalid arguments provided to toDateTime function.')
 }
 
-export function toDateTimeView(dateTime: DateTime): DateTimeView {
+export function toDateTimeView(timestamp: number, toLocal: Local, fromLocal?: Local): DateTimeView
+export function toDateTimeView(dateTime: DateTime, toLocal: Local, fromLocal: Local): DateTimeView
+export function toDateTimeView(dateTime: DateTimeView, toLocal: Local, fromLocal: Local): DateTimeView
+export function toDateTimeView(dateTime: number | DateTime | DateTimeView, toLocal: Local, fromLocal?: Local): DateTimeView {
+    console.log({ dateTime, toLocal, fromLocal })
+
+    if (typeof dateTime === 'number' || typeof dateTime === 'bigint')
+        return toDateTimeView(DateTime.fromSeconds(dateTime, { zone: 'UTC' }), toLocal, { zone: 'UTC', calendar: 'Gregorian', direction: 'ltr', language: 'en' })
+    else if (dateTime instanceof DateTime)
+        return toDateTimeView(getDateTimeView(dateTime), toLocal, { ...fromLocal!, calendar: 'Gregorian' })
+
+    let convertedDateTimeView
+    switch (toLocal.calendar) {
+        case 'Persian':
+            if (fromLocal!.calendar === 'Persian') {
+                const gregorianView = persianToGregorian(dateTime.date)
+                const dt = DateTime
+                    .local(gregorianView.year, gregorianView.month, gregorianView.day, dateTime.time.hour, dateTime.time.minute, dateTime.time.second, dateTime.time?.millisecond ?? 0, { locale: getLuxonLocale(fromLocal!.language), zone: fromLocal!.zone })
+                    .setLocale(getLuxonLocale(toLocal.language))
+                    .setZone(toLocal.zone)
+                // Converting again because when updating time zone, date might change too.
+                convertedDateTimeView = { date: gregorianToPersian(gregorianView), time: getTimeView(dt) }
+            }
+            else {
+                const dt = DateTime
+                    .local(dateTime.date.year, dateTime.date.month, dateTime.date.day, dateTime.time.hour, dateTime.time.minute, dateTime.time.second, dateTime.time?.millisecond ?? 0, { locale: getLuxonLocale(fromLocal!.language), zone: fromLocal!.zone })
+                    .setLocale(getLuxonLocale(toLocal.language))
+                    .setZone(toLocal.zone)
+                // When updating time zone, date might change too.
+                convertedDateTimeView = { date: gregorianToPersian(dateTime.date), time: getTimeView(dt) }
+            }
+            break;
+
+        case 'Gregorian':
+            if (fromLocal!.calendar === 'Persian') {
+                const gregorianView = persianToGregorian(dateTime.date)
+                const dt = DateTime
+                    .local(gregorianView.year, gregorianView.month, gregorianView.day, dateTime.time.hour, dateTime.time.minute, dateTime.time.second, dateTime.time?.millisecond ?? 0, { locale: getLuxonLocale(fromLocal!.language), zone: fromLocal!.zone })
+                    .setLocale(getLuxonLocale(toLocal.language))
+                    .setZone(toLocal.zone)
+                // Converting again because when updating time zone, date might change too.
+                convertedDateTimeView = { date: gregorianView, time: getTimeView(dt) }
+            } else {
+                const dt = DateTime
+                    .local(dateTime.date.year, dateTime.date.month, dateTime.date.day, dateTime.time.hour, dateTime.time.minute, dateTime.time.second, dateTime.time?.millisecond ?? 0, { locale: getLuxonLocale(fromLocal!.language), zone: fromLocal!.zone })
+                    .setLocale(getLuxonLocale(toLocal.language))
+                    .setZone(toLocal.zone)
+                // Converting again because when updating time zone, date might change too.
+                convertedDateTimeView = { date: dateTime, time: getTimeView(dt) }
+            }
+            break;
+
+        default:
+            throw new Error('invalid value for calendar provided.')
+    }
+
+    return convertedDateTimeView
+}
+
+export function getDateView(dateTime: DateTime): Date {
     return {
-        date: {
-            year: dateTime.year,
-            month: dateTime.month,
-            day: dateTime.day,
-        },
-        time: {
-            hour: dateTime.hour,
-            minute: dateTime.minute,
-            second: dateTime.second,
-            millisecond: dateTime.millisecond,
-        }
+        year: dateTime.year,
+        month: dateTime.month,
+        day: dateTime.day,
+    }
+}
+
+export function getTimeView(dateTime: DateTime): Time {
+    return {
+        hour: dateTime.hour,
+        minute: dateTime.minute,
+        second: dateTime.second,
+        millisecond: dateTime.millisecond,
+    }
+}
+
+export function getDateTimeView(dateTime: DateTime): DateTimeView {
+    return {
+        date: getDateView(dateTime),
+        time: getTimeView(dateTime)
     }
 }
 

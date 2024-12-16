@@ -20,8 +20,8 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
     const init = async () => {
         const c = (await (window as typeof window & { configAPI: configAPI; }).configAPI.readDbConfig())!;
 
-        setUsername(c.auth?.username ?? '')
-        setPassword(c.auth?.password ?? '')
+        setUsername(c?.auth?.username ?? '')
+        setPassword(c?.auth?.password ?? '')
         setSupportsTransaction(c.supportsTransaction ?? false)
         setUrl(c.url ?? '')
         setDatabaseName(c.databaseName ?? 'primaryDb')

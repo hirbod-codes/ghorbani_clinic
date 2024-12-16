@@ -20,7 +20,7 @@ export const Home = memo(function Home() {
                         <Grid item xs={0} sm={3} />
 
                         <Grid item xs={12} sm={3}>
-                            <Clock />
+                            {/* <Clock /> */}
                         </Grid>
 
                         <Grid item xs={12} sm={4}>
