@@ -1,8 +1,7 @@
 import { Localization, enUS, faIR } from "@mui/material/locale"
-import { mixed, string } from "yup"
+import { string } from "yup"
 import { i18n } from 'i18next';
 import type { LanguageCodes } from "../../Electron/Configuration/renderer.d";
-import { a } from "react-spring";
 
 export function getLanguageCode(muiLocal: Localization): LanguageCodes {
     switch (muiLocal) {
@@ -39,8 +38,6 @@ export function getLuxonLocale(i18n: i18n): string
 export function getLuxonLocale(arg: i18n | LanguageCodes): string {
     if (!string().required().isValidSync(arg))
         arg = (arg as i18n).language as LanguageCodes;
-
-    console.log({ arg })
 
     switch (arg) {
         case 'en':

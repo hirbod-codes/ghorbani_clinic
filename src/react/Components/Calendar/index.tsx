@@ -4,12 +4,12 @@ import { ConfigurationContext } from "../../Contexts/Configuration/Configuration
 import { toDateTime, toDateTimeView } from "../../Lib/DateTime/date-time-helpers";
 import { DateTime } from "luxon";
 import { CalendarManager } from "./CalendarManager";
-import { CalendarScope } from "./index.d";
+import { CalendarScopes } from "./index.d";
 import { NextPrevButtons } from "./NextPrevButtons";
 import { Slide } from "./Slide";
 
 export type CalendarProps = {
-    validScopes?: CalendarScope[],
+    validScopes?: CalendarScopes[],
     onYearSelect?: (year: number) => void | Promise<void>,
     onMonthSelect?: (year: number, month: number) => void | Promise<void>,
     onDaySelect?: (year: number, month: number, day: number) => void | Promise<void>
@@ -30,7 +30,7 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
     const [, rerender] = useReducer(x => x + 1, 0)
 
     const { date } = toDateTimeView(DateTime.utc().toUnixInteger(), local)
-    const [calendarManager, setCalendarManager] = useState(new CalendarManager(local.calendar, date.year, date.month, local.language, local))
+    const [calendarManager, setCalendarManager] = useState(new CalendarManager(date.year, date.month, local))
 
     const onTitleClick = () => {
         switch (calendarManager.getScope()) {

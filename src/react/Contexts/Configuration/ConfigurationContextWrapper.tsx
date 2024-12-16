@@ -21,16 +21,16 @@ const ltrCache = createCache({
 export const ConfigurationContextWrapper = memo(function ConfigurationContextWrapper({ children }: { children?: ReactNode; }) {
     const memoizedChildren = useMemo(() => children, [])
 
-    const { updateTheme, updateLocal, setShowGradientBackground, isConfigurationContextReady, ...configuration } = useConfigurationHook()
+    const { updateTheme, updateLocal, setShowGradientBackground, isConfigurationContextReady, theme, ...configuration } = useConfigurationHook()
 
     console.log('-------------ConfigurationContextWrapper', { window, configuration, isConfigurationContextReady })
 
     return (
         <>
             {isConfigurationContextReady &&
-                <ConfigurationContext.Provider value={{ ...configuration, updateTheme, updateLocal, setShowGradientBackground, isConfigurationContextReady }}>
+                <ConfigurationContext.Provider value={{ ...configuration, theme, updateTheme, updateLocal, setShowGradientBackground, isConfigurationContextReady }}>
                     <CacheProvider value={configuration.local.direction === 'rtl' ? rtlCache : ltrCache}>
-                        <ThemeProvider theme={configuration.theme}>
+                        <ThemeProvider theme={theme}>
                             <GlobalStyles styles={{
                                 '*::-webkit-scrollbar': {
                                     width: '0.4em',

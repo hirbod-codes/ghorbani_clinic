@@ -10,19 +10,19 @@ export const Clock = memo(function Clock() {
     const configuration = useContext(ConfigurationContext)!
 
     const getDate = () => localizeNumbers(toFormat(DateTime.utc().toUnixInteger(), configuration.local, undefined, 'cccc y/M/d'), getLuxonLocale(configuration.local.language))
-    const getTime = () => localizeNumbers(DateTime.utc().setZone(configuration.local.zone).toFormat('HH:mm:ss'), getLuxonLocale(configuration.local.language))
-    const localizeNumbers = (str: string, locale: string) => {
+    const getTime = () => localizeNumbers(toFormat(DateTime.utc().toUnixInteger(), configuration.local, undefined, 'HH:mm:ss'), getLuxonLocale(configuration.local.language))
+    const localizeNumbers = (str: string, languageCode: string) => {
         let result = ``
         for (let i = 0; i < str.length; i++)
             if (str[i] === ' ' || Number.isNaN(Number(str[i])))
                 result += str[i]
             else
-                result += new Intl.NumberFormat(locale, { useGrouping: false })
+                result += new Intl.NumberFormat(languageCode, { useGrouping: false })
                     .format(str[i] as Intl.StringNumericLiteral)
         return result
     }
 
-    const [date, setDate] = useState(getDate())
+    const [date, setDate] = useState('getDate()')
     const [time, setTime] = useState(getTime())
 
     useEffect(() => {

@@ -21,7 +21,8 @@ export function useConfigurationHook() {
         themeOptions: initialThemeOptions,
     };
 
-    const [configuration, setConfiguration] = useState<Config & { theme: Theme }>({ ...defaultConfiguration, theme: createTheme(initialThemeOptions, getMuiLocale(i18n)) });
+    const [theme, setTheme] = useState<Theme>(createTheme(initialThemeOptions, getMuiLocale(i18n)));
+    const [configuration, setConfiguration] = useState<Config>(defaultConfiguration);
 
     const updateTheme = (mode?: PaletteMode, direction?: 'rtl' | 'ltr', muiLocal?: Localization, themeOptions?: ThemeOptions) => {
         mode = mode ?? configuration.themeOptions.palette!.mode;
@@ -37,16 +38,12 @@ export function useConfigurationHook() {
         }
         configuration.themeOptions.direction = direction;
 
-        const c = {
-            ...configuration,
-            theme: createTheme(configuration.themeOptions, muiLocal)
-        };
-
-        (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
+        (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(configuration)
 
         document.dir = direction;
 
-        setConfiguration(c)
+        setConfiguration(configuration)
+        setTheme(createTheme(configuration.themeOptions, muiLocal))
     };
     const updateLocal = async (calendar?: Calendar, direction?: 'rtl' | 'ltr', muiLocal?: Localization, zone?: TimeZone) => {
         direction = direction ?? configuration.local.direction
@@ -59,11 +56,10 @@ export function useConfigurationHook() {
             local: {
                 ...configuration.local,
                 direction: direction,
-                code: getLanguageCode(muiLocal),
+                language: getLanguageCode(muiLocal),
                 zone,
                 calendar,
             },
-            theme: createTheme({ ...configuration.themeOptions, direction }, muiLocal)
         };
 
         (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
@@ -73,6 +69,7 @@ export function useConfigurationHook() {
         document.dir = direction;
 
         setConfiguration(c);
+        setTheme(createTheme({ ...configuration.themeOptions, direction }, muiLocal))
     };
     const setShowGradientBackground = (v: boolean) => {
         const c = { ...configuration, showGradientBackground: v };
@@ -96,11 +93,9 @@ export function useConfigurationHook() {
 
                     document.dir = c.local.direction
                     c.themeOptions.direction = c.local.direction
-                    setConfiguration({
-                        ...c,
-                        theme: createTheme(c.themeOptions, getMuiLocale(c.local.language))
-                    });
+                    setConfiguration(c);
                     i18n.changeLanguage(c.local.language);
+                    setTheme(createTheme(c.themeOptions, getMuiLocale(c.local.language)))
 
                     setIsConfigurationContextReady(true)
                 })
@@ -108,5 +103,5 @@ export function useConfigurationHook() {
     }, [])
 
 
-    return { ...configuration, updateTheme, updateLocal, setShowGradientBackground, isConfigurationContextReady }
+    return { ...configuration, theme, updateTheme, updateLocal, setShowGradientBackground, isConfigurationContextReady }
 }

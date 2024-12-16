@@ -1,3 +1,3 @@
-export type CalendarScope = 'days' | 'months' | 'years';
+import { Calendar } from "../../../Electron/Configuration/renderer.d"
 
-export type CalendarType = 'Persian' | 'Gregorian'
+export type CalendarScopes = 'days' | 'months' | 'years';
