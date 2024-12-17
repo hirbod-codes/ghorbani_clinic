@@ -101,7 +101,6 @@ export class CalendarManager {
     }
 
     setDays(year: number, month: number): void {
-        console.log({ year, month })
         const weekDay = this.getWeekDay({ year, month, day: 1 });
         let index;
         if (this.local.language === 'en' && this.type === 'Persian') {

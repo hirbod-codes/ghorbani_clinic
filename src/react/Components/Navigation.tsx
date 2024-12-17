@@ -1,18 +1,16 @@
 import { HomeOutlined, PersonOutlined, MasksOutlined, AccessTimeOutlined, DisplaySettingsOutlined, StorageOutlined, FormatPaintOutlined, DarkModeOutlined, LightModeOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, SettingsBackupRestoreOutlined } from '@mui/icons-material';
-import { alpha, darken, lighten, Drawer, Stack, List, ListItemButton, ListItemIcon, ListItemText, CircularProgress, useTheme, Box, AppBar, IconButton, Toolbar, Typography } from '@mui/material';
+import { alpha, darken, lighten, Drawer, Stack, List, ListItemButton, ListItemIcon, ListItemText, CircularProgress, Box, AppBar, IconButton, Toolbar, Typography } from '@mui/material';
 import { t } from 'i18next';
 import { memo, useContext, useState } from 'react';
 import { AuthContext } from '../Contexts/AuthContext';
 import { ConfigurationContext } from '../Contexts/Configuration/ConfigurationContext';
 import { resources } from '../../Electron/Database/Repositories/Auth/resources';
-import { getMuiLocale } from '../Lib/helpers';
 import { useNavigate } from 'react-router-dom';
 
 export const Navigation = memo(function Navigation() {
     const navigate = useNavigate();
 
     const auth = useContext(AuthContext)
-    const theme = useTheme()
     const configuration = useContext(ConfigurationContext)!
 
     // Navigation
@@ -23,11 +21,11 @@ export const Navigation = memo(function Navigation() {
     const readsVisits = auth?.accessControl && auth?.user && auth?.accessControl.can(auth?.user?.roleName ?? '').read(resources.VISIT).granted
     const readsMedicalHistories = auth?.accessControl && auth?.user && auth?.accessControl.can(auth?.user?.roleName ?? '').read(resources.MEDICAL_HISTORY).granted
 
-    console.log('Navigation', { auth, theme, configuration })
+    console.log('Navigation', { auth, configuration })
 
-    const appBarBorderColor = theme.palette.mode === 'dark' ? '#fff' : '#000'
-    const appBarGradientColor = alpha(theme.palette.mode === 'dark' ? theme.palette.common.white : theme.palette.common.black, 0.7)
-    const drawerGradientColor = theme.palette.mode === 'dark' ? darken(theme.palette.common.white, 0.7) : lighten(theme.palette.common.black, 0.7)
+    const appBarBorderColor = configuration.themeOptions.mode === 'dark' ? '#fff' : '#000'
+    const appBarGradientColor = alpha(configuration.themeOptions.mode === 'dark' ? '#fff' : '#000', 0.7)
+    const drawerGradientColor = configuration.themeOptions.mode === 'dark' ? darken('#fff', 0.7) : lighten('#000', 0.7)
 
     const moveTo = (destination: string) => {
         setOpenDrawer(false)
@@ -37,7 +35,7 @@ export const Navigation = memo(function Navigation() {
         }, 50)
     }
 
-    const activeColor = theme.palette.primary[theme.palette.mode]
+    const activeColor = configuration.themeOptions.colors.primary
 
     return (
         <>
@@ -46,7 +44,7 @@ export const Navigation = memo(function Navigation() {
                     open={openDrawer}
                     onClose={() => setOpenDrawer(false)}
                     transitionDuration={250}
-                    PaperProps={{ sx: { background: theme.palette.background.default, boxShadow: '0' } }}
+                    PaperProps={{ sx: { background: configuration.themeOptions.colors.background, boxShadow: '0' } }}
                     componentsProps={{ backdrop: { sx: { background: 'transparent' } } }}
                 >
                     <Stack direction={'row'} alignItems='center' sx={{ height: '100%', background: `linear-gradient(90deg, ${drawerGradientColor}, 50%, transparent)` }}>
@@ -137,7 +135,7 @@ export const Navigation = memo(function Navigation() {
                         <IconButton size='medium' onClick={() => setOpenDrawer(true)} sx={{ mr: 2 }}>
                             <MenuOutlined fontSize='inherit' />
                         </IconButton>
-                        <Typography color={theme.palette.text.primary} variant='h6' component='div' sx={{ flexGrow: 1 }}>
+                        <Typography color={configuration.themeOptions.colors['primary-foreground']} variant='h6' component='div' sx={{ flexGrow: 1 }}>
                             {/* Title */}
                             {auth?.user?.username}
                         </Typography>
@@ -161,8 +159,8 @@ export const Navigation = memo(function Navigation() {
                                 }
                             </IconButton>
                         }
-                        <IconButton size='medium' onClick={() => configuration.updateTheme(theme.palette.mode == 'dark' ? 'light' : 'dark', configuration.local.direction, getMuiLocale(configuration.local.language))}>
-                            {theme.palette.mode == 'light' ? <LightModeOutlined fontSize='inherit' /> : <DarkModeOutlined fontSize='inherit' />}
+                        <IconButton size='medium' onClick={async () => await configuration.updateTheme(configuration.themeOptions.mode === 'dark' ? 'light' : 'dark', { ...configuration.themeOptions, colors: { ...configuration.themeOptions.colors, primary: configuration.themeOptions.mode === 'dark' ? 'hsl(1, 100%, 50%)' : 'hsl(203, 100%, 50%)' } })}>
+                            {configuration.themeOptions.mode == 'light' ? <LightModeOutlined fontSize='inherit' /> : <DarkModeOutlined fontSize='inherit' />}
                         </IconButton>
                     </Toolbar>
                 </AppBar>

@@ -1,6 +1,5 @@
 import { ColumnPinningState, VisibilityState } from '@tanstack/react-table'
 import { Density } from '../../react/Components/DataGrid/Context'
-import { ThemeOptions } from '@mui/material'
 import { MongodbConfig } from './main.d'
 
 export type configAPI = {
@@ -25,9 +24,9 @@ export type Local = {
 }
 
 export type Config = {
-    downloadsDirectorySize?: number,
     local: Local,
     themeOptions: ThemeOptions,
+    downloadsDirectorySize?: number,
     canvas?: {
         backgroundColor: string
     },
@@ -37,3 +36,34 @@ export type Config = {
     columnOrderModels?: { [k: string]: string[] },
     tableDensity?: { [k: string]: Density }
 }
+
+export type ThemeMode = 'light' | 'dark'
+
+export type ThemeOptions = {
+    mode: ThemeMode;
+    colors: {
+        black: string;
+        white: string;
+        border: string;
+        input: string;
+        ring: string;
+        background: string;
+        foreground: string;
+        primary: string;
+        "primary-foreground": string;
+        secondary: string;
+        "secondary-foreground": string;
+        destructive: string;
+        "destructive-foreground": string;
+        muted: string;
+        "muted-foreground": string;
+        accent: string;
+        "accent-foreground": string;
+        popover: string;
+        "popover-foreground": string;
+        card: string;
+        "card-foreground": string;
+    }
+    radius: string;
+}
+

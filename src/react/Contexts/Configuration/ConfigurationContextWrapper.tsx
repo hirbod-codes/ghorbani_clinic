@@ -1,35 +1,38 @@
-import { CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
+// import { CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
 import { ReactNode, memo, useMemo } from 'react';
 import { ConfigurationContext } from './ConfigurationContext';
-import { CacheProvider } from '@emotion/react';
-import createCache from '@emotion/cache';
-import { prefixer } from 'stylis';
-import rtlPlugin from 'stylis-plugin-rtl';
+// import { CacheProvider } from '@emotion/react';
+// import createCache from '@emotion/cache';
+// import { prefixer } from 'stylis';
+// import rtlPlugin from 'stylis-plugin-rtl';
 import { useConfigurationHook } from './hook';
 
-// Create rtl cache
-const rtlCache = createCache({
-    key: 'muirtl',
-    stylisPlugins: [prefixer, rtlPlugin],
-});
+// // Create rtl cache
+// const rtlCache = createCache({
+//     key: 'muirtl',
+//     stylisPlugins: [prefixer, rtlPlugin],
+// });
 
-const ltrCache = createCache({
-    key: 'mui',
-});
+// const ltrCache = createCache({
+//     key: 'mui',
+// });
 
 
 export const ConfigurationContextWrapper = memo(function ConfigurationContextWrapper({ children }: { children?: ReactNode; }) {
     const memoizedChildren = useMemo(() => children, [])
 
-    const { updateTheme, updateLocal, setShowGradientBackground, isConfigurationContextReady, theme, ...configuration } = useConfigurationHook()
+    const { updateTheme, updateLocal, setShowGradientBackground, isConfigurationContextReady, ...configuration } = useConfigurationHook()
 
     console.log('-------------ConfigurationContextWrapper', { window, configuration, isConfigurationContextReady })
 
     return (
         <>
             {isConfigurationContextReady &&
-                <ConfigurationContext.Provider value={{ ...configuration, theme, updateTheme, updateLocal, setShowGradientBackground, isConfigurationContextReady }}>
-                    <CacheProvider value={configuration.local.direction === 'rtl' ? rtlCache : ltrCache}>
+                <ConfigurationContext.Provider value={{ ...configuration, updateTheme, updateLocal, setShowGradientBackground, isConfigurationContextReady }}>
+                    <div className={'bg-background h-full w-full text-foreground'}>
+                        {memoizedChildren}
+                    </div>
+                    {/* <CacheProvider value={configuration.local.direction === 'rtl' ? rtlCache : ltrCache}>
                         <ThemeProvider theme={theme}>
                             <GlobalStyles styles={{
                                 '*::-webkit-scrollbar': {
@@ -47,9 +50,8 @@ export const ConfigurationContextWrapper = memo(function ConfigurationContextWra
                             }} />
                             <CssBaseline enableColorScheme />
 
-                            {memoizedChildren}
                         </ThemeProvider>
-                    </CacheProvider>
+                    </CacheProvider> */}
                 </ConfigurationContext.Provider>
             }
         </>
