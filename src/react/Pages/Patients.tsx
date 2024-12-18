@@ -18,7 +18,7 @@ import { ManagePatient } from "../Components/Patients/ManagePatient";
 import LoadingScreen from "../Components/LoadingScreen";
 import { DataGrid } from "../Components/DataGrid";
 import { ColumnDef } from "@tanstack/react-table";
-import { getLuxonLocale } from "../Lib/helpers";
+import { getLuxonLocale } from "../Lib/localization";
 import { Modal } from "../Components/Modal";
 import { DocumentManagement } from "../Components/DocumentManagement";
 

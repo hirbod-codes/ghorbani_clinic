@@ -3,7 +3,7 @@ import { memo, useContext, useEffect, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 import { languages } from "../../i18next";
 import { t } from "i18next";
-import { getMuiLocale } from "../../Lib/helpers";
+import { getMuiLocale } from "../../Lib/localization";
 import type { Languages } from "../../Lib/Localization";
 import { Button } from "@mui/material";
 import { appAPI } from "../../../Electron/appRendererEvents";

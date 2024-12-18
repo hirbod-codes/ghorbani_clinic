@@ -1,9 +1,9 @@
 import { getGregorianMonths, gregorian_to_jd, isLeapGregorianYear, jd_to_gregorian } from "./gregorian-calendar"
 import { getPersianMonths, isLeapPersianYear, jd_to_persian, persian_to_jd } from "./persian-calendar"
 import { DateTime } from "luxon"
-import type { Date, Time, GregorianDate, PersianDate, DateTimeView } from '../DateTime'
+import type { Date, Time, GregorianDate, PersianDate, DateTimeView } from '.'
 import { mixed } from "yup"
-import { getLuxonLocale } from "../helpers"
+import { getLuxonLocale } from "../localization"
 import { Local } from "../../../Electron/Configuration/renderer.d"
 
 export const DATE_TIME = 'cccc d/M/y H:m:s'

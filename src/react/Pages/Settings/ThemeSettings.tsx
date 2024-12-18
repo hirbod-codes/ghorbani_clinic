@@ -9,7 +9,7 @@ import { configAPI } from '../../../Electron/Configuration/renderer.d';
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
 import { publish } from '../../Lib/Events';
 import { PaletteTonalOffset } from '@mui/material/styles/createPalette';
-import { getMuiLocale } from '../../../react/Lib/helpers';
+import { getMuiLocale } from '../../Lib/localization';
 
 export const ThemeSettings = memo(function ThemeSettings() {
     const c = useContext(ConfigurationContext)!

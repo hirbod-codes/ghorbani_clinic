@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { TextField } from '@mui/material';
-import { Time } from '../../../react/Lib/DateTime';
+import { Time } from '../../Lib/DateTime';
 
 export function TimeField({ defaultTime, onChange, variant }: { defaultTime?: Time; onChange?: (time: Time) => void; variant?: "standard" | "outlined" | "filled"; }) {
     const [hour, setHour] = useState<number | undefined>(undefined);

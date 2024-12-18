@@ -1,7 +1,7 @@
 import { Localization, enUS, faIR } from "@mui/material/locale"
 import { string } from "yup"
 import { i18n } from 'i18next';
-import type { LanguageCodes } from "../../Electron/Configuration/renderer.d";
+import { LanguageCodes } from "../../Electron/Configuration/renderer.d";
 
 export function getLanguageCode(muiLocal: Localization): LanguageCodes {
     switch (muiLocal) {

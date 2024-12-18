@@ -2,6 +2,7 @@ import { darken, hslToRgb, lighten, useMediaQuery } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "react-i18next";
 import type { Calendar, Config, configAPI, LanguageCodes, ThemeMode, ThemeOptions, TimeZone } from '../../../Electron/Configuration/renderer.d';
+import { hslToHex, shadeColor } from '../../Lib/colors';
 
 export function useConfigurationHook() {
     const { i18n } = useTranslation();
@@ -97,7 +98,7 @@ export function useConfigurationHook() {
             if (key === 'background' || key === 'foreground')
                 continue
             else
-                document.documentElement.style.setProperty('--' + key, mode === 'dark' ? darken(hslToRgb(configuration.themeOptions.colors[key]), 0.5) : lighten(hslToRgb(configuration.themeOptions.colors[key]), 0.5))
+                document.documentElement.style.setProperty('--' + key, mode === 'dark' ? shadeColor(configuration.themeOptions.colors[key], 0.5) : shadeColor(configuration.themeOptions.colors[key], 1.5))
     }
 
     const [isConfigurationContextReady, setIsConfigurationContextReady] = useState<boolean>(false);

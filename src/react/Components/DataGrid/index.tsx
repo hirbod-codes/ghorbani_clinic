@@ -40,7 +40,7 @@ import { Pagination } from './Pagination'
 import { getColumns } from './helpers'
 import LoadingScreen from '../LoadingScreen'
 import { AnimatePresence } from 'framer-motion'
-import { getLuxonLocale } from '../../Lib/helpers'
+import { getLuxonLocale } from '../../Lib/localization'
 import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext'
 
 export type DataGridProps = {

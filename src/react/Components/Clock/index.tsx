@@ -3,7 +3,7 @@ import { DateTime } from "luxon"
 import { memo, useContext, useEffect, useState } from "react"
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext"
 import { toFormat } from "../../Lib/DateTime/date-time-helpers"
-import { getLuxonLocale } from "../../Lib/helpers"
+import { getLuxonLocale } from "../../Lib/localization"
 
 export const Clock = memo(function Clock() {
     const theme = useTheme()

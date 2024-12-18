@@ -1,8 +1,8 @@
-import { Date } from "src/react/Lib/DateTime";
+import { Date } from "@/src/react/Lib/DateTime";
 import { toFormat } from "../../Lib/DateTime/date-time-helpers";
 import { getGregorianMonths, isLeapGregorianYear, getGregorianWeekDays } from "../../Lib/DateTime/gregorian-calendar";
 import { getPersianMonths, isLeapPersianYear, getPersianWeekDays } from "../../Lib/DateTime/persian-calendar";
-import { getLanguageCode, getMuiLocale } from "../../Lib/helpers";
+import { getLanguageCode, getMuiLocale } from "../../Lib/localization";
 import { CalendarScopes } from "./index.d";
 import { Calendar, LanguageCodes, Local } from "../../../Electron/Configuration/renderer.d";
 

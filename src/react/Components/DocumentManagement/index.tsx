@@ -12,7 +12,7 @@ import { AuthContext } from "../../Contexts/AuthContext";
 import { resources } from "../../../Electron/Database/Repositories/Auth/resources";
 import { DATE_TIME, toFormat } from "../../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
-import { getLuxonLocale } from "../../Lib/helpers";
+import { getLuxonLocale } from "../../Lib/localization";
 import { DateTime } from "luxon";
 import { appAPI } from "../../../Electron/appRendererEvents";
 
