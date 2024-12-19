@@ -24,6 +24,7 @@ import { AnimatedList } from '../../Components/Animations/AnimatedList';
 export const ConfigurationContextWrapper = memo(function ConfigurationContextWrapper({ children }: { children?: ReactNode; }) {
     const memoizedChildren = useMemo(() => children, [])
 
+    const [delay, setDelay] = useState(true)
     const [show, setShow] = useState(false)
     const [collection, setCollection] = useState([{ key: '0', elm: <p>0</p> }, { key: '1', elm: <p>1</p> }, { key: '2', elm: <p>2</p> }, { key: '3', elm: <p>3</p> }, { key: '4', elm: <p>4</p> }])
 
@@ -60,7 +61,7 @@ export const ConfigurationContextWrapper = memo(function ConfigurationContextWra
                         <button className='btn' onClick={() => { collection.pop(); setCollection([...collection]) }} >
                             pop
                         </button>
-                        <AnimatedList collection={collection} withDelay={true} />
+                        <AnimatedList collection={collection} withDelay={delay} />
                     </div>
                     {/* <div className={'bg-background h-full w-full text-foreground overflow-hidden'}>
                         {memoizedChildren}
