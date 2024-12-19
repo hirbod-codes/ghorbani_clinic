@@ -13,13 +13,13 @@ import { publish, subscribe } from "../Lib/Events";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import { useNavigate } from "react-router-dom";
 import { MedicalHistory } from "../Components/Patients/MedicalHistory";
-import { EditorModal } from "../Components/Editor/EditorModal";
+import { EditorModal } from "../Components/Base/Editor/EditorModal";
 import { ManagePatient } from "../Components/Patients/ManagePatient";
-import LoadingScreen from "../Components/LoadingScreen";
+import LoadingScreen from "../Components/Base/LoadingScreen";
 import { DataGrid } from "../Components/DataGrid";
 import { ColumnDef } from "@tanstack/react-table";
 import { getLuxonLocale } from "../Lib/localization";
-import { Modal } from "../Components/Modal";
+import { Modal } from "../Components/Base/Modal";
 import { DocumentManagement } from "../Components/DocumentManagement";
 
 export const Patients = memo(function Patients() {

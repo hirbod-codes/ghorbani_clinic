@@ -3,8 +3,8 @@ import { t } from "i18next";
 import { useState, useMemo, useContext, useEffect } from 'react'
 import { PatientsMedicalHistory } from "../../../Electron/Database/Models/Patient";
 import { EditOutlined } from "@mui/icons-material";
-import { Editor } from "../Editor/Editor";
-import { Modal } from "../Modal";
+import { Editor } from "../Base/Editor/Editor";
+import { Modal } from "../Base/Modal";
 import { MedicalHistorySearch } from "../MedicalHistory/MedicalHistorySearch";
 import { resources } from "../../../Electron/Database/Repositories/Auth/resources";
 import { AuthContext } from "../../Contexts/AuthContext";

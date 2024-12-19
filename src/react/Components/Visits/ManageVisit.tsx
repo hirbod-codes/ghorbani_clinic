@@ -6,9 +6,9 @@ import { AddOutlined, Close, ExpandMore } from '@mui/icons-material';
 import { DateTime } from 'luxon';
 import type { Visit } from '../../../Electron/Database/Models/Visit';
 import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext';
-import { DateTimeField } from '../DateTime/DateTimeField';
+import { DateTimeField } from '../Base/DateTime/DateTimeField';
 import { t } from 'i18next';
-import { EditorModal } from '../Editor/EditorModal';
+import { EditorModal } from '../Base/Editor/EditorModal';
 import { toDateTime, toDateTimeView, toFormat } from '../../Lib/DateTime/date-time-helpers';
 
 export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId: string; defaultVisits?: Visit[]; onChange?: (visits: Visit[]) => void; }) {

@@ -1,41 +1,47 @@
-import { motion } from 'framer-motion'
-import { ReactNode } from 'react'
-import { mainTransition } from 'src/react/Styles/animations'
+import { AnimatePresence, Transition, Variants } from 'framer-motion'
+import { memo, ReactNode } from 'react'
+import { SlideMotion } from './SlideMotion';
+import { variants as SlideVariants } from './variants'
+import { getTransitions as slideGetTransitions } from './transitions'
 
-const xOffset = 100;
-const variants = {
-    enter: {
-        name: 'enter',
-        x: -xOffset.toString() + '%',
-        transition: mainTransition
-    },
-    active: {
-        name: 'active',
-        x: 0,
-        transition: { ...mainTransition, delay: 0.5 }
-    },
-    exit: {
-        name: 'exit',
-        x: xOffset.toString() + '%',
-        transition: mainTransition
-    }
-};
-
-export function AnimatedSlide({ childKey, children }: { childKey: string | number, children: ReactNode }) {
-    return (
-        <>
-            <motion.div
-                key={childKey}
-                initial='enter'
-                animate='active'
-                exit='exit'
-                variants={variants}
-                transition={mainTransition}
-                style={{ height: '100%', width: '100%', overflow: 'hidden', position: 'absolute' }}
-            >
-                {children}
-            </motion.div>
-        </>
-    )
+export type AnimatedSlideProps = {
+    children: ReactNode
+    motionKey?: string | number
+    delay?: number
+    disappear?: boolean
+    inSource?: 'left' | 'top' | 'bottom' | 'right'
+    outSource?: 'left' | 'top' | 'bottom' | 'right'
+    open?: boolean
+    presenceMode?: 'sync' | 'wait' | 'popLayout' | undefined
+    fullHeight?: boolean
+    fullWidth?: boolean
+    variants?: Variants
+    transition?: Transition
 }
 
+export const AnimatedSlide = memo(function AnimatedSlide({ children, motionKey, delay = 0, disappear = true, inSource = 'left', outSource = 'right', open = true, presenceMode = 'sync', fullHeight = true, fullWidth = true, variants, transition }: AnimatedSlideProps) {
+    delay = 0
+    disappear = true
+    inSource = 'left'
+    outSource = 'right'
+    open = true
+    presenceMode = 'sync'
+    fullHeight = true
+    fullWidth = true
+    variants = variants ?? SlideVariants
+    transition = transition ?? slideGetTransitions(delay)
+
+    return (
+        <div className={`${fullWidth ? 'w-full' : ''} ${fullHeight ? 'h-full' : ''} overflow-hidden`}>
+            <div className={`relative ${fullWidth ? 'w-full' : ''} ${fullHeight ? 'h-full' : ''}`}>
+                <AnimatePresence mode={presenceMode}>
+                    {open &&
+                        <SlideMotion {...{ motionKey, inSource, outSource, disappear, variants, transition, fullWidth, fullHeight }}>
+                            {children}
+                        </SlideMotion>
+                    }
+                </AnimatePresence>
+            </div>
+        </div>
+    )
+})

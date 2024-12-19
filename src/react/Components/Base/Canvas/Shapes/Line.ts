@@ -1,9 +1,9 @@
 import { applyToPoint, compose, fromObject, Matrix, translate } from "transformation-matrix";
 import { Boundary, Draw } from "../types";
 import { Shape } from "./Shape";
-import { Point } from "../../../Lib/Math";
+import { Point } from "../../../../Lib/Math";
 import { SelectionBox } from "./SelectionBox";
-import { getRadiansFromTwoPoints } from "../../../Lib/Math/2d";
+import { getRadiansFromTwoPoints } from "../../../../Lib/Math/2d";
 
 export class Line implements Shape {
     private lineWidth: number

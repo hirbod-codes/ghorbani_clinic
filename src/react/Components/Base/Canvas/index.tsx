@@ -8,10 +8,10 @@ import { useReactToPrint } from "react-to-print";
 import { PencilTool } from "./Tools/PencilTool";
 import { Shapes } from "./Shapes/Shapes";
 import { RectangleTool } from "./Tools/RectangleTool";
-import { EraserIcon } from "../Icons/EraserIcon";
+import { EraserIcon } from "../../Icons/EraserIcon";
 import { SelectTool } from "./Tools/SelectTool";
 import { AnimatePresence } from "framer-motion";
-import { mainTransition } from "../../Styles/animations";
+import { mainTransition } from "../../../Styles/animations";
 import { t } from "i18next";
 
 const xOffset = 100;

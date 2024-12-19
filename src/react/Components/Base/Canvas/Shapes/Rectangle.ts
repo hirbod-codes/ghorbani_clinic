@@ -2,106 +2,27 @@ import { translate, compose, applyToPoint, Matrix, fromObject, decomposeTSR, sca
 import { Boundary, Draw, Point } from "../types";
 import { Shape } from "./Shape";
 import { SelectionBox } from './SelectionBox';
-import { getRadiansFromTwoPoints, lineFunction, pointFromLineDistance } from '../../../Lib/Math/2d';
-import { rgbToHex } from '@mui/material';
+import { getRadiansFromTwoPoints, lineFunction, pointFromLineDistance } from '../../../../Lib/Math/2d';
 
-export type UpdateGradient = { steps?: { offset: number, color: { r: number; g: number; b: number; a: number; } }[], startAngle?: number, x0?: number, y0?: number, r0?: number, x1?: number, y1?: number, r1?: number }
-
-export type ConicGradient = { steps: { offset: number, color: { r: number; g: number; b: number; a: number; } }[], mode: 'conic', startAngle: number, x0: number, y0: number }
-export type LinearGradient = { steps: { offset: number, color: { r: number; g: number; b: number; a: number; } }[], mode: 'linear', x0: number, y0: number, x1: number, y1: number }
-export type RadialGradient = { steps: { offset: number, color: { r: number; g: number; b: number; a: number; } }[], mode: 'radial', x0: number, y0: number, r0: number, x1: number, y1: number, r1: number }
-
-export type Gradients = ConicGradient | LinearGradient | RadialGradient
-
-export class RectangleGradient implements Shape {
+export class Rectangle implements Shape {
     private path: Path2D
     x: number
     y: number
     w: number
     h: number
-    canvasGradient: Gradients
+    lineWidth: number
+    stroke: string | CanvasGradient | CanvasPattern
+    fill: string | CanvasGradient | CanvasPattern
     transformArgs: DOMMatrix | Matrix = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0, }
 
-    constructor(x: number, y: number, w: number, h: number, canvasGradient: Gradients) {
+    constructor(x: number, y: number, w: number, h: number, lineWidth: number, stroke: string | CanvasGradient | CanvasPattern, fill: string | CanvasGradient | CanvasPattern) {
         this.x = x
         this.y = y
         this.w = w
         this.h = h
-        this.canvasGradient = canvasGradient
-    }
-
-    updateGradient(gradient: UpdateGradient) {
-        this.canvasGradient = { ...this.canvasGradient, ...gradient }
-    }
-
-    getGradient(): Gradients {
-        return this.canvasGradient
-    }
-
-    redraw(d: Draw): void {
-        this.draw(d)
-    }
-
-    draw(d: Draw): void {
-        d.ctx.save()
-
-        this.path = new Path2D()
-
-        let fillStyle: CanvasGradient
-        switch (this.canvasGradient.mode) {
-            case 'conic':
-                if (!this.canvasGradient.startAngle || !this.canvasGradient.x0 || !this.canvasGradient.y0)
-                    throw new Error('invalid gradient options provided.')
-
-                const conicGradient = d.ctx.createConicGradient(this.canvasGradient.startAngle, this.canvasGradient.x0, this.canvasGradient.y0)
-                this.canvasGradient.steps.forEach((s) => {
-                    console.log(rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`), s)
-                    conicGradient.addColorStop(s.offset, rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`))
-                })
-                fillStyle = conicGradient
-                break;
-
-            case 'linear':
-                if (!this.canvasGradient.x0 || !this.canvasGradient.y0 || !this.canvasGradient.x1 || !this.canvasGradient.y1)
-                    throw new Error('invalid gradient options provided.')
-
-                const linearGradient = d.ctx.createLinearGradient(this.canvasGradient.x0, this.canvasGradient.y0, this.canvasGradient.x1, this.canvasGradient.y1)
-                this.canvasGradient.steps.forEach((s) => {
-                    console.log(rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`), s)
-                    linearGradient.addColorStop(s.offset, rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`))
-                })
-                fillStyle = linearGradient
-                break;
-
-            case 'radial':
-                if (!this.canvasGradient.x0 || !this.canvasGradient.y0 || !this.canvasGradient.r0 || !this.canvasGradient.x1 || !this.canvasGradient.y1 || !this.canvasGradient.r1)
-                    throw new Error('invalid gradient options provided.')
-
-                const radialGradient = d.ctx.createRadialGradient(this.canvasGradient.x0, this.canvasGradient.y0, this.canvasGradient.r0, this.canvasGradient.x1, this.canvasGradient.y1, this.canvasGradient.r1)
-                this.canvasGradient.steps.forEach((s) => {
-                    console.log('addColorStop', rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`), s)
-                    radialGradient.addColorStop(s.offset, rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`))
-                })
-                fillStyle = radialGradient
-                break;
-
-            default:
-                throw new Error('invalid gradient options provided.')
-        }
-
-        if (fillStyle === undefined)
-            throw new Error('invalid gradient options provided.')
-
-        d.ctx.fillStyle = fillStyle
-
-        if (this.transformArgs)
-            d.ctx.setTransform(this.transformArgs)
-
-        this.path.rect(this.x, this.y, this.w, this.h)
-
-        d.ctx.fill(this.path)
-
-        d.ctx.restore()
+        this.lineWidth = lineWidth
+        this.stroke = stroke
+        this.fill = fill
     }
 
     getBoundary(): Boundary {
@@ -169,6 +90,30 @@ export class RectangleGradient implements Shape {
             },
             fromObject(this.transformArgs),
         )
+    }
+
+    redraw(d: Draw): void {
+        this.draw(d)
+    }
+
+    draw(d: Draw): void {
+        d.ctx.save()
+
+        this.path = new Path2D()
+
+        d.ctx.lineWidth = this.lineWidth
+        d.ctx.strokeStyle = this.stroke
+        d.ctx.fillStyle = this.fill
+
+        if (this.transformArgs)
+            d.ctx.setTransform(this.transformArgs)
+
+        this.path.rect(this.x, this.y, this.w, this.h)
+
+        d.ctx.fill(this.path)
+        d.ctx.stroke(this.path)
+
+        d.ctx.restore()
     }
 
     scale(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string) {
@@ -269,7 +214,7 @@ export class RectangleGradient implements Shape {
             shouldAdd = true
 
         if (shouldAdd === undefined)
-            throw new Error('Logic Errors')
+            throw new Error('Logic error!!')
 
         if (!selectedHandler.toLowerCase().includes('right'))
             shouldAdd = !shouldAdd
@@ -315,13 +260,14 @@ export class RectangleGradient implements Shape {
             shouldAdd = true
 
         if (shouldAdd === undefined)
-            throw new Error('Logic Errors')
+            throw new Error('Logic error!!')
 
-        if (!selectedHandler.toLowerCase().includes('bottom'))
+        if (selectedHandler.toLowerCase().includes('top'))
             shouldAdd = !shouldAdd
 
-        const decomposedMatrix = decomposeTSR(fromObject(this.transformArgs))
-        if ((decomposedMatrix.rotation.angle * 180 / Math.PI) < 0)
+        const rotatedDegree = decomposeTSR(fromObject(this.transformArgs)).rotation.angle * 180 / Math.PI
+        console.log('rotatedDegree', rotatedDegree)
+        if (rotatedDegree < -90 || rotatedDegree > 90)
             shouldAdd = !shouldAdd
 
         return shouldAdd ? distance : -distance

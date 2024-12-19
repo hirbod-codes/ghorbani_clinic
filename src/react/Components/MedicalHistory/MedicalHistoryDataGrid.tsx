@@ -13,8 +13,8 @@ import { DATE, toFormat } from "../../../react/Lib/DateTime/date-time-helpers"
 import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, CircularProgress, IconButton, Stack } from "@mui/material"
 import { AddOutlined, DeleteOutline, RefreshOutlined, SearchOutlined } from "@mui/icons-material"
 import { DataGrid } from "../DataGrid"
-import { EditorModal } from "../Editor/EditorModal"
-import { Modal } from "../Modal"
+import { EditorModal } from "../Base/Editor/EditorModal"
+import { Modal } from "../Base/Modal"
 import { MedicalHistorySearch } from "./MedicalHistorySearch"
 
 export function MedicalHistoryDataGrid() {

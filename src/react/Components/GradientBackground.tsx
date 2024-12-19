@@ -2,8 +2,8 @@ import { memo, useContext, useEffect, useRef, useState } from 'react';
 import { ConfigurationContext } from '../Contexts/Configuration/ConfigurationContext';
 import { Box, alpha, useTheme } from '@mui/material';
 import { useLocation } from 'react-router-dom';
-import { Shapes } from './Canvas/Shapes/Shapes';
-import { RadialGradient, RectangleGradient, UpdateGradient } from './Canvas/Shapes/RectangleGradient';
+import { Shapes } from './Base/Canvas/Shapes/Shapes';
+import { RadialGradient, RectangleGradient, UpdateGradient } from './Base/Canvas/Shapes/RectangleGradient';
 
 export const GradientBackground = memo(function GradientBackground() {
     const c = useContext(ConfigurationContext)!

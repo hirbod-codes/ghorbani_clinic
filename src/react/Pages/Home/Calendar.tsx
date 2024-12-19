@@ -6,7 +6,7 @@ import { Calendar as CalendarComponent } from "../../Components/Calendar";
 import { getVisitsInDate } from "../../Components/Visits/helpers";
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 import { DataGrid } from "../../Components/DataGrid";
-import LoadingScreen from "../../Components/LoadingScreen";
+import LoadingScreen from "../../Components/Base/LoadingScreen";
 import { t } from "i18next";
 
 export function Calendar() {

@@ -11,10 +11,10 @@ import { publish, subscribe } from "../Lib/Events";
 import { resources } from "../../Electron/Database/Repositories/Auth/resources";
 import { AuthContext } from "../Contexts/AuthContext";
 import { DeleteOutline, RefreshOutlined } from "@mui/icons-material";
-import { EditorModal } from "../Components/Editor/EditorModal";
+import { EditorModal } from "../Components/Base/Editor/EditorModal";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import { useNavigate } from "react-router-dom";
-import LoadingScreen from "../Components/LoadingScreen";
+import LoadingScreen from "../Components/Base/LoadingScreen";
 import { ColumnDef } from "@tanstack/react-table";
 
 export const Visits = memo(function Visits() {

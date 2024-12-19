@@ -30,7 +30,7 @@ export default defineConfig((env) => {
         resolve: {
             preserveSymlinks: true,
             alias: {
-                "@": path.resolve(__dirname, "./src"),
+                "@": path.resolve(__dirname, "./"),
             },
         },
         clearScreen: false,

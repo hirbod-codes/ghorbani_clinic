@@ -4,7 +4,7 @@ import { Draw } from "../types";
 import { ColorLensOutlined, RestartAltOutlined } from "@mui/icons-material";
 import { t } from "i18next";
 import { HexAlphaColorPicker } from "react-colorful";
-import { PenConnectIcon } from "../../Icons/PenConnectIcon";
+import { PenConnectIcon } from "../../../Icons/PenConnectIcon";
 import { Line } from "../Shapes/Line";
 import { Shapes } from "../Shapes/Shapes";
 

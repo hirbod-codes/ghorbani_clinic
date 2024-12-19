@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react"
 import { Shapes } from "../Shapes/Shapes"
 import { Draw, Position } from "../types"
-import { getRadiansFromTwoPoints } from "../../../Lib/Math/2d"
-import { Point } from "../../../Lib/Math"
+import { getRadiansFromTwoPoints } from "../../../../Lib/Math/2d"
+import { Point } from "../../../../Lib/Math"
 
 export type SelectToolProps = {
     shapes: Shapes,

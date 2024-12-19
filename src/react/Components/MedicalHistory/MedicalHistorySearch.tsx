@@ -10,7 +10,7 @@ import { AuthContext } from "../../Contexts/AuthContext";
 import { resources } from "../../../Electron/Database/Repositories/Auth/resources";
 import { publish } from "../../Lib/Events";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
-import { EditorModal } from "../Editor/EditorModal";
+import { EditorModal } from "../Base/Editor/EditorModal";
 import { AnimatedList } from "../Animations/AnimatedList";
 
 const xOffset = 100;

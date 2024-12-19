@@ -1,6 +1,6 @@
 import { Matrix } from "transformation-matrix";
 import { Draw, Boundary } from "../types";
-import { Point } from "../../../Lib/Math";
+import { Point } from "../../../../Lib/Math";
 import { SelectionBox } from "./SelectionBox";
 
 export interface Shape {

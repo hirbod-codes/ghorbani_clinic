@@ -16,7 +16,7 @@ import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish, subscribe } from "../Lib/Events";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import { useNavigate } from "react-router-dom";
-import LoadingScreen from "../Components/LoadingScreen";
+import LoadingScreen from "../Components/Base/LoadingScreen";
 import { ColumnDef } from "@tanstack/react-table";
 
 export const Users = memo(function Users() {

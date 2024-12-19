@@ -6,15 +6,15 @@ import { DateTime } from 'luxon'
 import { Patient } from '../../../Electron/Database/Models/Patient';
 import type { Visit } from '../../../Electron/Database/Models/Visit';
 import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext';
-import { DateField } from '../DateTime/DateField';
+import { DateField } from '../Base/DateTime/DateField';
 import { ManageVisits } from '../Visits/ManageVisit';
-import LoadingScreen from '../LoadingScreen';
+import LoadingScreen from '../Base/LoadingScreen';
 import { t } from 'i18next';
 import { RendererDbAPI } from '../../../Electron/Database/renderer';
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
 import { publish } from '../../Lib/Events';
 import { MedicalHistory } from './MedicalHistory';
-import { EditorModal } from '../Editor/EditorModal';
+import { EditorModal } from '../Base/Editor/EditorModal';
 import { DocumentManagement } from '../DocumentManagement';
 import { toDateTime, toDateTimeView } from '../../Lib/DateTime/date-time-helpers';
 import { MainProcessResponse } from 'src/Electron/types';

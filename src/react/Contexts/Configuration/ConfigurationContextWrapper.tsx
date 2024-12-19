@@ -1,11 +1,14 @@
 // import { CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
-import { ReactNode, memo, useMemo } from 'react';
+import { ReactNode, memo, useEffect, useMemo, useState } from 'react';
 import { ConfigurationContext } from './ConfigurationContext';
 // import { CacheProvider } from '@emotion/react';
 // import createCache from '@emotion/cache';
 // import { prefixer } from 'stylis';
 // import rtlPlugin from 'stylis-plugin-rtl';
 import { useConfigurationHook } from './hook';
+import { AnimatedSlide } from '../../Components/Animations/AnimatedSlide';
+import { AnimatePresence } from 'framer-motion';
+import { AnimatedList } from '../../Components/Animations/AnimatedList';
 
 // // Create rtl cache
 // const rtlCache = createCache({
@@ -21,17 +24,47 @@ import { useConfigurationHook } from './hook';
 export const ConfigurationContextWrapper = memo(function ConfigurationContextWrapper({ children }: { children?: ReactNode; }) {
     const memoizedChildren = useMemo(() => children, [])
 
+    const [show, setShow] = useState(false)
+    const [collection, setCollection] = useState([{ key: '0', elm: <p>0</p> }, { key: '1', elm: <p>1</p> }, { key: '2', elm: <p>2</p> }, { key: '3', elm: <p>3</p> }, { key: '4', elm: <p>4</p> }])
+
     const { updateTheme, updateLocal, setShowGradientBackground, isConfigurationContextReady, ...configuration } = useConfigurationHook()
 
-    console.log('-------------ConfigurationContextWrapper', { window, configuration, isConfigurationContextReady })
+    console.log('-------------ConfigurationContextWrapper', { collection, configuration, isConfigurationContextReady })
+
+    // useEffect(() => {
+    //     setInterval(() => {
+    //         setShow(true)
+    //         setTimeout(() => {
+    //             setShow(false)
+    //         }, 3000)
+    //     }, 6000)
+    // }, [])
 
     return (
         <>
             {isConfigurationContextReady &&
                 <ConfigurationContext.Provider value={{ ...configuration, updateTheme, updateLocal, setShowGradientBackground, isConfigurationContextReady }}>
-                    <div className={'bg-background h-full w-full text-foreground'}>
-                        {memoizedChildren}
+                    <div className='h-1/2 w-1/2 border-2 border-red-500 overflow-hidden'>
+                        <AnimatedSlide inSource='bottom' open={show}>
+                            <h2 className='w-full border-red-500 border-2 absolute' style={{ top: '50%' }}>
+                                hi
+                            </h2>
+                            <h3>bye</h3>
+                        </AnimatedSlide>
                     </div>
+                    <div className='h-1/2 w-1/2 border-2 border-red-500 overflow-hidden'>
+                        <button className='btn' onClick={() => setCollection([...collection, { key: collection.length.toString(), elm: <p>{collection.length}</p> }])} >
+                            push
+                        </button>
+                        <br />
+                        <button className='btn' onClick={() => { collection.pop(); setCollection([...collection]) }} >
+                            pop
+                        </button>
+                        <AnimatedList collection={collection} withDelay={true} />
+                    </div>
+                    {/* <div className={'bg-background h-full w-full text-foreground overflow-hidden'}>
+                        {memoizedChildren}
+                    </div> */}
                     {/* <CacheProvider value={configuration.local.direction === 'rtl' ? rtlCache : ltrCache}>
                         <ThemeProvider theme={theme}>
                             <GlobalStyles styles={{
@@ -52,7 +85,7 @@ export const ConfigurationContextWrapper = memo(function ConfigurationContextWra
 
                         </ThemeProvider>
                     </CacheProvider> */}
-                </ConfigurationContext.Provider>
+                </ConfigurationContext.Provider >
             }
         </>
     );

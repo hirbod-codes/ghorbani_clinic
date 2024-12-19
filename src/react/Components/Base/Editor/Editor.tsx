@@ -2,16 +2,16 @@ import { CloudDoneOutlined, CloudUploadOutlined, DarkModeOutlined, DrawOutlined,
 import { Backdrop, Box, Divider, IconButton, Stack, Tooltip, Typography } from "@mui/material"
 import { t } from "i18next";
 import { useState, useRef, useEffect, useContext, memo } from "react"
-import { RendererDbAPI } from "../../../Electron/Database/renderer";
-import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
-import { publish } from "../../Lib/Events";
+import { RendererDbAPI } from "../../../../Electron/Database/renderer";
+import { RESULT_EVENT_NAME } from "../../../Contexts/ResultWrapper";
+import { publish } from "../../../Lib/Events";
 import { TextEditor } from "../TextEditor/TextEditor";
 import { Canvas } from "../Canvas";
-import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
-import { SaveIcon } from "../Icons/SaveIcon";
+import { ConfigurationContext } from "../../../Contexts/Configuration/ConfigurationContext";
+import { SaveIcon } from "../../Icons/SaveIcon";
 import LoadingScreen from "../LoadingScreen";
 import { isCanvasEmpty } from "../Canvas/helpers";
-import { Canvas as CanvasModel } from "../../../Electron/Database/Models/Canvas";
+import { Canvas as CanvasModel } from "../../../../Electron/Database/Models/Canvas";
 
 export type EditorProps = {
     hideCanvas?: boolean;

@@ -3,7 +3,7 @@ import { MedicalHistoryDataGrid } from "../Components/MedicalHistory/MedicalHist
 import { memo, useEffect, useState } from "react";
 import { subscribe } from "../Lib/Events";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
-import LoadingScreen from "../Components/LoadingScreen";
+import LoadingScreen from "../Components/Base/LoadingScreen";
 
 export const MedicalHistories = memo(function MedicalHistories() {
     const [showGrid, setShowGrid] = useState(false)
