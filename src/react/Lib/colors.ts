@@ -33,7 +33,7 @@ export function hslToHex(h: { h: number, s: number, l: number, a?: number }): st
 export function hslToHex(h: number, s: number, l: number, a?: number): string
 export function hslToHex(h: string | number | { h: number, s: number, l: number, a?: number }, s?: number, l?: number, a?: number): string {
     if (typeof h === 'number' || typeof h === 'bigint') {
-        if (!s || !l)
+        if (s === undefined || l === undefined)
             throw new Error('Invalid arguments provided for hslToHex function')
     } else if (typeof h === 'string') {
         const pattern = /hsla?\((.+?)\)/;
@@ -82,4 +82,35 @@ export function hslToHex(h: string | number | { h: number, s: number, l: number,
     };
 
     return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
+
+export function rgbToHex(r: string): string
+export function rgbToHex(r: number, g: number, b: number, a?: number): string
+export function rgbToHex(r: { r: number, g: number, b: number, a?: number }): string
+export function rgbToHex(r: string | { r: number, g: number, b: number, a?: number } | number, g?: number, b?: number, a?: number): string {
+    let rgb: number[] = []
+    if (typeof r === 'number' || typeof r === 'bigint') {
+        if (g === undefined || b === undefined)
+            throw new Error('Invalid arguments provided for hslToHex function')
+    } else if (typeof r === 'string') {
+        if (r.indexOf('#') === 0)
+            return r
+
+        const pattern = /rgba?\((.+?)\)/;
+        if (r.match(pattern) === null)
+            throw new Error('Invalid color string provided for hslToHex function')
+
+        rgb = r.match(pattern)![1].split(',').map((value) => parseFloat(value.trim()))
+    } else
+        rgb = [r.r, r.g, r.b, r.a].filter(f => f !== undefined)
+
+    if (rgb.length === 0)
+        throw new Error('Invalid arguments provided for hslToHex function')
+
+    return `#${rgb.map((n, i) => intToHex(i === 3 ? Math.round(255 * n) : n)).join('')}`;
+}
+
+function intToHex(int: number): string {
+    const hex = int.toString(16)
+    return hex.length === 1 ? `0${hex}` : hex
 }

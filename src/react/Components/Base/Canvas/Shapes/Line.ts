@@ -148,12 +148,12 @@ export class Line implements Shape {
 
         let width = Number(this.lineWidth);
 
-        if (!w) {
-            if (this.mode !== 'eraser' && this.isPressureSensitive && d.e.pointerType === 'pen')
-                width += (Math.pow(d.e.pressure, 2) * Number(this.pressureMagnitude));
-        }
-        else
-            width = w
+        if (d.e !== undefined)
+            if (w === undefined) {
+                if (this.mode !== 'eraser' && this.isPressureSensitive && d.e.pointerType === 'pen')
+                    width += (Math.pow(d.e.pressure, 2) * Number(this.pressureMagnitude));
+            } else
+                width = w
 
         if (!prevPoint)
             return

@@ -1,11 +1,15 @@
-import { useEffect, useState } from "react"
+import { useContext, useEffect, useState } from "react"
 import { Shapes } from "../Shapes/Shapes"
 import { Draw, Point } from "../types"
 import { Rectangle } from "../Shapes/Rectangle"
-import { Button, IconButton, Menu, Stack, TextField, useTheme } from "@mui/material"
 import { HexAlphaColorPicker } from "react-colorful"
-import { ColorLensOutlined, RestartAltOutlined } from "@mui/icons-material"
 import { t } from "i18next"
+import { Button } from "@/src/react/shadcn/components/ui/button"
+import { PaletteIcon, RotateCcwIcon } from "lucide-react"
+import { ConfigurationContext } from "@/src/react/Contexts/Configuration/ConfigurationContext"
+import { Label } from "@/src/react/shadcn/components/ui/label"
+import { Input } from "@/src/react/shadcn/components/ui/input"
+import { DropdownMenu } from "../../DropdownMenu"
 
 export type RectangleToolProps = {
     shapes: Shapes,
@@ -17,7 +21,7 @@ export type RectangleToolProps = {
 }
 
 export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, setOnDownHook }: RectangleToolProps) {
-    const theme = useTheme()
+    const themeOptions = useContext(ConfigurationContext)!.themeOptions
 
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
     const [anchorType, setAnchorType] = useState<'stroke' | 'fill'>('fill')
@@ -92,89 +96,63 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
 
     return (
         <>
-            <Stack spacing={3} direction='row' alignItems='center' sx={{ width: 'fit-content', minWidth: '100%' }}>
-                <div>
-                    <Button
-                        variant='outlined'
-                        sx={{ borderColor: fill as string }}
-                        startIcon={<ColorLensOutlined sx={{ color: fill as string }} />}
-                        onClick={(e) => {
-                            setColor(fill as string)
-                            setAnchorType('fill')
-                            setAnchorEl(e.currentTarget)
-                        }}
-                    >
-                        {t('RectangleTool.FillColor')}
-                    </Button>
-                </div>
-
-                <div>
-                    <Button
-                        variant='outlined'
-                        sx={{ borderColor: stroke as string }}
-                        startIcon={<ColorLensOutlined sx={{ color: stroke as string }} />}
-                        onClick={(e) => {
-                            setColor(stroke as string)
-                            setAnchorType('stroke')
-                            setAnchorEl(e.currentTarget)
-                        }}
-                    >
-                        {t('RectangleTool.StrokeColor')}
-                    </Button>
-                </div>
-
-                <div>
-                    <TextField type='text' label={t('Canvas.lineWidth')} variant='standard' size='small' onChange={(e) => setLineWidth(e.target.value)} value={lineWidth} />
-                </div>
-
-                <div>
-                    <IconButton
-                        onClick={() => {
-                            setStroke('#ff0000')
-                            setFill('#00ff00')
-                            setAnchorType('fill')
-                            setLineWidth('1.2')
-                        }}
-                    >
-                        <RestartAltOutlined fontSize="medium" color='error' />
-                    </IconButton>
-                </div>
-            </Stack>
-
-            <Menu
-                open={Boolean(anchorEl)}
-                onClose={() => setAnchorEl(null)}
-                anchorEl={anchorEl}
-                anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'center',
-                }}
-                transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'center',
-                }}
-
-                sx={{ mt: '40px' }}
-            >
-                <Stack direction='column' alignItems='start' spacing={1} sx={{ m: 0, p: 2 }}>
-                    <HexAlphaColorPicker color={color} onChange={(c) => {
-                        switch (anchorType) {
-                            case 'fill':
-                                setFill(c)
-                                break;
-
-                            case 'stroke':
-                                setStroke(c)
-                                break;
-
-                            default:
-                                break;
+            <div className='flex flex-row items-center w-min min-w-full space-y-2'>
+                <DropdownMenu
+                    trigger={<><PaletteIcon onClick={(e) => { setColor(fill as string) }} style={{ backgroundColor: color }} stroke={fill as string} />{t('RectangleTool.FillColor')}</>}
+                    contents={[
+                        {
+                            type: 'label',
+                            content: t('PencilTool.selectColor')
+                        },
+                        {
+                            type: 'separator',
+                        },
+                        {
+                            type: 'item',
+                            options: {},
+                            content: <HexAlphaColorPicker color={color} onChange={(c) => { setColor(c); setFill(c) }} />
                         }
+                    ]}
+                />
 
-                        setColor(c)
-                    }} />
-                </Stack>
-            </Menu>
+                <DropdownMenu
+                    trigger={<><PaletteIcon onClick={(e) => { setColor(stroke as string) }} style={{ backgroundColor: color }} stroke={stroke as string} />{t('RectangleTool.StrokeColor')}</>}
+                    contents={[
+                        {
+                            type: 'label',
+                            content: t('PencilTool.selectColor')
+                        },
+                        {
+                            type: 'separator',
+                        },
+                        {
+                            type: 'item',
+                            options: {},
+                            content: <HexAlphaColorPicker color={color} onChange={(c) => { setColor(c); setStroke(c) }} />
+                        }
+                    ]}
+                />
+
+                <div className="flex items-center space-x-2">
+                    <Label htmlFor="lineWidth">
+                        {t('Canvas .lineWidth')}
+                    </Label>
+                    <Input type='text' id='lineWidth' onChange={(e) => setLineWidth(e.target.value)} value={lineWidth} />
+                </div>
+
+                <Button
+                    style={{ backgroundColor: color }}
+                    size='icon'
+                    onClick={() => {
+                        setStroke('#ff0000')
+                        setFill('#00ff00')
+                        setAnchorType('fill')
+                        setLineWidth('1.2')
+                    }}
+                >
+                    <RotateCcwIcon stroke={themeOptions.colors.foreground} />
+                </Button>
+            </div>
         </>
     )
 }

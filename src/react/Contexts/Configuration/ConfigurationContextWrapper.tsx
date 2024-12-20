@@ -9,6 +9,7 @@ import { useConfigurationHook } from './hook';
 import { AnimatedSlide } from '../../Components/Animations/AnimatedSlide';
 import { AnimatePresence } from 'framer-motion';
 import { AnimatedList } from '../../Components/Animations/AnimatedList';
+import { Input } from '../../shadcn/components/ui/input';
 
 // // Create rtl cache
 // const rtlCache = createCache({
@@ -52,6 +53,14 @@ export const ConfigurationContextWrapper = memo(function ConfigurationContextWra
                             </h2>
                             <h3>bye</h3>
                         </AnimatedSlide>
+                    </div>
+                    <Input />
+                    <div className="mt-1 w-fit overflow-x-auto">
+                        <input type='text' className='w-10 py-1 px-2 bg-background text-foreground border-l border-t border-b border-accent rounded-l-md' />
+                        <input type='text' className='w-10 py-1 px-2 bg-background text-foreground border-l border-t border-b border-accent' />
+                        <input type='text' className='w-10 py-1 px-2 bg-background text-foreground border-l border-t border-b border-accent' />
+                        <input type='text' className='w-10 py-1 px-2 bg-background text-foreground border-l border-t border-b border-accent' />
+                        <input type='text' className='w-10 py-1 px-2 bg-background text-foreground border-l border-r border-t border-b border-accent rounded-r-md' />
                     </div>
                     <div className='h-1/2 w-1/2 border-2 border-red-500 overflow-hidden'>
                         <button className='btn' onClick={() => setCollection([...collection, { key: collection.length.toString(), elm: <p>{collection.length}</p> }])} >

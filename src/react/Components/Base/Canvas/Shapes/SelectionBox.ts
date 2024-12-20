@@ -1,5 +1,4 @@
 import { Boundaries, Boundary, Draw, Point, Position } from "../types";
-import { Rectangle } from "./Rectangle";
 import { Shape } from "./Shape";
 
 export class SelectionBox {

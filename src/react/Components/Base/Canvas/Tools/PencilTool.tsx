@@ -1,12 +1,16 @@
-import { IconButton, Menu, Stack, TextField, useTheme } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { Draw } from "../types";
-import { ColorLensOutlined, RestartAltOutlined } from "@mui/icons-material";
 import { t } from "i18next";
 import { HexAlphaColorPicker } from "react-colorful";
 import { PenConnectIcon } from "../../../Icons/PenConnectIcon";
 import { Line } from "../Shapes/Line";
 import { Shapes } from "../Shapes/Shapes";
+import { ConfigurationContext } from "@/src/react/Contexts/Configuration/ConfigurationContext";
+import { Button } from "@/src/react/shadcn/components/ui/button";
+import { PaletteIcon, PenLineIcon, RotateCcwIcon } from "lucide-react";
+import { Input } from "@/src/react/shadcn/components/ui/input";
+import { Label } from "@/src/react/shadcn/components/ui/label";
+import { DropdownMenu } from "../../DropdownMenu";
 
 export type PencilToolProps = {
     shapes: Shapes,
@@ -21,9 +25,9 @@ export type PencilToolProps = {
 export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, setOnDownHook, mode = 'pencil' }: PencilToolProps) {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
 
-    const theme = useTheme()
+    const themeOptions = useContext(ConfigurationContext)!.themeOptions
 
-    const [color, setColor] = useState<string>(canvasBackground === theme.palette.common.white ? theme.palette.common.black : theme.palette.common.white)
+    const [color, setColor] = useState<string>(canvasBackground === themeOptions.colors.white ? themeOptions.colors.black : themeOptions.colors.white)
     const [lineWidth, setLineWidth] = useState<string>('1.2')
 
     const [isPressureSensitive, setIsPressureSensitive] = useState<boolean>(true)
@@ -66,62 +70,54 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
 
     return (
         <>
-            <Stack spacing={3} direction='row' alignItems='center' sx={{ width: 'max-content' }}>
-                <div>
-                    <IconButton onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ backgroundColor: color }}>
-                        <ColorLensOutlined sx={{ color: theme.palette.getContrastText(color) }} />
-                    </IconButton>
+            <div className='flex flex-row items-center w-min min-w-full space-y-2'>
+                <DropdownMenu
+                    trigger={<PaletteIcon stroke={themeOptions.colors.foreground} style={{ backgroundColor: color }} />}
+                    contents={[
+                        {
+                            type: 'label',
+                            content: t('PencilTool.selectColor')
+                        },
+                        { type: 'separator', },
+                        {
+                            type: 'item',
+                            options: {},
+                            content: <HexAlphaColorPicker color={color} onChange={(c) => setColor(c)} />
+                        }
+                    ]}
+                />
+
+                <Button style={{ backgroundColor: color }} size='icon' onClick={() => setIsPressureSensitive(!isPressureSensitive)}>
+                    <PenConnectIcon color={themeOptions.colors.foreground} />
+                </Button>
+
+                <div className="flex items-center space-x-2">
+                    <Label htmlFor="lineWidth">
+                        {t('Canvas .lineWidth')}
+                    </Label>
+                    <Input type='text' id='lineWidth' onChange={(e) => setLineWidth(e.target.value)} value={lineWidth} />
                 </div>
 
-                <div>
-                    <IconButton
-                        onClick={() => setIsPressureSensitive(!isPressureSensitive)}
-                    >
-                        <PenConnectIcon color={isPressureSensitive ? theme.palette.success[theme.palette.mode] : theme.palette.grey[400]} />
-                    </IconButton>
+                <div className="flex items-center space-x-2">
+                    <Label htmlFor="pressureMagnitude">
+                        {t('Canvas .pressureMagnitude')}
+                    </Label>
+                    <Input type='text' id='pressureMagnitude' onChange={(e) => setPressureMagnitude(e.target.value)} value={pressureMagnitude} />
                 </div>
 
-                <div>
-                    <TextField type='text' label={t('Canvas .lineWidth')} variant='standard' size='small' onChange={(e) => setLineWidth(e.target.value)} value={lineWidth} />
-                </div>
-
-                <div>
-                    <TextField type='text' label={t('Canvas.pressureMagnitude')} variant='standard' size='small' onChange={(e) => setPressureMagnitude(e.target.value)} value={pressureMagnitude} />
-                </div>
-
-                <div>
-                    <IconButton
-                        onClick={() => {
-                            setColor(canvasBackground === theme.palette.common.white ? theme.palette.common.black : theme.palette.common.white)
-                            setLineWidth('1.2')
-                            setIsPressureSensitive(true)
-                            setPressureMagnitude('9')
-                        }}
-                    >
-                        <RestartAltOutlined fontSize="medium" color='error' />
-                    </IconButton>
-                </div>
-            </Stack>
-
-            <Menu
-                open={Boolean(anchorEl)}
-                onClose={() => setAnchorEl(null)}
-                anchorEl={anchorEl}
-                anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'center',
-                }}
-                transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'center',
-                }}
-
-                sx={{ mt: '40px' }}
-            >
-                <Stack direction='column' alignItems='start' spacing={1} sx={{ m: 0, p: 2 }}>
-                    <HexAlphaColorPicker color={color} onChange={(c) => setColor(c)} />
-                </Stack>
-            </Menu>
+                <Button
+                    style={{ backgroundColor: color }}
+                    size='icon'
+                    onClick={() => {
+                        setColor(canvasBackground === themeOptions.colors.white ? themeOptions.colors.black : themeOptions.colors.white)
+                        setLineWidth('1.2')
+                        setIsPressureSensitive(true)
+                        setPressureMagnitude('9')
+                    }}
+                >
+                    <RotateCcwIcon stroke={themeOptions.colors.foreground} />
+                </Button>
+            </div>
         </>
     )
 }
