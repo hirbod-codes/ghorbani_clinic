@@ -1,16 +1,16 @@
-import { ArrowLeftOutlined, ArrowRightOutlined } from "@mui/icons-material";
-import { IconButton, Stack } from "@mui/material";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { memo } from "react";
+import { Button } from "../../shadcn/components/ui/button";
 
 export const NextPrevButtons = memo(function NextPrevButtons({ onPrev, onNext }: { onPrev: () => void, onNext: () => void }) {
     return (
-        <Stack direction='row'>
-            <IconButton onClick={onPrev}>
-                <ArrowLeftOutlined />
-            </IconButton>
-            <IconButton onClick={onNext}>
-                <ArrowRightOutlined />
-            </IconButton>
-        </Stack>
+        <div className="flex flex-row">
+            <Button size='icon' onClick={onPrev}>
+                <ChevronLeftIcon strokeWidth={1.5} />
+            </Button>
+            <Button size='icon' onClick={onNext}>
+                <ChevronRightIcon strokeWidth={1.5} />
+            </Button>
+        </div>
     )
 })

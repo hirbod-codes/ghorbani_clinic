@@ -1,5 +1,3 @@
-import { CloudDoneOutlined, CloudUploadOutlined, DarkModeOutlined, DrawOutlined, LightModeOutlined, RemoveRedEyeOutlined, SaveAltOutlined, TypeSpecimenOutlined } from "@mui/icons-material"
-import { Backdrop, Box, Divider, IconButton, Stack, Tooltip, Typography } from "@mui/material"
 import { t } from "i18next";
 import { useState, useRef, useEffect, useContext, memo } from "react"
 import { RendererDbAPI } from "../../../../Electron/Database/renderer";
@@ -9,9 +7,14 @@ import { TextEditor } from "../TextEditor/TextEditor";
 import { Canvas } from "../Canvas";
 import { ConfigurationContext } from "../../../Contexts/Configuration/ConfigurationContext";
 import { SaveIcon } from "../../Icons/SaveIcon";
-import LoadingScreen from "../LoadingScreen";
 import { isCanvasEmpty } from "../Canvas/helpers";
 import { Canvas as CanvasModel } from "../../../../Electron/Database/Models/Canvas";
+import { AnimatedSlide } from "../../Animations/AnimatedSlide";
+import { CircularLoading } from "../CircularLoading";
+import { Separator } from "@/src/react/shadcn/components/ui/separator";
+import { Button } from "@/src/react/shadcn/components/ui/button";
+import { CloudUploadIcon, EyeIcon, FileTypeIcon, FolderCheckIcon, SquarePenIcon } from "lucide-react";
+import { Tooltip } from "../Tooltip";
 
 export type EditorProps = {
     hideCanvas?: boolean;
@@ -25,7 +28,7 @@ export type EditorProps = {
 }
 
 export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor = false, title, text: inputText, canvasId: inputCanvasId, onSave, onChange, setHasUnsavedChanges: setHasUnsavedChangesProperty }: EditorProps) {
-    const theme = useContext(ConfigurationContext)!.theme
+    const themeOptions = useContext(ConfigurationContext)!.themeOptions
     const [loading, setLoading] = useState<boolean>(false)
 
     const [text, setText] = useState<string | undefined>(inputText)
@@ -273,89 +276,77 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
 
     return (
         <>
-            {
-                loading
-                &&
-                <Backdrop sx={{ zIndex: theme.zIndex.drawer + 1 }} open={loading}>
-                    <LoadingScreen />
-                </Backdrop >
-            }
+            <AnimatedSlide open={loading}>
+                <CircularLoading />
+            </AnimatedSlide>
 
-            <Stack direction='column' alignItems='stretch' spacing={1} sx={{ width: '100%', height: '100%' }}>
-                <Stack direction='row' justifyContent='space-between' alignContent='center' sx={{ overflow: 'auto' }}>
-                    <Box sx={{ overflow: 'auto', textWrap: 'nowrap' }}>
-                        <Typography variant='h6'>
-                            {title}
-                        </Typography>
-                    </Box>
-                    <Stack direction='row' justifyContent='end' alignContent='center' alignItems='center'>
-                        <IconButton onClick={() => {
-                            setStatus('showing')
-                        }}>
-                            <Tooltip title={t('Editor.View')}>
-                                <RemoveRedEyeOutlined />
-                            </Tooltip>
-                        </IconButton>
+            <div className="flex flex-col items-stretch w-full h-full">
+                <div className="flex flex-row justify-center overflow-auto">
+                    <div className="overflow-auto text-nowrap">
+                        <h6>{title}</h6>
+                    </div>
+                    <div className="flex flex-row justify-end content-center items-center">
+                        <Tooltip tooltipContent={t('Editor.View')}>
+                            <Button size='icon' onClick={() => { setStatus('showing') }}>
+                                <EyeIcon color={themeOptions.colors.primary} />
+                            </Button>
+                        </Tooltip>
 
                         {!hideTextEditor &&
-                            <IconButton onClick={() => setStatus('typing')}>
-                                <Tooltip title={t('Editor.Notes')}>
-                                    <TypeSpecimenOutlined />
-                                </Tooltip>
-                            </IconButton>
+                            <Tooltip tooltipContent={t('Editor.Notes')}>
+                                <Button size='icon' onClick={() => { setStatus('typing') }}>
+                                    <FileTypeIcon strokeWidth={1.25} color={themeOptions.colors.primary} />
+                                </Button>
+                            </Tooltip>
                         }
 
                         {!hideCanvas &&
-                            <IconButton onClick={() => setStatus('drawing')}>
-                                <Tooltip title={t('Editor.WhiteBoard')}>
-                                    <DrawOutlined />
-                                </Tooltip>
-                            </IconButton>
+                            <Tooltip tooltipContent={t('Editor.WhiteBoard')}>
+                                <Button size='icon' onClick={() => { setStatus('drawing') }}>
+                                    <SquarePenIcon strokeWidth={1.5} color={themeOptions.colors.primary} />
+                                </Button>
+                            </Tooltip>
                         }
-                    </Stack>
-                </Stack>
+                    </div>
+                </div>
 
-
-                {status === 'showing'
-                    &&
+                {status === 'showing' &&
                     <>
-                        <Divider />
+                        <Separator />
 
-                        <Stack direction='column' spacing={1} sx={{ pr: 1, overflow: 'auto', flexGrow: 2, width: '100%' }}>
+                        <div className="flex flex-col pr-1 overflow-auto flex-grow w-full">
                             {text &&
                                 <>
-                                    <Typography variant='h5'>
+                                    <h5>
                                         {t('Editor.description')}
-                                    </Typography>
+                                    </h5>
 
-                                    <Divider />
+                                    <Separator />
 
                                     <div dangerouslySetInnerHTML={{ __html: text }} />
 
-                                    <Divider />
+                                    <Separator />
                                 </>
                             }
 
                             {canvasId &&
                                 <img ref={imageRef} src={imageSrc} style={{ backgroundColor }} />
                             }
-                        </Stack>
+                        </div>
                     </>
                 }
 
                 {!hideTextEditor && status === 'typing' &&
                     <>
-                        <Divider />
+                        <Separator />
 
                         {onSave &&
-                            <Stack direction='row' justifyContent='start' alignContent='center'>
-                                <IconButton onClick={saveContent} color={contentHasUnsavedChanges ? 'warning' : 'default'}>
-                                    {contentHasUnsavedChanges ? <SaveIcon color='warning' /> : <SaveIcon color='success' />}
-                                </IconButton>
-                            </Stack>
+                            <Button size='icon' onClick={saveContent} color={contentHasUnsavedChanges ? themeOptions.colors.accent : themeOptions.colors.primary} >
+                                {contentHasUnsavedChanges ? <SaveIcon color='warning' /> : <SaveIcon color='success' />}
+                            </Button>
                         }
 
-                        <Divider />
+                        <Separator />
 
                         <TextEditor
                             text={inputText}
@@ -371,19 +362,17 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
 
                 {!hideCanvas && status === 'drawing' &&
                     <>
-                        <Divider />
+                        <Separator />
 
                         {onSave &&
-                            <Stack direction='row' justifyContent='start' alignContent='center'>
-                                <IconButton onClick={saveCanvas} color={canvasHasUnsavedChanges ? 'warning' : 'default'}>
-                                    {canvasHasUnsavedChanges ? <CloudUploadOutlined color='warning' /> : <CloudDoneOutlined color='success' />}
-                                </IconButton>
-                            </Stack>
+                            <Button size='icon' onClick={saveCanvas} color={canvasHasUnsavedChanges ? themeOptions.colors.accent : themeOptions.colors.primary} >
+                                {canvasHasUnsavedChanges ? <CloudUploadIcon color={themeOptions.colors.accent} /> : <FolderCheckIcon color={themeOptions.colors.primary} />}
+                            </Button>
                         }
 
-                        <Divider />
+                        <Separator />
 
-                        <Box sx={{ flexGrow: 2, overflow: 'hidden' }}>
+                        <div className="flex-grow overflow-hidden">
                             <Canvas
                                 canvasRef={canvas}
                                 onChange={async (empty) => {
@@ -392,10 +381,10 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                                         await onChange(text, canvasId)
                                 }}
                             />
-                        </Box>
+                        </div>
                     </>
                 }
-            </Stack >
+            </div>
         </>
     )
 })

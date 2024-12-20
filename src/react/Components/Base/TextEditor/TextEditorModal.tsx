@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
-import { Modal, Paper, Slide, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Stack, Divider, IconButton } from "@mui/material"
-
+import { useContext, useEffect, useState } from "react";
 import { TextEditor, TextEditorProps } from './TextEditor';
 import { t } from "i18next";
-import { SaveAltOutlined } from "@mui/icons-material";
+import { Modal } from "../Modal";
+import { Separator } from "@/src/react/shadcn/components/ui/separator";
+import { Button } from "@/src/react/shadcn/components/ui/button";
+import { ConfigurationContext } from "@/src/react/Contexts/Configuration/ConfigurationContext";
+import { SaveIcon } from "../../Icons/SaveIcon";
 
 export type TextEditorModalProps = TextEditorProps & {
     open: boolean;
@@ -13,6 +15,8 @@ export type TextEditorModalProps = TextEditorProps & {
 }
 
 export function TextEditorModal({ open, onClose, onSave: onChange, onSave, placeholder, text: inputText }: TextEditorModalProps) {
+    const themeOptions = useContext(ConfigurationContext)!.themeOptions
+
     const [text, setText] = useState(inputText)
     useEffect(() => {
         setText(inputText)
@@ -35,72 +39,59 @@ export function TextEditorModal({ open, onClose, onSave: onChange, onSave, place
     return (
         <>
             <Modal
-                onClose={(e, r) => {
+                onClose={() => {
                     if (hasUnsavedChanges)
                         setDialog({
                             open: true,
                             title: t('TextEditorModal.exiting'),
                             content: t('TextEditorModal.areYouSure?YouHaveUnsavedChanges'),
-                            e,
-                            r
                         })
                     else if (onClose)
                         onClose(dialog.e, dialog.r)
                 }}
                 open={open}
-                closeAfterTransition
-                disableAutoFocus
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
-                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
             >
-                <Slide direction={open ? 'up' : 'down'} in={open} timeout={250}>
-                    <Paper sx={{ width: '80%', height: '90%', padding: '0.5rem 1rem', overflow: 'auto' }}>
-                        <Stack direction='column' spacing={1} sx={{ width: '100%', height: '100%' }}>
-                            <IconButton
-                                onClick={async () => {
-                                    if (onSave)
-                                        await onSave(text)
-                                    setHasUnsavedChanges(false)
-                                }}
-                                color={hasUnsavedChanges ? 'warning' : 'default'}
-                            >
-                                <SaveAltOutlined />
-                            </IconButton>
-                            <Divider />
-                            <TextEditor
-                                placeholder={placeholder}
-                                text={text}
-                                onChange={(t: string) => {
-                                    setHasUnsavedChanges(true)
-                                    setText(t)
-                                    if (onChange)
-                                        onChange(t)
-                                }}
-                            />
-                        </Stack>
-                    </Paper>
-                </Slide>
+                <div className="w-10/2 h-5/6 py-1 px-2 overflow-auto">
+                    <div className="flex flex-col w-full h-full">
+                        <Button
+                            size='icon'
+                            onClick={async () => {
+                                if (onSave)
+                                    await onSave(text)
+                                setHasUnsavedChanges(false)
+                            }}
+                            color={hasUnsavedChanges ? themeOptions.colors.accent : themeOptions.colors.primary}
+                        >
+                            <SaveIcon />
+                        </Button>
+
+                        <Separator />
+
+                        <TextEditor
+                            placeholder={placeholder}
+                            text={text}
+                            onChange={(t: string) => {
+                                setHasUnsavedChanges(true)
+                                setText(t)
+                                if (onChange)
+                                    onChange(t)
+                            }}
+                        />
+                    </div>
+                </div>
             </Modal>
 
-            <Dialog open={dialog.open} onClose={closeDialog} >
-                <DialogTitle>
-                    {dialog.title}
-                </DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        {dialog.content}
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={closeDialog}>{t('TextEditorModal.No')}</Button>
-                    <Button onClick={() => {
-                        if (onClose)
-                            onClose(dialog.e, dialog.r)
-
-                        closeDialog()
-                    }}>{t('TextEditorModal.Yes')}</Button>
-                </DialogActions>
-            </Dialog>
+            <Modal
+                open={dialog.open}
+                onClose={() => {
+                    if (onClose)
+                        onClose(dialog.e, dialog.r)
+                    closeDialog()
+                }}
+                title={dialog.title}
+            >
+                {dialog.content}
+            </Modal>
         </>
     )
 }

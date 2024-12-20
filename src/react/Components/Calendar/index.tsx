@@ -1,12 +1,12 @@
-import { Divider, Stack, Typography } from "@mui/material";
 import { memo, useContext, useReducer, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
-import { toDateTime, toDateTimeView } from "../../Lib/DateTime/date-time-helpers";
+import { toDateTimeView } from "../../Lib/DateTime/date-time-helpers";
 import { DateTime } from "luxon";
 import { CalendarManager } from "./CalendarManager";
 import { CalendarScopes } from "./index.d";
 import { NextPrevButtons } from "./NextPrevButtons";
 import { Slide } from "./Slide";
+import { Separator } from "../../shadcn/components/ui/separator";
 
 export type CalendarProps = {
     validScopes?: CalendarScopes[],
@@ -140,18 +140,18 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
     console.log('Calendar', { locale: local, collection, columns, calendarManager })
 
     return (
-        <Stack direction='column' divider={<Divider />} spacing={0.2}>
-            <Stack direction='row' alignItems='center' spacing={0.2}>
+        <div className="flex flex-col">
+            <div className="flex flex-row items-center">
                 <NextPrevButtons onPrev={() => { calendarManager.previous(); rerender() }} onNext={() => { calendarManager.next(); rerender() }} />
 
-                <Divider orientation="vertical" variant='middle' sx={{ height: '2rem' }} />
+                <Separator orientation="vertical" />
 
-                <Stack direction='row' justifyContent='center' sx={{ flexGrow: 2 }}>
-                    <Typography textAlign='center' onClick={onTitleClick} sx={{ cursor: 'pointer' }}>
+                <div className="flex flex-row justify-center flex-grow">
+                    <p onClick={onTitleClick} className="text-center cursor-pointer">
                         {calendarManager.getTitle()}
-                    </Typography>
-                </Stack>
-            </Stack>
+                    </p>
+                </div>
+            </div>
 
             <Slide
                 columns={columns}
@@ -161,6 +161,6 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
                 onPointerOver={onPointerOver}
                 onPointerOut={onPointerOut}
             />
-        </Stack>
+        </div>
     )
 })

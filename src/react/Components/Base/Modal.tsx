@@ -1,60 +1,47 @@
-import { Modal as MuiModal, Paper, Slide } from "@mui/material"
-import { ReactNode } from "react"
+import { ReactNode, useState } from "react"
+import {
+    Dialog as ShadcnDialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogFooter,
+} from "@/src/react/shadcn/components/ui/dialog"
+
 
 export type ModalProps = {
-    children?: ReactNode;
-    open: boolean
-    onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void | Promise<void>;
-    paperProps?: any;
-    closeAfterTransition?: boolean;
-    disableAutoFocus?: boolean;
-    timeout?: number
+    children?: ReactNode
+    trigger?: ReactNode
+    open?: boolean
+    title?: string
+    description?: string
+    footer?: ReactNode
+    onClose?: () => void
 }
 
-export function Modal({
-    children,
-    open,
-    onClose,
-    paperProps = {
-        sx: {
-            width: '80%',
-            height: '90%',
-            padding: '0.5rem 1rem',
-            overflow: 'auto'
-        }
-    },
-    closeAfterTransition = true,
-    disableAutoFocus = true,
-    timeout = 250
-}: ModalProps) {
-    if (!paperProps)
-        paperProps = {
-            sx: {
-                width: '80%',
-                height: '90%',
-                padding: '0.5rem 1rem',
-                overflow: 'auto'
-            }
-        }
+export function Modal({ children, trigger, open: openInput = true, title, description, footer, onClose }: ModalProps) {
+    const [open, setOpen] = useState<boolean>(openInput)
 
     return (
-        <MuiModal
-            onClose={(e, r) => {
-                if (onClose)
-                    onClose(e, r)
-            }}
-            open={open}
-            closeAfterTransition={closeAfterTransition}
-            disableAutoFocus={disableAutoFocus}
-            sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
-            slotProps={{ backdrop: { sx: { top: '2rem' } } }}
-        >
-            <Slide direction={open ? 'up' : 'down'} in={open} timeout={timeout}>
-                <Paper {...paperProps}>
-                    {children}
-                </Paper>
-            </Slide>
-        </MuiModal>
+        <ShadcnDialog open={open} onOpenChange={() => { setOpen(false); if (onClose) onClose() }} >
+            <DialogTrigger>{trigger}</DialogTrigger>
+            <DialogContent>
+                {title &&
+                    <DialogHeader>
+                        <DialogTitle>{title}</DialogTitle>
+                        <DialogDescription>
+                            {description}
+                        </DialogDescription>
+                    </DialogHeader>
+                }
+                {children}
+                {footer && <DialogFooter className="sm:justify-start">
+                    {footer}
+                </DialogFooter>
+                }
+            </DialogContent>
+        </ShadcnDialog>
     )
 }
 

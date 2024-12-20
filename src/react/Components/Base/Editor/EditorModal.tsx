@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button } from "@mui/material"
 import { t } from "i18next";
 import { Editor, EditorProps } from "./Editor";
 import { Modal } from "../Modal";
@@ -16,8 +15,6 @@ export function EditorModal({ hideCanvas = false, hideTextEditor = false, open, 
         open: false,
         title: '',
         content: '',
-        e: undefined,
-        r: undefined,
     }
     const [dialog, setDialog] = useState(initDialog)
     const closeDialog = () => setDialog(initDialog)
@@ -34,14 +31,12 @@ export function EditorModal({ hideCanvas = false, hideTextEditor = false, open, 
     return (
         <>
             <Modal
-                onClose={(e, r) => {
+                onClose={() => {
                     if (hasUnsavedChanges)
                         setDialog({
                             open: true,
                             title: t('EditorModal.exiting'),
                             content: t('EditorModal.areYouSure?YouHaveUnsavedChanges'),
-                            e,
-                            r
                         })
                     else if (onClose)
                         onClose(dialog.e, dialog.r)
@@ -60,25 +55,17 @@ export function EditorModal({ hideCanvas = false, hideTextEditor = false, open, 
                 />
             </Modal>
 
-            <Dialog open={dialog.open} onClose={closeDialog} >
-                <DialogTitle>
-                    {dialog.title}
-                </DialogTitle>
-                <DialogContent>
-                    <DialogContentText whiteSpace={'break-spaces'}>
-                        {dialog.content}
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={closeDialog}>{t('EditorModal.No')}</Button>
-                    <Button onClick={() => {
-                        if (onClose)
-                            onClose(dialog.e, dialog.r)
-
-                        closeDialog()
-                    }}>{t('EditorModal.Yes')}</Button>
-                </DialogActions>
-            </Dialog>
+            <Modal
+                open={dialog.open}
+                onClose={() => {
+                    if (onClose)
+                        onClose(dialog.e, dialog.r)
+                    closeDialog()
+                }}
+                title={dialog.title}
+            >
+                {dialog.content}
+            </Modal>
         </>
     )
 }

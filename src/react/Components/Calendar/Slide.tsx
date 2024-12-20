@@ -1,5 +1,5 @@
-import { Box, Chip, Grid, Typography } from "@mui/material";
 import { memo } from "react";
+import { Badge } from "../../shadcn/components/ui/badge";
 
 export type SlideProps = {
     columns: number;
@@ -13,23 +13,24 @@ export type SlideProps = {
 export const Slide = memo(function Slide({ columns, collection, headers, onElmClick, onPointerOver, onPointerOut }: SlideProps) {
     return (
         <>
-            <Grid container columns={columns} textAlign='center' spacing={0}>
-                {headers && headers.map((e, i) => <Grid key={i} item xs={1}><Typography textAlign='center'>{e}</Typography></Grid>)}
+            <div className={`grid-col-[${columns}] text-center`}>
+                {headers && headers.map((e, i) => <div key={i} className='sm:col-span-1'><p className="text-center">{e}</p></div>)}
                 {collection.map((e, i) =>
                     e === null
-                        ? <Grid key={i} item xs={1}></Grid>
-                        : <Grid key={i} item xs={1}>
-                            <Chip
+                        ? <div key={i} className='m:col-span-1' />
+                        : <div key={i} className='m:col-span-1' >
+                            <Badge
                                 onPointerOver={async () => { if (onPointerOver) await onPointerOver(e, i) }}
                                 onPointerOut={async () => { if (onPointerOut) await onPointerOut(e, i) }}
-                                sx={{ m: 0.2 }}
-                                label={e}
-                                variant="outlined"
+                                className='m-1'
+                                variant="outline"
                                 onClick={async () => { if (onElmClick) await onElmClick(e, i) }}
-                            />
-                        </Grid>
+                            >
+                                {e}
+                            </Badge>
+                        </div>
                 )}
-            </Grid>
+            </div>
         </>
     )
 })
