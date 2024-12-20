@@ -27,7 +27,6 @@ import {
     horizontalListSortingStrategy
 } from '@dnd-kit/sortable'
 // needed for row & cell level scope DnD setup
-import { Stack, useTheme } from '@mui/material'
 import { t } from 'i18next'
 import { configAPI } from '../../../Electron/Configuration/renderer.d'
 import { DraggableTableHeader } from './DraggableTableHeader'
@@ -86,8 +85,8 @@ export function DataGrid({
     defaultColumnOrderModel = ['counter'],
     defaultTableDensity = 'compact'
 }: DataGridProps) {
-    const theme = useTheme()
     const configuration = useContext(ConfigurationContext)!
+    const themeOptions = configuration.themeOptions
 
     if (!pagination)
         pagination = { pageIndex: 0, pageSize: 10 }
@@ -343,15 +342,15 @@ export function DataGrid({
                         }}
                         sensors={sensors}
                     >
-                        <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '0.5rem 0', overflow: 'hidden', border: `1px solid ${theme.palette.grey[500]}`, borderRadius: `${theme.shape.borderRadius}px`, textWrap: 'nowrap' }}>
+                        <div className='h-full flex flex-col px-1 overflow-hidden border text-nowrap'>
                             {headerNodes.length > 0 &&
-                                <Stack direction='row' sx={{ p: 1 }}>
+                                <div className="flex flex-row p-1">
                                     {...headerNodes.map((n, i) =>
                                         <Fragment key={i}>
                                             {n}
                                         </Fragment>
                                     )}
-                                </Stack>
+                                </div>
                             }
                             {loading
                                 ? <LoadingScreen />
@@ -361,9 +360,9 @@ export function DataGrid({
                                         : <div style={{ overflow: 'auto', flexGrow: 2 }}>
                                             <AnimatePresence mode='sync'>
                                                 <table style={{ borderCollapse: 'separate', borderSpacing: 0, minWidth: '100%' }}>
-                                                    <thead style={{ position: 'sticky', top: 0, userSelect: 'none', background: theme.palette.background.default, zIndex: 1 }}>
+                                                    <thead style={{ position: 'sticky', top: 0, userSelect: 'none', background: themeOptions.colors.background, zIndex: 1 }}>
                                                         {table.getHeaderGroups().map(headerGroup => (
-                                                            <tr key={headerGroup.id} style={{ borderBottom: `1px solid ${theme.palette.grey[500]}` }}>
+                                                            <tr key={headerGroup.id} className='border-b'>
                                                                 <SortableContext
                                                                     items={columnOrder}
                                                                     strategy={horizontalListSortingStrategy}
@@ -375,7 +374,7 @@ export function DataGrid({
                                                     </thead>
                                                     <tbody>
                                                         {table.getRowModel().rows.map((row, i, arr) => (
-                                                            <tr key={row.id} style={{ borderBottom: i === (arr.length - 1) ? 0 : `1px solid ${theme.palette.grey[500]}`, textWrap: 'nowrap' }}>
+                                                            <tr key={row.id} className={`text-nowrap ${i === (arr.length - 1) ? '' : 'border-b'}`}>
                                                                 {row.getVisibleCells().map(cell => (
                                                                     <SortableContext
                                                                         key={cell.id}
@@ -394,13 +393,13 @@ export function DataGrid({
                                 )
                             }
                             {footerNodes.length > 0 &&
-                                <Stack direction='row' sx={{ p: 1 }}>
+                                <div className="flex flex-row p-1">
                                     {...footerNodes.map((n, i) =>
                                         <Fragment key={i}>
                                             {n}
                                         </Fragment>
                                     )}
-                                </Stack>
+                                </div>
                             }
                         </div>
                     </DndContext>

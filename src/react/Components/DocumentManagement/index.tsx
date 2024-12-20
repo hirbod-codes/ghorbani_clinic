@@ -1,10 +1,8 @@
 import { useContext, useEffect, useMemo, useState } from "react"
 import { RendererDbAPI } from "../../../Electron/Database/renderer"
 import { GridFSFile } from "mongodb";
-import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Paper, Stack, styled } from "@mui/material";
 import { DataGrid } from "../DataGrid";
 import { t } from "i18next";
-import { AddOutlined, DeleteOutline, DownloadOutlined, LaunchOutlined } from "@mui/icons-material";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 import { ColumnDef } from "@tanstack/react-table";
@@ -15,18 +13,12 @@ import { ConfigurationContext } from "../../Contexts/Configuration/Configuration
 import { getLuxonLocale } from "../../Lib/localization";
 import { DateTime } from "luxon";
 import { appAPI } from "../../../Electron/appRendererEvents";
-
-const VisuallyHiddenInput = styled('input')({
-    clip: 'rect(0 0 0 0)',
-    clipPath: 'inset(50%)',
-    height: 1,
-    overflow: 'hidden',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    whiteSpace: 'nowrap',
-    width: 1,
-});
+import { Button } from "../../shadcn/components/ui/button";
+import { CircularLoading } from "../Base/CircularLoading";
+import { TrashIcon } from "../Icons/TrashIcon";
+import { ExternalLinkIcon, FileDownIcon, FileUpIcon, PlusIcon } from "lucide-react";
+import { Modal } from "../Base/Modal";
+import { Input } from "../Base/Input";
 
 export function DocumentManagement({ patientId }: { patientId: string }) {
     const configuration = useContext(ConfigurationContext)!
@@ -109,10 +101,11 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
             id: 'actions',
             accessorKey: 'actions',
             cell: ({ row }) =>
-                <Stack direction='row' alignItems='center'>
+                <div className="flex flex-row items-center">
                     {
                         deletesFile
-                            ? <IconButton
+                            ? <Button
+                                size='icon'
                                 onClick={async () => {
                                     try {
                                         console.group('DocumentManagement', 'deletesFile', 'onClick')
@@ -138,13 +131,13 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                                     finally { console.groupEnd() }
                                 }}
                             >
-                                {deletingFileId === row.original._id ? <CircularProgress size={20} /> : <DeleteOutline />}
-                            </IconButton>
+                                {deletingFileId === row.original._id ? <CircularLoading /> : <TrashIcon />}
+                            </Button>
                             : null
                     }
                     {
                         readsFile
-                            ? <IconButton
+                            ? <Button
                                 onClick={async () => {
                                     try {
                                         console.group('DocumentManagement', 'opensFile', 'onClick')
@@ -163,13 +156,13 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                                     finally { console.groupEnd() }
                                 }}
                             >
-                                {openingFileId === row.original._id ? <CircularProgress size={20} /> : <LaunchOutlined />}
-                            </IconButton>
+                                {openingFileId === row.original._id ? <CircularLoading /> : <ExternalLinkIcon />}
+                            </Button>
                             : null
                     }
                     {
                         readsFile
-                            ? <IconButton
+                            ? <Button
                                 onClick={async () => {
                                     try {
                                         console.group('DocumentManagement', 'downloadingFile', 'onClick')
@@ -197,11 +190,11 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                                     finally { console.groupEnd() }
                                 }}
                             >
-                                {downloadingFileId === row.original._id ? <CircularProgress size={20} /> : <DownloadOutlined />}
-                            </IconButton>
+                                {downloadingFileId === row.original._id ? <CircularLoading /> : <FileDownIcon />}
+                            </Button>
                             : null
                     }
-                </Stack >
+                </div >
 
         },
     ]
@@ -212,25 +205,24 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
 
     return (
         <>
-            <Paper sx={{ width: '100%', height: '100%' }}>
+            <div className="w-full h-full">
                 <DataGrid
                     configName="Documents"
                     data={files}
                     overWriteColumns={overWriteColumns}
                     additionalColumns={additionalColumns}
                     defaultColumnOrderModel={['counter', 'action', 'filename', 'length']}
+                    defaultColumnVisibilityModel={{
+                        metadata: false,
+                        chunkSize: false,
+                        _id: false,
+                    }}
                     appendHeaderNodes={[
                         createsFile ?
-                            <Button
-                                component="label"
-                                sx={{ width: 'fit-content' }}
-                                variant='text'
-                                role={undefined}
-                                tabIndex={-1}
-                                startIcon={adding ? <CircularProgress /> : <AddOutlined />}
-                            >
-                                {t('DocumentManagement.AddDocuments')}
-                                <VisuallyHiddenInput type="file" multiple={true} onChange={async (e: any) => {
+                            <Input
+                                type="file"
+                                multiple={true}
+                                onChange={async (e: any) => {
                                     setAdding(true)
                                     const fs: { fileName: string, bytes: Buffer | Uint8Array }[] = []
                                     for (const f of (e.target.files as unknown) as File[])
@@ -240,30 +232,19 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                                     setAdding(false)
 
                                     await fetchAndSetDocuments();
-                                }} />
-                            </Button>
+                                }}
+                                startIcon={adding ? <CircularLoading /> : <FileUpIcon />}
+                            />
                             : undefined
                     ]}
-                    defaultColumnVisibilityModel={{
-                        metadata: false,
-                        chunkSize: false,
-                        _id: false,
-                    }}
                 />
-            </Paper>
+            </div>
 
-            <Dialog open={dialog.open} onClose={closeDialog} >
-                {dialog.title &&
-                    <DialogTitle>
-                        {dialog.title}
-                    </DialogTitle>
-                }
-                <DialogContent>
-                    <DialogContentText whiteSpace={'break-spaces'}>
-                        {dialog.content}
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
+            <Modal
+                open={dialog.open}
+                onClose={closeDialog}
+                title={dialog.title}
+                footer={<>
                     <Button onClick={async () => {
                         if (dialog.noAction && typeof dialog.noAction === 'function')
                             await dialog.noAction()
@@ -274,8 +255,10 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                             await dialog.yesAction()
                         closeDialog()
                     }}>{t('Patients.Yes')}</Button>
-                </DialogActions>
-            </Dialog>
+                </>}
+            >
+                {dialog.content}
+            </Modal>
         </>
     )
 }

@@ -4,7 +4,6 @@ import { CSS } from "@dnd-kit/utilities";
 import { Cell, flexRender } from "@tanstack/react-table";
 import { CSSProperties, useContext } from "react";
 import { DataGridContext } from "./Context";
-import { Typography } from "@mui/material";
 import { Trans } from "react-i18next";
 import { mainTransition } from '../../Styles/animations';
 import { getCommonPinningStyles } from "./helpers";
@@ -75,11 +74,11 @@ export const DragAlongCell = ({ cell }: { cell: Cell<any, unknown>; }) => {
             style={style}
             ref={setNodeRef}
         >
-            <Typography component='div' variant="body1">
-                <Trans >
+            <p>
+                <Trans>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </Trans>
-            </Typography>
+            </p>
         </motion.td>
     );
 };

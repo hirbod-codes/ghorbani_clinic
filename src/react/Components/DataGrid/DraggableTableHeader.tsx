@@ -1,15 +1,17 @@
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { IconButton, Stack, Typography, useTheme } from "@mui/material";
 import { Header } from "@tanstack/react-table";
-import { CSSProperties, useContext, useEffect, useRef } from "react";
+import { CSSProperties, useContext } from "react";
 import { DataGridContext } from "./Context";
 import { t } from "i18next";
-import { PushPinOutlined } from "@mui/icons-material";
 import { getCommonPinningStyles } from "./helpers";
+import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
+import { Button } from "../../shadcn/components/ui/button";
+import { PinIcon } from "lucide-react";
 
 export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>; }) => {
-    const theme = useTheme()
+    const themeOptions = useContext(ConfigurationContext)!.themeOptions
+
     const ctx = useContext(DataGridContext)!
     const table = ctx.table!
 
@@ -72,25 +74,25 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
                 style={style}
                 {...attributes}
             >
-                <Stack direction='row' alignItems='center' justifyContent='end'>
-                    <Typography variant="body1" {...listeners} sx={{ flexGrow: 2, textAlign: 'center', cursor: isDragging ? 'grabbing' : 'grab' }}>
+                <div className='flex flex-row items-center justify-end'>
+                    <p {...listeners} className={`flex-grow text-center cursor-${isDragging ? 'grabbing' : 'grab'}`}>
                         {t('Columns.' + header.column.columnDef.id)}
-                    </Typography>
+                    </p>
 
-                    <IconButton
-                        sx={{ ml: 1 }}
-                        size='small'
+                    <Button
+                        className="ml-1"
+                        size='icon'
                         onClick={(e) => {
                             if (header.column.getCanPin())
                                 header.column.pin('left')
                         }}
                     >
-                        <PushPinOutlined fontSize="inherit" />
-                    </IconButton>
+                        <PinIcon fontSize="inherit" />
+                    </Button>
 
                     {/* {header.index + 1 !== header.headerGroup.headers.length && <div style={{ height: '1.5rem', borderRight: `2px solid ${theme.palette.grey[400]}`, padding: '0 0.2rem', cursor: 'ew-resize' }} />} */}
-                    {header.index + 1 !== header.headerGroup.headers.length && <div style={{ height: '1.5rem', borderRight: `2px solid ${theme.palette.grey[400]}`, padding: '0 0.2rem' }} />}
-                </Stack>
+                    {header.index + 1 !== header.headerGroup.headers.length && <div className="h-[1.5rem] border-r-2 py-1" />}
+                </div>
             </th >
         </>
     );

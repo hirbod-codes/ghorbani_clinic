@@ -1,8 +1,6 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Grid, IconButton, List, ListItem, ListItemText, Paper, Stack, Tooltip, Typography } from "@mui/material";
 import { t } from "i18next";
 import { useState, useMemo, useContext, useEffect } from 'react'
 import { PatientsMedicalHistory } from "../../../Electron/Database/Models/Patient";
-import { EditOutlined } from "@mui/icons-material";
 import { Editor } from "../Base/Editor/Editor";
 import { Modal } from "../Base/Modal";
 import { MedicalHistorySearch } from "../MedicalHistory/MedicalHistorySearch";

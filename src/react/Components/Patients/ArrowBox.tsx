@@ -1,16 +1,17 @@
-import { Box, useTheme } from '@mui/material'
+import { useContext } from "react"
+import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext"
 
 export function ArrowBox({ size = 30, colors }: { size?: number, colors?: { box: string, arrow: string } }) {
-    const theme = useTheme()
+    const themeOptions = useContext(ConfigurationContext)!.themeOptions
 
     if (!colors)
         colors = {
-            box: theme.palette.background.default,
-            arrow: theme.palette.text.primary,
+            box: themeOptions.colors.background,
+            arrow: themeOptions.colors.primary,
         }
 
     return (
-        <Box width={size + 'px'} overflow={'visible'} p={0} m={0}>
+        <div className={`w-[${size + 'px'}] overflow-visible p-0 m-0`}>
             <svg
                 viewBox={`0 0 150 300`}
             >
@@ -30,6 +31,6 @@ export function ArrowBox({ size = 30, colors }: { size?: number, colors?: { box:
                 z
             " fill={colors.arrow} strokeWidth="0" />
             </svg>
-        </Box>
+        </div>
     )
 }

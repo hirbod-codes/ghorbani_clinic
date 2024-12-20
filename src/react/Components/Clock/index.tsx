@@ -1,4 +1,3 @@
-import { Paper, Stack, Typography, useTheme } from "@mui/material"
 import { DateTime } from "luxon"
 import { memo, useContext, useEffect, useState } from "react"
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext"
@@ -6,7 +5,6 @@ import { toFormat } from "../../Lib/DateTime/date-time-helpers"
 import { getLuxonLocale } from "../../Lib/localization"
 
 export const Clock = memo(function Clock() {
-    const theme = useTheme()
     const configuration = useContext(ConfigurationContext)!
 
     const getDate = () => localizeNumbers(toFormat(DateTime.utc().toUnixInteger(), configuration.local, undefined, 'cccc y/M/d'), getLuxonLocale(configuration.local.language))
@@ -33,18 +31,12 @@ export const Clock = memo(function Clock() {
     }, []);
 
     return (
-        <>
-            <Paper sx={{ p: 2 }}>
-                <Stack direction='column' alignItems='center' sx={{ borderWidth: '1px', borderColor: theme.palette.grey[400] }}>
-                    <Typography variant="body1">
-                        {date}
-                    </Typography>
-                    <Typography variant="body1">
-                        {time}
-                    </Typography>
-                </Stack>
-            </Paper>
-        </>
+        <div className="p-2">
+            <div className="flex flex-col items-center border">
+                <p>{date}</p>
+                <p>{time}</p>
+            </div>
+        </div>
     )
 })
 

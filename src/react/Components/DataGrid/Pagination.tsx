@@ -1,8 +1,12 @@
-import { NavigateBeforeOutlined, NavigateNextOutlined } from "@mui/icons-material";
-import { Pagination as MuiPagination, FormControl, InputLabel, MenuItem, Select, Stack, IconButton, PaginationItem, useTheme, CircularProgress } from "@mui/material";
-import { t } from "i18next";
 import { useContext, useState } from "react";
 import { DataGridContext } from "./Context";
+import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
+import { Button } from "../../shadcn/components/ui/button";
+import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { AnimatedSlide } from "../Animations/AnimatedSlide";
+import { CircularLoading } from "../Base/CircularLoading";
+import { FinitePagination } from "./FinitePagination";
+import { Select } from "../Base/Select";
 
 export type PaginationProps = {
     paginationLimitOptions?: number[],
@@ -11,7 +15,7 @@ export type PaginationProps = {
 }
 
 export function Pagination({ paginationLimitOptions = [10, 25, 50, 100], onPagination, setPaginationLimitChange }: PaginationProps) {
-    const theme = useTheme()
+    const configuration = useContext(ConfigurationContext)!;
 
     const table = useContext(DataGridContext)!.table!
 
@@ -25,36 +29,31 @@ export function Pagination({ paginationLimitOptions = [10, 25, 50, 100], onPagin
 
     return (
         <>
-            <Stack direction='row' flexGrow={2} justifyContent='end' alignItems='center'>
-                <FormControl sx={{ width: '7rem' }}>
-                    <InputLabel id="demo-simple-select-label">{t('DataGrid.limit')}</InputLabel>
-                    <Select
-                        labelId="demo-simple-select-label"
-                        id="demo-simple-select"
-                        value={paginationLimit}
-                        label={t('DataGrid.paginationLimit')}
-                        onChange={(e) => {
-                            setPaginationLimit(e.target.value as number);
-                            if (setPaginationLimitChange)
-                                setPaginationLimitChange(e.target.value as number)
-                            setPage(0)
-                        }}
-                    >
-                        {paginationLimitOptions.map((pl, i) => <MenuItem key={i} value={pl}>{pl}</MenuItem>)}
-                    </Select>
-                </FormControl>
+            <div className='flex flex-row flex-grow justify-end items-center'>
+                <Select
+                    value={paginationLimit.toString()}
+                    onValueChange={(value) => {
+                        setPaginationLimit(Number(value));
+                        if (setPaginationLimitChange)
+                            setPaginationLimitChange(Number(value))
+                        setPage(0)
+                    }}
+                    selectOptions={{ type: 'items', items: paginationLimitOptions.map((o, i) => ({ value: o.toString(), displayValue: o.toString() })) }}
+                />
+
                 {
                     !onPagination
-                        ? <MuiPagination
+                        ?
+                        <FinitePagination
                             count={Math.ceil(table.getRowCount() / paginationLimit)}
-                            onChange={(e, page) => {
+                            onChange={(page) => {
                                 table.setPageIndex(page - 1)
 
                                 setPage(page)
                             }} />
                         :
-                        <Stack direction='row' alignItems='center'>
-                            <IconButton
+                        <div className='flex flex-row items-center'>
+                            <Button
                                 onClick={async () => {
                                     setIsLoading(true)
                                     const result = await onPagination(paginationLimit, page - 1)
@@ -64,19 +63,22 @@ export function Pagination({ paginationLimitOptions = [10, 25, 50, 100], onPagin
                                         setPage(page - 1)
                                 }}
                                 disabled={isLoading}
-                                size='small'
-                                sx={{ color: theme.palette.text.primary }}
+                                size='icon'
                             >
                                 {
-                                    theme.direction === 'ltr'
-                                        ? <NavigateBeforeOutlined fontSize="inherit" />
-                                        : <NavigateNextOutlined fontSize="inherit" />
+                                    configuration.local.direction === 'ltr'
+                                        ? <ChevronLeftIcon fontSize="inherit" />
+                                        : <ChevronRightIcon fontSize="inherit" />
                                 }
-                            </IconButton>
+                            </Button>
 
-                            {isLoading ? <CircularProgress size={30} /> : <PaginationItem page={page} />}
+                            <AnimatedSlide open={isLoading}>
+                                <CircularLoading />
+                            </AnimatedSlide>
 
-                            <IconButton
+                            {!isLoading && <Button size='icon'>{page}</Button>}
+
+                            <Button
                                 onClick={async () => {
                                     setIsLoading(true)
                                     const result = await onPagination(paginationLimit, page + 1)
@@ -86,18 +88,17 @@ export function Pagination({ paginationLimitOptions = [10, 25, 50, 100], onPagin
                                         setPage(page + 1)
                                 }}
                                 disabled={isLoading}
-                                size='small'
-                                sx={{ color: theme.palette.text.primary }}
+                                size='icon'
                             >
                                 {
-                                    theme.direction === 'ltr'
-                                        ? <NavigateNextOutlined fontSize="inherit" />
-                                        : <NavigateBeforeOutlined fontSize="inherit" />
+                                    configuration.local.direction === 'ltr'
+                                        ? <ChevronRightIcon fontSize="inherit" />
+                                        : <ChevronLeftIcon fontSize="inherit" />
                                 }
-                            </IconButton>
-                        </Stack>
+                            </Button>
+                        </div>
                 }
-            </Stack >
+            </div >
         </>
     )
 }

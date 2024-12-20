@@ -1,9 +1,6 @@
-import { AddOutlined, Done, RemoveOutlined, SearchOutlined } from "@mui/icons-material";
-import { CircularProgress, IconButton, InputAdornment, Paper, Stack, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Typography, Checkbox, Divider, Box } from "@mui/material";
 import { t } from "i18next";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { MedicalHistory } from "../../../Electron/Database/Models/MedicalHistory";
-import { mainTransition } from "../../Styles/animations";
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
 import { TrashIcon } from "../Icons/TrashIcon";
 import { AuthContext } from "../../Contexts/AuthContext";
@@ -12,28 +9,17 @@ import { publish } from "../../Lib/Events";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { EditorModal } from "../Base/Editor/EditorModal";
 import { AnimatedList } from "../Animations/AnimatedList";
-
-const xOffset = 100;
-const delay = 100
-const variants = {
-    enter: (i: number) => ({
-        name: 'enter',
-        x: -xOffset.toString() + '%',
-        transition: { ...mainTransition, delay: i * delay }
-    }),
-    active: {
-        name: 'active',
-        x: 0,
-        transition: { ...mainTransition, delay: 0.5 }
-    },
-    exit: (i: number) => ({
-        name: 'exit',
-        x: xOffset.toString() + '%',
-        transition: { ...mainTransition, delay: i * delay }
-    })
-};
+import { Input } from "../Base/Input";
+import { CircularLoading } from "../Base/CircularLoading";
+import { Button } from "../../shadcn/components/ui/button";
+import { CheckIcon, PlusIcon, SearchIcon } from "lucide-react";
+import { Switch } from "../Base/Switch";
+import { Separator } from "../../shadcn/components/ui/separator";
+import { Modal } from "../Base/Modal";
+import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 
 export function MedicalHistorySearch({ creatable = false, deletable = false, defaultSelection, selectable = false, onSelectionChange }: { creatable?: boolean, deletable?: boolean, defaultSelection?: string[], selectable?: boolean, onSelectionChange?: (selection: string[]) => (void | Promise<void>) }) {
+    const themeOptions = useContext(ConfigurationContext)!.themeOptions
     const auth = useContext(AuthContext)
 
     const initDialog: any = {
@@ -111,90 +97,85 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
 
     return (
         <>
-            <Stack direction='column' justifyContent='start' alignItems='center' sx={{ width: '100%', height: '100%' }} spacing={2}>
-                <Stack direction='row' alignItems='center'>
-                    <TextField
-                        variant='standard'
-                        type='text'
+            <div className='flex flex-col justify-start items-center w-full h-full space-x-2 space-y-2'>
+                <div className='flex flex-row items-center'>
+                    <Input
                         value={searchStr}
                         onChange={(e) => setSearchStr(e.target.value)}
                         label={t('MedicalHistorySearch.search')}
-                        InputProps={{
-                            startAdornment: <InputAdornment position='end'>
-                                <SearchOutlined />
-                            </InputAdornment>
-                        }}
+                        labelId={t('MedicalHistorySearch.search')}
+                        startIcon={<SearchIcon />}
                     />
 
                     {isSearching
-                        ? <CircularProgress size={20} />
-                        : <IconButton size='small' onClick={search}>
-                            <Done />
-                        </IconButton>
+                        ? <CircularLoading />
+                        : <Button onClick={search}>
+                            <CheckIcon />
+                        </Button>
                     }
-                </Stack>
+                </div>
 
-                <Box sx={{ flexGrow: 2, overflow: 'hidden', width: '100%' }}>
-                    <Stack direction='column' justifyContent='space-between' sx={{ height: '100%', width: '100%' }}>
-                        <Paper sx={{ height: '48%', width: '100%', p: 2, overflow: 'auto' }} elevation={3}>
+                <div className='flex-grow overflow-hidden w-full'>
+                    <div className="flex flex-col justify-between h-full w-full">
+                        <div className='h-full w-full p-2 overflow-auto shadow-md'>
                             <AnimatedList
                                 collection={medicalHistories.map((md, i) => ({
                                     key: md.name,
                                     elm:
-                                        <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={2} sx={{ width: '100%' }}>
+                                        <div className='flex flex-row items-center justify-between space-x-2 space-y-2 w-full'>
                                             {selectable === true &&
-                                                <Checkbox size='small' checked={selection?.find(f => f === md.name) !== undefined} onChange={(e) => setSelection((old) => {
+                                                <Switch checked={selection?.find(f => f === md.name) !== undefined} onCheckedChange={(v) => setSelection((old) => {
                                                     if (old.find(f => f === md.name) !== undefined)
                                                         return old.filter(f => f !== md.name)
                                                     else
                                                         return [...old, md.name]
                                                 })} />
                                             }
-                                            <Typography variant='body1' sx={{ overflow: 'auto' }}>
+                                            <p className="overflow-auto">
                                                 {md.name}
-                                            </Typography>
+                                            </p>
                                             {deletesMedicalHistory && deletable &&
-                                                <IconButton onClick={() => deleteMedicalHistory(md._id as string)}>
-                                                    <TrashIcon color="red" />
-                                                </IconButton>
+                                                <Button onClick={() => deleteMedicalHistory(md._id as string)}>
+                                                    <TrashIcon color={themeOptions.colors.destructive} />
+                                                </Button>
                                             }
-                                        </Stack>
+                                        </div>
                                 }))}
                                 withDelay={true}
                             />
-                        </Paper>
+                        </div>
 
-                        <Divider orientation="horizontal" />
+                        <Separator />
 
                         {selectable &&
-                            <Paper sx={{ height: '48%', width: '100%', p: 2, overflow: 'auto' }} elevation={3}>
+                            <div className="h-[48%] w-full p-2 overflow-auto shadow-md">
                                 <AnimatedList
                                     collection={selection.map((name, i) => ({
                                         key: name,
                                         elm:
-                                            <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={2} sx={{ width: '100%' }}>
-                                                <Typography variant='body1' sx={{ overflow: 'auto' }}>
+                                            <div className="flex flex-row items-center justify-between space-x-2 space-y-2 w-full">
+                                                <p className="overflow-auto">
                                                     {name}
-                                                </Typography>
+                                                </p>
 
-                                                <IconButton onClick={() => setSelection(selection.filter(f => f !== name))}>
-                                                    <RemoveOutlined color="error" />
-                                                </IconButton>
-                                            </Stack>
+                                                <Button onClick={() => setSelection(selection.filter(f => f !== name))}>
+                                                    <TrashIcon color={themeOptions.colors.destructive} />
+                                                </Button>
+                                            </div>
                                     }))}
                                     withDelay={true}
                                 />
-                            </Paper>
+                            </div>
                         }
-                    </Stack>
-                </Box>
+                    </div>
+                </div>
 
                 {createsMedicalHistory && creatable &&
-                    <IconButton onClick={() => setCreatingMedicalHistory(true)} color="success">
-                        <AddOutlined />
-                    </IconButton>
+                    <Button onClick={() => setCreatingMedicalHistory(true)} color="success">
+                        <PlusIcon />
+                    </Button>
                 }
-            </Stack >
+            </div >
 
             {/* Medical history creation, Name field */}
             < EditorModal
@@ -233,19 +214,11 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
                 }}
             />
 
-            < Dialog open={dialog.open} onClose={closeDialog} >
-                {
-                    dialog.title &&
-                    <DialogTitle>
-                        {dialog.title}
-                    </DialogTitle>
-                }
-                < DialogContent >
-                    <DialogContentText whiteSpace={'break-spaces'}>
-                        {dialog.content}
-                    </DialogContentText>
-                </DialogContent >
-                <DialogActions>
+            <Modal
+                open={dialog.open}
+                onClose={closeDialog}
+                title={dialog.title}
+                footer={<>
                     <Button onClick={closeDialog}>{t('MedicalHistories.No')}</Button>
                     <Button onClick={async () => {
                         if (dialog.action)
@@ -254,8 +227,10 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
                     }}>
                         {t('MedicalHistories.Yes')}
                     </Button>
-                </DialogActions>
-            </Dialog >
+                </>}
+            >
+                {dialog.content}
+            </Modal>
         </>
     )
 }

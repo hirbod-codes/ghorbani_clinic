@@ -1,8 +1,9 @@
-import { Button, Menu, MenuItem } from "@mui/material";
 import { t } from "i18next";
-import { MouseEvent, useContext, useState } from "react";
+import { useContext, useState } from "react";
 import { DataGridContext } from "./Context";
-import { MenuOutlined } from "@mui/icons-material";
+import { DropdownMenu } from "../Base/DropdownMenu";
+import { Button } from "../../shadcn/components/ui/button";
+import { MenuIcon } from "lucide-react";
 
 export function DensityButton() {
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -12,29 +13,36 @@ export function DensityButton() {
 
     return (
         <>
-            <Button onClick={(event: MouseEvent<HTMLButtonElement>) => setAnchorEl(event.currentTarget)} startIcon={<MenuOutlined />}>
-                {t('DataGrid.density')}
-            </Button>
-            <Menu anchorEl={anchorEl} open={open} onClose={() => setAnchorEl(null)}>
-                <MenuItem onClick={() => {
-                    ctx.density.set('compact')
-                    setAnchorEl(null);
-                }}>
-                    {t('DataGrid.compact')}
-                </MenuItem>
-                <MenuItem onClick={() => {
-                    ctx.density.set('standard')
-                    setAnchorEl(null);
-                }}>
-                    {t('DataGrid.standard')}
-                </MenuItem>
-                <MenuItem onClick={() => {
-                    ctx.density.set('comfortable')
-                    setAnchorEl(null);
-                }}>
-                    {t('DataGrid.comfortable')}
-                </MenuItem>
-            </Menu>
+            <DropdownMenu
+                trigger={
+                    <Button>
+                        <MenuIcon />{t('DataGrid.density')}
+                    </Button>
+                }
+                contents={[
+                    {
+                        type: 'item',
+                        options: {
+                            onClick: () => ctx.density.set('compact')
+                        },
+                        content: t('DataGrid.compact')
+                    },
+                    {
+                        type: 'item',
+                        options: {
+                            onClick: () => ctx.density.set('standard')
+                        },
+                        content: t('DataGrid.standard')
+                    },
+                    {
+                        type: 'item',
+                        options: {
+                            onClick: () => ctx.density.set('comfortable')
+                        },
+                        content: t('DataGrid.comfortable')
+                    }
+                ]}
+            />
         </>
     )
 }
