@@ -1,13 +1,12 @@
 import { memo, useContext, useEffect, useRef, useState } from 'react';
 import { ConfigurationContext } from '../Contexts/Configuration/ConfigurationContext';
-import { Box, alpha, useTheme } from '@mui/material';
 import { useLocation } from 'react-router-dom';
 import { Shapes } from './Base/Canvas/Shapes/Shapes';
 import { RadialGradient, RectangleGradient, UpdateGradient } from './Base/Canvas/Shapes/RectangleGradient';
 
 export const GradientBackground = memo(function GradientBackground() {
     const c = useContext(ConfigurationContext)!
-    const theme = useTheme()
+    const themeOptions = c.themeOptions
     const location = useLocation();
 
     const [shapes, setShapes] = useState<Shapes>(new Shapes([]))
@@ -15,7 +14,7 @@ export const GradientBackground = memo(function GradientBackground() {
 
     console.log('GradientBackground', { location, c })
 
-    const backDropColor = alpha(theme.palette.mode === 'dark' ? '#000' : '#fff', 0)
+    // const backDropColor = alpha(themeOptions.mode === 'dark' ? '#000' : '#fff', 0)
 
     const generateRadialGradient = (): RadialGradient => {
         const getColor = () => Math.round(Math.random() * 100 + 50)
@@ -201,7 +200,7 @@ export const GradientBackground = memo(function GradientBackground() {
                         height={window.innerHeight}
                         style={{ width: '100%', height: '100%', touchAction: 'none', userSelect: 'none' }}
                     />
-                    <Box sx={{ backgroundColor: backDropColor, position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }} />
+                    {/* <Box sx={{ backgroundColor: backDropColor, position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }} /> */}
                 </>
             }
         </>

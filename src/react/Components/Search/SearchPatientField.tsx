@@ -1,12 +1,13 @@
 import { useState, ChangeEvent, memo } from "react";
 import { t } from "i18next";
-import { CircularProgress, InputAdornment, TextField } from "@mui/material";
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
-import { SearchOutlined } from "@mui/icons-material";
 import { Patient } from "../../../Electron/Database/Models/Patient";
 import { ManagePatient } from "../Patients/ManagePatient";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
+import { Input } from "../Base/Input";
+import { CircularLoading } from "../Base/CircularLoading";
+import { SearchIcon } from "lucide-react";
 
 export const SearchPatientField = memo(function SearchPatientField() {
     const [loading, setLoading] = useState<boolean>(false);
@@ -41,23 +42,17 @@ export const SearchPatientField = memo(function SearchPatientField() {
 
     return (
         <>
-            <TextField
-                fullWidth
+            <Input
                 label={t('SearchPatientField.search')}
+                labelId={t('SearchPatientField.search')}
                 type="text"
-                variant="standard"
                 value={socialId ?? ''}
                 placeholder={t('SearchPatientField.socialId')}
                 onChange={onSocialIdChange}
-                error={socialId !== undefined && socialId.length !== 0 && socialId.length !== 10}
-                helperText={socialId !== undefined && socialId.length !== 0 && socialId.length !== 10 ? t('SearchPatientField.InvalidSocialId') : (!loading && socialId && socialId.length === 10 && !patient ? t('SearchPatientField.patientNotFound') : '')}
-                InputProps={{
-                    startAdornment: (
-                        <InputAdornment position="start">
-                            {loading ? <CircularProgress size={20} /> : <SearchOutlined />}
-                        </InputAdornment>
-                    ),
-                }} />
+                // error={socialId !== undefined && socialId.length !== 0 && socialId.length !== 10}
+                // helperText={socialId !== undefined && socialId.length !== 0 && socialId.length !== 10 ? t('SearchPatientField.InvalidSocialId') : (!loading && socialId && socialId.length === 10 && !patient ? t('SearchPatientField.patientNotFound') : '')}
+                startIcon={loading ? <CircularLoading /> : <SearchIcon />}
+            />
 
             <ManagePatient
                 open={patient !== undefined}

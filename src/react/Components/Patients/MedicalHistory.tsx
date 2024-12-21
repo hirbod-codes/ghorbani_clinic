@@ -6,10 +6,14 @@ import { Modal } from "../Base/Modal";
 import { MedicalHistorySearch } from "../MedicalHistory/MedicalHistorySearch";
 import { resources } from "../../../Electron/Database/Repositories/Auth/resources";
 import { AuthContext } from "../../Contexts/AuthContext";
+import { Separator } from "../../shadcn/components/ui/separator";
+import { Button } from "../../shadcn/components/ui/button";
+import { Tooltip } from "../Base/Tooltip";
+import { EditIcon } from "lucide-react";
 
 export type MedicalHistoryProps = {
     open: boolean;
-    onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void;
+    onClose?: () => void;
     inputMedicalHistory?: PatientsMedicalHistory | undefined;
     onSave?: (medicalHistory: PatientsMedicalHistory) => any;
     onChange?: (medicalHistory: PatientsMedicalHistory) => any;
@@ -30,8 +34,6 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
         open: false,
         title: '',
         content: '',
-        e: undefined,
-        r: undefined
     }
     const [dialog, setDialog] = useState(initDialog)
     const closeDialog = () => setDialog(initDialog)
@@ -45,59 +47,57 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
     return (
         <>
             <Modal
-                closeAfterTransition
-                disableAutoFocus
-                onClose={(e, r) => {
-                    console.log({ e, r })
+                onClose={() => {
                     if (hasUnsavedChanges)
                         setDialog({
                             open: true,
                             title: t('MedicalHistories.exiting'),
                             content: t('MedicalHistories.areYouSure?YouHaveUnsavedChanges'),
-                            e,
-                            r
                         })
                     else if (onClose)
-                        onClose(e, r)
+                        onClose()
                 }}
                 open={open}
             >
-                <Stack direction='column' justifyContent='end' sx={{ height: '100%', width: '100%' }} spacing={3}>
-
-                    <Paper sx={{ width: '100%', flexGrow: 2, p: 2 }}>
-                        <Stack direction='row' sx={{ height: '100%', width: '100%' }} justifyContent='space-between' spacing={2}>
-                            <Paper elevation={2} sx={{ maxWidth: '48%', height: '100%', flexGrow: 2, p: 3 }}>
-                                <Stack direction='column' sx={{ height: '100%', width: '100%' }} spacing={2} divider={<Divider orientation="horizontal" variant='middle' />}>
+                <div className="size-full flex flex-col justify-end space-x-3 space-y-3">
+                    <div className="w-full flex-grow p-2">
+                        <div className="flex flex-row size-full justify-between space-x-2 space-y-2">
+                            <div className="flex-grow shadow-md max-w-[48%] h-full p-3">
+                                <div className="flex flex-col size-full space-x-2 space-y-2">
                                     {updateMedicalHistory &&
-                                        // using Stack component because alignItems='start' will make dividers invisible!!
-                                        <Stack direction='row' justifyContent='start'>
-                                            <IconButton size="small" onClick={() => setIsEditingHistories(true)}>
-                                                <Tooltip title={t('MedicalHistories.Edit')}>
-                                                    <EditOutlined />
-                                                </Tooltip>
-                                            </IconButton>
-                                        </Stack>
+                                        // using div component because alignItems='start' will make dividers invisible!!
+                                        <div className="flex flex-row justify-start">
+                                            <Tooltip tooltipContent={t('MedicalHistories.Edit')}>
+                                                <Button size="icon" onClick={() => setIsEditingHistories(true)}>
+                                                    <EditIcon />
+                                                </Button>
+                                            </Tooltip>
+                                        </div>
                                     }
 
-                                    <Box sx={{ width: '100%', overflow: 'auto', textWrap: 'nowrap' }}>
-                                        <Typography variant='h6'>
+                                    <Separator />
+
+                                    <div className="w-full overflow-auto text-nowrap">
+                                        <h6>
                                             {t('MedicalHistories.medicalHistory')}
-                                        </Typography>
-                                    </Box>
+                                        </h6>
+                                    </div>
 
-                                    <List sx={{ overflow: 'auto', flexGrow: 2 }}>
+                                    <Separator />
+
+                                    <div className="flex flex-col overflow-auto flex-grow">
                                         {medicalHistory?.histories?.map((h, i) =>
-                                            <ListItem key={i}>
-                                                <ListItemText primary={h} />
-                                            </ListItem>
+                                            <p key={i}>
+                                                {h}
+                                            </p>
                                         )}
-                                    </List>
-                                </Stack>
-                            </Paper>
+                                    </div>
+                                </div>
+                            </div>
 
-                            <Divider orientation="vertical" variant='middle' />
+                            <Separator orientation="vertical" />
 
-                            <Paper elevation={2} sx={{ maxWidth: '48%', height: '100%', flexGrow: 2, p: 3 }}>
+                            <div className="max-w-[48%] h-full flex-grow p-3 shadow-md">
                                 <Editor
                                     title={t('MedicalHistories.medicalHistory')}
                                     hideCanvas={!updateMedicalHistory}
@@ -115,20 +115,20 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                                     }}
                                     setHasUnsavedChanges={setHasUnsavedChanges}
                                 />
-                            </Paper>
-                        </Stack>
-                    </Paper>
+                            </div>
+                        </div>
+                    </div>
 
-                    <Divider orientation="horizontal" variant='middle' />
+                    <Separator />
 
-                    <Button variant='outlined' onClick={async () => {
+                    <Button variant='outline' onClick={async () => {
                         if (onSave)
                             await onSave(medicalHistory)
                         setHasUnsavedChanges(false)
                     }}>
                         {t('MedicalHistories.save')}
                     </Button>
-                </Stack>
+                </div>
             </Modal >
 
             <Modal open={isEditingHistories} onClose={() => { setIsEditingHistories(false) }}>
@@ -144,25 +144,22 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                 />
             </Modal>
 
-            <Dialog open={dialog.open} onClose={closeDialog} >
-                <DialogTitle>
-                    {dialog.title}
-                </DialogTitle>
-                <DialogContent>
-                    <DialogContentText whiteSpace={'break-spaces'}>
-                        {dialog.content}
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
+            <Modal
+                open={dialog.open}
+                onClose={closeDialog}
+                title={dialog.title}
+                footer={<>
                     <Button onClick={closeDialog}>{t('MedicalHistories.No')}</Button>
                     <Button onClick={() => {
                         if (onClose)
-                            onClose(dialog.e, dialog.r)
+                            onClose()
 
                         closeDialog()
                     }}>{t('MedicalHistories.Yes')}</Button>
-                </DialogActions>
-            </Dialog>
+                </>}
+            >
+                {dialog.content}
+            </Modal>
         </>
     )
 }

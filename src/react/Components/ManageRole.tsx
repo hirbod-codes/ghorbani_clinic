@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import { Typography, Accordion, AccordionSummary, AccordionDetails, Divider, TextField, Button, List, ListItem, ListItemText, Collapse, Checkbox, CircularProgress } from "@mui/material";
-import { ExpandMoreOutlined } from "@mui/icons-material";
 import { resources as staticResources } from "../../Electron/Database/Repositories/Auth/resources";
 import { t } from "i18next";
 import { Privilege } from "../../Electron/Database/Models/Privilege";
@@ -9,6 +7,13 @@ import LoadingScreen from "./Base/LoadingScreen";
 import { getAttributes } from "../../Electron/Database/Repositories/Auth/resources";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish } from "../Lib/Events";
+import { Button } from "../shadcn/components/ui/button";
+import { Separator } from "../shadcn/components/ui/separator";
+import { Input } from "./Base/Input";
+import { CircularLoading } from "./Base/CircularLoading";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../shadcn/components/ui/accordion";
+import { Switch } from "./Base/Switch";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../shadcn/components/ui/collapsible";
 
 type Resource = { name: string, index: number, create?: boolean, read?: string[] | undefined, update?: string[] | undefined, delete?: boolean }
 
@@ -162,32 +167,31 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
 
     return (
         <>
-            <Typography variant='h5' textAlign='center'>{defaultRole ? t('ManageRole.ManageRole') : t('ManageRole.createRole')}</Typography>
-            <Divider sx={{ mt: 1, mb: 2 }} />
+            <h5 className="text-center">{defaultRole ? t('ManageRole.ManageRole') : t('ManageRole.createRole')}</h5>
+            <Separator />
             {/* Role name */}
-            <TextField fullWidth variant='standard' value={roleName ?? ''} label={t('ManageRole.roleName')} onChange={(e) => setRoleName(e.target.value)} />
+            <Input value={roleName ?? ''} label={t('ManageRole.roleName')} onChange={(e) => setRoleName(e.target.value)} />
             {resources.map((r, i) =>
-                <Accordion key={i}>
-                    <AccordionSummary expandIcon={<ExpandMoreOutlined />}>
-                        {r.name}
-                    </AccordionSummary>
-                    <AccordionDetails>
-                        <List>
-                            <ListItem>
-                                <ListItemText primary={t('ManageRole.create')} />
-                                <Checkbox
-                                    edge="end"
+                <Accordion key={i} type="single" collapsible>
+                    <AccordionItem value="item-1">
+                        <AccordionTrigger>
+                            {r.name}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                            <div className="flex flex-col">
+                                <Switch
+                                    label={t('ManageRole.create')}
+                                    labelId={t('ManageRole.create')}
+                                    checked={r.create ?? false}
                                     onChange={() => {
                                         resources[i].create = !(r.create ?? false)
                                         setResources([...resources])
                                     }}
-                                    checked={r.create ?? false}
                                 />
-                            </ListItem>
-                            <ListItem>
-                                <ListItemText primary={t('ManageRole.read')} />
-                                <Checkbox
-                                    edge='end'
+
+                                <Switch
+                                    label={t('ManageRole.read')}
+                                    labelId={t('ManageRole.read')}
                                     checked={r?.read !== undefined}
                                     onChange={() => {
                                         if (r.read !== undefined)
@@ -199,45 +203,49 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                                         console.log(r?.read !== undefined)
                                     }}
                                 />
-                            </ListItem>
-                            <Collapse in={r?.read !== undefined} timeout="auto" unmountOnExit >
-                                <List component="div" disablePadding>
-                                    {
-                                        getAttributes(r.name, 'read').map((a, ai) =>
-                                            <ListItem key={ai} sx={{ pl: 5, pr: 5 }}>
-                                                <ListItemText primary={a} />
-                                                {
-                                                    a === '_id'
-                                                        ? <Checkbox
-                                                            edge="end"
-                                                            disabled
-                                                            checked
-                                                        />
-                                                        : <Checkbox
-                                                            edge="end"
-                                                            disabled={a === '_id'}
-                                                            onChange={() => {
-                                                                if (!resources[i].read)
-                                                                    resources[i].read = []
 
-                                                                if (r.read?.includes(a))
-                                                                    resources[i].read = resources[i].read?.filter(elm => elm !== a) ?? undefined
-                                                                else
-                                                                    resources[i].read.push(a)
-                                                                setResources([...resources])
-                                                            }}
-                                                            checked={r.read?.includes(a) ?? false}
-                                                        />
-                                                }
-                                            </ListItem>
-                                        )
-                                    }
-                                </List>
-                            </Collapse>
-                            <ListItem>
-                                <ListItemText primary={t('ManageRole.update')} />
-                                <Checkbox
-                                    edge="end"
+                                <Collapsible>
+                                    <CollapsibleTrigger>
+                                        p
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent>
+                                        <div className="flex flex-col justify-center">
+                                            {
+                                                getAttributes(r.name, 'read').map((a, ai) =>
+                                                    <div key={ai} className="px-5">
+                                                        <p>{a}</p>
+                                                        {
+                                                            a === '_id'
+                                                                ? <Switch
+                                                                    disabled
+                                                                    checked
+                                                                />
+                                                                : <Switch
+                                                                    disabled={a === '_id'}
+                                                                    onChange={() => {
+                                                                        if (!resources[i].read)
+                                                                            resources[i].read = []
+
+                                                                        if (r.read?.includes(a))
+                                                                            resources[i].read = resources[i].read?.filter(elm => elm !== a) ?? undefined
+                                                                        else
+                                                                            resources[i].read.push(a)
+                                                                        setResources([...resources])
+                                                                    }}
+                                                                    checked={r.read?.includes(a) ?? false}
+                                                                />
+                                                        }
+                                                    </div>
+                                                )
+                                            }
+                                        </div>
+                                    </CollapsibleContent>
+                                </Collapsible>
+
+                                <Switch
+                                    label={t('ManageRole.update')}
+                                    labelId={t('ManageRole.update')}
+                                    checked={r?.update !== undefined}
                                     onChange={() => {
                                         if (r.update !== undefined)
                                             resources[i].update = undefined
@@ -247,51 +255,54 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                                         console.log(resources)
                                         console.log(r?.update !== undefined)
                                     }}
-                                    checked={r?.update !== undefined}
                                 />
-                            </ListItem>
-                            <Collapse in={r?.update !== undefined} timeout="auto" unmountOnExit >
-                                <List component="div" disablePadding>
-                                    {
-                                        getAttributes(r.name, 'update').map((a, ai) =>
-                                            <ListItem key={ai} sx={{ pl: 5, pr: 5 }}>
-                                                <ListItemText primary={a} />
-                                                <Checkbox
-                                                    edge="end"
-                                                    onChange={() => {
-                                                        if (!resources[i].update)
-                                                            resources[i].update = []
 
-                                                        if (r.update?.includes(a))
-                                                            resources[i].update = resources[i].update?.filter(elm => elm !== a) ?? undefined
-                                                        else
-                                                            resources[i].update.push(a)
-                                                        setResources([...resources])
-                                                    }}
-                                                    checked={r.update?.includes(a) ?? false}
-                                                />
-                                            </ListItem>
-                                        )
-                                    }
-                                </List>
-                            </Collapse>
-                            <ListItem>
-                                <ListItemText primary={t('ManageRole.delete')} />
-                                <Checkbox
-                                    edge="end"
+                                <Switch
+                                    label={t('ManageRole.delete')}
+                                    labelId={t('ManageRole.delete')}
+                                    checked={r.delete ?? false}
                                     onChange={() => {
                                         resources[i].delete = !(r.delete ?? false)
                                         setResources([...resources])
                                     }}
-                                    checked={r.delete ?? false}
                                 />
-                            </ListItem>
-                        </List>
-                    </AccordionDetails>
-                </Accordion >
+
+                                <Collapsible>
+                                    <CollapsibleTrigger>
+                                        p
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent>
+                                        <div className="flex flex-col justify-center">
+                                            {
+                                                getAttributes(r.name, 'update').map((a, ai) =>
+                                                    <div key={ai} className="px-5">
+                                                        <p>{a}</p>
+                                                        <Switch
+                                                            checked={r.update?.includes(a) ?? false}
+                                                            onChange={() => {
+                                                                if (!resources[i].update)
+                                                                    resources[i].update = []
+
+                                                                if (r.update?.includes(a))
+                                                                    resources[i].update = resources[i].update?.filter(elm => elm !== a) ?? undefined
+                                                                else
+                                                                    resources[i].update.push(a)
+                                                                setResources([...resources])
+                                                            }}
+                                                        />
+                                                    </div>
+                                                )
+                                            }
+                                        </div>
+                                    </CollapsibleContent>
+                                </Collapsible>
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
             )}
-            <Divider sx={{ mt: 1, mb: 2 }} />
-            <Button fullWidth disabled={finishing || !roleName || roleName.trim() === ''} onClick={done}>{finishing ? <CircularProgress size={20} /> : t('ManageRole.done')}</Button>
+            <Separator />
+            <Button disabled={finishing || !roleName || roleName.trim() === ''} onClick={done}>{finishing ? <CircularLoading /> : t('ManageRole.done')}</Button>
         </>
     )
 }
