@@ -1,8 +1,7 @@
-import { darken, hslToRgb, lighten, useMediaQuery } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { useTranslation } from "react-i18next";
 import type { Calendar, Config, configAPI, LanguageCodes, ThemeMode, ThemeOptions, TimeZone } from '../../../Electron/Configuration/renderer.d';
-import { hslToHex, shadeColor } from '../../Lib/colors';
+import { shadeColor, stringify } from '../../Lib/Colors';
 
 export function useConfigurationHook() {
     const { i18n } = useTranslation();
@@ -15,7 +14,7 @@ export function useConfigurationHook() {
             direction: 'ltr'
         },
         themeOptions: {
-            mode: useMediaQuery('(prefers-color-scheme: dark)') ? 'dark' : 'light',
+            mode: window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light',
             colors: {
                 black: 'hsl(222, 50%, 10%)',
                 white: 'hsl(0, 0%, 100%)',
@@ -98,7 +97,7 @@ export function useConfigurationHook() {
             if (key === 'background' || key === 'foreground')
                 continue
             else
-                document.documentElement.style.setProperty('--' + key, mode === 'dark' ? shadeColor(configuration.themeOptions.colors[key], 0.5) : shadeColor(configuration.themeOptions.colors[key], 1.5))
+                document.documentElement.style.setProperty('--' + key, mode === 'dark' ? stringify(shadeColor(configuration.themeOptions.colors[key], 0.5)) : stringify(shadeColor(configuration.themeOptions.colors[key], 1.5)))
     }
 
     const [isConfigurationContextReady, setIsConfigurationContextReady] = useState<boolean>(false);

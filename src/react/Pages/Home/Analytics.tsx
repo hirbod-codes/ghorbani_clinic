@@ -1,13 +1,14 @@
 import { memo, useEffect, useState } from "react";
 import { t } from "i18next";
-import { Button, CircularProgress, Stack, Typography } from "@mui/material";
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
-import { RefreshOutlined } from "@mui/icons-material";
 import { AnimatedCircularProgressBar } from "../../Components/Animations/AnimatedCircularProgressBar";
 import { AnimatedCounter } from "../../Components/Animations/AnimatedCounter";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 import { motion } from "framer-motion";
+import { Button } from "../../shadcn/components/ui/button";
+import { CircularLoading } from "../../Components/Base/CircularLoading";
+import { RefreshCcwIcon } from "lucide-react";
 
 export const Analytics = memo(function Analytics() {
     const [initLoading, setInitLoading] = useState<boolean>(true);
@@ -91,16 +92,16 @@ export const Analytics = memo(function Analytics() {
         <>
             {!visitsCount || !expiredVisitsCount || !patientsCount
                 ?
-                <Button onClick={async () => await initProgressBars()} variant='outlined' startIcon={<RefreshOutlined />} fullWidth> {t('Reload')} </Button>
+                <Button onClick={async () => await initProgressBars()} variant='outline'><RefreshCcwIcon />{t('Reload')} </Button>
                 :
                 (
                     initLoading
                         ?
-                        <Stack justifyContent='center' alignItems='center' sx={{ height: '100%', width: '100%' }}>
-                            <CircularProgress />
-                        </Stack>
+                        <div className="flex flex-row justify-center items-center size-full">
+                            <CircularLoading />
+                        </div>
                         :
-                        <Stack direction='column' alignItems='center' justifyContent='flex-start' sx={{ position: 'relative' }}>
+                        <div className="flex flex-col justify-start items-center relative">
                             {visitsCount !== undefined
                                 ?
                                 <motion.div
@@ -112,16 +113,16 @@ export const Analytics = memo(function Analytics() {
                                     }}
                                 >
                                     <AnimatedCircularProgressBar size={200} end={70}>
-                                        <Typography variant='h4'>
+                                        <h4>
                                             <AnimatedCounter start={0} end={visitsCount} />
-                                        </Typography>
+                                        </h4>
                                     </AnimatedCircularProgressBar>
-                                    <Typography variant="body1" textAlign='center' sx={{ position: 'relative', top: '-3rem' }}>
+                                    <p className="text-center relative -top-1">
                                         {t('Analytics.visits')}
-                                    </Typography>
+                                    </p>
                                 </motion.div>
                                 :
-                                <CircularProgress />
+                                <CircularLoading />
                             }
                             {expiredVisitsCount !== undefined
                                 ?
@@ -134,16 +135,16 @@ export const Analytics = memo(function Analytics() {
                                     }}
                                 >
                                     <AnimatedCircularProgressBar size={200} end={70}>
-                                        <Typography variant='h4'>
+                                        <h4>
                                             <AnimatedCounter start={0} end={expiredVisitsCount} />
-                                        </Typography>
+                                        </h4>
                                     </AnimatedCircularProgressBar>
-                                    <Typography variant="body1" textAlign='center' sx={{ position: 'relative', top: '-3rem' }}>
+                                    <p className="text-center relative -top-1">
                                         {t('Analytics.expiredVisits')}
-                                    </Typography>
+                                    </p>
                                 </motion.div>
                                 :
-                                <CircularProgress />
+                                <CircularLoading />
                             }
                             {patientsCount !== undefined
                                 ?
@@ -156,18 +157,18 @@ export const Analytics = memo(function Analytics() {
                                     }}
                                 >
                                     <AnimatedCircularProgressBar size={200} end={70}>
-                                        <Typography variant='h4'>
+                                        <h4>
                                             <AnimatedCounter start={0} end={patientsCount} />
-                                        </Typography>
+                                        </h4>
                                     </AnimatedCircularProgressBar>
-                                    <Typography variant="body1" textAlign='center' sx={{ position: 'relative', top: '-3rem' }}>
+                                    <p className="text-center relative -top-1">
                                         {t('Analytics.patients')}
-                                    </Typography>
+                                    </p>
                                 </motion.div>
                                 :
-                                <CircularProgress />
+                                <CircularLoading />
                             }
-                        </Stack>
+                        </div>
                 )}
         </>
     );

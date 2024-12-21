@@ -1,11 +1,9 @@
 import { useState, useContext, useEffect, memo, useMemo } from "react";
 import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { t } from "i18next";
-import { Button, CircularProgress, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Grid, IconButton, Paper, Stack, useTheme } from "@mui/material";
 import { DATE, toFormat } from "../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../Contexts/Configuration/ConfigurationContext";
 import { Patient } from "../../Electron/Database/Models/Patient";
-import { AddOutlined, DeleteOutline, EditOutlined, RefreshOutlined } from "@mui/icons-material";
 import { AuthContext } from "../Contexts/AuthContext";
 import { resources } from "../../Electron/Database/Repositories/Auth/resources";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
@@ -21,6 +19,10 @@ import { ColumnDef } from "@tanstack/react-table";
 import { getLuxonLocale } from "../Lib/localization";
 import { Modal } from "../Components/Base/Modal";
 import { DocumentManagement } from "../Components/DocumentManagement";
+import { Button } from "../shadcn/components/ui/button";
+import { CircularLoading } from "../Components/Base/CircularLoading";
+import { EditIcon, PlusIcon, RefreshCwIcon } from "lucide-react";
+import { TrashIcon } from "../Components/Icons/TrashIcon";
 
 export const Patients = memo(function Patients() {
     const auth = useContext(AuthContext)
@@ -203,21 +205,23 @@ export const Patients = memo(function Patients() {
             id: 'actions',
             accessorKey: 'actions',
             cell: ({ row }) =>
-                <Stack direction='row' alignItems='center'>
+                <div className="flex flex-row items-center">
                     {
                         updatesPatient
-                            ? <IconButton
+                            ? <Button
+                                size='icon'
                                 onClick={() => {
                                     setEditingPatientId(patients?.find(p => p._id === row.original._id)?._id as string)
                                 }}
                             >
-                                {editingPatientId === row.original._id ? <CircularProgress size={20} /> : <EditOutlined />}
-                            </IconButton>
+                                {editingPatientId === row.original._id ? <CircularLoading /> : <EditIcon />}
+                            </Button>
                             : null
                     }
                     {
                         deletesPatient
-                            ? <IconButton
+                            ? <Button
+                                size='icon'
                                 onClick={async () => {
                                     setDialog({
                                         open: true,
@@ -248,11 +252,11 @@ export const Patients = memo(function Patients() {
                                     })
                                 }}
                             >
-                                {deletingPatientId === row.original._id ? <CircularProgress size={20} /> : <DeleteOutline />}
-                            </IconButton>
+                                {deletingPatientId === row.original._id ? <CircularLoading /> : <TrashIcon />}
+                            </Button>
                             : null
                     }
-                </Stack>
+                </div>
         },
         {
             id: 'documents',
@@ -271,9 +275,9 @@ export const Patients = memo(function Patients() {
 
     return (
         <>
-            <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
-                <Grid item xs={12} height={'100%'}>
-                    <Paper style={{ padding: '1rem', height: '100%' }} elevation={3}>
+            <div className="grid-cols-12 space-x-1 space-y-1 p-2 h-full">
+                <div className="sm:col-span-12 h-full">
+                    <div className="p-[1rem] h-full shadow-lg">
                         {!patients || patients?.length === 0 || !showGrid
                             ? <LoadingScreen />
                             : <DataGrid
@@ -292,14 +296,14 @@ export const Patients = memo(function Patients() {
                                     return result
                                 }}
                                 appendHeaderNodes={[
-                                    <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Patients.Refresh')}</Button>,
-                                    createsPatient && <Button onClick={() => setCreatingPatient(true)} startIcon={<AddOutlined />}>{t('Patients.Create')}</Button>,
+                                    <Button onClick={async () => await init(page.offset, page.limit)}><RefreshCwIcon />{t('Patients.Refresh')}</Button>,
+                                    createsPatient && <Button onClick={() => setCreatingPatient(true)}><PlusIcon />{t('Patients.Create')}</Button>,
                                 ]}
                             />
                         }
-                    </Paper>
-                </Grid>
-            </Grid>
+                    </div>
+                </div>
+            </div>
 
             <Modal open={showingDocuments} onClose={() => setShowingDocuments(false)}>
                 <DocumentManagement patientId={activePatientId!} />
@@ -391,26 +395,21 @@ export const Patients = memo(function Patients() {
                 }}
             />
 
-            <Dialog open={dialog.open} onClose={closeDialog} >
-                {dialog.title &&
-                    <DialogTitle>
-                        {dialog.title}
-                    </DialogTitle>
-                }
-                <DialogContent>
-                    <DialogContentText whiteSpace={'break-spaces'}>
-                        {dialog.content}
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
+            <Modal
+                open={dialog.open}
+                onClose={closeDialog}
+                title={dialog.title}
+                footer={<>
                     <Button onClick={closeDialog}>{t('Patients.No')}</Button>
                     <Button onClick={() => {
                         if (dialog.action && typeof dialog.action === 'function')
                             dialog.action()
                         closeDialog()
                     }}>{t('Patients.Yes')}</Button>
-                </DialogActions>
-            </Dialog>
+                </>}
+            >
+                {dialog.content}
+            </Modal>
         </>
     )
 })

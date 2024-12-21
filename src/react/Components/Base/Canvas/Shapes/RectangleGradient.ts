@@ -3,7 +3,7 @@ import { Boundary, Draw, Point } from "../types";
 import { Shape } from "./Shape";
 import { SelectionBox } from './SelectionBox';
 import { getRadiansFromTwoPoints, lineFunction, pointFromLineDistance } from '../../../../Lib/Math/2d';
-import { rgbToHex } from '@/src/react/Lib/colors';
+import { rgbToHex } from '@/src/react/Lib/Colors';
 
 export type UpdateGradient = { steps?: { offset: number, color: { r: number; g: number; b: number; a: number; } }[], startAngle?: number, x0?: number, y0?: number, r0?: number, x1?: number, y1?: number, r1?: number }
 

@@ -1,11 +1,15 @@
-import { HomeOutlined, PersonOutlined, MasksOutlined, AccessTimeOutlined, DisplaySettingsOutlined, StorageOutlined, FormatPaintOutlined, DarkModeOutlined, LightModeOutlined, LoginOutlined, LogoutOutlined, MenuOutlined, SettingsBackupRestoreOutlined } from '@mui/icons-material';
-import { alpha, darken, lighten, Drawer, Stack, List, ListItemButton, ListItemIcon, ListItemText, CircularProgress, Box, AppBar, IconButton, Toolbar, Typography } from '@mui/material';
 import { t } from 'i18next';
 import { memo, useContext, useState } from 'react';
 import { AuthContext } from '../Contexts/AuthContext';
 import { ConfigurationContext } from '../Contexts/Configuration/ConfigurationContext';
 import { resources } from '../../Electron/Database/Repositories/Auth/resources';
 import { useNavigate } from 'react-router-dom';
+import { setAlpha, shadeColor } from '../Lib/Colors';
+import { Button } from '../shadcn/components/ui/button';
+import { DatabaseIcon, HistoryIcon, HomeIcon, LogInIcon, LogOutIcon, MoonIcon, PaintRollerIcon, SettingsIcon, ShieldAlertIcon, SunIcon, TimerIcon, UserIcon, UsersIcon } from 'lucide-react';
+import { MenuIcon } from './Icons/MenuIcon';
+import { CircularLoading } from './Base/CircularLoading';
+import { Drawer } from './Base/Drawer';
 
 export const Navigation = memo(function Navigation() {
     const navigate = useNavigate();
@@ -24,8 +28,8 @@ export const Navigation = memo(function Navigation() {
     console.log('Navigation', { auth, configuration })
 
     const appBarBorderColor = configuration.themeOptions.mode === 'dark' ? '#fff' : '#000'
-    const appBarGradientColor = alpha(configuration.themeOptions.mode === 'dark' ? '#fff' : '#000', 0.7)
-    const drawerGradientColor = configuration.themeOptions.mode === 'dark' ? darken('#fff', 0.7) : lighten('#000', 0.7)
+    const appBarGradientColor = setAlpha(configuration.themeOptions.mode === 'dark' ? '#fff' : '#000', 0.7)
+    const drawerGradientColor = configuration.themeOptions.mode === 'dark' ? shadeColor('#fff', 0.7) : shadeColor('#000', 1.7)
 
     const moveTo = (destination: string) => {
         setOpenDrawer(false)
@@ -39,132 +43,126 @@ export const Navigation = memo(function Navigation() {
 
     return (
         <>
-            <Box sx={{ background: `radial-gradient(ellipse farthest-side at top, ${appBarGradientColor}, 5%, transparent)` }}>
-                <Drawer
-                    open={openDrawer}
-                    onClose={() => setOpenDrawer(false)}
-                    transitionDuration={250}
-                    PaperProps={{ sx: { background: configuration.themeOptions.colors.background, boxShadow: '0' } }}
-                    componentsProps={{ backdrop: { sx: { background: 'transparent' } } }}
-                >
-                    <Stack direction={'row'} alignItems='center' sx={{ height: '100%', background: `linear-gradient(90deg, ${drawerGradientColor}, 50%, transparent)` }}>
-                        <List sx={{ overflow: 'auto', height: '100%' }}>
-                            <Box sx={{ mb: 8 }} />
+            <div className={`bg-[radial-gradient(ellipse farthest-side at top, ${appBarGradientColor}, 5%, transparent)]`}>
+                <Drawer open={openDrawer} onOpenChange={(o) => setOpenDrawer(o)}>
+                    <div className={`flex flex-row items-center h-full bg-[linear-gradient(90deg, ${drawerGradientColor}, 50%, transparent)]`}>
+                        <div className='flex flex-col overflow-auto h-full'>
+                            <div className='mb-8' />
 
-                            <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/')}>
-                                <ListItemIcon sx={{ color: window.location.pathname !== '/' ? 'white' : activeColor }} >
-                                    <HomeOutlined />
-                                </ListItemIcon>
-                                <ListItemText sx={{ color: window.location.pathname !== '/' ? 'white' : activeColor }} primary={t('Navigation.home')} />
-                            </ListItemButton>
+                            <Button className='pr-8' variant={'ghost'} onClick={() => moveTo('/')}>
+                                <Button variant='ghost' style={{ color: window.location.pathname !== '/' ? 'white' : activeColor }} >
+                                    <HomeIcon />
+                                </Button>
+                                <p style={{ color: window.location.pathname !== '/' ? 'white' : activeColor }}>{t('Navigation.home')}</p>
+                            </Button>
 
-                            <Box sx={{ mb: 8 }} />
+                            <div className='mb-8' />
 
                             {readsUsers &&
-                                <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/Users')} >
-                                    <ListItemIcon sx={{ color: window.location.pathname !== '/Users' ? 'white' : activeColor }}>
-                                        <PersonOutlined />
-                                    </ListItemIcon>
-                                    <ListItemText sx={{ color: window.location.pathname !== '/Users' ? 'white' : activeColor }} primary={t('Navigation.users')} />
-                                </ListItemButton>}
+                                <Button className='pr-8' variant={'ghost'} onClick={() => moveTo('/Users')} >
+                                    <Button variant='ghost' style={{ color: window.location.pathname !== '/Users' ? 'white' : activeColor }}>
+                                        <UsersIcon />
+                                    </Button>
+                                    <p style={{ color: window.location.pathname !== '/Users' ? 'white' : activeColor }}>{t('Navigation.users')}</p>
+                                </Button>}
 
-                            <Box sx={{ mb: 2 }} />
+                            <div className='mb-2' />
 
                             {readsPatients &&
-                                <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/Patients')} >
-                                    <ListItemIcon sx={{ color: window.location.pathname !== '/Patients' ? 'white' : activeColor }}>
-                                        <MasksOutlined />
-                                    </ListItemIcon>
-                                    <ListItemText sx={{ color: window.location.pathname !== '/Patients' ? 'white' : activeColor }} primary={t('Navigation.patients')} />
-                                </ListItemButton>}
+                                <Button className='pr-8' variant={'ghost'} onClick={() => moveTo('/Patients')} >
+                                    <Button variant='ghost' style={{ color: window.location.pathname !== '/Patients' ? 'white' : activeColor }}>
+                                        <ShieldAlertIcon />
+                                    </Button>
+                                    <p style={{ color: window.location.pathname !== '/Patients' ? 'white' : activeColor }}>{t('Navigation.patients')}</p>
+                                </Button>}
 
-                            <Box sx={{ mb: 2 }} />
+                            <div className='mb-2' />
 
                             {readsVisits &&
-                                <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/Visits')} >
-                                    <ListItemIcon sx={{ color: window.location.pathname !== '/Visits' ? 'white' : activeColor }}>
-                                        <AccessTimeOutlined />
-                                    </ListItemIcon>
-                                    <ListItemText sx={{ color: window.location.pathname !== '/Visits' ? 'white' : activeColor }} primary={t('Navigation.visits')} />
-                                </ListItemButton>}
+                                <Button className='pr-8' variant={'ghost'} onClick={() => moveTo('/Visits')} >
+                                    <Button variant='ghost' style={{ color: window.location.pathname !== '/Visits' ? 'white' : activeColor }}>
+                                        <TimerIcon />
+                                    </Button>
+                                    <p style={{ color: window.location.pathname !== '/Visits' ? 'white' : activeColor }}>{t('Navigation.visits')}</p>
+                                </Button>}
 
-                            <Box sx={{ mb: 2 }} />
+                            <div className='mb-2' />
 
                             {readsMedicalHistories &&
-                                <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/MedicalHistories')} >
-                                    <ListItemIcon sx={{ color: window.location.pathname !== '/MedicalHistories' ? 'white' : activeColor }}>
-                                        <SettingsBackupRestoreOutlined />
-                                    </ListItemIcon>
-                                    <ListItemText sx={{ color: window.location.pathname !== '/MedicalHistories' ? 'white' : activeColor }} primary={t('Navigation.MedicalHistories')} />
-                                </ListItemButton>}
+                                <Button className='pr-8' variant={'ghost'} onClick={() => moveTo('/MedicalHistories')} >
+                                    <Button variant='ghost' style={{ color: window.location.pathname !== '/MedicalHistories' ? 'white' : activeColor }}>
+                                        <HistoryIcon />
+                                    </Button>
+                                    <p style={{ color: window.location.pathname !== '/MedicalHistories' ? 'white' : activeColor }}>{t('Navigation.MedicalHistories')}</p>
+                                </Button>}
 
-                            <Box sx={{ mb: 8 }} />
+                            <div className='mb-8' />
 
-                            <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/General')} >
-                                <ListItemIcon sx={{ color: window.location.pathname !== '/General' ? 'white' : activeColor }}>
-                                    <DisplaySettingsOutlined />
-                                </ListItemIcon>
-                                <ListItemText sx={{ color: window.location.pathname !== '/General' ? 'white' : activeColor }} primary={t("Navigation.general")} />
-                            </ListItemButton>
+                            <Button className='pr-8' variant={'ghost'} onClick={() => moveTo('/General')} >
+                                <Button variant='ghost' style={{ color: window.location.pathname !== '/General' ? 'white' : activeColor }}>
+                                    <SettingsIcon />
+                                </Button>
+                                <p style={{ color: window.location.pathname !== '/General' ? 'white' : activeColor }}>{t("Navigation.general")}</p>
+                            </Button>
 
-                            <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/ThemeSettings')} >
-                                <ListItemIcon sx={{ color: window.location.pathname !== '/ThemeSettings' ? 'white' : activeColor }}>
-                                    <FormatPaintOutlined />
-                                </ListItemIcon>
-                                <ListItemText sx={{ color: window.location.pathname !== '/ThemeSettings' ? 'white' : activeColor }} primary={t("Navigation.Theme")} />
-                            </ListItemButton>
+                            <Button className='pr-8' variant={'ghost'} onClick={() => moveTo('/ThemeSettings')} >
+                                <Button variant='ghost' style={{ color: window.location.pathname !== '/ThemeSettings' ? 'white' : activeColor }}>
+                                    <PaintRollerIcon />
+                                </Button>
+                                <p style={{ color: window.location.pathname !== '/ThemeSettings' ? 'white' : activeColor }}>{t("Navigation.Theme")}</p>
+                            </Button>
 
-                            <Box sx={{ mb: 8 }} />
+                            <div className='mb-8' />
 
-                            <ListItemButton sx={{ pr: 8 }} onClick={() => moveTo('/DbSettings')} >
-                                <ListItemIcon sx={{ color: window.location.pathname !== '/DbSettings' ? 'white' : activeColor }}>
-                                    <StorageOutlined />
-                                </ListItemIcon>
-                                <ListItemText sx={{ color: window.location.pathname !== '/DbSettings' ? 'white' : activeColor }} primary={t("Navigation.Db")} />
-                            </ListItemButton>
-                        </List>
-                        <Box sx={{ height: '100%', width: '2px', background: `radial-gradient(ellipse farthest-side at center, ${appBarBorderColor}, transparent)` }} />
-                    </Stack>
+                            <Button className='pr-8' variant={'ghost'} onClick={() => moveTo('/DbSettings')} >
+                                <Button variant='ghost' style={{ color: window.location.pathname !== '/DbSettings' ? 'white' : activeColor }}>
+                                    <DatabaseIcon />
+                                </Button>
+                                <p style={{ color: window.location.pathname !== '/DbSettings' ? 'white' : activeColor }}>{t("Navigation.Db")}</p>
+                            </Button>
+                        </div>
+                        <div className={`h-full w-[2px] bg-[radial-gradient(ellipse farthest-side at center, ${appBarBorderColor}, transparent)]`} />
+                    </div>
                 </Drawer>
 
                 {/* top margin is 2rem, because menu bar has a height of 2rem and is positioned fixed */}
-                <Box sx={{ height: '2rem' }} />
+                <div className='h-[2rem]' />
 
-                <AppBar position='relative' sx={{ borderBottom: 0, boxShadow: '0', background: '#00000000' }}>
-                    <Toolbar>
-                        <IconButton size='medium' onClick={() => setOpenDrawer(true)} sx={{ mr: 2 }}>
-                            <MenuOutlined fontSize='inherit' />
-                        </IconButton>
-                        <Typography color={configuration.themeOptions.colors['primary-foreground']} variant='h6' component='div' sx={{ flexGrow: 1 }}>
+                <div className='relative border-b-0 shadow-none bg-[#00000000]'>
+                    <div className='flex flex-row w-full items-center'>
+                        <Button size='icon' onClick={() => setOpenDrawer(true)} className='mr-2'>
+                            <MenuIcon />
+                        </Button>
+                        <h6 className='flex-grow'>
                             {/* Title */}
                             {auth?.user?.username}
-                        </Typography>
+                        </h6>
                         {
                             auth?.user &&
-                            <IconButton size='medium' onClick={async () => await auth?.logout()}>
+                            <Button size='icon' onClick={async () => await auth?.logout()}>
                                 {
                                     auth?.isAuthLoading
-                                        ? <CircularProgress size='small' />
-                                        : <LogoutOutlined fontSize='inherit' />
+                                        ? <CircularLoading />
+                                        : <LogOutIcon fontSize='inherit' />
                                 }
-                            </IconButton>
+                            </Button>
                         }
                         {
                             !auth?.isAuthLoading && !auth?.user &&
-                            <IconButton size='medium' onClick={() => auth?.showModal()}>
+                            <Button size='icon' onClick={() => auth?.showModal()}>
                                 {
                                     auth?.isAuthLoading
-                                        ? <CircularProgress size='small' />
-                                        : <LoginOutlined fontSize='inherit' />
+                                        ? <CircularLoading />
+                                        : <LogInIcon fontSize='inherit' />
                                 }
-                            </IconButton>
+                            </Button>
                         }
-                        <IconButton size='medium' onClick={async () => await configuration.updateTheme(configuration.themeOptions.mode === 'dark' ? 'light' : 'dark', { ...configuration.themeOptions, colors: { ...configuration.themeOptions.colors, primary: configuration.themeOptions.mode === 'dark' ? 'hsl(1, 100%, 50%)' : 'hsl(203, 100%, 50%)' } })}>
-                            {configuration.themeOptions.mode == 'light' ? <LightModeOutlined fontSize='inherit' /> : <DarkModeOutlined fontSize='inherit' />}
-                        </IconButton>
-                    </Toolbar>
-                </AppBar>
-            </Box >
+                        <Button size='icon' onClick={async () => await configuration.updateTheme(configuration.themeOptions.mode === 'dark' ? 'light' : 'dark', { ...configuration.themeOptions, colors: { ...configuration.themeOptions.colors, primary: configuration.themeOptions.mode === 'dark' ? 'hsl(1, 100%, 50%)' : 'hsl(203, 100%, 50%)' } })}>
+                            {configuration.themeOptions.mode == 'light' ? <SunIcon fontSize='inherit' /> : <MoonIcon fontSize='inherit' />}
+                        </Button>
+                    </div>
+                </div>
+            </div >
 
             <div style={{ height: '2px', background: `radial-gradient(ellipse farthest-side at center, ${appBarBorderColor}, transparent)`, margin: '0 1rem' }} />
         </>

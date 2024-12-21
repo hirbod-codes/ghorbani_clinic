@@ -1,6 +1,4 @@
 import { useState, useRef, useEffect, useContext, memo } from "react";
-import { AddOutlined, DeleteOutlined, EditOutlined, RefreshOutlined, RemoveRedEyeOutlined } from '@mui/icons-material';
-import { Modal, Slide, Grid, List, ListItemButton, ListItemText, ListItemIcon, Paper, Typography, Button, Divider, Box, Stack, IconButton, Collapse, CircularProgress } from "@mui/material";
 import { t } from "i18next";
 import { roles as staticRoles } from "../../Electron/Database/Repositories/Auth/dev-permissions";
 import { resources } from "../../Electron/Database/Repositories/Auth/resources";
@@ -18,6 +16,14 @@ import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import { useNavigate } from "react-router-dom";
 import LoadingScreen from "../Components/Base/LoadingScreen";
 import { ColumnDef } from "@tanstack/react-table";
+import { Button } from "../shadcn/components/ui/button";
+import { EditIcon, EyeOffIcon, PlusIcon, RefreshCwIcon } from "lucide-react";
+import { CircularLoading } from "../Components/Base/CircularLoading";
+import { TrashIcon } from "../Components/Icons/TrashIcon";
+import { Accordion, AccordionContent, AccordionTrigger } from "../shadcn/components/ui/accordion";
+import { AccordionItem } from "@radix-ui/react-accordion";
+import { Separator } from "../shadcn/components/ui/separator";
+import { Modal } from "../Components/Base/Modal";
 
 export const Users = memo(function Users() {
     const configuration = useContext(ConfigurationContext)!
@@ -169,18 +175,18 @@ export const Users = memo(function Users() {
             id: 'actions',
             accessorKey: 'actions',
             cell: ({ row }) =>
-                <Stack direction='row' alignItems='center'>
+                <div className="flex flex-row items-center">
                     {
                         updatesUser &&
-                        <IconButton
+                        <Button
                             onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === row.original._id)) }}
                         >
-                            {editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
-                        </IconButton>
+                            {editingUser === undefined ? <EditIcon /> : <CircularLoading />}
+                        </Button>
                     }
                     {
                         deletesUser &&
-                        <IconButton
+                        <Button
                             onClick={async () => {
                                 await deleteUser(row.original._id);
                                 await updateRows(role)
@@ -188,10 +194,10 @@ export const Users = memo(function Users() {
                                     await auth!.logout()
                             }}
                         >
-                            {deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
-                        </IconButton>
+                            {deletingUser === undefined ? <TrashIcon /> : <CircularLoading />}
+                        </Button>
                     }
-                </Stack>
+                </div>
         }
     ] : []
 
@@ -214,14 +220,14 @@ export const Users = memo(function Users() {
 
     return (
         <>
-            <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
+            <div className="grid-cols-12 space-x-1 space-y-1 p-2 h-full">
                 {/* Roles */}
                 {
                     readsRole &&
-                    <Grid item xs={4} sm={2} onMouseLeave={() => setRoleActionsCollapse([])}>
-                        <Paper sx={{ p: 1, height: '100%' }}>
-                            <Typography textAlign='center' variant='h4'>{t('Users.roles')}</Typography>
-                            <List dense>
+                    <div className="sm:col-span-4 md:col-span-2" onMouseLeave={() => setRoleActionsCollapse([])}>
+                        <div className="p-1 h-full">
+                            <h4 className="text-center">{t('Users.roles')}</h4>
+                            <div className="flex flex-col">
                                 {roles?.map((r, i) =>
                                     <div
                                         key={i}
@@ -233,62 +239,65 @@ export const Users = memo(function Users() {
                                         }}
                                         onMouseLeave={() => { if (timeout.current.r) clearTimeout(timeout.current.r) }}
                                     >
-                                        <Box sx={{ mt: 1 }}></Box>
+                                        <Button color={role === r ? configuration.themeOptions.colors.secondary : ''} onClick={async () => { await updateRows(r, false) }}>
+                                            <p>
+                                                {t(`Roles.${r}`)}
+                                            </p>
+                                        </Button>
 
-                                        <ListItemButton selected={role === r} onClick={async () => { await updateRows(r, false) }}>
-                                            <ListItemText primary={t(`Roles.${r}`)} />
-                                        </ListItemButton>
-
-                                        <Collapse in={roleActionsCollapse.includes(r)} unmountOnExit timeout={500}>
-                                            <List component="div" disablePadding>
-                                                <ListItemButton onClick={() => { setOpenManageRoleModal(true); setReadingRole(r) }} sx={{ pl: 4 }}>
-                                                    <ListItemIcon>
-                                                        <RemoveRedEyeOutlined />
-                                                    </ListItemIcon>
-                                                    <ListItemText primary={t("Users.show")} />
-                                                </ListItemButton>
-                                                {/* Not recommended for small projects(needs transaction support.) */}
-                                                {/* {
+                                        <Accordion type="single">
+                                            <AccordionItem value='roleActionCollapse'>
+                                                <AccordionTrigger></AccordionTrigger>
+                                                <AccordionContent>
+                                                    <Button onClick={() => { setOpenManageRoleModal(true); setReadingRole(r) }} className="pl-4">
+                                                        <Button size='icon'>
+                                                            <EyeOffIcon />
+                                                        </Button>
+                                                        <p>{t("Users.show")}</p>
+                                                    </Button>
+                                                    {/* Not recommended for small projects(needs transaction support.) */}
+                                                    {/* {
                                                     updatesRole &&
-                                                    <ListItemButton onClick={() => { setOpenManageRoleModal(true); setEditingRole(r) }} sx={{ pl: 4 }}>
+                                                    <Button onClick={() => { setOpenManageRoleModal(true); setEditingRole(r) }} className="pl-4">
                                                         <ListItemIcon>
-                                                            {editingRole ? <CircularProgress size={20} /> : <EditOutlined />}
+                                                            {editingRole ? <CircularLoading /> : <EditOutlined />}
                                                         </ListItemIcon>
                                                         <ListItemText primary={t("Users.edit")} />
-                                                    </ListItemButton>
+                                                    </Button>
                                                 } */}
-                                                {
-                                                    deletesRole &&
-                                                    <ListItemButton onClick={async () => { await deleteRole(r); await refresh() }} sx={{ pl: 4 }}>
-                                                        <ListItemIcon>
-                                                            {deletingRole ? <CircularProgress size={20} /> : <DeleteOutlined />}
-                                                        </ListItemIcon>
-                                                        <ListItemText primary={t("Users.delete")} />
-                                                    </ListItemButton>
-                                                }
-                                            </List>
-                                        </Collapse>
+                                                    {
+                                                        deletesRole &&
+                                                        <Button onClick={async () => { await deleteRole(r); await refresh() }} className="pl-4">
+                                                            <Button size='icon'>
+                                                                {deletingRole ? <CircularLoading /> : <TrashIcon />}
+                                                            </Button>
+                                                            <p>{t("Users.delete")}</p>
+                                                        </Button>
+                                                    }
+                                                </AccordionContent>
+                                            </AccordionItem>
+                                        </Accordion>
                                     </div>
                                 )}
                                 {
                                     createsRole &&
                                     <>
-                                        <Box sx={{ mt: 1 }}></Box>
-                                        <Divider />
-                                        <Stack direction='row' justifyContent='center' mt={1} onClick={() => setOpenManageRoleModal(true)}>
-                                            <IconButton><AddOutlined /></IconButton>
-                                        </Stack>
+                                        <div className="mt-1" />
+                                        <Separator />
+                                        <div className="flex flex-row justify-center mt-1" onClick={() => setOpenManageRoleModal(true)}>
+                                            <Button size='icon'><PlusIcon /></Button>
+                                        </div>
                                     </>
                                 }
-                            </List>
-                        </Paper>
-                    </Grid>
+                            </div>
+                        </div>
+                    </div>
                 }
                 {/* Users */}
                 {
                     readsUser &&
-                    <Grid item xs={readsRole ? 8 : 12} sm={readsRole ? 10 : 12}>
-                        <Paper sx={{ p: 1, height: '100%' }} elevation={3}>
+                    <div className={`sm:col-span-${readsRole ? 8 : 12} md:col-span-${readsRole ? 10 : 12}`}>
+                        <div className="p-1 h-full shadow-lg">
                             {!showGrid
                                 ? <LoadingScreen />
                                 : <DataGrid
@@ -299,55 +308,41 @@ export const Users = memo(function Users() {
                                     defaultColumnOrderModel={['actions']}
                                     additionalColumns={additionalColumns}
                                     appendHeaderNodes={[
-                                        <Button onClick={async () => await fetchUsers()} startIcon={<RefreshOutlined />}>{t('Users.Refresh')}</Button>,
-                                        createsUser && <Button onClick={() => setOpenManageUserModal(true)} startIcon={<AddOutlined />}>{t('Users.Create')}</Button>,
+                                        <Button onClick={async () => await fetchUsers()}><RefreshCwIcon />{t('Users.Refresh')}</Button>,
+                                        createsUser && <Button onClick={() => setOpenManageUserModal(true)}><PlusIcon />{t('Users.Create')}</Button>,
                                     ]}
                                 />
                             }
-                        </Paper>
-                    </Grid>
+                        </div>
+                    </div>
                 }
-            </Grid>
+            </div>
 
             <Modal
                 onClose={() => { setOpenManageUserModal(false); setEditingUser(undefined) }}
                 open={openManageUserModal}
-                closeAfterTransition
-                disableEscapeKeyDown
-                disableAutoFocus
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
-                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
             >
-                <Slide direction={openManageUserModal ? 'up' : 'down'} in={openManageUserModal} timeout={250}>
-                    <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
-                        <ManageUser roles={roles ?? []} defaultUser={editingUser} onFinish={async () => {
-                            setOpenManageUserModal(false)
-                            setEditingUser(undefined)
-                            await updateRows(role)
-                        }} />
-                    </Paper>
-                </Slide>
+                <div className="w-[60%] px-2 py-8">
+                    <ManageUser roles={roles ?? []} defaultUser={editingUser} onFinish={async () => {
+                        setOpenManageUserModal(false)
+                        setEditingUser(undefined)
+                        await updateRows(role)
+                    }} />
+                </div>
             </Modal>
 
             <Modal
                 onClose={() => { setOpenManageRoleModal(false); setEditingRole(undefined) }}
                 open={openManageRoleModal}
-                closeAfterTransition
-                disableEscapeKeyDown
-                disableAutoFocus
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
-                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
             >
-                <Slide direction={openManageRoleModal ? 'up' : 'down'} in={openManageRoleModal} timeout={250}>
-                    <Paper sx={{ width: '60%', overflowY: 'auto', height: '80%', padding: '0.5rem 2rem' }}>
-                        <ManageRole defaultRole={editingRole ?? readingRole} onFinish={async () => {
-                            setOpenManageRoleModal(false)
-                            setEditingRole(undefined)
-                            setReadingRole(undefined)
-                            await refresh()
-                        }} />
-                    </Paper>
-                </Slide>
+                <div className="w-[60%] h-[80%] px-2 py-8 overflow-auto">
+                    <ManageRole defaultRole={editingRole ?? readingRole} onFinish={async () => {
+                        setOpenManageRoleModal(false)
+                        setEditingRole(undefined)
+                        setReadingRole(undefined)
+                        await refresh()
+                    }} />
+                </div>
             </Modal>
         </>
     )

@@ -1,4 +1,3 @@
-import { Grid, Paper } from "@mui/material";
 import { MedicalHistoryDataGrid } from "../Components/MedicalHistory/MedicalHistoryDataGrid";
 import { memo, useEffect, useState } from "react";
 import { subscribe } from "../Lib/Events";
@@ -17,16 +16,16 @@ export const MedicalHistories = memo(function MedicalHistories() {
 
     return (
         <>
-            <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
-                <Grid item xs={12} height={'100%'}>
-                    <Paper style={{ padding: '1rem', height: '100%' }} elevation={3}>
+            <div className="grid-cols-12 h-full space-x-1 space-y-1 p-2">
+                <div className="sm:col-span-12 h-full">
+                    <div className="p-[1rem] h-full shadow-lg">
                         {showGrid
                             ? < MedicalHistoryDataGrid />
                             : <LoadingScreen />
                         }
-                    </Paper>
-                </Grid>
-            </Grid>
+                    </div>
+                </div>
+            </div>
         </>
     )
 })

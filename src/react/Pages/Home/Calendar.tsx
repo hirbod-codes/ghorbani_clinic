@@ -1,5 +1,4 @@
 import { useCallback, useContext, useState } from "react";
-import { Paper, Stack, Typography } from "@mui/material";
 import { Visit } from "../../../Electron/Database/Models/Visit";
 import { AnimatedCard } from "../../Components/Animations/AnimatedCard";
 import { Calendar as CalendarComponent } from "../../Components/Calendar";
@@ -49,13 +48,13 @@ export function Calendar() {
 
     return (
         <div style={{ zIndex: 2, position: 'relative' }}>
-            <Paper elevation={3} sx={{ zIndex: 2, overflow: 'auto' }}>
+            <div className="z-[2] overflow-auto shadow-lg">
                 <div style={{ minWidth: '25rem', padding: 0.5 }}>
                     <CalendarComponent onDayPointerOver={onOver} onDayPointerOut={onOut} />
                 </div>
-            </Paper>
+            </div>
 
-            <Paper sx={{ position: 'absolute', top: 0, zIndex: -1, width: '100%' }} >
+            <div className="absolute top-0 -z-[1] w-full">
                 <AnimatedCard
                     animationKey={cardKey ?? 0}
                     open={showVisitsStats}
@@ -64,21 +63,21 @@ export function Calendar() {
                     {fetchingVisits && <LoadingScreen />}
                     {!fetchingVisits &&
                         <>
-                            <Stack direction='column' spacing={1} sx={{ p: 1 }}>
-                                <Stack direction='row' alignItems='center' justifyContent='space-between'>
-                                    <Typography>{t('Calendar.patientsCount')}:</Typography>
-                                    <Typography>{patientsCount}</Typography>
-                                </Stack>
-                                <Stack direction='row' alignItems='center' justifyContent='space-between'>
-                                    <Typography>{t('Calendar.visitsCount')}:</Typography>
-                                    <Typography>{visits.length}</Typography>
-                                </Stack>
-                            </Stack>
+                            <div className="flex flex-col space-x-1 space-y-1 p-1">
+                                <div className="flex flex-row items-center justify-between">
+                                    <p>{t('Calendar.patientsCount')}:</p>
+                                    <p>{patientsCount}</p>
+                                </div>
+                                <div className="flex flex-row items-center justify-between">
+                                    <p>{t('Calendar.visitsCount')}:</p>
+                                    <p>{visits.length}</p>
+                                </div>
+                            </div>
                             <DataGrid data={visits} headerNodes={[]} footerNodes={[]} defaultTableDensity="compact" />
                         </>
                     }
                 </AnimatedCard>
-            </Paper>
+            </div>
         </div>
     )
 }

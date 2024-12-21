@@ -1,13 +1,16 @@
 import { useState, useEffect, useContext } from 'react'
 import { User } from "../../Electron/Database/Models/User";
-import { FormControl, InputLabel, Select, MenuItem, Stack, Grid, TextField, Button, Typography, Divider } from '@mui/material';
 import { t } from 'i18next';
 import { RendererDbAPI } from '../../Electron/Database/renderer';
-import { CheckOutlined } from '@mui/icons-material';
 import { AuthContext } from '../Contexts/AuthContext';
 import { resources } from '../../Electron/Database/Repositories/Auth/resources';
 import { RESULT_EVENT_NAME } from '../Contexts/ResultWrapper';
 import { publish } from '../Lib/Events';
+import { Separator } from '../shadcn/components/ui/separator';
+import { Select } from './Base/Select';
+import { Input } from './Base/Input';
+import { Button } from '../shadcn/components/ui/button';
+import { CheckIcon } from 'lucide-react';
 
 export default function ManageUser({ roles, defaultUser, onFinish }: { roles: string[], defaultUser?: User, onFinish?: () => Promise<void> | void }) {
     const auth = useContext(AuthContext)!
@@ -34,33 +37,47 @@ export default function ManageUser({ roles, defaultUser, onFinish }: { roles: st
 
     return (
         <>
-            <Stack justifyContent={'space-around'} sx={{ height: '100%', width: '100%' }} direction='column'>
-                <Typography textAlign='center' variant='h6'>{defaultUser ? t('ManageUser.updateUser') : t('ManageUser.createUser')}</Typography>
-                <Divider sx={{ mt: 1, mb: 2 }} />
+            <div className='flex flex-col justify-around size-full'>
+                <h6 className='text-center'>{defaultUser ? t('ManageUser.updateUser') : t('ManageUser.createUser')}</h6>
+                <Separator className='my-1' />
                 {/* Role Name */}
                 {
                     readsUserRoleName &&
-                    <FormControl variant='standard' >
-                        <InputLabel id="role-name-label">{t('ManageUser.roleName')}</InputLabel>
-                        <Select disabled={!updatesUserRoleName} onChange={(e) => setUser({ ...user!, roleName: e.target.value })} labelId="role-name-label" value={user?.roleName ?? ''} error={(user?.roleName ?? '') === ''} fullWidth >
-                            {roles.map((r, i) =>
-                                <MenuItem key={i} value={r}>{r}</MenuItem>
-                            )}
-                        </Select>
-                    </FormControl>
+                    <Select
+                        selectOptions={{ type: 'items', items: roles.map((r, i) => ({ value: r, displayValue: r })) }}
+                        triggerProps={{ disabled: !updatesUserRoleName }}
+                        onValueChange={(v) => setUser({ ...user!, roleName: v })}
+                        value={user?.roleName ?? ''}
+                    // error={(user?.roleName ?? '') === ''}
+                    />
                 }
                 {/* Username */}
                 {
                     readsUserUsername &&
-                    <TextField variant='standard' type='text' disabled={!updatesUserUsername} onChange={(e) => setUser({ ...user!, username: e.target.value })} value={user?.username ?? ''} label={t('ManageUser.username')} error={(user?.username ?? '') === ''} fullWidth />
+                    <Input
+                        disabled={!updatesUserUsername}
+                        onChange={(e) => setUser({ ...user!, username: e.target.value })}
+                        value={user?.username ?? ''}
+                        label={t('ManageUser.username')}
+                        labelId={t('ManageUser.username')}
+                    // error={(user?.username ?? '') === ''}
+                    />
                 }
                 {/* Password */}
                 {
                     readsUserPassword &&
-                    <TextField variant='standard' type='password' disabled={!updatesUserPassword} onChange={(e) => setUser({ ...user!, password: e.target.value })} value={user?.password ?? ''} label={t('ManageUser.password')} fullWidth />
+                    <Input type='password'
+                        disabled={!updatesUserPassword}
+                        onChange={(e) => setUser({ ...user!, password: e.target.value })}
+                        value={user?.password ?? ''}
+                        label={t('ManageUser.password')}
+                        labelId={t('ManageUser.password')}
+                    />
                 }
-                <Divider sx={{ mt: 2, mb: 2 }} />
-                <Button fullWidth startIcon={<CheckOutlined />} onClick={async () => {
+
+                <Separator />
+
+                <Button onClick={async () => {
                     if ((updatesUserRoleName && !user?.roleName) || (updatesUserUsername && !user?.username))
                         return
 
@@ -104,9 +121,9 @@ export default function ManageUser({ roles, defaultUser, onFinish }: { roles: st
                     if (onFinish)
                         onFinish()
                 }}>
-                    {t('ManageUser.done')}
+                    <CheckIcon />{t('ManageUser.done')}
                 </Button>
-            </Stack>
+            </div>
         </>
     )
 }

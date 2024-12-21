@@ -148,6 +148,7 @@
         "tailwindcss-animate": "^1.0.7",
         "transformation-matrix": "^2.16.1",
         "uuid": "^10.0.0",
+        "vaul": "^1.1.2",
         "yup": "^1.4.0"
     }
 }

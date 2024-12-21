@@ -2,7 +2,6 @@ import { useState, useContext, useEffect, useMemo, memo } from "react";
 import { DataGrid } from "../Components/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { t } from "i18next";
-import { Button, CircularProgress, Grid, IconButton, Paper } from "@mui/material";
 import { DATE, toFormat } from "../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../Contexts/Configuration/ConfigurationContext";
 import { Visit } from "../../Electron/Database/Models/Visit";
@@ -10,12 +9,15 @@ import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish, subscribe } from "../Lib/Events";
 import { resources } from "../../Electron/Database/Repositories/Auth/resources";
 import { AuthContext } from "../Contexts/AuthContext";
-import { DeleteOutline, RefreshOutlined } from "@mui/icons-material";
 import { EditorModal } from "../Components/Base/Editor/EditorModal";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import { useNavigate } from "react-router-dom";
 import LoadingScreen from "../Components/Base/LoadingScreen";
 import { ColumnDef } from "@tanstack/react-table";
+import { Button } from "../shadcn/components/ui/button";
+import { CircularLoading } from "../Components/Base/CircularLoading";
+import { TrashIcon } from "../Components/Icons/TrashIcon";
+import { RefreshCwIcon } from "lucide-react";
 
 export const Visits = memo(function Visits() {
     const auth = useContext(AuthContext)
@@ -148,7 +150,8 @@ export const Visits = memo(function Visits() {
             id: 'actions',
             cell: ({ row }) =>
                 deletesVisit &&
-                <IconButton
+                <Button
+                    size='icon'
                     onClick={async () => {
                         try {
                             console.group('Visits', 'deletesVisit', 'onClick')
@@ -176,17 +179,17 @@ export const Visits = memo(function Visits() {
                         finally { console.groupEnd() }
                     }}
                 >
-                    {deletingVisitId === row.original._id ? <CircularProgress size={20} /> : <DeleteOutline />}
-                </IconButton>
+                    {deletingVisitId === row.original._id ? <CircularLoading /> : <TrashIcon />}
+                </Button>
 
         },
     ]
 
     return (
         <>
-            <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
-                <Grid item xs={12} height={'100%'}>
-                    <Paper sx={{ p: 1, height: '100%', overflow: 'auto' }} elevation={3}>
+            <div className="grid grid-cols-12 space-x-1 space-y-1 p-2 h-full">
+                <div className="sm:col-span-12 h-full">
+                    <div className="p-1 h-full overflow-auto shadow-lg">
                         {!visits || visits.length === 0 || !showGrid
                             ? <LoadingScreen />
                             : <DataGrid
@@ -205,13 +208,13 @@ export const Visits = memo(function Visits() {
                                     return result
                                 }}
                                 appendHeaderNodes={[
-                                    <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('Visits.Refresh')}</Button>,
+                                    <Button onClick={async () => await init(page.offset, page.limit)}><RefreshCwIcon />{t('Visits.Refresh')}</Button>,
                                 ]}
                             />
                         }
-                    </Paper>
-                </Grid>
-            </Grid>
+                    </div>
+                </div>
+            </div>
 
             <EditorModal
                 open={showDiagnosis !== undefined}
