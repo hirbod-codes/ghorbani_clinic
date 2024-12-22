@@ -13,12 +13,16 @@ export type SlideProps = {
 export const Slide = memo(function Slide({ columns, collection, headers, onElmClick, onPointerOver, onPointerOut }: SlideProps) {
     return (
         <>
-            <div className={`grid-col-[${columns}] text-center`}>
-                {headers && headers.map((e, i) => <div key={i} className='sm:col-span-1'><p className="text-center">{e}</p></div>)}
+            <div className={`grid text-center`} style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
+                {headers && headers.map((e, i) =>
+                    <div key={i} className='sm:col-span-1'>
+                        <p className="text-center">{e}</p>
+                    </div>
+                )}
                 {collection.map((e, i) =>
                     e === null
-                        ? <div key={i} className='m:col-span-1' />
-                        : <div key={i} className='m:col-span-1' >
+                        ? <div key={i} className='sm:col-span-1' />
+                        : <div key={i} className='sm:col-span-1' >
                             <Badge
                                 onPointerOver={async () => { if (onPointerOver) await onPointerOver(e, i) }}
                                 onPointerOut={async () => { if (onPointerOut) await onPointerOut(e, i) }}

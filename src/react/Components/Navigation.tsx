@@ -29,7 +29,7 @@ export const Navigation = memo(function Navigation() {
 
     const appBarBorderColor = configuration.themeOptions.mode === 'dark' ? '#fff' : '#000'
     const appBarGradientColor = setAlpha(configuration.themeOptions.mode === 'dark' ? '#fff' : '#000', 0.7)
-    const drawerGradientColor = configuration.themeOptions.mode === 'dark' ? shadeColor('#fff', 0.7) : shadeColor('#000', 1.7)
+    const drawerGradientColor = configuration.themeOptions.mode === 'dark' ? shadeColor('#fff', -0.7) : shadeColor('#000', 0.7)
 
     const moveTo = (destination: string) => {
         setOpenDrawer(false)
@@ -157,8 +157,8 @@ export const Navigation = memo(function Navigation() {
                                 }
                             </Button>
                         }
-                        <Button size='icon' onClick={async () => await configuration.updateTheme(configuration.themeOptions.mode === 'dark' ? 'light' : 'dark', { ...configuration.themeOptions, colors: { ...configuration.themeOptions.colors, primary: configuration.themeOptions.mode === 'dark' ? 'hsl(1, 100%, 50%)' : 'hsl(203, 100%, 50%)' } })}>
-                            {configuration.themeOptions.mode == 'light' ? <SunIcon fontSize='inherit' /> : <MoonIcon fontSize='inherit' />}
+                        <Button size='icon' onClick={async () => await configuration.updateThemeMode(configuration.themeOptions.mode === 'dark' ? 'light' : 'dark')}>
+                            {configuration.themeOptions.mode == 'dark' ? <SunIcon fontSize='inherit' /> : <MoonIcon fontSize='inherit' />}
                         </Button>
                     </div>
                 </div>

@@ -41,6 +41,10 @@ export type ThemeMode = 'light' | 'dark'
 
 export type ThemeOptions = {
     mode: ThemeMode;
+    radius: string;
+    'scrollbar-width': string;
+    'scrollbar-height': string;
+    'scrollbar-border-radius': string;
     colors: {
         black: string;
         white: string;
@@ -63,7 +67,7 @@ export type ThemeOptions = {
         "popover-foreground": string;
         card: string;
         "card-foreground": string;
+        'scrollbar-background': string;
     }
-    radius: string;
 }
 

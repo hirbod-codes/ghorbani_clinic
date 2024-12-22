@@ -5,8 +5,8 @@ import { Calendar as CalendarComponent } from "../../Components/Calendar";
 import { getVisitsInDate } from "../../Components/Visits/helpers";
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 import { DataGrid } from "../../Components/DataGrid";
-import LoadingScreen from "../../Components/Base/LoadingScreen";
 import { t } from "i18next";
+import { CircularLoading } from "../../Components/Base/CircularLoading";
 
 export function Calendar() {
     const locale = useContext(ConfigurationContext)!.local
@@ -60,7 +60,7 @@ export function Calendar() {
                     open={showVisitsStats}
                     paperProps={{ sx: { minWidth: '10rem', maxWidth: '20rem', minHeight: '10rem' } }}
                 >
-                    {fetchingVisits && <LoadingScreen />}
+                    {fetchingVisits && <CircularLoading />}
                     {!fetchingVisits &&
                         <>
                             <div className="flex flex-col space-x-1 space-y-1 p-1">

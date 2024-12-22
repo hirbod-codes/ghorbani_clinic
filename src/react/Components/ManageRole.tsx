@@ -3,7 +3,6 @@ import { resources as staticResources } from "../../Electron/Database/Repositori
 import { t } from "i18next";
 import { Privilege } from "../../Electron/Database/Models/Privilege";
 import { RendererDbAPI } from "../../Electron/Database/renderer";
-import LoadingScreen from "./Base/LoadingScreen";
 import { getAttributes } from "../../Electron/Database/Repositories/Auth/resources";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish } from "../Lib/Events";
@@ -153,14 +152,15 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
 
     if (loading || !resources)
         return (
-            <LoadingScreen>
+            <>
+                <CircularLoading />
                 {
                     fetchRoleFailed &&
                     <Button onClick={async () => await fetchRole()}>
                         {t('ManageRole.tryAgain')}
                     </Button>
                 }
-            </LoadingScreen>
+            </>
         )
 
     console.log('ManageRole', { roleName, resources })

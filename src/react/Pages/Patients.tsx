@@ -13,7 +13,6 @@ import { useNavigate } from "react-router-dom";
 import { MedicalHistory } from "../Components/Patients/MedicalHistory";
 import { EditorModal } from "../Components/Base/Editor/EditorModal";
 import { ManagePatient } from "../Components/Patients/ManagePatient";
-import LoadingScreen from "../Components/Base/LoadingScreen";
 import { DataGrid } from "../Components/DataGrid";
 import { ColumnDef } from "@tanstack/react-table";
 import { getLuxonLocale } from "../Lib/localization";
@@ -279,7 +278,7 @@ export const Patients = memo(function Patients() {
                 <div className="sm:col-span-12 h-full">
                     <div className="p-[1rem] h-full shadow-lg">
                         {!patients || patients?.length === 0 || !showGrid
-                            ? <LoadingScreen />
+                            ? <CircularLoading />
                             : <DataGrid
                                 configName='patients'
                                 data={patients ?? []}

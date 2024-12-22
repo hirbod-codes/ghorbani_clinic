@@ -12,7 +12,6 @@ import { AuthContext } from "../Contexts/AuthContext";
 import { EditorModal } from "../Components/Base/Editor/EditorModal";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import { useNavigate } from "react-router-dom";
-import LoadingScreen from "../Components/Base/LoadingScreen";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "../shadcn/components/ui/button";
 import { CircularLoading } from "../Components/Base/CircularLoading";
@@ -191,7 +190,7 @@ export const Visits = memo(function Visits() {
                 <div className="sm:col-span-12 h-full">
                     <div className="p-1 h-full overflow-auto shadow-lg">
                         {!visits || visits.length === 0 || !showGrid
-                            ? <LoadingScreen />
+                            ? <CircularLoading />
                             : <DataGrid
                                 configName='visits'
                                 data={visits}

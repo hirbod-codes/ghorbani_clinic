@@ -28,7 +28,7 @@ export function DropdownMenu({ trigger, contents }: DropdownMenuProps) {
     return (
         <>
             <ShadcnDropdownMenu>
-                <DropdownMenuTrigger>{trigger}</DropdownMenuTrigger>
+                <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
                 <DropdownMenuContent>
                     {contents.map((c, i) => {
                         switch (c.type) {

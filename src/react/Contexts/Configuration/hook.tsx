@@ -15,6 +15,10 @@ export function useConfigurationHook() {
         },
         themeOptions: {
             mode: window.matchMedia('(prefers-color-scheme:dark)').matches ? 'dark' : 'light',
+            radius: '0.5rem',
+            'scrollbar-width': '0.5rem',
+            'scrollbar-height': '0.5rem',
+            'scrollbar-border-radius': '5px',
             colors: {
                 black: 'hsl(222, 50%, 10%)',
                 white: 'hsl(0, 0%, 100%)',
@@ -28,7 +32,7 @@ export function useConfigurationHook() {
                 input: 'hsl(214.3, 31.8%, 91.4%)',
                 card: 'hsl(0, 0%, 100%)',
                 'card-foreground': 'hsl(222.2, 47.4%, 11.2%)',
-                primary: 'hsl(222,, 65%, 29%)',
+                primary: 'hsl(222, 65%, 29%)',
                 'primary-foreground': 'hsl(210, 40%, 98%)',
                 secondary: 'hsl(210, 40%, 96.1%)',
                 'secondary-foreground': 'hsl(222.2, 47.4%, 11.2%)',
@@ -37,24 +41,33 @@ export function useConfigurationHook() {
                 destructive: 'hsl(0, 100%, 50%)',
                 'destructive-foreground': 'hsl(210, 40%, 98%)',
                 ring: 'hsl(215, 20.2%, 65.1%)',
+                'scrollbar-background': 'rgba(0,0,0,0.8)',
             },
-            radius: '0.5rem',
         },
     };
 
     const [configuration, setConfiguration] = useState<Config>(defaultConfiguration);
 
-    const updateTheme = (mode?: ThemeMode, themeOptions?: ThemeOptions) => {
-        console.log('updateTheme', { mode, themeOptions })
+    const updateThemeMode = (mode?: ThemeMode) => {
         mode = mode ?? configuration.themeOptions.mode;
-        themeOptions = themeOptions ?? configuration.themeOptions;
 
-        configuration.themeOptions = themeOptions
+        let t = configuration.themeOptions.colors.background
+        configuration.themeOptions.colors.background = configuration.themeOptions.colors.foreground;
+        configuration.themeOptions.colors.foreground = t;
         configuration.themeOptions.mode = mode;
 
         (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(configuration)
 
-        setConfiguration({ ...configuration })
+        setConfiguration({ ...configuration, themeOptions: { ...configuration.themeOptions } })
+    };
+    const updateTheme = (themeOptions?: ThemeOptions) => {
+        themeOptions = themeOptions ?? configuration.themeOptions;
+
+        configuration.themeOptions = themeOptions;
+
+        (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(configuration)
+
+        setConfiguration({ ...configuration, themeOptions: { ...configuration.themeOptions } })
     };
     const updateLocal = async (languageCode?: LanguageCodes, calendar?: Calendar, direction?: 'rtl' | 'ltr', zone?: TimeZone) => {
         direction = direction ?? configuration.local.direction
@@ -90,14 +103,23 @@ export function useConfigurationHook() {
     }
 
     const updateCssVars = (mode: ThemeMode) => {
-        document.documentElement.style.setProperty('--background', mode === 'dark' ? configuration.themeOptions.colors.black : configuration.themeOptions.colors.white)
-        document.documentElement.style.setProperty('--foreground', mode === 'dark' ? configuration.themeOptions.colors.white : configuration.themeOptions.colors.black)
+        console.log('updateCssVars')
+
+        document.documentElement.style.setProperty('--radius', configuration.themeOptions.radius)
+        document.documentElement.style.setProperty('--scrollbar-width', configuration.themeOptions['scrollbar-width'])
+        document.documentElement.style.setProperty('--scrollbar-height', configuration.themeOptions['scrollbar-height'])
+        document.documentElement.style.setProperty('--scrollbar-border-radius', configuration.themeOptions['scrollbar-border-radius'])
+
+        document.documentElement.style.setProperty('--background', configuration.themeOptions.colors.background)
+        document.documentElement.style.setProperty('--foreground', configuration.themeOptions.colors.foreground)
+        document.documentElement.style.setProperty('--border', configuration.themeOptions.colors.foreground)
+        document.documentElement.style.setProperty('--input', configuration.themeOptions.colors.foreground)
 
         for (const key in configuration.themeOptions.colors)
-            if (key === 'background' || key === 'foreground')
+            if (key === 'background' || key === 'foreground' || key === 'border' || key === 'input')
                 continue
             else
-                document.documentElement.style.setProperty('--' + key, mode === 'dark' ? stringify(shadeColor(configuration.themeOptions.colors[key], 0.5)) : stringify(shadeColor(configuration.themeOptions.colors[key], 1.5)))
+                document.documentElement.style.setProperty('--' + key, mode === 'dark' ? stringify(shadeColor(configuration.themeOptions.colors[key], -0.3)) : stringify(shadeColor(configuration.themeOptions.colors[key], 0.3)))
     }
 
     const [isConfigurationContextReady, setIsConfigurationContextReady] = useState<boolean>(false);
@@ -123,7 +145,7 @@ export function useConfigurationHook() {
 
     useEffect(() => {
         updateCssVars(configuration.themeOptions.mode)
-    }, [configuration.themeOptions.colors])
+    }, [configuration.themeOptions])
 
-    return { ...configuration, updateTheme, updateLocal, setShowGradientBackground, isConfigurationContextReady }
+    return { ...configuration, updateTheme, updateThemeMode, updateLocal, setShowGradientBackground, isConfigurationContextReady }
 }

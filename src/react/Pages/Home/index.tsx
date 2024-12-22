@@ -11,26 +11,24 @@ export const Home = memo(function Home() {
 
     return (
         <div className="size-full overflow-auto">
-            <div className="grid-cols-12 w-full">
-                <div className="grid-cols-12 w-full space-x-2 space-y-2 p-1">
-                    <div className="sm:col-span-0 md:col-span-3" />
-                    <div className="sm:col-span-12 md:col-span-6">
-                        <SearchPatientField />
-                    </div>
-                    <div className="sm:col-span-0 md:col-span-3" />
+            <div className="grid grid-cols-12 justify-center w-full space-x-2 space-y-2 p-1">
+                <div className="sm:col-span-0 md:col-span-3" />
+                <div className="sm:col-span-12 md:col-span-6">
+                    <SearchPatientField />
+                </div>
+                <div className="sm:col-span-0 md:col-span-3" />
 
-                    <div className="sm:col-span-12 md:col-span-3">
-                        <Clock />
-                    </div>
+                <div className="sm:col-span-12 md:col-span-3">
+                    <Clock />
+                </div>
 
-                    <div className="sm:col-span-12 md:col-span-4">
-                        <Calendar />
-                    </div>
-                    <div className="sm:col-span-0" />
+                <div className="sm:col-span-12 md:col-span-4">
+                    <Calendar />
+                </div>
+                <div className="sm:col-span-0" />
 
-                    <div className="sm:col-span-12 md:col-span-4">
-                        <Analytics />
-                    </div>
+                <div className="sm:col-span-12 md:col-span-4">
+                    <Analytics />
                 </div>
             </div>
         </div>

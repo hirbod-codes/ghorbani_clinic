@@ -6,7 +6,6 @@ import type { Visit } from '../../../Electron/Database/Models/Visit';
 import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext';
 import { DateField } from '../Base/DateTime/DateField';
 import { ManageVisits } from '../Visits/ManageVisit';
-import LoadingScreen from '../Base/LoadingScreen';
 import { t } from 'i18next';
 import { RendererDbAPI } from '../../../Electron/Database/renderer';
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';

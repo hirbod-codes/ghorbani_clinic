@@ -1,25 +1,32 @@
 import { Color, RGB, HSL, HEX } from './index.d'
 
-export function shadeColor(color: string | Color, multiplier: number): Color {
+export function shadeColor(color: string | Color, coefficient: number): Color {
     color = decomposeColor(color)
 
-    if (multiplier === 0)
+    if (coefficient === 0)
         return color
 
-    if (multiplier < 0 || multiplier > 2)
+    if (coefficient < -1 || coefficient > 1)
         throw new Error('multiplier must be between -1 and 1 range.')
 
-    const rgbColor = toRgb(color)
-    rgbColor.value[0] = Math.max(Math.min(255, parseInt(rgbColor.value[0].toString(), 16)), 0)
-    rgbColor.value[1] = Math.max(Math.min(255, parseInt(rgbColor.value[1].toString(), 16)), 0)
-    rgbColor.value[2] = Math.max(Math.min(255, parseInt(rgbColor.value[2].toString(), 16)), 0)
+    if (coefficient > 0) {
+        if (color.type === 'hex')
+            return toHex(shadeColor(toRgb(color), coefficient))
+        else if (color.type.indexOf('hsl') !== -1)
+            color.value[2] += (100 - color.value[2]) * coefficient;
+        else if (color.type.indexOf('rgb') !== -1)
+            for (let i = 0; i < 3; i += 1)
+                color.value[i] += (255 - color.value[i]) * coefficient;
+    } else
+        if (color.type === 'hex')
+            return toHex(shadeColor(toRgb(color), coefficient))
+        else if (color.type.indexOf('hsl') !== -1)
+            color.value[2] *= 1 - Math.abs(coefficient);
+        else if (color.type.indexOf('rgb') !== -1)
+            for (let i = 0; i < 3; i += 1)
+                color.value[i] *= 1 - Math.abs(coefficient);
 
-    if (color.type.includes('rgb'))
-        return rgbColor
-    if (color.type.includes('hsl'))
-        return toHsl(rgbColor)
-
-    return toHex(rgbColor)
+    return color
 }
 
 export function toRgb(color: string | Color): RGB {
@@ -183,17 +190,17 @@ export function decomposeColor(color: string | Color): Color {
     };
 }
 
-export function setAlpha(color: string | Color, multiplier: number): Color {
+export function setAlpha(color: string | Color, alpha: number): Color {
     color = decomposeColor(color)
 
     if (color.type === 'hex' && color.value.length === 9)
-        color.value = color.value.slice(0, 7) + (parseInt(color.value.slice(7), 16) * multiplier).toString(16)
+        color.value = color.value.slice(0, 7) + alpha.toString(16)
 
     if ((color.type === 'rgb' || color.type === 'rgba') && color.value.length === 4)
-        color.value[3] = color.value[3] * multiplier
+        color.value[3] = alpha
 
     if ((color.type === 'hsl' || color.type === 'hsla') && color.value.length === 4)
-        color.value[3] = color.value[3] * multiplier
+        color.value[3] = alpha
 
     return color
 }
@@ -206,10 +213,10 @@ export function stringify(color: string | Color): string {
         return color.value
 
     if (color.type === 'rgb' || color.type === 'rgba')
-        return `${color.value.length === 4 ? 'rgba' : 'rgb'}(${color.value[0]}, ${color.value[1]}, ${color.value[2]}, ${color.value.length === 4 ? color.value[3] : ''})`
+        return `${color.value.length === 4 ? 'rgba' : 'rgb'}(${color.value[0]}, ${color.value[1]}, ${color.value[2]}${color.value.length === 4 ? ', ' + color.value[3] : ''})`
 
     if (color.type === 'hsl' || color.type === 'hsla')
-        return `${color.value.length === 4 ? 'hsla' : 'hsl'}(${color.value[0]}, ${color.value[1]}%, ${color.value[2]}%, ${color.value.length === 4 ? color.value[3] : ''})`
+        return `${color.value.length === 4 ? 'hsla' : 'hsl'}(${color.value[0]}, ${color.value[1]}%, ${color.value[2]}%${color.value.length === 4 ? ', ' + color.value[3] : ''})`
 
     throw new Error(`Unsupported color. The following formats are supported: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla().`);
 }

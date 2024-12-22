@@ -37,10 +37,10 @@ import { DensityButton } from './DensityButton'
 import { ExportButton } from './ExportButton'
 import { Pagination } from './Pagination'
 import { getColumns } from './helpers'
-import LoadingScreen from '../Base/LoadingScreen'
 import { AnimatePresence } from 'framer-motion'
 import { getLuxonLocale } from '../../Lib/localization'
 import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext'
+import { CircularLoading } from '../Base/CircularLoading'
 
 export type DataGridProps = {
     configName?: string,
@@ -353,7 +353,7 @@ export function DataGrid({
                                 </div>
                             }
                             {loading
-                                ? <LoadingScreen />
+                                ? <CircularLoading />
                                 : (
                                     data.length === 0
                                         ? <p style={{ textAlign: 'center' }}>{t('DataGrid.noData')}</p>

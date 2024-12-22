@@ -7,6 +7,7 @@ import { Switch } from "../../Components/Base/Switch";
 import { Input } from "../../Components/Base/Input";
 import { DropdownMenu } from "../../Components/Base/DropdownMenu";
 import { Button } from "../../shadcn/components/ui/button";
+import { getContrastRatio } from "@mui/material";
 
 export const ThemeSettings = memo(function ThemeSettings() {
     const c = useContext(ConfigurationContext)!
@@ -35,8 +36,9 @@ export const ThemeSettings = memo(function ThemeSettings() {
 
     return (
         <>
-            <div className="flex flex-col size-full p-3 overflow-auto space-x-2 space-y-2">
+            <div className="flex flex-row flex-wrap size-full p-3 space-x-2 space-y-2">
                 <Switch
+                    className="col-auto"
                     label={t('ThemeSettings.showGradientBackground')}
                     labelId={t('ThemeSettings.showGradientBackground')}
                     checked={showGradientBackground}
@@ -44,18 +46,19 @@ export const ThemeSettings = memo(function ThemeSettings() {
                 />
 
                 {Object.keys(c.themeOptions.colors).map((k, i) =>
-                    <div>
+                    <div key={i} className="border rounded p-2 w-[12rem]">
                         <p>
                             {k}
                         </p>
                         <DropdownMenu
-                            trigger={<Button className={`bg-[${k}]`} onClick={() => setColorPickerValue(c.themeOptions.colors[k])} color={c.themeOptions.colors[k]} />}
+                            trigger={<Button style={{ backgroundColor: c.themeOptions.colors[k] }} onClick={() => setColorPickerValue(c.themeOptions.colors[k])} />}
                             contents={[
                                 {
                                     type: 'item',
                                     content: <HexAlphaColorPicker color={colorPickerValue} onChange={(color) => {
                                         c.themeOptions.colors[k] = color
-                                        c.updateTheme(c.themeOptions.mode, c.themeOptions)
+                                        c.updateTheme(c.themeOptions)
+                                        setColorPickerValue(color)
                                     }} />
                                 }
                             ]}
@@ -68,9 +71,10 @@ export const ThemeSettings = memo(function ThemeSettings() {
                     labelId={t('ThemeSettings.contrastThreshold')}
                     value={c.themeOptions.radius.replace('rem', '')}
                     onChange={(e) => {
+                        getContrastRatio
                         const r = parseFloat(e.target.value)
                         c.themeOptions.radius = r + 'rem'
-                        c.updateTheme(c.themeOptions.mode, c.themeOptions)
+                        c.updateTheme(c.themeOptions)
                     }}
                 />
             </div>

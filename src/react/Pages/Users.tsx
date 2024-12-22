@@ -14,7 +14,6 @@ import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish, subscribe } from "../Lib/Events";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import { useNavigate } from "react-router-dom";
-import LoadingScreen from "../Components/Base/LoadingScreen";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "../shadcn/components/ui/button";
 import { EditIcon, EyeOffIcon, PlusIcon, RefreshCwIcon } from "lucide-react";
@@ -299,7 +298,7 @@ export const Users = memo(function Users() {
                     <div className={`sm:col-span-${readsRole ? 8 : 12} md:col-span-${readsRole ? 10 : 12}`}>
                         <div className="p-1 h-full shadow-lg">
                             {!showGrid
-                                ? <LoadingScreen />
+                                ? <CircularLoading />
                                 : <DataGrid
                                     configName='users'
                                     data={rows}

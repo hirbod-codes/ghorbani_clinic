@@ -3,7 +3,7 @@ import { Boundary, Draw, Point } from "../types";
 import { Shape } from "./Shape";
 import { SelectionBox } from './SelectionBox';
 import { getRadiansFromTwoPoints, lineFunction, pointFromLineDistance } from '../../../../Lib/Math/2d';
-import { rgbToHex } from '@/src/react/Lib/Colors';
+import { toHex } from '@/src/react/Lib/Colors';
 
 export type UpdateGradient = { steps?: { offset: number, color: { r: number; g: number; b: number; a: number; } }[], startAngle?: number, x0?: number, y0?: number, r0?: number, x1?: number, y1?: number, r1?: number }
 
@@ -55,8 +55,8 @@ export class RectangleGradient implements Shape {
 
                 const conicGradient = d.ctx.createConicGradient(this.canvasGradient.startAngle, this.canvasGradient.x0, this.canvasGradient.y0)
                 this.canvasGradient.steps.forEach((s) => {
-                    console.log(rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`), s)
-                    conicGradient.addColorStop(s.offset, rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`))
+                    console.log(toHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`).value, s)
+                    conicGradient.addColorStop(s.offset, toHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`).value)
                 })
                 fillStyle = conicGradient
                 break;
@@ -67,8 +67,8 @@ export class RectangleGradient implements Shape {
 
                 const linearGradient = d.ctx.createLinearGradient(this.canvasGradient.x0, this.canvasGradient.y0, this.canvasGradient.x1, this.canvasGradient.y1)
                 this.canvasGradient.steps.forEach((s) => {
-                    console.log(rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`), s)
-                    linearGradient.addColorStop(s.offset, rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`))
+                    console.log(toHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`).value, s)
+                    linearGradient.addColorStop(s.offset, toHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`).value)
                 })
                 fillStyle = linearGradient
                 break;
@@ -79,8 +79,8 @@ export class RectangleGradient implements Shape {
 
                 const radialGradient = d.ctx.createRadialGradient(this.canvasGradient.x0, this.canvasGradient.y0, this.canvasGradient.r0, this.canvasGradient.x1, this.canvasGradient.y1, this.canvasGradient.r1)
                 this.canvasGradient.steps.forEach((s) => {
-                    console.log('addColorStop', rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`), s)
-                    radialGradient.addColorStop(s.offset, rgbToHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`))
+                    console.log('addColorStop', toHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`).value, s)
+                    radialGradient.addColorStop(s.offset, toHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`).value)
                 })
                 fillStyle = radialGradient
                 break;
