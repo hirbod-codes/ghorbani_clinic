@@ -157,7 +157,7 @@ export const Navigation = memo(function Navigation() {
                                 }
                             </Button>
                         }
-                        <Button size='icon' onClick={async () => await configuration.updateThemeMode(configuration.themeOptions.mode === 'dark' ? 'light' : 'dark')}>
+                        <Button size='icon' onClick={async () => await configuration.updateTheme(configuration.themeOptions.mode === 'dark' ? 'light' : 'dark')}>
                             {configuration.themeOptions.mode == 'dark' ? <SunIcon fontSize='inherit' /> : <MoonIcon fontSize='inherit' />}
                         </Button>
                     </div>

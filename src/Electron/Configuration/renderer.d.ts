@@ -53,6 +53,10 @@ export type ThemeOptions = {
         ring: string;
         background: string;
         foreground: string;
+        darkBackground: string;
+        darkForeground: string;
+        lightBackground: string;
+        lightForeground: string;
         primary: string;
         "primary-foreground": string;
         secondary: string;

@@ -19,20 +19,20 @@ import { useConfigurationHook } from './hook';
 
 
 export const ConfigurationContextWrapper = memo(function ConfigurationContextWrapper({ children }: { children?: ReactNode; }) {
-    const memoizedChildren = useMemo(() => children, [])
+    // const memoizedChildren = useMemo(() => children, [])
 
     const [collection, setCollection] = useState([{ key: '0', elm: <p>0</p> }, { key: '1', elm: <p>1</p> }, { key: '2', elm: <p>2</p> }, { key: '3', elm: <p>3</p> }, { key: '4', elm: <p>4</p> }])
 
-    const { updateTheme, updateThemeMode, updateLocal, setShowGradientBackground, isConfigurationContextReady, ...configuration } = useConfigurationHook()
+    const { updateTheme, updateLocal, setShowGradientBackground, isConfigurationContextReady, ...configuration } = useConfigurationHook()
 
     console.log('-------------ConfigurationContextWrapper', { collection, configuration, isConfigurationContextReady })
 
     return (
         <>
             {isConfigurationContextReady &&
-                <ConfigurationContext.Provider value={{ ...configuration, updateTheme, updateThemeMode, updateLocal, setShowGradientBackground, isConfigurationContextReady }}>
+                <ConfigurationContext.Provider value={{ ...configuration, updateTheme, updateLocal, setShowGradientBackground, isConfigurationContextReady }}>
                     <div className={'size-full overflow-hidden'}>
-                        {memoizedChildren}
+                        {children}
                     </div>
                     {/* <CacheProvider value={configuration.local.direction === 'rtl' ? rtlCache : ltrCache}>
                         <ThemeProvider theme={theme}>

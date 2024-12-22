@@ -6,42 +6,44 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/src/react/shadcn/components/ui/dropdown-menu"
-import React, { ReactNode } from "react";
+import { ComponentProps, ReactNode } from "react";
 
 export type DropdownMenuProps = {
-    trigger: ReactNode,
+    open?: boolean
+    onOpenChange?: (open: boolean) => void
+    defaultOpen?: boolean
+    trigger?: ReactNode
+    triggerProps?: ComponentProps<typeof DropdownMenuTrigger>
     contents: ({
         type: 'label'
-        options?: React.ComponentProps<typeof DropdownMenuLabel>
+        options?: ComponentProps<typeof DropdownMenuLabel>
         content?: any
     } | {
         type: 'separator'
-        options?: React.ComponentProps<typeof DropdownMenuSeparator>
+        options?: ComponentProps<typeof DropdownMenuSeparator>
     } | {
         type: 'item'
-        options?: React.ComponentProps<typeof DropdownMenuItem>
+        options?: ComponentProps<typeof DropdownMenuItem>
         content?: any
     })[]
 }
 
-export function DropdownMenu({ trigger, contents }: DropdownMenuProps) {
+export function DropdownMenu({ open, onOpenChange, defaultOpen, contents, trigger, triggerProps }: DropdownMenuProps) {
     return (
-        <>
-            <ShadcnDropdownMenu>
-                <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
-                <DropdownMenuContent>
-                    {contents.map((c, i) => {
-                        switch (c.type) {
-                            case 'label':
-                                return <DropdownMenuLabel key={i} {...c?.options}>{c?.content}</DropdownMenuLabel>
-                            case 'separator':
-                                return <DropdownMenuSeparator key={i} {...c?.options} />
-                            case 'item':
-                                return <DropdownMenuItem key={i} {...c?.options}>{c?.content}</DropdownMenuItem>
-                        }
-                    })}
-                </DropdownMenuContent>
-            </ShadcnDropdownMenu>
-        </>
+        <ShadcnDropdownMenu open={open} onOpenChange={onOpenChange} defaultOpen={defaultOpen} >
+            <DropdownMenuTrigger {...triggerProps} >{trigger}</DropdownMenuTrigger>
+            <DropdownMenuContent>
+                {contents.map((c, i) => {
+                    switch (c.type) {
+                        case 'label':
+                            return <DropdownMenuLabel key={i} {...c?.options}>{c?.content}</DropdownMenuLabel>
+                        case 'separator':
+                            return <DropdownMenuSeparator key={i} {...c?.options} />
+                        case 'item':
+                            return <DropdownMenuItem key={i} {...c?.options}>{c?.content}</DropdownMenuItem>
+                    }
+                })}
+            </DropdownMenuContent>
+        </ShadcnDropdownMenu>
     )
 }

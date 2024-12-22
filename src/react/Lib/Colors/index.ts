@@ -13,18 +13,18 @@ export function shadeColor(color: string | Color, coefficient: number): Color {
         if (color.type === 'hex')
             return toHex(shadeColor(toRgb(color), coefficient))
         else if (color.type.indexOf('hsl') !== -1)
-            color.value[2] += (100 - color.value[2]) * coefficient;
+            color.value[2] = +(color.value[2] + ((100 - color.value[2]) * coefficient)).toFixed(2)
         else if (color.type.indexOf('rgb') !== -1)
             for (let i = 0; i < 3; i += 1)
-                color.value[i] += (255 - color.value[i]) * coefficient;
+                color.value[i] = +(color.value[i] + ((255 - color.value[i]) * coefficient)).toFixed(2)
     } else
         if (color.type === 'hex')
             return toHex(shadeColor(toRgb(color), coefficient))
         else if (color.type.indexOf('hsl') !== -1)
-            color.value[2] *= 1 - Math.abs(coefficient);
+            color.value[2] = +(color.value[2] * (1 - Math.abs(coefficient))).toFixed(2)
         else if (color.type.indexOf('rgb') !== -1)
             for (let i = 0; i < 3; i += 1)
-                color.value[i] *= 1 - Math.abs(coefficient);
+                color.value[i] = +(color.value[i] * (1 - Math.abs(coefficient))).toFixed(2)
 
     return color
 }
@@ -36,32 +36,18 @@ export function toRgb(color: string | Color): RGB {
         return color
 
     if (color.type === 'hsl' || color.type === 'hsla') {
-        color.value[0] /= 360
-        color.value[1] /= 100
-        color.value[2] /= 100
-        let r, g, b;
-
-        if (color.value[1] === 0)
-            r = g = b = color.value[2]; // achromatic
-        else {
-            const hue2rgb = (p, q, t) => {
-                if (t < 0) t += 1;
-                if (t > 1) t -= 1;
-                if (t < 1 / 6) return p + (q - p) * 6 * t;
-                if (t < 1 / 2) return q;
-                if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-                return p;
-            };
-            const q = color.value[2] < 0.5 ? color.value[2] * (1 + color.value[1]) : color.value[2] + color.value[1] - color.value[2] * color.value[1];
-            const p = 2 * color.value[2] - q;
-            r = hue2rgb(p, q, color.value[0] + 1 / 3);
-            g = hue2rgb(p, q, color.value[0]);
-            b = hue2rgb(p, q, color.value[0] - 1 / 3);
-        }
+        const h = color.value[0];
+        const s = color.value[1] / 100;
+        const l = color.value[2] / 100;
+        const a = s * Math.min(l, 1 - l);
+        const f = (n, k = (n + h / 30) % 12) => l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        const rgb = [Math.round(f(0) * 255), Math.round(f(8) * 255), Math.round(f(4) * 255)];
+        if (color.type === 'hsla')
+            rgb.push(color.value[3])
 
         return {
-            type: color.value.length === 4 ? 'rgba' : 'rgb',
-            value: color.value
+            type: rgb.length === 4 ? 'rgba' : 'rgb',
+            value: rgb
         }
     }
 
@@ -133,6 +119,10 @@ export function toHsl(color: string | Color): HSL {
         s = +(s * 100).toFixed(1);
         l = +(l * 100).toFixed(1);
 
+        h = +h.toFixed(2)
+        s = +s.toFixed(2)
+        l = +l.toFixed(2)
+
         return {
             type: color.type === 'rgba' ? 'hsla' : 'hsl',
             value: color.type === 'rgba' ? [h, s, l, color.value[3]] : [h, s, l]
@@ -156,7 +146,7 @@ export function toHex(color: string | Color): HEX {
     if (color.type === 'rgb' || color.type === 'rgba')
         return {
             type: 'hex',
-            value: `#${toTwoDigit(color.value[0].toString(16))}${toTwoDigit(color.value[1].toString(16))}${toTwoDigit(color.value[2].toString(16))}${color.value.length === 4 ? toTwoDigit(color.value[3].toString(16)) : ''}`
+            value: `#${toTwoDigit(Math.round(color.value[0]).toString(16))}${toTwoDigit(Math.round(color.value[1]).toString(16))}${toTwoDigit(Math.round(color.value[2]).toString(16))}${color.value.length === 4 ? toTwoDigit(Math.round(color.value[3]).toString(16)) : ''}`
         }
 
     if (color.type === 'hsl' || color.type === 'hsla')
@@ -193,14 +183,20 @@ export function decomposeColor(color: string | Color): Color {
 export function setAlpha(color: string | Color, alpha: number): Color {
     color = decomposeColor(color)
 
+    if (alpha < 0 || alpha > 1)
+        throw new Error('multiplier must be between 0 and 1 range.')
+
     if (color.type === 'hex' && color.value.length === 9)
-        color.value = color.value.slice(0, 7) + alpha.toString(16)
+        color.value = color.value.slice(0, 7) + Math.round(alpha * 255).toString(16)
 
-    if ((color.type === 'rgb' || color.type === 'rgba') && color.value.length === 4)
+    if ((color.type === 'rgb' || color.type === 'rgba'))
         color.value[3] = alpha
 
-    if ((color.type === 'hsl' || color.type === 'hsla') && color.value.length === 4)
+    if ((color.type === 'hsl' || color.type === 'hsla'))
         color.value[3] = alpha
+
+    if (color.type === 'rgb' || color.type === 'hsl')
+        color.type += 'a'
 
     return color
 }
