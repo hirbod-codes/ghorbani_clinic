@@ -19,6 +19,8 @@ export function useConfigurationHook() {
             'scrollbar-width': '0.5rem',
             'scrollbar-height': '0.5rem',
             'scrollbar-border-radius': '5px',
+            foregroundCoefficient: 1,
+            colorCoefficient: 0.3,
             colors: {
                 black: 'hsl(222, 50%, 10%)',
                 white: 'hsl(0, 0%, 100%)',
@@ -115,13 +117,10 @@ export function useConfigurationHook() {
         for (const key in options.colors)
             if (key === 'background' || key === 'foreground' || key === 'border' || key === 'input')
                 continue
+            else if (key.includes('foreground'))
+                document.documentElement.style.setProperty('--' + key, stringify(shadeColor(options.colors[key], mode === 'dark' ? options.foregroundCoefficient : -options.foregroundCoefficient)))
             else
-                document.documentElement.style.setProperty(
-                    '--' + key,
-                    mode === 'dark'
-                        ? stringify(shadeColor(options.colors[key], key.includes('foreground') ? 0.3 : -0.3))
-                        : stringify(shadeColor(options.colors[key], key.includes('foreground') ? -0.3 : 0.3))
-                )
+                document.documentElement.style.setProperty('--' + key, stringify(shadeColor(options.colors[key], mode === 'dark' ? -options.colorCoefficient : options.colorCoefficient)))
     }
 
     const [isConfigurationContextReady, setIsConfigurationContextReady] = useState<boolean>(false);

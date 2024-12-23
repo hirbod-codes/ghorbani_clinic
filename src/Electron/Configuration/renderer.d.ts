@@ -45,6 +45,8 @@ export type ThemeOptions = {
     'scrollbar-width': string;
     'scrollbar-height': string;
     'scrollbar-border-radius': string;
+    foregroundCoefficient: number;
+    colorCoefficient: number;
     colors: {
         black: string;
         white: string;
