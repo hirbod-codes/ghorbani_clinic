@@ -1,4 +1,4 @@
-import { memo, ReactNode, useContext, useState } from "react";
+import { memo, useContext, useState } from "react";
 import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext';
 import { HexAlphaColorPicker } from 'react-colorful';
 import { t } from 'i18next';
@@ -7,10 +7,8 @@ import { Switch } from "../../Components/Base/Switch";
 import { Input } from "../../Components/Base/Input";
 import { DropdownMenu } from "../../Components/Base/DropdownMenu";
 import { Button } from "../../shadcn/components/ui/button";
-import { getContrastRatio } from "@mui/material";
-import { shadeColor, stringify, toHex, toHsl, toRgb } from "../../Lib/Colors";
+import { shadeColor, stringify, toHex, toRgb } from "../../Lib/Colors";
 import { MoonIcon, SunIcon } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
 
 export const ThemeSettings = memo(function ThemeSettings() {
     const c = useContext(ConfigurationContext)!
@@ -48,6 +46,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                         label={t('ThemeSettings.showGradientBackground')}
                         labelId={t('ThemeSettings.showGradientBackground')}
                         checked={showGradientBackground}
+                        disabled={loadingGradientBackground}
                         onCheckedChange={async (e) => await updateShowGradientBackground(e)}
                     />
                 </div>
