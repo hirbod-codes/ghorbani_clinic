@@ -1,6 +1,6 @@
 import { InputWithIcon as ReferenceInput } from "../InputWithIcon";
 import { Label } from "@/src/react/shadcn/components/ui/label";
-import { ComponentProps, memo, ReactNode, useEffect } from "react";
+import { ComponentProps, memo, useEffect } from "react";
 import { Tooltip } from "../Tooltip";
 import { AnimatePresence, motion } from "framer-motion";
 
