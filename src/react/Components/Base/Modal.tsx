@@ -1,47 +1,51 @@
-import { ReactNode, useState } from "react"
-import {
-    Dialog as ShadcnDialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-    DialogFooter,
-} from "@/src/react/shadcn/components/ui/dialog"
-
+import { ComponentProps, ReactNode, useEffect, useRef, useState } from "react"
+import { AnimatedSlide } from "../Animations/AnimatedSlide"
+import { usePointerOutside } from "./PointerOutside"
+import { Button } from "./Button"
+import { XIcon } from "lucide-react"
+import { cn } from "../../shadcn/lib/utils"
+import { Container } from "./Container"
 
 export type ModalProps = {
     children?: ReactNode
-    trigger?: ReactNode
-    open?: boolean
-    title?: string
-    description?: string
-    footer?: ReactNode
-    onClose?: () => void
+    open?: boolean,
+    onClose?: () => void,
+    containerProps?: ComponentProps<'div'>,
+    closeButton?: boolean,
+    closeIcon?: ReactNode
 }
 
-export function Modal({ children, trigger, open: openInput = true, title, description, footer, onClose }: ModalProps) {
-    const [open, setOpen] = useState<boolean>(openInput)
+export function Modal({ children, open = false, onClose, containerProps, closeButton = true, closeIcon }: ModalProps) {
+    closeIcon = closeIcon ?? <XIcon className="text-destructive" />
+    const ref = useRef(null)
+
+    const [display, setDisplay] = useState('block')
+
+    useEffect(() => {
+        if (open)
+            setDisplay('block')
+    }, [open])
+
+    usePointerOutside(ref, (outside) => {
+        if (outside && onClose)
+            onClose()
+    }, [open])
 
     return (
-        <ShadcnDialog open={open} onOpenChange={() => { setOpen(false); if (onClose) onClose() }} >
-            <DialogTrigger>{trigger}</DialogTrigger>
-            <DialogContent>
-                {title &&
-                    <DialogHeader>
-                        <DialogTitle>{title}</DialogTitle>
-                        <DialogDescription>
-                            {description}
-                        </DialogDescription>
-                    </DialogHeader>
-                }
-                {children}
-                {footer && <DialogFooter className="sm:justify-start">
-                    {footer}
-                </DialogFooter>
-                }
-            </DialogContent>
-        </ShadcnDialog>
+        <>
+            <div className="h-screen w-screen overflow-hidden absolute top-0 left-0 bg-[black] opacity-70" style={{ transition: 'opacity 0.2s ease-in', opacity: open ? 0.7 : 0, display }} onTransitionEnd={() => setDisplay('none')} />
+
+            <AnimatedSlide open={open} {...containerProps}>
+                <Container containerRef={ref} {...containerProps} className={cn("absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background rounded p-4", containerProps?.className)}>
+                    {closeButton &&
+                        <Button size='icon' className="absolute right-0 top-0 m-2 bg-transparent" onClick={() => { if (onClose) onClose() }}>
+                            {closeIcon}
+                        </Button>
+                    }
+                    {children}
+                </Container>
+            </AnimatedSlide>
+        </>
     )
 }
 

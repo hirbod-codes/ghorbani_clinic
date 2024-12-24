@@ -26,7 +26,6 @@ export const Navigation = memo(function Navigation() {
     console.log('Navigation', { auth, configuration, openDrawer })
 
     const appBarBorderColor = configuration.themeOptions.colors[`${configuration.themeOptions.mode}Foreground`]
-    const appBarGradientColor = configuration.themeOptions.colors[`${configuration.themeOptions.mode}Foreground`]
     const drawerGradientColor = configuration.themeOptions.colors[`${configuration.themeOptions.mode}Foreground`]
 
     const appBarBorderGradient = `radial-gradient(ellipse farthest-side at center, ${appBarBorderColor}, 5%, transparent)`

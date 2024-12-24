@@ -170,7 +170,7 @@ export const AuthContextWrapper = memo(function AuthContextWrapper({ children }:
                 open={showModal}
                 onClose={() => setShowModal(false)}
             >
-                <div className='w-7/12 px-2 py-4'>
+                <div className='w-full px-2 py-4'>
                     <LoginForm onFinish={async (username, password) => { await login(username, password); setShowModal(false); }} />
                 </div>
             </Modal>

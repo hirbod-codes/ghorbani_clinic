@@ -20,11 +20,6 @@
     *:focus{
         outline: none
     }
-    .aa{
-        color: #64748b;
-        color: rgb(0.39, 0.46, 0.55);
-        color: #64758c;
-    }
 
     *::-webkit-scrollbar {
         width: var(--scrollbar-width);
@@ -50,7 +45,7 @@
 
 html, body {
     height: 100%;
-    overflow: auto;
+    overflow: hidden;
 }
 
 #root {

@@ -21,7 +21,7 @@ export const Layout = memo(function Layout() {
                 <div className='flex flex-col flex-grow overflow-hidden'>
                     <Navigation />
 
-                    <div className='overflow-hidden flex-grow w-full relative mt-3'>
+                    <div className='flex-grow w-full relative mt-3 overflow-hidden'>
                         <AnimatedOutlet />
                     </div>
                 </div>

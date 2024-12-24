@@ -33,16 +33,12 @@ export const AnimatedSlide = memo(function AnimatedSlide({ children, motionKey, 
     transition = transition ?? slideGetTransitions(delay)
 
     return (
-        // <div className={`${fullWidth === true ? 'w-full' : ''} ${fullHeight === true ? 'h-full' : ''} overflow-hidden`}>
-            <div className={`relative ${fullWidth === true ? 'w-full' : ''} ${fullHeight === true ? 'h-full' : ''}`}>
-                <AnimatePresence mode={presenceMode}>
-                    {open &&
-                        <SlideMotion {...{ motionKey, layout, inSource, outSource, disappear, variants, transition, fullWidth, fullHeight }}>
-                            {children}
-                        </SlideMotion>
-                    }
-                </AnimatePresence>
-            </div>
-        // </div>
+        <AnimatePresence mode={presenceMode}>
+            {open &&
+                <SlideMotion {...{ motionKey, layout, inSource, outSource, disappear, variants, transition, fullWidth, fullHeight }}>
+                    {children}
+                </SlideMotion>
+            }
+        </AnimatePresence>
     )
 })

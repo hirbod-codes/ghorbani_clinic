@@ -47,8 +47,8 @@ export function Calendar() {
     }, [])
 
     return (
-        <div style={{ zIndex: 2, position: 'relative' }}>
-            <div className="z-[2] overflow-auto shadow-lg">
+        <div style={{ position: 'relative' }}>
+            <div className="overflow-auto shadow-lg">
                 <div style={{ minWidth: '25rem', padding: 0.5 }}>
                     <CalendarComponent onDayPointerOver={onOver} onDayPointerOut={onOut} />
                 </div>

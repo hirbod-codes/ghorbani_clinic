@@ -17,8 +17,7 @@ export const MenuBar = memo(function MenuBar() {
 
     return (
         <>
-            <div className='w-full h-[4rem] absolute top-0 left-0' style={{ background: appBarGradient }}>
-            </div>
+            <div className='w-full h-[4rem] absolute top-0 left-0' style={{ background: appBarGradient }}/>
             <div className='w-full ' dir='ltr'>
                 <div className='flex flex-row justify-between' style={{ WebkitAppRegion: 'drag' } as any}>
                     <Button
