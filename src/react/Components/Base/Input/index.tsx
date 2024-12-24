@@ -2,7 +2,8 @@ import { InputWithIcon as ReferenceInput } from "../InputWithIcon";
 import { Label } from "@/src/react/shadcn/components/ui/label";
 import { ComponentProps, memo, useEffect } from "react";
 import { Tooltip } from "../Tooltip";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, MotionProps } from "framer-motion";
+import { cn } from "@/src/react/shadcn/lib/utils";
 
 const inputVariants = {
     animate: {
@@ -15,14 +16,14 @@ const inputVariants = {
     },
 }
 
-export const Input = memo(function Input({ label, labelId, errorText, helperText, ...inputProps }: { label?: string, labelId?: string, errorText?: string, helperText?: string } & ComponentProps<typeof ReferenceInput>) {
+export const Input = memo(function Input({ label, labelId, errorText, helperText, containerProps, ...inputProps }: { label?: string, labelId?: string, errorText?: string, helperText?: string, containerProps?: MotionProps & ComponentProps<'div'> } & ComponentProps<typeof ReferenceInput>) {
     const input = <ReferenceInput id={labelId} {...inputProps} />
 
     useEffect(() => { setTimeout(() => { errorText = undefined }, 3000) }, [])
 
     return (
-        <motion.div layout className="p-2 flex flex-col relative">
-            <div className="flex flex-row items-center space-x-2">
+        <motion.div layout {...containerProps} className={cn("p-2 flex flex-col relative", containerProps?.className)}>
+            <div className="flex flex-row items-center space-x-2 h-full">
                 {label && labelId &&
                     <Label htmlFor={labelId}>
                         {label}

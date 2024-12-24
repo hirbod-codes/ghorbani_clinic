@@ -1,4 +1,4 @@
-import { ComponentProps, ReactNode, useEffect, useRef, useState } from "react"
+import { ComponentProps, ReactNode, RefObject, useRef } from "react"
 import { AnimatedSlide } from "../Animations/AnimatedSlide"
 import { usePointerOutside } from "./PointerOutside"
 import { Button } from "./Button"
@@ -10,16 +10,18 @@ export type ModalProps = {
     children?: ReactNode
     open?: boolean,
     onClose?: () => void,
+    animatedSlideProps?: ComponentProps<typeof AnimatedSlide>,
     containerProps?: ComponentProps<'div'>,
     closeButton?: boolean,
     closeIcon?: ReactNode
 }
 
-export function Modal({ children, open = false, onClose, containerProps, closeButton = true, closeIcon }: ModalProps) {
-    closeIcon = closeIcon ?? <XIcon className="text-destructive" />
-    const ref = useRef(null)
+export function Modal({ children, open = false, onClose, containerProps, animatedSlideProps, closeButton = true, closeIcon }: ModalProps) {
+    const containerRef = useRef<HTMLDivElement>(null)
 
-    usePointerOutside(ref, (outside) => {
+    closeIcon = closeIcon ?? <XIcon className="text-destructive" />
+
+    usePointerOutside(containerRef, (outside) => {
         if (outside && onClose)
             onClose()
     }, [open])
@@ -28,8 +30,13 @@ export function Modal({ children, open = false, onClose, containerProps, closeBu
         <>
             {open && <div className="h-screen w-screen overflow-hidden absolute top-0 left-0 bg-[black] opacity-70" />}
 
-            <AnimatedSlide open={open} {...containerProps}>
-                <Container containerRef={ref} {...containerProps} className={cn("absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background rounded p-4", containerProps?.className)}>
+            <AnimatedSlide
+                motionKey={open.toString()}
+                open={open}
+                layout={true}
+                {...{ ...animatedSlideProps, motionDivProps: { ...animatedSlideProps?.motionDivProps, className: cn("absolute top-0 left-0 h-screen w-screen flex flex-col justify-center items-center", animatedSlideProps?.motionDivProps?.className) } }}
+            >
+                <Container containerRef={containerRef} {...containerProps} className={cn("bg-background rounded p-4 relative", containerProps?.className)}>
                     {closeButton &&
                         <Button size='icon' className="absolute right-0 top-0 m-2 bg-transparent" onClick={() => { if (onClose) onClose() }}>
                             {closeIcon}
@@ -41,4 +48,3 @@ export function Modal({ children, open = false, onClose, containerProps, closeBu
         </>
     )
 }
-

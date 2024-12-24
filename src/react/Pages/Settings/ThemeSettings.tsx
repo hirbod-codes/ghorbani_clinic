@@ -6,9 +6,9 @@ import { configAPI } from '../../../Electron/Configuration/renderer.d';
 import { Switch } from "../../Components/Base/Switch";
 import { Input } from "../../Components/Base/Input";
 import { DropdownMenu } from "../../Components/Base/DropdownMenu";
-import { Button } from "../../shadcn/components/ui/button";
 import { shadeColor, stringify, toHex, toRgb } from "../../Lib/Colors";
-import { MoonIcon, SunIcon } from "lucide-react";
+import { CheckIcon, MoonIcon, SunIcon } from "lucide-react";
+import { Button } from "../../Components/Base/Button";
 
 export const ThemeSettings = memo(function ThemeSettings() {
     const c = useContext(ConfigurationContext)!
@@ -16,8 +16,11 @@ export const ThemeSettings = memo(function ThemeSettings() {
     const [showGradientBackground, setShowGradientBackground] = useState<boolean>(c.showGradientBackground ?? false)
     const [loadingGradientBackground, setLoadingGradientBackground] = useState<boolean>(false)
 
+
     const [open, setOpen] = useState<string>()
     const [color, setColor] = useState<string>('#000')
+
+    const [textColors, setTextColors] = useState<{ [k: string]: string }>({})
 
     const [colorCoefficient, setColorCoefficient] = useState<string>(c.themeOptions.colorCoefficient.toString())
     const [foregroundCoefficient, setForegroundCoefficient] = useState<string>(c.themeOptions.foregroundCoefficient.toString())
@@ -40,7 +43,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
 
     return (
         <>
-            <div className="flex flex-row flex-wrap items-start content-start size-full p-3 *:m-1">
+            <div className="flex flex-row flex-wrap items-start content-start size-full p-3 *:m-1 overflow-y-auto">
                 <div className="border rounded-lg p-2 min-w-40">
                     <Switch
                         label={t('ThemeSettings.showGradientBackground')}
@@ -72,7 +75,35 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                 </div>
                             </div>
 
-                            <Button className="border w-full" style={{ backgroundColor: stringify(c.themeOptions.colors[k]) }} onClick={() => { console.log(c.themeOptions.colors[k], stringify(toHex(c.themeOptions.colors[k])), stringify(toRgb(c.themeOptions.colors[k]))); setColor(stringify(toHex(c.themeOptions.colors[k]))); setOpen(k) }}>Change</Button>
+                            <Button
+                                className="border w-full"
+                                style={{ backgroundColor: stringify(c.themeOptions.colors[k]) }}
+                                onClick={() => { setColor(stringify(toHex(c.themeOptions.colors[k]))); setOpen(k) }}
+                            >
+                                Change
+                            </Button>
+
+                            <div className="flex flex-row items-center w-full p-0 space-x-1">
+                                <Input containerProps={{ className: "w-full p-0", }} className="h-6" placeholder='color hex number' onChange={(e) => setTextColors({ ...textColors, k: e.target.value })} value={textColors.k ?? ''} />
+
+                                <Button
+                                    className="h-6 w-6"
+                                    size='icon'
+                                    onClick={() => {
+                                        let tc: string | undefined = undefined
+                                        try { tc = stringify(toHex(textColors.k)) }
+                                        catch (e) { return }
+                                        if (!tc)
+                                            return
+
+                                        c.themeOptions.colors[k] = tc
+
+                                        c.updateTheme(undefined, c.themeOptions)
+                                    }}
+                                >
+                                    <CheckIcon />
+                                </Button>
+                            </div>
 
                             <DropdownMenu
                                 open={open === k}

@@ -1,5 +1,5 @@
 import { t } from 'i18next';
-import { memo, useContext, useState } from 'react';
+import { memo, useContext, useRef, useState } from 'react';
 import { AuthContext } from '../Contexts/AuthContext';
 import { ConfigurationContext } from '../Contexts/Configuration/ConfigurationContext';
 import { resources } from '../../Electron/Database/Repositories/Auth/resources';
@@ -16,6 +16,7 @@ export const Navigation = memo(function Navigation() {
     const configuration = useContext(ConfigurationContext)!
 
     // Navigation
+    const containerRef = useRef<HTMLDivElement>(null)
     const [openDrawer, setOpenDrawer] = useState(false)
 
     const readsUsers = auth?.accessControl && auth?.user && auth?.accessControl.can(auth?.user?.roleName ?? '').read(resources.USER).granted
@@ -27,6 +28,7 @@ export const Navigation = memo(function Navigation() {
 
     const appBarBorderColor = configuration.themeOptions.colors[`${configuration.themeOptions.mode}Foreground`]
     const drawerGradientColor = configuration.themeOptions.colors[`${configuration.themeOptions.mode}Foreground`]
+    const drawerForegroundColor = configuration.themeOptions.colors[`${configuration.themeOptions.mode}Background`]
 
     const appBarBorderGradient = `radial-gradient(ellipse farthest-side at center, ${appBarBorderColor}, 5%, transparent)`
     const drawerGradient = `linear-gradient(90deg, ${drawerGradientColor}, 50%, transparent)`
@@ -80,65 +82,65 @@ export const Navigation = memo(function Navigation() {
 
             <div style={{ height: '2px', background: appBarBorderGradient, margin: '0 1rem' }} />
 
-            <Drawer animatedSlideProps={{ open: openDrawer, motionKey: openDrawer.toString(), containerProps: { className: 'w-fit absolute top-0' } }} onClose={() => setOpenDrawer(false)}>
-                <div className={`flex flex-row items-center h-full w-fit`} style={{ background: drawerGradient }}>
+            <Drawer animatedSlideProps={{ open: openDrawer, motionKey: openDrawer.toString(), motionDivProps: { className: 'absolute top-0 h-screen', layout: true } }} containerRef={containerRef} onClose={() => setOpenDrawer(false)}>
+                <div ref={containerRef} className={`flex flex-row items-center h-full w-fit`} style={{ background: drawerGradient }}>
                     <div className='flex flex-col overflow-auto h-full'>
                         <div className='mb-8' />
 
                         <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/')}>
-                            <HomeIcon style={{ color: window.location.pathname !== '/' ? 'white' : activeColor }} />
-                            <p style={{ color: window.location.pathname !== '/' ? 'white' : activeColor }}>{t('Navigation.home')}</p>
+                            <HomeIcon style={{ color: window.location.pathname !== '/' ? drawerForegroundColor : activeColor }} />
+                            <p style={{ color: window.location.pathname !== '/' ? drawerForegroundColor : activeColor }}>{t('Navigation.home')}</p>
                         </Button>
 
                         <div className='mb-8' />
 
                         {readsUsers &&
                             <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/Users')} >
-                                <UsersIcon style={{ color: window.location.pathname !== '/Users' ? 'white' : activeColor }} />
-                                <p style={{ color: window.location.pathname !== '/Users' ? 'white' : activeColor }}>{t('Navigation.users')}</p>
+                                <UsersIcon style={{ color: window.location.pathname !== '/Users' ? drawerForegroundColor : activeColor }} />
+                                <p style={{ color: window.location.pathname !== '/Users' ? drawerForegroundColor : activeColor }}>{t('Navigation.users')}</p>
                             </Button>}
 
                         <div className='mb-2' />
 
                         {readsPatients &&
                             <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/Patients')} >
-                                <ShieldAlertIcon style={{ color: window.location.pathname !== '/Patients' ? 'white' : activeColor }} />
-                                <p style={{ color: window.location.pathname !== '/Patients' ? 'white' : activeColor }}>{t('Navigation.patients')}</p>
+                                <ShieldAlertIcon style={{ color: window.location.pathname !== '/Patients' ? drawerForegroundColor : activeColor }} />
+                                <p style={{ color: window.location.pathname !== '/Patients' ? drawerForegroundColor : activeColor }}>{t('Navigation.patients')}</p>
                             </Button>}
 
                         <div className='mb-2' />
 
                         {readsVisits &&
                             <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/Visits')} >
-                                <TimerIcon style={{ color: window.location.pathname !== '/Visits' ? 'white' : activeColor }} />
-                                <p style={{ color: window.location.pathname !== '/Visits' ? 'white' : activeColor }}>{t('Navigation.visits')}</p>
+                                <TimerIcon style={{ color: window.location.pathname !== '/Visits' ? drawerForegroundColor : activeColor }} />
+                                <p style={{ color: window.location.pathname !== '/Visits' ? drawerForegroundColor : activeColor }}>{t('Navigation.visits')}</p>
                             </Button>}
 
                         <div className='mb-2' />
 
                         {readsMedicalHistories &&
                             <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/MedicalHistories')} >
-                                <HistoryIcon style={{ color: window.location.pathname !== '/MedicalHistories' ? 'white' : activeColor }} />
-                                <p style={{ color: window.location.pathname !== '/MedicalHistories' ? 'white' : activeColor }}>{t('Navigation.MedicalHistories')}</p>
+                                <HistoryIcon style={{ color: window.location.pathname !== '/MedicalHistories' ? drawerForegroundColor : activeColor }} />
+                                <p style={{ color: window.location.pathname !== '/MedicalHistories' ? drawerForegroundColor : activeColor }}>{t('Navigation.MedicalHistories')}</p>
                             </Button>}
 
                         <div className='mb-8' />
 
                         <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/General')} >
-                            <SettingsIcon style={{ color: window.location.pathname !== '/General' ? 'white' : activeColor }} />
-                            <p style={{ color: window.location.pathname !== '/General' ? 'white' : activeColor }}>{t("Navigation.general")}</p>
+                            <SettingsIcon style={{ color: window.location.pathname !== '/General' ? drawerForegroundColor : activeColor }} />
+                            <p style={{ color: window.location.pathname !== '/General' ? drawerForegroundColor : activeColor }}>{t("Navigation.general")}</p>
                         </Button>
 
                         <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/ThemeSettings')} >
-                            <PaintRollerIcon style={{ color: window.location.pathname !== '/ThemeSettings' ? 'white' : activeColor }} />
-                            <p style={{ color: window.location.pathname !== '/ThemeSettings' ? 'white' : activeColor }}>{t("Navigation.Theme")}</p>
+                            <PaintRollerIcon style={{ color: window.location.pathname !== '/ThemeSettings' ? drawerForegroundColor : activeColor }} />
+                            <p style={{ color: window.location.pathname !== '/ThemeSettings' ? drawerForegroundColor : activeColor }}>{t("Navigation.Theme")}</p>
                         </Button>
 
                         <div className='mb-8' />
 
                         <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/DbSettings')} >
-                            <DatabaseIcon style={{ color: window.location.pathname !== '/DbSettings' ? 'white' : activeColor }} />
-                            <p style={{ color: window.location.pathname !== '/DbSettings' ? 'white' : activeColor }}>{t("Navigation.Db")}</p>
+                            <DatabaseIcon style={{ color: window.location.pathname !== '/DbSettings' ? drawerForegroundColor : activeColor }} />
+                            <p style={{ color: window.location.pathname !== '/DbSettings' ? drawerForegroundColor : activeColor }}>{t("Navigation.Db")}</p>
                         </Button>
                     </div>
                     <div className={`h-full w-[2px]`} style={{ background: `radial-gradient(ellipse farthest-side at center, ${appBarBorderColor}, transparent)` }} />

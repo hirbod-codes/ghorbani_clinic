@@ -7,8 +7,7 @@ export interface InputProps
     endIcon?: ReactNode;
 }
 
-const InputWithIcon = forwardRef<HTMLInputElement, InputProps>(
-    ({ className, type, startIcon, endIcon, ...props }, ref) => {
+const InputWithIcon = forwardRef<HTMLInputElement, InputProps>(({ className, type, startIcon, endIcon, ...props }, ref) => {
         const StartIcon = startIcon;
         const EndIcon = endIcon;
 

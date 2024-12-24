@@ -162,7 +162,7 @@ export const AuthContextWrapper = memo(function AuthContextWrapper({ children }:
 
     return (
         <>
-            <AuthContext.Provider value={{ user: auth.user, accessControl: auth.ac, isAuthLoading: isAuthLoading.current, logout, showModal: () => setShowModal(true), fetchUser: async () => { await fetchUser() } }}>
+            <AuthContext.Provider value={{ user: auth.user, accessControl: auth.ac, isAuthLoading: isAuthLoading.current, logout, showModal: () => setShowModal(!showModal), fetchUser: async () => { await fetchUser() } }}>
                 {!isAuthLoading.current && memoizedChildren}
             </AuthContext.Provider>
 
