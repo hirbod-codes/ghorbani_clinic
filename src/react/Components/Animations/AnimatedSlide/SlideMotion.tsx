@@ -26,7 +26,7 @@ export function SlideMotion({ children, motionKey, delay, inSource, outSource, d
             variants={variants}
             transition={transition}
             layout={layout}
-            className={`relative overflow-hidden ${fullWidth ? 'w-full' : ''} ${fullHeight ? 'h-full' : ''} border-green-500 border-2`}
+            className={`relative overflow-hidden ${fullWidth === true ? 'w-full' : ''} ${fullHeight === true ? 'h-full' : ''}`}
         >
             {children}
         </motion.div>

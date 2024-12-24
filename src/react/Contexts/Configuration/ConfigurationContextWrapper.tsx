@@ -1,5 +1,5 @@
 // import { CssBaseline, GlobalStyles, ThemeProvider } from '@mui/material';
-import { ReactNode, memo, useMemo, useState } from 'react';
+import { ReactNode, memo, useState } from 'react';
 import { ConfigurationContext } from './ConfigurationContext';
 // import { CacheProvider } from '@emotion/react';
 // import createCache from '@emotion/cache';
@@ -19,21 +19,15 @@ import { useConfigurationHook } from './hook';
 
 
 export const ConfigurationContextWrapper = memo(function ConfigurationContextWrapper({ children }: { children?: ReactNode; }) {
-    // const memoizedChildren = useMemo(() => children, [])
-
-    const [collection, setCollection] = useState([{ key: '0', elm: <p>0</p> }, { key: '1', elm: <p>1</p> }, { key: '2', elm: <p>2</p> }, { key: '3', elm: <p>3</p> }, { key: '4', elm: <p>4</p> }])
-
     const { updateTheme, updateLocal, setShowGradientBackground, isConfigurationContextReady, ...configuration } = useConfigurationHook()
 
-    console.log('-------------ConfigurationContextWrapper', { collection, configuration, isConfigurationContextReady })
+    console.log('-------------ConfigurationContextWrapper', { configuration, isConfigurationContextReady })
 
     return (
         <>
             {isConfigurationContextReady &&
                 <ConfigurationContext.Provider value={{ ...configuration, updateTheme, updateLocal, setShowGradientBackground, isConfigurationContextReady }}>
-                    <div className={'size-full overflow-hidden'}>
-                        {children}
-                    </div>
+                    {children}
                     {/* <CacheProvider value={configuration.local.direction === 'rtl' ? rtlCache : ltrCache}>
                         <ThemeProvider theme={theme}>
                             <GlobalStyles styles={{

@@ -4,12 +4,10 @@ import { AuthContext } from '../Contexts/AuthContext';
 import { ConfigurationContext } from '../Contexts/Configuration/ConfigurationContext';
 import { resources } from '../../Electron/Database/Repositories/Auth/resources';
 import { useNavigate } from 'react-router-dom';
-import { setAlpha, shadeColor } from '../Lib/Colors';
-import { Button } from '../shadcn/components/ui/button';
-import { DatabaseIcon, HistoryIcon, HomeIcon, LogInIcon, LogOutIcon, MoonIcon, PaintRollerIcon, SettingsIcon, ShieldAlertIcon, SunIcon, TimerIcon, UserIcon, UsersIcon } from 'lucide-react';
-import { MenuIcon } from './Icons/MenuIcon';
+import { DatabaseIcon, HistoryIcon, HomeIcon, LogInIcon, LogOutIcon, MenuIcon, MoonIcon, PaintRollerIcon, SettingsIcon, ShieldAlertIcon, SunIcon, TimerIcon, UserIcon, UsersIcon } from 'lucide-react';
 import { CircularLoading } from './Base/CircularLoading';
 import { Drawer } from './Base/Drawer';
+import { Button } from './Base/Button';
 
 export const Navigation = memo(function Navigation() {
     const navigate = useNavigate();
@@ -25,11 +23,14 @@ export const Navigation = memo(function Navigation() {
     const readsVisits = auth?.accessControl && auth?.user && auth?.accessControl.can(auth?.user?.roleName ?? '').read(resources.VISIT).granted
     const readsMedicalHistories = auth?.accessControl && auth?.user && auth?.accessControl.can(auth?.user?.roleName ?? '').read(resources.MEDICAL_HISTORY).granted
 
-    console.log('Navigation', { auth, configuration })
+    console.log('Navigation', { auth, configuration, openDrawer })
 
-    const appBarBorderColor = configuration.themeOptions.mode === 'dark' ? '#fff' : '#000'
-    const appBarGradientColor = setAlpha(configuration.themeOptions.mode === 'dark' ? '#fff' : '#000', 0.7)
-    const drawerGradientColor = configuration.themeOptions.mode === 'dark' ? shadeColor('#fff', -0.7) : shadeColor('#000', 0.7)
+    const appBarBorderColor = configuration.themeOptions.colors[`${configuration.themeOptions.mode}Foreground`]
+    const appBarGradientColor = configuration.themeOptions.colors[`${configuration.themeOptions.mode}Foreground`]
+    const drawerGradientColor = configuration.themeOptions.colors[`${configuration.themeOptions.mode}Foreground`]
+
+    const appBarBorderGradient = `radial-gradient(ellipse farthest-side at center, ${appBarBorderColor}, 5%, transparent)`
+    const drawerGradient = `linear-gradient(90deg, ${drawerGradientColor}, 50%, transparent)`
 
     const moveTo = (destination: string) => {
         setOpenDrawer(false)
@@ -43,128 +44,107 @@ export const Navigation = memo(function Navigation() {
 
     return (
         <>
-            <div className={`bg-[radial-gradient(ellipse farthest-side at top, ${appBarGradientColor}, 5%, transparent)]`}>
-                <Drawer open={openDrawer} onOpenChange={(o) => setOpenDrawer(o)}>
-                    <div className={`flex flex-row items-center h-full bg-[linear-gradient(90deg, ${drawerGradientColor}, 50%, transparent)]`}>
-                        <div className='flex flex-col overflow-auto h-full'>
-                            <div className='mb-8' />
-
-                            <Button className='pr-8' variant={'ghost'} onClick={() => moveTo('/')}>
-                                <Button variant='ghost' style={{ color: window.location.pathname !== '/' ? 'white' : activeColor }} >
-                                    <HomeIcon />
-                                </Button>
-                                <p style={{ color: window.location.pathname !== '/' ? 'white' : activeColor }}>{t('Navigation.home')}</p>
-                            </Button>
-
-                            <div className='mb-8' />
-
-                            {readsUsers &&
-                                <Button className='pr-8' variant={'ghost'} onClick={() => moveTo('/Users')} >
-                                    <Button variant='ghost' style={{ color: window.location.pathname !== '/Users' ? 'white' : activeColor }}>
-                                        <UsersIcon />
-                                    </Button>
-                                    <p style={{ color: window.location.pathname !== '/Users' ? 'white' : activeColor }}>{t('Navigation.users')}</p>
-                                </Button>}
-
-                            <div className='mb-2' />
-
-                            {readsPatients &&
-                                <Button className='pr-8' variant={'ghost'} onClick={() => moveTo('/Patients')} >
-                                    <Button variant='ghost' style={{ color: window.location.pathname !== '/Patients' ? 'white' : activeColor }}>
-                                        <ShieldAlertIcon />
-                                    </Button>
-                                    <p style={{ color: window.location.pathname !== '/Patients' ? 'white' : activeColor }}>{t('Navigation.patients')}</p>
-                                </Button>}
-
-                            <div className='mb-2' />
-
-                            {readsVisits &&
-                                <Button className='pr-8' variant={'ghost'} onClick={() => moveTo('/Visits')} >
-                                    <Button variant='ghost' style={{ color: window.location.pathname !== '/Visits' ? 'white' : activeColor }}>
-                                        <TimerIcon />
-                                    </Button>
-                                    <p style={{ color: window.location.pathname !== '/Visits' ? 'white' : activeColor }}>{t('Navigation.visits')}</p>
-                                </Button>}
-
-                            <div className='mb-2' />
-
-                            {readsMedicalHistories &&
-                                <Button className='pr-8' variant={'ghost'} onClick={() => moveTo('/MedicalHistories')} >
-                                    <Button variant='ghost' style={{ color: window.location.pathname !== '/MedicalHistories' ? 'white' : activeColor }}>
-                                        <HistoryIcon />
-                                    </Button>
-                                    <p style={{ color: window.location.pathname !== '/MedicalHistories' ? 'white' : activeColor }}>{t('Navigation.MedicalHistories')}</p>
-                                </Button>}
-
-                            <div className='mb-8' />
-
-                            <Button className='pr-8' variant={'ghost'} onClick={() => moveTo('/General')} >
-                                <Button variant='ghost' style={{ color: window.location.pathname !== '/General' ? 'white' : activeColor }}>
-                                    <SettingsIcon />
-                                </Button>
-                                <p style={{ color: window.location.pathname !== '/General' ? 'white' : activeColor }}>{t("Navigation.general")}</p>
-                            </Button>
-
-                            <Button className='pr-8' variant={'ghost'} onClick={() => moveTo('/ThemeSettings')} >
-                                <Button variant='ghost' style={{ color: window.location.pathname !== '/ThemeSettings' ? 'white' : activeColor }}>
-                                    <PaintRollerIcon />
-                                </Button>
-                                <p style={{ color: window.location.pathname !== '/ThemeSettings' ? 'white' : activeColor }}>{t("Navigation.Theme")}</p>
-                            </Button>
-
-                            <div className='mb-8' />
-
-                            <Button className='pr-8' variant={'ghost'} onClick={() => moveTo('/DbSettings')} >
-                                <Button variant='ghost' style={{ color: window.location.pathname !== '/DbSettings' ? 'white' : activeColor }}>
-                                    <DatabaseIcon />
-                                </Button>
-                                <p style={{ color: window.location.pathname !== '/DbSettings' ? 'white' : activeColor }}>{t("Navigation.Db")}</p>
-                            </Button>
-                        </div>
-                        <div className={`h-full w-[2px] bg-[radial-gradient(ellipse farthest-side at center, ${appBarBorderColor}, transparent)]`} />
-                    </div>
-                </Drawer>
-
-                {/* top margin is 2rem, because menu bar has a height of 2rem and is positioned fixed */}
-                <div className='h-[2rem]' />
-
-                <div className='relative border-b-0 shadow-none bg-[#00000000]'>
-                    <div className='flex flex-row w-full items-center'>
-                        <Button size='icon' onClick={() => setOpenDrawer(true)} className='mr-2'>
-                            <MenuIcon />
+            <div className='relative border-b-0 shadow-none bg-[#00000000]'>
+                <div className='flex flex-row w-full items-center'>
+                    <Button size='icon' className='rounded-none bg-transparent' onClick={() => setOpenDrawer(true)}>
+                        <MenuIcon />
+                    </Button>
+                    <h6 className='flex-grow'>
+                        {/* Title */}
+                        {auth?.user?.username}
+                    </h6>
+                    {
+                        auth?.user &&
+                        <Button size='icon' className='rounded-none bg-transparent' onClick={async () => await auth?.logout()}>
+                            {
+                                auth?.isAuthLoading
+                                    ? <CircularLoading />
+                                    : <LogOutIcon fontSize='inherit' />
+                            }
                         </Button>
-                        <h6 className='flex-grow'>
-                            {/* Title */}
-                            {auth?.user?.username}
-                        </h6>
-                        {
-                            auth?.user &&
-                            <Button size='icon' onClick={async () => await auth?.logout()}>
-                                {
-                                    auth?.isAuthLoading
-                                        ? <CircularLoading />
-                                        : <LogOutIcon fontSize='inherit' />
-                                }
-                            </Button>
-                        }
-                        {
-                            !auth?.isAuthLoading && !auth?.user &&
-                            <Button size='icon' onClick={() => auth?.showModal()}>
-                                {
-                                    auth?.isAuthLoading
-                                        ? <CircularLoading />
-                                        : <LogInIcon fontSize='inherit' />
-                                }
-                            </Button>
-                        }
-                        <Button size='icon' onClick={async () => await configuration.updateTheme(configuration.themeOptions.mode === 'dark' ? 'light' : 'dark')}>
-                            {configuration.themeOptions.mode == 'dark' ? <SunIcon fontSize='inherit' /> : <MoonIcon fontSize='inherit' />}
+                    }
+                    {
+                        !auth?.isAuthLoading && !auth?.user &&
+                        <Button size='icon' className='rounded-none bg-transparent' onClick={() => auth?.showModal()}>
+                            {
+                                auth?.isAuthLoading
+                                    ? <CircularLoading />
+                                    : <LogInIcon fontSize='inherit' />
+                            }
                         </Button>
-                    </div>
+                    }
+                    <Button size='icon' className='rounded-none bg-transparent' onClick={async () => await configuration.updateTheme(configuration.themeOptions.mode === 'dark' ? 'light' : 'dark')}>
+                        {configuration.themeOptions.mode == 'dark' ? <SunIcon fontSize='inherit' /> : <MoonIcon fontSize='inherit' />}
+                    </Button>
                 </div>
-            </div >
+            </div>
 
-            <div style={{ height: '2px', background: `radial-gradient(ellipse farthest-side at center, ${appBarBorderColor}, transparent)`, margin: '0 1rem' }} />
+            <div style={{ height: '2px', background: appBarBorderGradient, margin: '0 1rem' }} />
+
+            <Drawer containerProps={{ className: 'z-50' }} animatedSlideProps={{ open: openDrawer, motionKey: openDrawer.toString() }} onClose={() => setOpenDrawer(false)}>
+                <div className={`flex flex-row items-center h-full`} style={{ background: drawerGradient }}>
+                    <div className='flex flex-col overflow-auto h-full'>
+                        <div className='mb-8' />
+
+                        <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/')}>
+                            <HomeIcon style={{ color: window.location.pathname !== '/' ? 'white' : activeColor }} />
+                            <p style={{ color: window.location.pathname !== '/' ? 'white' : activeColor }}>{t('Navigation.home')}</p>
+                        </Button>
+
+                        <div className='mb-8' />
+
+                        {readsUsers &&
+                            <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/Users')} >
+                                <UsersIcon style={{ color: window.location.pathname !== '/Users' ? 'white' : activeColor }} />
+                                <p style={{ color: window.location.pathname !== '/Users' ? 'white' : activeColor }}>{t('Navigation.users')}</p>
+                            </Button>}
+
+                        <div className='mb-2' />
+
+                        {readsPatients &&
+                            <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/Patients')} >
+                                <ShieldAlertIcon style={{ color: window.location.pathname !== '/Patients' ? 'white' : activeColor }} />
+                                <p style={{ color: window.location.pathname !== '/Patients' ? 'white' : activeColor }}>{t('Navigation.patients')}</p>
+                            </Button>}
+
+                        <div className='mb-2' />
+
+                        {readsVisits &&
+                            <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/Visits')} >
+                                <TimerIcon style={{ color: window.location.pathname !== '/Visits' ? 'white' : activeColor }} />
+                                <p style={{ color: window.location.pathname !== '/Visits' ? 'white' : activeColor }}>{t('Navigation.visits')}</p>
+                            </Button>}
+
+                        <div className='mb-2' />
+
+                        {readsMedicalHistories &&
+                            <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/MedicalHistories')} >
+                                <HistoryIcon style={{ color: window.location.pathname !== '/MedicalHistories' ? 'white' : activeColor }} />
+                                <p style={{ color: window.location.pathname !== '/MedicalHistories' ? 'white' : activeColor }}>{t('Navigation.MedicalHistories')}</p>
+                            </Button>}
+
+                        <div className='mb-8' />
+
+                        <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/General')} >
+                            <SettingsIcon style={{ color: window.location.pathname !== '/General' ? 'white' : activeColor }} />
+                            <p style={{ color: window.location.pathname !== '/General' ? 'white' : activeColor }}>{t("Navigation.general")}</p>
+                        </Button>
+
+                        <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/ThemeSettings')} >
+                            <PaintRollerIcon style={{ color: window.location.pathname !== '/ThemeSettings' ? 'white' : activeColor }} />
+                            <p style={{ color: window.location.pathname !== '/ThemeSettings' ? 'white' : activeColor }}>{t("Navigation.Theme")}</p>
+                        </Button>
+
+                        <div className='mb-8' />
+
+                        <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/DbSettings')} >
+                            <DatabaseIcon style={{ color: window.location.pathname !== '/DbSettings' ? 'white' : activeColor }} />
+                            <p style={{ color: window.location.pathname !== '/DbSettings' ? 'white' : activeColor }}>{t("Navigation.Db")}</p>
+                        </Button>
+                    </div>
+                    <div className={`h-full w-[2px]`} style={{ background: `radial-gradient(ellipse farthest-side at center, ${appBarBorderColor}, transparent)` }} />
+                </div>
+            </Drawer>
         </>
     );
 })

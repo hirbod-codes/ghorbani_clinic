@@ -7,6 +7,7 @@ import { getTransitions as slideGetTransitions } from './transitions'
 export type AnimatedSlideProps = {
     children: ReactNode
     motionKey?: string | number
+    layout?: boolean | "position" | "size" | "preserve-aspect" | undefined
     delay?: number
     disappear?: boolean
     inSource?: 'left' | 'top' | 'bottom' | 'right'
@@ -19,29 +20,29 @@ export type AnimatedSlideProps = {
     transition?: Transition
 }
 
-export const AnimatedSlide = memo(function AnimatedSlide({ children, motionKey, delay = 0, disappear = true, inSource = 'left', outSource = 'right', open = true, presenceMode = 'sync', fullHeight = true, fullWidth = true, variants, transition }: AnimatedSlideProps) {
-    delay = 0
-    disappear = true
-    inSource = 'left'
-    outSource = 'right'
-    open = true
-    presenceMode = 'sync'
-    fullHeight = true
-    fullWidth = true
+export const AnimatedSlide = memo(function AnimatedSlide({ children, motionKey, layout, delay = 0, disappear = true, inSource = 'left', outSource = 'right', open = true, presenceMode = 'sync', fullHeight = true, fullWidth = true, variants, transition }: AnimatedSlideProps) {
+    delay = delay ?? 0
+    disappear = disappear ?? true
+    inSource = inSource ?? 'left'
+    outSource = outSource ?? 'right'
+    open = open ?? true
+    presenceMode = presenceMode ?? 'sync'
+    fullHeight = fullHeight ?? true
+    fullWidth = fullWidth ?? true
     variants = variants ?? SlideVariants
     transition = transition ?? slideGetTransitions(delay)
 
     return (
-        <div className={`${fullWidth ? 'w-full' : ''} ${fullHeight ? 'h-full' : ''} overflow-hidden`}>
-            <div className={`relative ${fullWidth ? 'w-full' : ''} ${fullHeight ? 'h-full' : ''}`}>
+        // <div className={`${fullWidth === true ? 'w-full' : ''} ${fullHeight === true ? 'h-full' : ''} overflow-hidden`}>
+            <div className={`relative ${fullWidth === true ? 'w-full' : ''} ${fullHeight === true ? 'h-full' : ''}`}>
                 <AnimatePresence mode={presenceMode}>
                     {open &&
-                        <SlideMotion {...{ motionKey, inSource, outSource, disappear, variants, transition, fullWidth, fullHeight }}>
+                        <SlideMotion {...{ motionKey, layout, inSource, outSource, disappear, variants, transition, fullWidth, fullHeight }}>
                             {children}
                         </SlideMotion>
                     }
                 </AnimatePresence>
             </div>
-        </div>
+        // </div>
     )
 })
