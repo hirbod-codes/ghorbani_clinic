@@ -45,12 +45,10 @@ export const SearchPatientField = memo(function SearchPatientField() {
             <Input
                 label={t('SearchPatientField.search')}
                 labelId={t('SearchPatientField.search')}
-                type="text"
                 value={socialId ?? ''}
                 placeholder={t('SearchPatientField.socialId')}
                 onChange={onSocialIdChange}
-                // error={socialId !== undefined && socialId.length !== 0 && socialId.length !== 10}
-                // helperText={socialId !== undefined && socialId.length !== 0 && socialId.length !== 10 ? t('SearchPatientField.InvalidSocialId') : (!loading && socialId && socialId.length === 10 && !patient ? t('SearchPatientField.patientNotFound') : '')}
+                errorText={socialId !== undefined && socialId.length !== 0 && socialId.length !== 10 ? t('SearchPatientField.InvalidSocialId') : (!loading && socialId && socialId.length === 10 && !patient ? t('SearchPatientField.patientNotFound') : '')}
                 startIcon={loading ? <CircularLoading /> : <SearchIcon />}
             />
 

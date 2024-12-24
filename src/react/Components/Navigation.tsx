@@ -80,8 +80,8 @@ export const Navigation = memo(function Navigation() {
 
             <div style={{ height: '2px', background: appBarBorderGradient, margin: '0 1rem' }} />
 
-            <Drawer containerProps={{ className: 'z-50' }} animatedSlideProps={{ open: openDrawer, motionKey: openDrawer.toString() }} onClose={() => setOpenDrawer(false)}>
-                <div className={`flex flex-row items-center h-full`} style={{ background: drawerGradient }}>
+            <Drawer animatedSlideProps={{ open: openDrawer, motionKey: openDrawer.toString(), containerProps: { className: 'w-fit absolute top-0' } }} onClose={() => setOpenDrawer(false)}>
+                <div className={`flex flex-row items-center h-full w-fit`} style={{ background: drawerGradient }}>
                     <div className='flex flex-col overflow-auto h-full'>
                         <div className='mb-8' />
 

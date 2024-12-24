@@ -18,8 +18,6 @@ const inputVariants = {
 export const Input = memo(function Input({ label, labelId, errorText, helperText, ...inputProps }: { label?: string, labelId?: string, errorText?: string, helperText?: string } & ComponentProps<typeof ReferenceInput>) {
     const input = <ReferenceInput id={labelId} {...inputProps} />
 
-    console.log('Input', { label, labelId, errorText, helperText, ...inputProps });
-
     useEffect(() => { setTimeout(() => { errorText = undefined }, 3000) }, [])
 
     return (

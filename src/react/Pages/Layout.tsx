@@ -15,7 +15,7 @@ export const Layout = memo(function Layout() {
         <>
             <GradientBackground />
 
-            <div className='border absolute size-full top-o left-0 flex flex-col overflow-hidden'>
+            <div className='border size-full flex flex-col overflow-hidden'>
                 <MenuBar />
 
                 <div className='flex flex-col flex-grow overflow-hidden'>

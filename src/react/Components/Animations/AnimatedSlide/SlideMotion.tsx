@@ -1,12 +1,13 @@
-import { motion } from 'framer-motion'
+import { motion, MotionProps } from 'framer-motion'
 import { variants as SlideVariants } from './variants'
 import { getTransitions as slideGetTransitions } from './transitions'
 import { AnimatedSlideProps } from '.'
-import { useEffect } from 'react'
+import { ComponentProps, useEffect } from 'react'
+import { cn } from '@/src/react/shadcn/lib/utils'
 
 export type SlideMotionProps = Omit<AnimatedSlideProps & { layout?: boolean | "position" | "size" | "preserve-aspect" | undefined }, 'open' | 'presenceMode'>
 
-export function SlideMotion({ children, motionKey, delay, inSource, outSource, disappear, variants, transition, fullWidth, fullHeight, layout }: SlideMotionProps) {
+export function SlideMotion({ children, containerRef, motionKey, delay, inSource, outSource, disappear, variants, transition, fullWidth, fullHeight, layout, containerProps }: SlideMotionProps) {
     variants = variants ?? SlideVariants
     transition = transition ?? slideGetTransitions(delay ?? 0)
 
@@ -14,10 +15,11 @@ export function SlideMotion({ children, motionKey, delay, inSource, outSource, d
         transition = transition ?? slideGetTransitions(delay ?? 0)
     }, [delay])
 
-    console.log('SlideMotion', { children, motionKey, delay, inSource, outSource, disappear, variants, transition, fullWidth, fullHeight, layout })
+    console.log('SlideMotion', { children, containerRef, motionKey, delay, inSource, outSource, disappear, variants, transition, fullWidth, fullHeight, layout, containerProps })
 
     return (
         <motion.div
+            ref={containerRef}
             key={motionKey}
             initial='enter'
             animate='active'
@@ -26,7 +28,8 @@ export function SlideMotion({ children, motionKey, delay, inSource, outSource, d
             variants={variants}
             transition={transition}
             layout={layout}
-            className={`relative overflow-hidden ${fullWidth === true ? 'w-full' : ''} ${fullHeight === true ? 'h-full' : ''}`}
+            {...containerProps}
+            className={cn(`${fullWidth === true ? 'w-full' : ''} ${fullHeight === true ? 'h-full' : ''}`, containerProps?.className)}
         >
             {children}
         </motion.div>

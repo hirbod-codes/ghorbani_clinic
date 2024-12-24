@@ -19,13 +19,6 @@ export function Modal({ children, open = false, onClose, containerProps, closeBu
     closeIcon = closeIcon ?? <XIcon className="text-destructive" />
     const ref = useRef(null)
 
-    const [display, setDisplay] = useState('block')
-
-    useEffect(() => {
-        if (open)
-            setDisplay('block')
-    }, [open])
-
     usePointerOutside(ref, (outside) => {
         if (outside && onClose)
             onClose()
@@ -33,7 +26,7 @@ export function Modal({ children, open = false, onClose, containerProps, closeBu
 
     return (
         <>
-            <div className="h-screen w-screen overflow-hidden absolute top-0 left-0 bg-[black] opacity-70" style={{ transition: 'opacity 0.2s ease-in', opacity: open ? 0.7 : 0, display }} onTransitionEnd={() => setDisplay('none')} />
+            {open && <div className="h-screen w-screen overflow-hidden absolute top-0 left-0 bg-[black] opacity-70" />}
 
             <AnimatedSlide open={open} {...containerProps}>
                 <Container containerRef={ref} {...containerProps} className={cn("absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-background rounded p-4", containerProps?.className)}>

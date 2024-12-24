@@ -5,10 +5,6 @@ import { memo, useState } from "react";
 import { Calendar } from "./Calendar";
 
 export const Home = memo(function Home() {
-    const [color, setColor] = useState('colors');
-    const [mode, setMode] = useState('dark');
-
-
     return (
         <div className="size-full overflow-y-auto overflow-x-hidden">
             <div className="grid grid-cols-12 justify-center w-full space-x-2 space-y-2 p-1">
