@@ -22,7 +22,7 @@ export const Input = memo(function Input({ label, labelId, errorText, helperText
     useEffect(() => { setTimeout(() => { errorText = undefined }, 3000) }, [])
 
     return (
-        <motion.div layout {...containerProps} className={cn("p-2 flex flex-col relative", containerProps?.className)}>
+        <motion.div layout {...containerProps} className={cn("flex flex-col relative", containerProps?.className)}>
             <div className="flex flex-row items-center space-x-2 h-full">
                 {label && labelId &&
                     <Label htmlFor={labelId}>

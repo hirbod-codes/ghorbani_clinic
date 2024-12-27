@@ -48,32 +48,102 @@ export type ThemeOptions = {
     foregroundCoefficient: number;
     colorCoefficient: number;
     colors: {
-        black: string;
-        white: string;
-        border: string;
-        input: string;
-        ring: string;
-        background: string;
-        foreground: string;
-        darkBackground: string;
-        darkForeground: string;
-        lightBackground: string;
-        lightForeground: string;
-        primary: string;
-        "primary-foreground": string;
-        secondary: string;
-        "secondary-foreground": string;
-        destructive: string;
-        "destructive-foreground": string;
-        muted: string;
-        "muted-foreground": string;
-        accent: string;
-        "accent-foreground": string;
-        popover: string;
-        "popover-foreground": string;
-        card: string;
-        "card-foreground": string;
-        'scrollbar-background': string;
+        border: {
+            'dark': string;
+            'light': string;
+        };
+
+        input: {
+            'dark': string;
+            'light': string;
+        };
+
+        'scrollbar-background': {
+            'dark': string;
+            'light': string;
+        };
+
+        'background': {
+            'dark': string;
+            'light': string;
+        };
+
+        'foreground': {
+            'dark': string;
+            'light': string;
+        };
+
+        'primary': {
+            'main': string;
+            'dark': string;
+            'light': string;
+            'dark-foreground': string;
+            'light-foreground': string;
+            'dark-container': string;
+            'light-container': string;
+            'dark-container-foreground': string;
+            'light-container-foreground': string;
+        };
+
+        'secondary': {
+            'main': string;
+            'dark': string;
+            'light': string;
+            'dark-foreground': string;
+            'light-foreground': string;
+            'dark-container': string;
+            'light-container': string;
+            'dark-container-foreground': string;
+            'light-container-foreground': string;
+        };
+
+        'tertiary': {
+            'main': string;
+            'dark': string;
+            'light': string;
+            'dark-foreground': string;
+            'light-foreground': string;
+        };
+
+        'info': {
+            'main': string;
+            'dark': string;
+            'light': string;
+            'dark-foreground': string;
+            'light-foreground': string;
+        };
+
+        'success': {
+            'main': string;
+            'dark': string;
+            'light': string;
+            'dark-foreground': string;
+            'light-foreground': string;
+        };
+
+        'warning': {
+            'main': string;
+            'dark': string;
+            'light': string;
+            'dark-foreground': string;
+            'light-foreground': string;
+        };
+
+        'error': {
+            'main': string;
+            'dark': string;
+            'light': string;
+            'dark-foreground': string;
+            'light-foreground': string;
+        };
+
+        'muted': {
+            'main': string;
+            'dark': string;
+            'light': string;
+            'dark-foreground': string;
+            'light-foreground': string;
+        };
     }
 }
 

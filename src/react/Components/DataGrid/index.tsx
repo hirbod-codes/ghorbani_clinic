@@ -49,6 +49,8 @@ export type DataGridProps = {
     additionalColumns?: ColumnDef<any>[];
     prependHeaderNodes?: ReactNode[],
     prependFooterNodes?: ReactNode[],
+    showColumnHeaders?: boolean
+    addCounterColumn?: boolean
     headerNodes?: ReactNode[],
     footerNodes?: ReactNode[],
     appendHeaderNodes?: ReactNode[],
@@ -71,6 +73,8 @@ export function DataGrid({
     additionalColumns = [],
     prependHeaderNodes = [],
     prependFooterNodes = [],
+    showColumnHeaders = true,
+    addCounterColumn = true,
     headerNodes = [],
     footerNodes = [],
     appendHeaderNodes = [],
@@ -91,13 +95,14 @@ export function DataGrid({
     if (!pagination)
         pagination = { pageIndex: 0, pageSize: 10 }
 
-    data = data.map((d, i) => ({ ...d, counter: (pagination.pageIndex * pagination.pageSize) + (i + 1) }))
+    if (addCounterColumn === true)
+        data = data.map((d, i) => ({ ...d, counter: (pagination.pageIndex * pagination.pageSize) + (i + 1) }))
 
     const columns = useMemo<ColumnDef<any>[]>(() => {
         return getColumns(data, overWriteColumns, additionalColumns, defaultColumnOrderModel)
     }, [overWriteColumns, additionalColumns, defaultColumnOrderModel])
 
-    if (!columns.find(f => f.id === 'counter'))
+    if (addCounterColumn === true && !columns.find(f => f.id === 'counter'))
         columns.unshift({
             id: 'counter',
             accessorKey: 'counter',
@@ -360,18 +365,20 @@ export function DataGrid({
                                         : <div style={{ overflow: 'auto', flexGrow: 2 }}>
                                             <AnimatePresence mode='sync'>
                                                 <table style={{ borderCollapse: 'separate', borderSpacing: 0, minWidth: '100%' }}>
-                                                    <thead style={{ position: 'sticky', top: 0, userSelect: 'none', background: themeOptions.colors.background, zIndex: 1 }}>
-                                                        {table.getHeaderGroups().map(headerGroup => (
-                                                            <tr key={headerGroup.id} className='border-b'>
-                                                                <SortableContext
-                                                                    items={columnOrder}
-                                                                    strategy={horizontalListSortingStrategy}
-                                                                >
-                                                                    {headerGroup.headers.map(header => (<DraggableTableHeader key={header.id} header={header} />))}
-                                                                </SortableContext>
-                                                            </tr>
-                                                        ))}
-                                                    </thead>
+                                                    {showColumnHeaders &&
+                                                        <thead style={{ position: 'sticky', top: 0, userSelect: 'none', background: themeOptions.colors[`${themeOptions.mode}-background`], zIndex: 1 }}>
+                                                            {table.getHeaderGroups().map(headerGroup => (
+                                                                <tr key={headerGroup.id} className='border-b'>
+                                                                    <SortableContext
+                                                                        items={columnOrder}
+                                                                        strategy={horizontalListSortingStrategy}
+                                                                    >
+                                                                        {headerGroup.headers.map(header => (<DraggableTableHeader key={header.id} header={header} />))}
+                                                                    </SortableContext>
+                                                                </tr>
+                                                            ))}
+                                                        </thead>
+                                                    }
                                                     <tbody>
                                                         {table.getRowModel().rows.map((row, i, arr) => (
                                                             <tr key={row.id} className={`text-nowrap ${i === (arr.length - 1) ? '' : 'border-b'}`}>

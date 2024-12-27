@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from "react-i18next";
 import type { Calendar, Config, configAPI, LanguageCodes, ThemeMode, ThemeOptions, TimeZone } from '../../../Electron/Configuration/renderer.d';
-import { shadeColor, stringify } from '../../Lib/Colors';
+import { shadeColor, stringify, toHsl } from '../../Lib/Colors';
+import { Color } from '../../Lib/Colors';
 
 export function useConfigurationHook() {
     const { i18n } = useTranslation();
@@ -102,25 +103,29 @@ export function useConfigurationHook() {
     }
 
     const updateCssVars = (mode: ThemeMode, options: ThemeOptions) => {
-        console.log('updateCssVars')
+        const stringifyColorForTailwind = (hsl: Color) => `${hsl.value[0]} ${hsl.value[1]} ${hsl.value[2]}`
 
-        document.documentElement.style.setProperty('--radius', options.radius)
-        document.documentElement.style.setProperty('--scrollbar-width', options['scrollbar-width'])
-        document.documentElement.style.setProperty('--scrollbar-height', options['scrollbar-height'])
-        document.documentElement.style.setProperty('--scrollbar-border-radius', options['scrollbar-border-radius'])
+        const setCssVar = (k: string, v: string, isColor = false) => document.documentElement.style.setProperty(`--${k}`, isColor ? stringifyColorForTailwind(toHsl(v)) : v)
 
-        document.documentElement.style.setProperty('--background', mode === 'dark' ? options.colors.darkBackground : options.colors.lightBackground)
-        document.documentElement.style.setProperty('--foreground', mode === 'dark' ? options.colors.darkForeground : options.colors.lightForeground)
-        document.documentElement.style.setProperty('--border', mode === 'dark' ? options.colors.darkForeground : options.colors.lightForeground)
-        document.documentElement.style.setProperty('--input', mode === 'dark' ? options.colors.darkForeground : options.colors.lightForeground)
+        setCssVar('radius', options.radius)
+        setCssVar('scrollbar-width', options['scrollbar-width'])
+        setCssVar('scrollbar-height', options['scrollbar-height'])
+        setCssVar('scrollbar-border-radius', options['scrollbar-border-radius'])
 
-        for (const key in options.colors)
-            if (key === 'background' || key === 'foreground' || key === 'border' || key === 'input')
-                continue
-            else if (key.includes('foreground'))
-                document.documentElement.style.setProperty('--' + key, stringify(shadeColor(options.colors[key], mode === 'dark' ? options.foregroundCoefficient : -options.foregroundCoefficient)))
-            else
-                document.documentElement.style.setProperty('--' + key, stringify(shadeColor(options.colors[key], mode === 'dark' ? -options.colorCoefficient : options.colorCoefficient)))
+        setCssVar('background', mode === 'dark' ? options.colors.darkBackground : options.colors.lightBackground, true)
+        setCssVar('foreground', mode === 'dark' ? options.colors.darkForeground : options.colors.lightForeground, true)
+        setCssVar('border', mode === 'dark' ? options.colors.darkForeground : options.colors.lightForeground, true)
+        setCssVar('input', mode === 'dark' ? options.colors.darkForeground : options.colors.lightForeground, true)
+
+        Object
+            .keys(options.colors)
+            .filter(f => !['background', 'foreground', 'border', 'input'].includes(f))
+            .forEach(key => {
+                if (key.includes('foreground'))
+                    setCssVar(key, stringify(shadeColor(options.colors[key], mode === 'dark' ? options.foregroundCoefficient : -options.foregroundCoefficient)), true)
+                else
+                    setCssVar(key, stringify(shadeColor(options.colors[key], mode === 'dark' ? -options.colorCoefficient : options.colorCoefficient)), true)
+            })
     }
 
     const [isConfigurationContextReady, setIsConfigurationContextReady] = useState<boolean>(false);

@@ -1,4 +1,4 @@
-import { Color, RGB, HSL, HEX } from './index.d'
+import { Color, RGB, HSL, HEX, HSV } from './index.d'
 
 export function shadeColor(color: string | Color, coefficient: number): Color {
     color = decomposeColor(color)
@@ -51,6 +51,32 @@ export function toRgb(color: string | Color): RGB {
         }
     }
 
+    if (color.type === 'hsv' || color.type === 'hsva') {
+        let r, g, b, i, f, p, q, t;
+        i = Math.floor(color.value[0] * 6);
+        f = color.value[0] * 6 - i;
+        p = color.value[2] * (1 - color.value[1]);
+        q = color.value[2] * (1 - f * color.value[1]);
+        t = color.value[2] * (1 - (1 - f) * color.value[1]);
+        switch (i % 6) {
+            case 0: r = color.value[2], g = t, b = p; break;
+            case 1: r = q, g = color.value[2], b = p; break;
+            case 2: r = p, g = color.value[2], b = t; break;
+            case 3: r = p, g = q, b = color.value[2]; break;
+            case 4: r = t, g = p, b = color.value[2]; break;
+            case 5: r = color.value[2], g = p, b = q; break;
+        }
+
+        const rgb = [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)]
+        if (color.type === 'hsva')
+            rgb.push(color.value[3])
+
+        return {
+            type: rgb.length === 4 ? 'rgba' : 'rgb',
+            value: rgb
+        }
+    }
+
     if (color.type === 'hex') {
         color.value = color.value.replace(/^#/, '')
         if (color.value.length === 3)
@@ -66,7 +92,7 @@ export function toRgb(color: string | Color): RGB {
         }
     }
 
-    throw new Error(`Unsupported color. The following formats are supported: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla().`);
+    throw new Error(`Unsupported color. The following formats are supported: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), hsv(), hsva().`);
 }
 
 export function toHsl(color: string | Color): HSL {
@@ -129,10 +155,13 @@ export function toHsl(color: string | Color): HSL {
         }
     }
 
+    if (color.type === 'hsv' || color.type === 'hsva')
+        return toHsl(toRgb(color))
+
     if (color.type === 'hex')
         return toHsl(toRgb(color))
 
-    throw new Error(`Unsupported color. The following formats are supported: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla().`);
+    throw new Error(`Unsupported color. The following formats are supported: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), hsv(), hsva().`);
 }
 
 export function toHex(color: string | Color): HEX {
@@ -152,7 +181,52 @@ export function toHex(color: string | Color): HEX {
     if (color.type === 'hsl' || color.type === 'hsla')
         return toHex(toRgb(color))
 
-    throw new Error(`Unsupported color. The following formats are supported: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla().`);
+    if (color.type === 'hsv' || color.type === 'hsva')
+        return toHex(toRgb(color))
+
+    throw new Error(`Unsupported color. The following formats are supported: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), hsv(), hsva().`);
+}
+
+export function toHsv(color: string | Color): HSV {
+    color = decomposeColor(color)
+
+    if (color.type === 'hsv' || color.type === 'hsva')
+        return color
+
+    if (color.type === 'rgb' || color.type === 'rgba') {
+        color.value[0] /= 255, color.value[1] /= 255, color.value[2] /= 255;
+
+        let max = Math.max(color.value[0], color.value[1], color.value[2]), min = Math.min(color.value[0], color.value[1], color.value[2]);
+        let h, s, v = max;
+
+        let d = max - min;
+        s = max == 0 ? 0 : d / max;
+
+        if (max == min) {
+            h = 0; // achromatic
+        } else {
+            switch (max) {
+                case color.value[0]: h = (color.value[1] - color.value[2]) / d + (color.value[1] < color.value[2] ? 6 : 0); break;
+                case color.value[1]: h = (color.value[2] - color.value[0]) / d + 2; break;
+                case color.value[2]: h = (color.value[0] - color.value[1]) / d + 4; break;
+            }
+
+            h /= 6;
+        }
+
+        return {
+            type: color.type === 'rgba' ? 'hsva' : 'hsv',
+            value: color.type === 'rgba' ? [h, s, v, color.value[3]] : [h, s, v]
+        }
+    }
+
+    if (color.type === 'hsl' || color.type === 'hsla')
+        return toHsv(toRgb(color))
+
+    if (color.type === 'hex')
+        return toHsv(toRgb(color))
+
+    throw new Error(`Unsupported color. The following formats are supported: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), hsv(), hsva().`);
 }
 
 /**
@@ -171,8 +245,8 @@ export function decomposeColor(color: string | Color): Color {
     const marker = color.indexOf('(');
 
     const type = color.substring(0, marker);
-    if (['rgb', 'rgba', 'hsl', 'hsla'].indexOf(type) === -1)
-        throw new Error(`Unsupported color. The following formats are supported: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla().`);
+    if (['rgb', 'rgba', 'hsl', 'hsla', 'hsv', 'hsva'].indexOf(type) === -1)
+        throw new Error(`Unsupported color. The following formats are supported: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), hsv(), hsva().`);
 
     return {
         type: type as any,
@@ -195,7 +269,10 @@ export function setAlpha(color: string | Color, alpha: number): Color {
     if ((color.type === 'hsl' || color.type === 'hsla'))
         color.value[3] = alpha
 
-    if (color.type === 'rgb' || color.type === 'hsl')
+    if ((color.type === 'hsv' || color.type === 'hsva'))
+        color.value[3] = alpha
+
+    if (color.type === 'rgb' || color.type === 'hsl' || color.type === 'hsv')
         color.type += 'a'
 
     return color
@@ -214,5 +291,8 @@ export function stringify(color: string | Color): string {
     if (color.type === 'hsl' || color.type === 'hsla')
         return `${color.value.length === 4 ? 'hsla' : 'hsl'}(${color.value[0]}, ${color.value[1]}%, ${color.value[2]}%${color.value.length === 4 ? ', ' + color.value[3] : ''})`
 
-    throw new Error(`Unsupported color. The following formats are supported: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla().`);
+    if (color.type === 'hsv' || color.type === 'hsva')
+        return `${color.value.length === 4 ? 'hsva' : 'hsv'}(${color.value[0]}, ${color.value[1]}%, ${color.value[2]}%${color.value.length === 4 ? ', ' + color.value[3] : ''})`
+
+    throw new Error(`Unsupported color. The following formats are supported: #nnn, #nnnnnn, rgb(), rgba(), hsl(), hsla(), hsv(), hsva().`);
 }
