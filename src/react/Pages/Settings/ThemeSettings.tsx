@@ -201,7 +201,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                 contents={[
                                     {
                                         type: 'item',
-                                        content: <ColorPicker mode="hex" />
+                                        content: <ColorPicker mode="hsva" onColorChange={(c) => console.log(c)} />
                                     },
                                     {
                                         type: 'item',
@@ -209,7 +209,10 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                             color={color}
                                             onChange={(color) => setColor(stringify({ ...toHsl(color), value: [toHsl(color).value[0], toHsl(color).value[1], 50] }))} />
                                     }
-                                ]} />
+                                ]}
+                            />
+
+                            <Button className="size-10" style={{ backgroundColor: stringify(color) }}></Button>
                         </div>
                     </div>
                 )}

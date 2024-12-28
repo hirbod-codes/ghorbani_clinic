@@ -1,12 +1,12 @@
 import { PointerEvent, useEffect, useRef, useState } from "react";
-import { Color } from "../../Lib/Colors/index.d";
+import { Color, HSV } from "../../Lib/Colors/index.d";
 import { Point } from "../../Lib/Math";
 import { toHsv } from "../../Lib/Colors";
 import { Shapes } from "../Base/Canvas/Shapes/Shapes";
 import { Circle } from "../Base/Canvas/Shapes/Circle";
 import { Shape } from "../Base/Canvas/Shapes/Shape";
 
-export function Canvas({ hue, color, onColorChange }: { hue: number, color?: Color, onColorChange?: (color: Color) => void | Promise<void> }) {
+export function Canvas({ hue, color, onColorChange }: { hue: number, color?: Color, onColorChange?: (color: HSV) => void | Promise<void> }) {
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const ctx = canvasRef.current?.getContext('2d', { willReadFrequently: true })
 
@@ -73,8 +73,9 @@ export function Canvas({ hue, color, onColorChange }: { hue: number, color?: Col
     }
 
     const movePointer = (c: CanvasRenderingContext2D, point: Point) => {
-        // outerCircle!.translate(previousPoint.current ?? point, point)
-        // innerCircle!.translate(previousPoint.current ?? point, point)
+        const distanceLimit = (validatorCircle as Circle).r
+        if (Math.sqrt(Math.pow(Math.abs(point.x - canvasRef.current!.clientWidth / 2), 2) + Math.pow(Math.abs(point.y - canvasRef.current!.clientHeight / 2), 2)) > distanceLimit)
+            return;
 
         (innerCircle as Circle).x = point.x;
         (innerCircle as Circle).y = point.y;

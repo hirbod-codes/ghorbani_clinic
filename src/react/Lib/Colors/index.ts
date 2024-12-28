@@ -1,4 +1,4 @@
-import { Color, RGB, HSL, HEX, HSV } from './index.d'
+import { Color, RGB, HSL, HEX, HSV, ColorModes } from './index.d'
 
 export function shadeColor(color: string | Color, coefficient: number): Color {
     color = decomposeColor(color)
