@@ -35,9 +35,9 @@ export const ColorPicker = memo(function ColorPicker({ mode, hasAlpha = true, co
                     defaultColor={defaultColor}
                     controlledColor={controlledColor}
                     onColorChanged={(c) => {
+                        setColor(c)
                         if (onColorChanged)
                             onColorChanged(c)
-                        setColor(c)
                     }}
                     onColorChanging={(c) => {
                         if (onColorChanging)

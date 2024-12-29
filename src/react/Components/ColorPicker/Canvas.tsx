@@ -4,6 +4,7 @@ import { Shapes } from "../Base/Canvas/Shapes/Shapes";
 import { Circle } from "../Base/Canvas/Shapes/Circle";
 import { Shape } from "../Base/Canvas/Shapes/Shape";
 import { HSV } from "../../Lib/Colors/HSV";
+import { lineFunction } from "../../Lib/Math/2d";
 
 export const Canvas = memo(function Canvas({ hue, defaultColor, controlledColor, onColorChanged, onColorChanging }: { hue: number, defaultColor?: HSV, controlledColor?: HSV, onColorChanged?: (color: HSV) => void | Promise<void>, onColorChanging?: (color: HSV) => void | Promise<void> }) {
     const [, rerender] = useReducer(x => x + 1, 0)
@@ -67,7 +68,7 @@ export const Canvas = memo(function Canvas({ hue, defaultColor, controlledColor,
 
         const distanceLimit = (validatorCircle as Circle).r
         if (Math.sqrt(Math.pow(Math.abs(p.x - canvasRef.current!.clientWidth / 2), 2) + Math.pow(Math.abs(p.y - canvasRef.current!.clientHeight / 2), 2)) > distanceLimit)
-            return;
+            return
 
         if (!previousPoint.current)
             previousPoint.current = p
@@ -101,8 +102,7 @@ export const Canvas = memo(function Canvas({ hue, defaultColor, controlledColor,
 
     const createValidatorCircle = () => {
         const b = canvasRef.current!.getBoundingClientRect()
-
-        const vc = new Circle(b.width / 2, b.height / 2, 40, 2, 'green', undefined, 10, 'black')
+        const vc = new Circle(b.width / 2, b.height / 2, b.width / 4, 2, 'green', undefined, 10, 'black')
         setValidatorCircle(vc)
         shapes.push(vc)
 
@@ -110,9 +110,9 @@ export const Canvas = memo(function Canvas({ hue, defaultColor, controlledColor,
     }
 
     const createPointer = () => {
-        const center = { x: canvasRef.current!.clientWidth / 2, y: canvasRef.current!.clientHeight / 2 }
-        const oc = new Circle(center.x, center.y, 12, 2, 'white', undefined)
-        const ic = new Circle(center.x, center.y, 2, 2, 'black', 'black')
+        const b = canvasRef.current!.getBoundingClientRect()
+        const oc = new Circle(b.width / 2, b.height / 2, 12, 2, 'white', undefined)
+        const ic = new Circle(b.width / 2, b.height / 2, 2, 2, 'black', 'black')
         setOuterCircle(oc)
         setInnerCircle(ic)
         shapes.push(oc)
@@ -165,7 +165,6 @@ export const Canvas = memo(function Canvas({ hue, defaultColor, controlledColor,
                     <canvas
                         ref={canvasRef}
                         className="size-full touch-none select-none"
-                        // bg-[linear-gradient(to top, #000, rgba(0, 0, 0, 0)), linear-gradient(to right, #fff, rgba(255, 255, 255, 0))]
                         onPointerDown={onPointerDown}
                         onPointerMove={onPointerMove}
                         onPointerUp={onPointerUp}

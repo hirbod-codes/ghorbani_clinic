@@ -183,9 +183,9 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                     console.log('DropdownMenu.onOpenChanged')
                                     c.themeOptions.colors[k].main = color?.toString();
 
-                                    // if (!b)
-                                    //     c.updateTheme(undefined, c.themeOptions)
-                                    // setOpen(b ? k : undefined)
+                                    if (!b)
+                                        c.updateTheme(undefined, c.themeOptions)
+                                    setOpen(b ? k : undefined)
                                 }}
                                 containerProps={{ className: 'bg-background' }}
                                 contents={[
@@ -193,11 +193,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                         type: 'item',
                                         content: <ColorPicker
                                             mode="hsva"
-                                            onColorChanged={(c) => { console.log('cccccccccccccccccc', c, !c ? '' : ColorStatic.toHsl(c).toHex()); setColor(c); rerender() }}
-                                            onColorChanging={(c) => {
-                                                if (buttonRef.current)
-                                                    buttonRef.current.style.backgroundColor = c.toHex() ?? '#ffff00'
-                                            }}
+                                            onColorChanged={(c) => { setColor(c); rerender() }}
                                         />
                                     },
                                     {
