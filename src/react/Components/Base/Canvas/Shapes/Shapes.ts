@@ -78,8 +78,8 @@ export class Shapes {
     }
 
     draw(draw: Draw) {
-        if (!draw.canvasRef.current)
-            return
+        if (!draw.canvasRef.current || !draw.ctx)
+            throw new Error('Invalid argument provided for draw method of Shapes class.')
 
         draw.ctx.clearRect(0, 0, draw.canvasRef.current.width, draw.canvasRef.current.height)
 

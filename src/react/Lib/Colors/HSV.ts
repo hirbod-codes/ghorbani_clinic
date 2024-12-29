@@ -1,30 +1,31 @@
 import { Color } from "./Color"
+import { ColorStatic } from "./ColorStatic"
 import { IColor } from "./IColor"
 import { RGB } from "./RGB"
 
 export class HSV extends Color implements IColor {
     private hue: number
     private saturation: number
-    private lightness: number
+    private value: number
 
-    constructor(hue: number, saturation: number, lightness: number, alpha?: number) {
+    constructor(hue: number, saturation: number, value: number, alpha?: number) {
         super(alpha)
 
-        if (![saturation, lightness].every(v => v >= 0 && v <= 100) || hue < 0 || hue > 360)
+        if (![saturation, value].every(v => v >= 0 && v <= 100) || hue < 0 || hue > 360)
             throw new Error('Invalid color values provided.')
 
         this.hue = hue
         this.saturation = saturation
-        this.lightness = lightness
+        this.value = value
     }
 
     getHue() { return this.hue }
     getSaturation() { return this.saturation }
-    getLightness() { return this.lightness }
+    getValue() { return this.value }
 
     setHue(v: number) { this.hue = v }
     setSaturation(v: number) { this.saturation = v }
-    setLightness(v: number) { this.lightness = v }
+    setValue(v: number) { this.value = v }
 
     lighten(coefficient: number): void {
         this.saturation = +(this.saturation + ((100 - this.saturation) * coefficient)).toFixed(2)
@@ -35,11 +36,14 @@ export class HSV extends Color implements IColor {
     }
 
     toString(): string {
-        return `${this.alpha !== undefined ? 'hsla' : 'hsl'}(${this.hue}, ${this.saturation}, ${this.lightness}${this.alpha !== undefined ? ', ' + this.alpha : ''})`
+        return `${this.alpha !== undefined ? 'hsla' : 'hsl'}(${this.hue}, ${this.saturation}%, ${this.value}%${this.alpha !== undefined ? ', ' + this.alpha : ''})`
     }
 
     toHex(): string {
-        return Color.toRgb(this).toHex();
+        let h = this.hue, s = this.saturation / 100, v = this.value / 100
+        let f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
+        let twoDigit = (n: string) => n.length === 1 ? '0' + n : n
+        return `#${[f(5), f(3), f(1)].map(n => Math.round(n * 255).toString(16)).map(n => twoDigit(n)).join('')}${twoDigit(Math.round((this.getAlpha() ?? 1) * 255).toString(16))}`;
     }
 
     static fromHex(color: string): IColor {
@@ -67,7 +71,7 @@ export class HSV extends Color implements IColor {
             h /= 6;
         }
 
-        return new HSV(h, s, v, a)
+        return new HSV(h * 360, s * 100, v * 100, a)
     }
 
     static parse(color: string): IColor {

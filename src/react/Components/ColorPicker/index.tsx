@@ -1,54 +1,93 @@
-import { useEffect, useState } from 'react'
-import { Color, ColorModes } from '../../Lib/Colors/index.d'
-import { Canvas } from './Canvas'
+import { memo, useEffect, useRef, useState } from 'react'
+import { ColorModes } from '../../Lib/Colors/index.d'
 import { AlphaSlider } from './Sliders/AlphaSlider'
 import { HueSlider } from './Sliders/HueSlider'
-import { toHsv } from '../../Lib/Colors'
+import { HSV } from '../../Lib/Colors/HSV'
+import { ColorStatic } from '../../Lib/Colors/ColorStatic'
+import { Canvas } from './Canvas'
 
-// Refactor!!!
-export function ColorPicker({ mode, controlledColor, onColorChange }: { mode: ColorModes, controlledColor?: Color, onColorChange?: (color: Color) => void | Promise<void> }) {
-    const [color, setColor] = useState<Color>(controlledColor ?? { type: 'hsva', value: [0, 100, 100, 1] })
-    const [hue, setHue] = useState<number>(0)
-
-    const hasAlpha = (mode.endsWith('a') || (mode === 'hex' && color.value.length === 9))
-
-    useEffect(() => {
-        setColor({ ...toHsv(color), value: [hue, toHsv(color).value[1], toHsv(color).value[2], toHsv(color).value[3]] })
-    }, [hue])
+export const ColorPicker = memo(function ColorPicker({ mode, hasAlpha = true, controlledColor, defaultColor, onColorChanged, onColorChanging }: { mode: ColorModes, hasAlpha?: boolean, controlledColor?: HSV, defaultColor?: HSV, onColorChanged?: (color: HSV) => void | Promise<void>, onColorChanging?: (color: HSV) => void | Promise<void> }) {
+    const colorHolder = useRef<HTMLDivElement>(null)
+    const [color, setColor] = useState<HSV>()
 
     useEffect(() => {
-        if (onColorChange)
-            onColorChange(color)
-    }, [color])
+        if (defaultColor)
+            setColor(ColorStatic.toHsv(defaultColor))
+    }, [])
+
+    useEffect(() => {
+        if (controlledColor)
+            setColor(controlledColor)
+
+        if (colorHolder.current && controlledColor)
+            colorHolder.current.style.backgroundColor = controlledColor.toHex()
+    }, [controlledColor])
+
+    console.log('ColorPicker', { mode, controlledColor, onColorChanged, color, hasAlpha })
 
     return (
-        <>
-            <div className="flex flex-col items-center space-y-2 w-full p-2  border rounded-lg">
-                <div className="size-40 p-4 m-1 border rounded-lg">
-                    <Canvas hue={hue} color={color} onColorChange={(c) => !hasAlpha ? setColor(c) : setColor({ type: 'hsva', value: [c[0], c[1], c[2], color.type.endsWith('a') ? color.value[3] as number : parseInt(color.value.slice(7) as string, 16)] })} />
-                </div>
+        <div className="flex flex-col items-center space-y-2 w-72 h-96 p-2 border rounded-lg">
+            <div className="w-full h-10" ref={colorHolder} />
 
-                <HueSlider
-                    defaultProgress={100 * (hue / 360)}
-                    onProgressChange={c => {
-                        setHue((c * 360) / 100)
+            <div className="size-72 p-2 m-1">
+                <Canvas
+                    hue={color?.getHue() ?? 0}
+                    defaultColor={defaultColor}
+                    controlledColor={controlledColor}
+                    onColorChanged={(c) => {
+                        if (onColorChanged)
+                            onColorChanged(c)
+                        setColor(c)
+                    }}
+                    onColorChanging={(c) => {
+                        if (onColorChanging)
+                            onColorChanging(c)
+
+                        if (colorHolder.current)
+                            colorHolder.current.style.backgroundColor = c.toHex()
                     }}
                 />
-
-                {/* Alpha */}
-                {hasAlpha &&
-                    <AlphaSlider
-                        defaultProgress={100 * (color.type.endsWith('a') ? color.value[3] as number : parseInt(color.value.slice(7) as string, 16))}
-                        onProgressChange={c => {
-                            if (color.type.endsWith('a'))
-                                setColor({ ...color, value: [color.value[0] as number, color.value[1] as number, color.value[2] as number, c / 100] as any })
-                            else
-                                setColor({ ...color, value: (color.value.slice(0, 7) + ((c / 100) * 255).toString(16)) as any })
-                        }}
-                    />
-                }
             </div>
-        </>
+
+            <HueSlider
+                defaultProgress={100 * ((color?.getHue() ?? 0) / 360)}
+                onProgressChanged={c => {
+                    color?.setHue((c * 360) / 100)
+                    if (colorHolder.current && color)
+                        colorHolder.current.style.backgroundColor = color.toHex()
+                    if (onColorChanged && color)
+                        onColorChanged(color)
+                }}
+                onProgressChanging={c => {
+                    color?.setHue((c * 360) / 100)
+                    if (colorHolder.current && color)
+                        colorHolder.current.style.backgroundColor = color.toHex()
+                    if (onColorChanging && color)
+                        onColorChanging(color)
+                }}
+            />
+
+            {/* Alpha */}
+            {hasAlpha &&
+                <AlphaSlider
+                    defaultProgress={100 * (color?.getAlpha() ?? 1)}
+                    onProgressChanged={c => {
+                        color?.setAlpha(c / 100)
+                        if (colorHolder.current && color)
+                            colorHolder.current.style.backgroundColor = color.toHex()
+                        if (onColorChanged && color)
+                            onColorChanged(color)
+                    }}
+                    onProgressChanging={c => {
+                        color?.setAlpha(c / 100)
+                        if (colorHolder.current && color)
+                            colorHolder.current.style.backgroundColor = color.toHex()
+                        if (onColorChanging && color)
+                            onColorChanging(color)
+                    }}
+                />
+            }
+        </div>
     )
-}
+})
 

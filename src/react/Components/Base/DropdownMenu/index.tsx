@@ -14,6 +14,7 @@ export type DropdownMenuProps = {
     defaultOpen?: boolean
     trigger?: ReactNode
     triggerProps?: ComponentProps<typeof DropdownMenuTrigger>
+    containerProps?: ComponentProps<typeof DropdownMenuContent>
     contents: ({
         type: 'label'
         options?: ComponentProps<typeof DropdownMenuLabel>
@@ -28,11 +29,11 @@ export type DropdownMenuProps = {
     })[]
 }
 
-export function DropdownMenu({ open, onOpenChange, defaultOpen, contents, trigger, triggerProps }: DropdownMenuProps) {
+export function DropdownMenu({ open, onOpenChange, defaultOpen, contents, trigger, triggerProps, containerProps }: DropdownMenuProps) {
     return (
         <ShadcnDropdownMenu open={open} onOpenChange={onOpenChange} defaultOpen={defaultOpen} >
             <DropdownMenuTrigger {...triggerProps} >{trigger}</DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent {...containerProps}>
                 {contents.map((c, i) => {
                     switch (c.type) {
                         case 'label':

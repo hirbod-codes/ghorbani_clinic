@@ -49,26 +49,31 @@ export type ThemeOptions = {
     colorCoefficient: number;
     colors: {
         border: {
+            'main': string;
             'dark': string;
             'light': string;
         };
 
         input: {
+            'main': string;
             'dark': string;
             'light': string;
         };
 
-        'scrollbar-background': {
+        'scrollbar': {
+            'main': string;
             'dark': string;
             'light': string;
         };
 
         'background': {
+            'main': string;
             'dark': string;
             'light': string;
         };
 
         'foreground': {
+            'main': string;
             'dark': string;
             'light': string;
         };
@@ -79,10 +84,14 @@ export type ThemeOptions = {
             'light': string;
             'dark-foreground': string;
             'light-foreground': string;
-            'dark-container': string;
-            'light-container': string;
-            'dark-container-foreground': string;
-            'light-container-foreground': string;
+        };
+
+        'primary-container': {
+            'main': string;
+            'dark': string;
+            'light': string;
+            'dark-foreground': string;
+            'light-foreground': string;
         };
 
         'secondary': {
@@ -91,10 +100,14 @@ export type ThemeOptions = {
             'light': string;
             'dark-foreground': string;
             'light-foreground': string;
-            'dark-container': string;
-            'light-container': string;
-            'dark-container-foreground': string;
-            'light-container-foreground': string;
+        };
+
+        'secondary-container': {
+            'main': string;
+            'dark': string;
+            'light': string;
+            'dark-foreground': string;
+            'light-foreground': string;
         };
 
         'tertiary': {

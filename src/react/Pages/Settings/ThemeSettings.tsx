@@ -1,26 +1,31 @@
-import { memo, useContext, useState } from "react";
+import { memo, useContext, useReducer, useRef, useState } from "react";
 import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext';
-import { HexAlphaColorPicker, HslColorPicker, HslaStringColorPicker } from 'react-colorful';
 import { t } from 'i18next';
 import { configAPI } from '../../../Electron/Configuration/renderer.d';
 import { Switch } from "../../Components/Base/Switch";
 import { Input } from "../../Components/Base/Input";
 import { DropdownMenu } from "../../Components/Base/DropdownMenu";
-import { shadeColor, stringify, toHex, toHsl, toRgb } from "../../Lib/Colors";
 import { CheckIcon, MoonIcon, SunIcon } from "lucide-react";
 import { Button } from "../../Components/Base/Button";
 import * as colors from 'tailwindcss/colors'
-import { DataGrid } from "../../Components/DataGrid";
 import { ColorPicker } from "../../Components/ColorPicker";
+import { HSV } from "../../Lib/Colors/HSV";
+import { HSL } from "../../Lib/Colors/HSL";
+import { ColorStatic } from "../../Lib/Colors/ColorStatic";
+import { RGB } from "../../Lib/Colors/RGB";
 
 export const ThemeSettings = memo(function ThemeSettings() {
+    const [, rerender] = useReducer(x => x + 1, 0)
+
     const c = useContext(ConfigurationContext)!
 
     const [showGradientBackground, setShowGradientBackground] = useState<boolean>(c.showGradientBackground ?? false)
     const [loadingGradientBackground, setLoadingGradientBackground] = useState<boolean>(false)
 
     const [open, setOpen] = useState<string>()
-    const [color, setColor] = useState<any>('#000')
+    const [color, setColor] = useState<HSV>()
+    const colorRef = useRef<string>()
+    const buttonRef = useRef<HTMLDivElement>(null)
 
     const [textColors, setTextColors] = useState<{ [k: string]: string }>({})
 
@@ -58,37 +63,6 @@ export const ThemeSettings = memo(function ThemeSettings() {
         '950': string
     }[] = Object.entries(colors).filter(f => f[0] !== 'default' && typeof f[1] !== 'string').map(([k, v], i) => ({ ...v, name: k }))
 
-    const myColors = tailwindColors
-        .map(c => [c.name, Object.fromEntries(Object.entries(c).filter(f => f[0] !== 'name'))])
-        .map(([k, v], i) => [k, v['500']])
-        .map(([k, v]) =>
-            [k,
-                Object.fromEntries(Array.from({ length: 11 })
-                    .map((n, i) =>
-                        [
-                            (i * 10).toString(),
-                            i <= 5
-                                ? stringify({
-                                    type: 'rgb',
-                                    value: [toRgb(v).value[0], toRgb(v).value[1], toRgb(v).value[2]]
-                                        .map(n => n * i * 0.2)
-                                        .map(n => +(n).toFixed(1))
-                                })
-                                : stringify({
-                                    type: 'rgb',
-                                    value: [toRgb(v).value[0], toRgb(v).value[1], toRgb(v).value[2]]
-                                        .map(n => n + ((255 - n) * ((i - 5) * 0.2)))
-                                        .map(n => +(n).toFixed(1))
-                                })
-                        ]
-                    )
-                    .reverse()
-                )])
-        .map(([k, v]) => ({ ...v, name: k }))
-
-    console.log('ThemeSettings', { tailwindColors, myColors })
-
-
     return (
         <>
             <div className="flex flex-row flex-wrap items-start content-start size-full p-3 *:m-1 overflow-y-auto">
@@ -102,8 +76,23 @@ export const ThemeSettings = memo(function ThemeSettings() {
                     />
                 </div>
 
-                {Object.keys(c.themeOptions.colors).filter(f => !['white', 'black', 'background', 'foreground'].includes(f)).map((k, i) =>
-                    <div key={i} className="border rounded-lg p-2 min-w-40">
+                {Object.keys(c.themeOptions.colors).filter(f => !['background', 'foreground'].includes(f)).map((k, i) => {
+                    const main = ColorStatic.parse(c.themeOptions.colors[k].main)
+                    const mainDark = ColorStatic.parse(c.themeOptions.colors[k].main)
+                    mainDark.darken(c.themeOptions.colorCoefficient)
+                    const mainLight = ColorStatic.parse(c.themeOptions.colors[k].main)
+                    mainLight.lighten(c.themeOptions.colorCoefficient)
+
+                    const rgb = ColorStatic.toRgb(main) as RGB
+
+                    const hsv20 = ColorStatic.toHsv(main)
+                    hsv20.setValue(20)
+                    const hsv50 = ColorStatic.toHsv(main)
+                    hsv50.setValue(50)
+                    const hsv80 = ColorStatic.toHsv(main)
+                    hsv80.setValue(80)
+
+                    return <div key={i} className="border rounded-lg p-2 min-w-40">
                         <p>
                             {k}
                         </p>
@@ -111,13 +100,13 @@ export const ThemeSettings = memo(function ThemeSettings() {
                             <div className="flex flex-row justify-around items-center w-full">
                                 <div
                                     className="border rounded-lg p-1"
-                                    style={{ color: 'grey', backgroundColor: k.includes('foreground') ? stringify(shadeColor(c.themeOptions.colors[k], c.themeOptions.foregroundCoefficient)) : stringify(shadeColor(c.themeOptions.colors[k], -c.themeOptions.colorCoefficient)) }}
+                                    style={{ color: 'grey', backgroundColor: mainDark.toString() }}
                                 >
                                     <MoonIcon />
                                 </div>
                                 <div
                                     className="border rounded-lg p-1"
-                                    style={{ color: 'grey', backgroundColor: k.includes('foreground') ? stringify(shadeColor(c.themeOptions.colors[k], -c.themeOptions.foregroundCoefficient)) : stringify(shadeColor(c.themeOptions.colors[k], c.themeOptions.colorCoefficient)) }}
+                                    style={{ color: 'grey', backgroundColor: mainLight.toString() }}
                                 >
                                     <SunIcon />
                                 </div>
@@ -125,8 +114,8 @@ export const ThemeSettings = memo(function ThemeSettings() {
 
                             <Button
                                 className="border w-full"
-                                style={{ backgroundColor: stringify(c.themeOptions.colors[k]) }}
-                                onClick={() => { setColor(stringify(toHex(c.themeOptions.colors[k]))); setOpen(k) }}
+                                style={{ backgroundColor: main.toString() }}
+                                onClick={() => { setColor(ColorStatic.toHsv(ColorStatic.parse(c.themeOptions.colors[k].main)) as HSV); setOpen(k); }}
                             >
                                 Change
                             </Button>
@@ -138,15 +127,15 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                     className="h-6 w-6"
                                     size='icon'
                                     onClick={() => {
-                                        let tc: string | undefined = undefined
-                                        try { tc = stringify(toHex(textColors.k)) }
-                                        catch (e) { return }
+                                        let tc: string | undefined = undefined;
+                                        try { tc = HSL.fromHex(textColors.k).toHex() }
+                                        catch (e) { return; }
                                         if (!tc)
-                                            return
+                                            return;
 
-                                        c.themeOptions.colors[k] = tc
+                                        c.themeOptions.colors[k].main = tc;
 
-                                        c.updateTheme(undefined, c.themeOptions)
+                                        c.updateTheme(undefined, c.themeOptions);
                                     }}
                                 >
                                     <CheckIcon />
@@ -157,8 +146,8 @@ export const ThemeSettings = memo(function ThemeSettings() {
                             <div
                                 className="border rounded-lg p-1 py-4 w-full text-center"
                                 style={{
-                                    color: stringify({ ...toHsl(c.themeOptions.colors[k]), value: [toHsl(c.themeOptions.colors[k]).value[0], toHsl(c.themeOptions.colors[k]).value[1], 20] }),
-                                    backgroundColor: stringify({ ...toHsl(c.themeOptions.colors[k]), value: [toHsl(c.themeOptions.colors[k]).value[0], toHsl(c.themeOptions.colors[k]).value[1], 50] })
+                                    color: ColorStatic.toHsl(hsv20).toString(),
+                                    backgroundColor: ColorStatic.toHsl(hsv50).toString()
                                 }}
                             >
                                 Primary
@@ -167,8 +156,8 @@ export const ThemeSettings = memo(function ThemeSettings() {
                             <div
                                 className="border rounded-lg p-1 py-4 w-full text-center"
                                 style={{
-                                    color: stringify({ ...toHsl(c.themeOptions.colors[k]), value: [toHsl(c.themeOptions.colors[k]).value[0], toHsl(c.themeOptions.colors[k]).value[1], 50] }),
-                                    backgroundColor: stringify({ ...toHsl(c.themeOptions.colors[k]), value: [toHsl(c.themeOptions.colors[k]).value[0], toHsl(c.themeOptions.colors[k]).value[1], 80] })
+                                    color: ColorStatic.toHsl(hsv50).toString(),
+                                    backgroundColor: ColorStatic.toHsl(hsv80).toString()
                                 }}
                             >
                                 Primary Container
@@ -176,14 +165,14 @@ export const ThemeSettings = memo(function ThemeSettings() {
 
                             <div
                                 className="border rounded-lg p-1 py-4 w-full text-center"
-                                style={{ color: 'grey', backgroundColor: 0.2126 * toRgb(c.themeOptions.colors[k]).value[0] + 0.7152 * toRgb(c.themeOptions.colors[k]).value[1] + 0.0722 * toRgb(c.themeOptions.colors[k]).value[2] > 0.5 ? 'black' : 'white' }}
+                                style={{ color: 'grey', backgroundColor: 0.2126 * rgb.getRed() + 0.7152 * rgb.getGreen() + 0.0722 * rgb.getBlue() > 0.5 ? 'black' : 'white' }}
                             >
                                 on Primary
                             </div>
 
                             <div
                                 className="border rounded-lg p-1 py-4 w-full text-center"
-                                style={{ color: 'grey', backgroundColor: stringify({ ...toHsl(c.themeOptions.colors[k]), value: [toHsl(c.themeOptions.colors[k]).value[0], toHsl(c.themeOptions.colors[k]).value[1], 50] }) }}
+                                style={{ color: 'grey', backgroundColor: ColorStatic.toHsl(hsv50).toString() }}
                             >
                                 on Primary Container
                             </div>
@@ -191,33 +180,49 @@ export const ThemeSettings = memo(function ThemeSettings() {
                             <DropdownMenu
                                 open={open === k}
                                 onOpenChange={(b) => {
-                                    c.themeOptions.colors[k] = color
+                                    console.log('DropdownMenu.onOpenChanged')
+                                    c.themeOptions.colors[k].main = color?.toString();
 
                                     // if (!b)
                                     //     c.updateTheme(undefined, c.themeOptions)
-
                                     // setOpen(b ? k : undefined)
                                 }}
+                                containerProps={{ className: 'bg-background' }}
                                 contents={[
                                     {
                                         type: 'item',
-                                        content: <ColorPicker mode="hsva" onColorChange={(c) => console.log(c)} />
+                                        content: <ColorPicker
+                                            mode="hsva"
+                                            onColorChanged={(c) => { console.log('cccccccccccccccccc', c, !c ? '' : ColorStatic.toHsl(c).toHex()); setColor(c); rerender() }}
+                                            onColorChanging={(c) => {
+                                                if (buttonRef.current)
+                                                    buttonRef.current.style.backgroundColor = c.toHex() ?? '#ffff00'
+                                            }}
+                                        />
                                     },
                                     {
                                         type: 'item',
-                                        content: <HslaStringColorPicker
-                                            color={color}
-                                            onChange={(color) => setColor(stringify({ ...toHsl(color), value: [toHsl(color).value[0], toHsl(color).value[1], 50] }))} />
-                                    }
-                                ]}
-                            />
+                                        content: <Button className="size-10" style={{ backgroundColor: !color ? '' : ColorStatic.toHsl(color).toHex() }} />
+                                    },
+                                    {
+                                        type: 'item',
+                                        content: <div className="size-10 p-2 text-center" ref={buttonRef}  >Ref</div>
+                                    },
+                                    // {
+                                    //     type: 'item',
+                                    //     content: <HslaStringColorPicker
+                                    //         color={color}
+                                    //         onChange={(color) => setColor(stringify({ ...toHsl(color), value: [toHsl(color).value[0], toHsl(color).value[1], 50] }))} />
+                                    // }
+                                ]} />
 
-                            <Button className="size-10" style={{ backgroundColor: stringify(color) }}></Button>
+
                         </div>
-                    </div>
+                    </div>;
+                }
                 )}
 
-                <div className="overflow-auto w-full h-full border border-green-500">
+                {/* <div className="overflow-auto w-full h-full border border-green-500">
                     <div className="overflow-hidden w-[80cm] h-1/2">
                         <DataGrid
                             data={tailwindColors}
@@ -248,7 +253,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                             addCounterColumn={false}
                         />
                     </div>
-                </div>
+                </div> */}
 
                 {/* {Object.entries(colors).filter(f => f[0] !== 'default' && typeof f[1] !== 'string').map(([k, v]: [string, object], i) =>
                         <div className="flex flex-row space-x-2" key={i}>

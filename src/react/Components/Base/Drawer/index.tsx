@@ -1,6 +1,6 @@
 import { ComponentProps, ReactNode, RefObject, useRef } from "react"
 import { AnimatedSlide } from "../../Animations/AnimatedSlide"
-import { usePointerOutside } from "../PointerOutside"
+import { usePointerOutside } from "../usePointerOutside"
 
 export type DrawerProps = {
     children?: ReactNode

@@ -3,7 +3,6 @@ import { Boundary, Draw, Point } from "../types";
 import { Shape } from "./Shape";
 import { SelectionBox } from './SelectionBox';
 import { getRadiansFromTwoPoints, lineFunction, pointFromLineDistance } from '../../../../Lib/Math/2d';
-import { toHex } from '@/src/react/Lib/Colors';
 
 export type UpdateGradient = { steps?: { offset: number, color: { r: number; g: number; b: number; a: number; } }[], startAngle?: number, x0?: number, y0?: number, r0?: number, x1?: number, y1?: number, r1?: number }
 
@@ -43,65 +42,65 @@ export class RectangleGradient implements Shape {
     }
 
     draw(d: Draw): void {
-        d.ctx.save()
+        // d.ctx.save()
 
-        this.path = new Path2D()
+        // this.path = new Path2D()
 
         let fillStyle: CanvasGradient
-        switch (this.canvasGradient.mode) {
-            case 'conic':
-                if (!this.canvasGradient.startAngle || !this.canvasGradient.x0 || !this.canvasGradient.y0)
-                    throw new Error('invalid gradient options provided.')
+        // switch (this.canvasGradient.mode) {
+        //     case 'conic':
+        //         if (!this.canvasGradient.startAngle || !this.canvasGradient.x0 || !this.canvasGradient.y0)
+        //             throw new Error('invalid gradient options provided.')
 
-                const conicGradient = d.ctx.createConicGradient(this.canvasGradient.startAngle, this.canvasGradient.x0, this.canvasGradient.y0)
-                this.canvasGradient.steps.forEach((s) => {
-                    console.log(toHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`).value, s)
-                    conicGradient.addColorStop(s.offset, toHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`).value)
-                })
-                fillStyle = conicGradient
-                break;
+        //         const conicGradient = d.ctx.createConicGradient(this.canvasGradient.startAngle, this.canvasGradient.x0, this.canvasGradient.y0)
+        //         this.canvasGradient.steps.forEach((s) => {
+        //             console.log(toHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`).value, s)
+        //             conicGradient.addColorStop(s.offset, toHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`).value)
+        //         })
+        //         fillStyle = conicGradient
+        //         break;
 
-            case 'linear':
-                if (!this.canvasGradient.x0 || !this.canvasGradient.y0 || !this.canvasGradient.x1 || !this.canvasGradient.y1)
-                    throw new Error('invalid gradient options provided.')
+        //     case 'linear':
+        //         if (!this.canvasGradient.x0 || !this.canvasGradient.y0 || !this.canvasGradient.x1 || !this.canvasGradient.y1)
+        //             throw new Error('invalid gradient options provided.')
 
-                const linearGradient = d.ctx.createLinearGradient(this.canvasGradient.x0, this.canvasGradient.y0, this.canvasGradient.x1, this.canvasGradient.y1)
-                this.canvasGradient.steps.forEach((s) => {
-                    console.log(toHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`).value, s)
-                    linearGradient.addColorStop(s.offset, toHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`).value)
-                })
-                fillStyle = linearGradient
-                break;
+        //         const linearGradient = d.ctx.createLinearGradient(this.canvasGradient.x0, this.canvasGradient.y0, this.canvasGradient.x1, this.canvasGradient.y1)
+        //         this.canvasGradient.steps.forEach((s) => {
+        //             console.log(toHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`).value, s)
+        //             linearGradient.addColorStop(s.offset, toHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`).value)
+        //         })
+        //         fillStyle = linearGradient
+        //         break;
 
-            case 'radial':
-                if (!this.canvasGradient.x0 || !this.canvasGradient.y0 || !this.canvasGradient.r0 || !this.canvasGradient.x1 || !this.canvasGradient.y1 || !this.canvasGradient.r1)
-                    throw new Error('invalid gradient options provided.')
+        //     case 'radial':
+        //         if (!this.canvasGradient.x0 || !this.canvasGradient.y0 || !this.canvasGradient.r0 || !this.canvasGradient.x1 || !this.canvasGradient.y1 || !this.canvasGradient.r1)
+        //             throw new Error('invalid gradient options provided.')
 
-                const radialGradient = d.ctx.createRadialGradient(this.canvasGradient.x0, this.canvasGradient.y0, this.canvasGradient.r0, this.canvasGradient.x1, this.canvasGradient.y1, this.canvasGradient.r1)
-                this.canvasGradient.steps.forEach((s) => {
-                    console.log('addColorStop', toHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`).value, s)
-                    radialGradient.addColorStop(s.offset, toHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`).value)
-                })
-                fillStyle = radialGradient
-                break;
+        //         const radialGradient = d.ctx.createRadialGradient(this.canvasGradient.x0, this.canvasGradient.y0, this.canvasGradient.r0, this.canvasGradient.x1, this.canvasGradient.y1, this.canvasGradient.r1)
+        //         this.canvasGradient.steps.forEach((s) => {
+        //             console.log('addColorStop', toHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`).value, s)
+        //             radialGradient.addColorStop(s.offset, toHex(`rgba(${s.color.r}, ${s.color.g}, ${s.color.b}, ${s.color.a})`).value)
+        //         })
+        //         fillStyle = radialGradient
+        //         break;
 
-            default:
-                throw new Error('invalid gradient options provided.')
-        }
+        //     default:
+        //         throw new Error('invalid gradient options provided.')
+        // }
 
-        if (fillStyle === undefined)
-            throw new Error('invalid gradient options provided.')
+        // if (fillStyle === undefined)
+        //     throw new Error('invalid gradient options provided.')
 
-        d.ctx.fillStyle = fillStyle
+        // d.ctx.fillStyle = fillStyle
 
-        if (this.transformArgs)
-            d.ctx.setTransform(this.transformArgs)
+        // if (this.transformArgs)
+        //     d.ctx.setTransform(this.transformArgs)
 
-        this.path.rect(this.x, this.y, this.w, this.h)
+        // this.path.rect(this.x, this.y, this.w, this.h)
 
-        d.ctx.fill(this.path)
+        // d.ctx.fill(this.path)
 
-        d.ctx.restore()
+        // d.ctx.restore()
     }
 
     getBoundary(): Boundary {

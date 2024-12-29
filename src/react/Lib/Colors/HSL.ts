@@ -1,4 +1,5 @@
 import { Color } from "./Color"
+import { ColorStatic } from "./ColorStatic"
 import { IColor } from "./IColor"
 import { RGB } from "./RGB"
 
@@ -35,21 +36,31 @@ export class HSL extends Color implements IColor {
     }
 
     toString(): string {
-        return `${this.alpha !== undefined ? 'hsla' : 'hsl'}(${this.hue}, ${this.saturation}, ${this.lightness}${this.alpha !== undefined ? ', ' + this.alpha : ''})`
+        return `${this.alpha !== undefined ? 'hsla' : 'hsl'}(${this.hue}, ${this.saturation}%, ${this.lightness}%${this.alpha !== undefined ? ', ' + this.alpha : ''})`
     }
 
     toHex(): string {
-        return Color.toRgb(this).toHex();
+        let h = this.hue, s = this.saturation, l = this.lightness
+
+        l /= 100;
+        const a = s * Math.min(l, 1 - l) / 100;
+        const f = n => {
+            const k = (n + h / 30) % 12;
+            const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+            return Math.round(255 * color).toString(16).padStart(2, '0');   // convert to Hex and prefix "0" if needed
+        };
+        return `#${f(0)}${f(8)}${f(4)}${Math.round((this.getAlpha() ?? 1) * 255).toString(16)}`;
     }
 
     static fromHex(color: string): IColor {
         const rgb = RGB.fromHex(color) as RGB
+
         const rgba = [rgb.getRed(), rgb.getGreen(), rgb.getBlue(), rgb.getAlpha()]
 
         let r = (rgba[0] ?? 0) / 255;
         let g = (rgba[1] ?? 0) / 255;
         let b = (rgba[2] ?? 0) / 255;
-        let a = (rgba[3] ?? 0) / 255;
+        let a = (rgba[3] ?? 1);
 
         // Find greatest and smallest channel values
         let cmin = Math.min(r, g, b),
@@ -97,6 +108,9 @@ export class HSL extends Color implements IColor {
     }
 
     static parse(color: string): IColor {
+        if (typeof color !== 'string')
+            throw new Error('Invalid input provided for parse method of HSL class');
+
         const marker = color.indexOf('(');
         const type = color.substring(0, marker);
         if (!type.startsWith('hsl'))

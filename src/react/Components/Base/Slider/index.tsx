@@ -1,7 +1,17 @@
+import { Point } from "@/src/react/Lib/Math"
 import { cn } from "@/src/react/shadcn/lib/utils"
 import { ComponentProps, PointerEvent, ReactNode, useEffect, useRef, useState } from "react"
 
-export function Slider({ defaultProgress, onProgressChange, containerProps, sliderProps, children }: { defaultProgress?: number, onProgressChange?: (progress: number) => void | Promise<void>, containerProps?: ComponentProps<'div'>, sliderProps?: ComponentProps<'div'>, children?: ReactNode }) {
+export type SliderProps = {
+    defaultProgress?: number,
+    onProgressChanged?: (progress: number) => void | Promise<void>,
+    onProgressChanging?: (progress: number) => void | Promise<void>,
+    containerProps?: ComponentProps<'div'>,
+    sliderProps?: ComponentProps<'div'>,
+    children?: ReactNode
+}
+
+export function Slider({ defaultProgress, onProgressChanged, onProgressChanging, containerProps, sliderProps, children }: SliderProps) {
     const containerRef = useRef<HTMLDivElement>(null)
     const sliderRef = useRef<HTMLDivElement>(null)
 
@@ -10,38 +20,71 @@ export function Slider({ defaultProgress, onProgressChange, containerProps, slid
     const onPointerDown = (e: PointerEvent<HTMLDivElement>) => {
         setPointerDown(true)
 
-        if (!pointerDown || !containerRef.current || !sliderRef.current)
+        if (!containerRef.current || !sliderRef.current)
             return
 
+        const p = getPointFromEvent(e)
         const cBoundaries = containerRef.current.getBoundingClientRect()
         const sBoundaries = sliderRef.current.getBoundingClientRect()
 
-        const progressLength = Math.min(Math.max(cBoundaries.left, e.clientX), cBoundaries.right) - cBoundaries.left
+        const progressLength = Math.min(Math.max(cBoundaries.left, p.x), cBoundaries.right) - cBoundaries.left
         const left = progressLength - (sBoundaries.width / 2)
 
         sliderRef.current.style.left = `${left}px`
 
-        if (onProgressChange)
-            onProgressChange(100 * (progressLength / cBoundaries.width))
+        if (onProgressChanged)
+            onProgressChanged(100 * (progressLength / cBoundaries.width))
     }
 
     const onPointerMove = (e: PointerEvent<HTMLDivElement>) => {
         if (!pointerDown || !containerRef.current || !sliderRef.current)
             return
 
+        const p = getPointFromEvent(e)
         const cBoundaries = containerRef.current.getBoundingClientRect()
         const sBoundaries = sliderRef.current.getBoundingClientRect()
 
-        const progressLength = Math.min(Math.max(cBoundaries.left, e.clientX), cBoundaries.right) - cBoundaries.left
+        const progressLength = Math.min(Math.max(cBoundaries.left, p.x), cBoundaries.right) - cBoundaries.left
         const left = progressLength - (sBoundaries.width / 2)
 
         sliderRef.current.style.left = `${left}px`
 
-        if (onProgressChange)
-            onProgressChange(100 * (progressLength / cBoundaries.width))
+        if (onProgressChanging)
+            onProgressChanging(100 * (progressLength / cBoundaries.width))
+
+        if (outsideContainer(cBoundaries, p)) {
+            setPointerDown(false)
+            if (onProgressChanged)
+                onProgressChanged(100 * (progressLength / cBoundaries.width))
+            return
+        }
     }
 
-    const onPointerUp = (e: PointerEvent<HTMLDivElement>) => setPointerDown(false)
+    const onPointerUp = (e: PointerEvent<HTMLDivElement>) => {
+        if (!pointerDown)
+            return
+
+        setPointerDown(false)
+
+        if (!containerRef.current || !sliderRef.current)
+            return
+
+        const p = getPointFromEvent(e)
+        const cBoundaries = containerRef.current.getBoundingClientRect()
+        const sBoundaries = sliderRef.current.getBoundingClientRect()
+
+        const progressLength = Math.min(Math.max(cBoundaries.left, p.x), cBoundaries.right) - cBoundaries.left
+        const left = progressLength - (sBoundaries.width / 2)
+
+        sliderRef.current.style.left = `${left}px`
+
+        if (onProgressChanged)
+            onProgressChanged(100 * (progressLength / cBoundaries.width))
+    }
+
+    const outsideContainer = (r: DOMRect, p: Point) => p.x < r.left || p.x > r.right || p.y < r.top || p.y > r.bottom;
+
+    const getPointFromEvent = (e) => ({ x: e.clientX, y: e.clientY })
 
     useEffect(() => {
         if (sliderRef.current && containerRef.current && (defaultProgress ?? 0) <= 100) {

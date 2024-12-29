@@ -1,12 +1,13 @@
 import { Slider } from "../../Base/Slider"
 
-export function AlphaSlider({ defaultProgress, onProgressChange }: { defaultProgress, onProgressChange }) {
+export function AlphaSlider({ defaultProgress, onProgressChanged, onProgressChanging }: { defaultProgress?: number, onProgressChanged?: (n: number) => void | Promise<void>, onProgressChanging?: (n: number) => void | Promise<void> }) {
     return (
         <Slider
             containerProps={{ className: 'bg-background border h-7 bg-transparent' }}
             sliderProps={{ className: 'w-[2mm] h-8 border-2 border-white-500 ' }}
             defaultProgress={defaultProgress}
-            onProgressChange={onProgressChange}
+            onProgressChanged={onProgressChanged}
+            onProgressChanging={onProgressChanging}
         >
             <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%">
                 <defs>

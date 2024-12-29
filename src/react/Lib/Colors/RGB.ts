@@ -55,9 +55,8 @@ export class RGB extends Color implements IColor {
         if (!rgbaStrings)
             throw new Error('Invalid color provided');
 
-        const rgba = rgbaStrings.map(s => parseFloat(s))
-        return new RGB(rgba[0], rgba[1], rgba[2], rgba[3])
-
+        const rgba = rgbaStrings.map(s => parseInt(s, 16))
+        return new RGB(rgba[0], rgba[1], rgba[2], rgba[3] / 255)
     }
 
     static parse(color: string): IColor {
