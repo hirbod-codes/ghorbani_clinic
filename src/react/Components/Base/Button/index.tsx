@@ -1,8 +1,8 @@
 import { Button as ShadcnButton } from "@/src/react/shadcn/components/ui/button";
 import { cn } from "@/src/react/shadcn/lib/utils";
-import { ComponentProps, MouseEvent, ReactNode } from "react";
+import { ComponentProps, memo, MouseEvent, ReactNode } from "react";
 
-export function Button({ children, rippleEffect = true, ...props }: { children?: ReactNode, rippleEffect?: boolean } & ComponentProps<typeof ShadcnButton>) {
+export const Button = memo(function Button({ children, rippleEffect = true, ...props }: { children?: ReactNode, rippleEffect?: boolean } & ComponentProps<typeof ShadcnButton>) {
     const ripple = (event: MouseEvent<HTMLButtonElement>) => {
         const btn = event.currentTarget;
 
@@ -39,5 +39,5 @@ export function Button({ children, rippleEffect = true, ...props }: { children?:
             {children}
         </ShadcnButton>
     )
-}
+})
 

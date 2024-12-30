@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useReducer, useRef, useState } from 'react'
 import { ColorModes } from '../../Lib/Colors/index.d'
 import { AlphaSlider } from './Sliders/AlphaSlider'
 import { HueSlider } from './Sliders/HueSlider'
@@ -7,6 +7,8 @@ import { ColorStatic } from '../../Lib/Colors/ColorStatic'
 import { Canvas } from './Canvas'
 
 export const ColorPicker = memo(function ColorPicker({ mode, hasAlpha = true, controlledColor, defaultColor, onColorChanged, onColorChanging }: { mode: ColorModes, hasAlpha?: boolean, controlledColor?: HSV, defaultColor?: HSV, onColorChanged?: (color: HSV) => void | Promise<void>, onColorChanging?: (color: HSV) => void | Promise<void> }) {
+    const [, rerender] = useReducer(x => x + 1, 0)
+
     const colorHolder = useRef<HTMLDivElement>(null)
     const [color, setColor] = useState<HSV>()
 
@@ -26,7 +28,7 @@ export const ColorPicker = memo(function ColorPicker({ mode, hasAlpha = true, co
     console.log('ColorPicker', { mode, controlledColor, onColorChanged, color, hasAlpha })
 
     return (
-        <div className="flex flex-col items-center space-y-2 w-72 h-96 p-2 border rounded-lg">
+        <div id='color-picker' className="flex flex-col items-center space-y-2 w-72 h-96 p-2 border rounded-lg">
             <div className="w-full h-10" ref={colorHolder} />
 
             <div className="size-72 p-2 m-1">
@@ -36,6 +38,7 @@ export const ColorPicker = memo(function ColorPicker({ mode, hasAlpha = true, co
                     controlledColor={controlledColor}
                     onColorChanged={(c) => {
                         setColor(c)
+
                         if (onColorChanged)
                             onColorChanged(c)
                     }}
@@ -53,15 +56,20 @@ export const ColorPicker = memo(function ColorPicker({ mode, hasAlpha = true, co
                 defaultProgress={100 * ((color?.getHue() ?? 0) / 360)}
                 onProgressChanged={c => {
                     color?.setHue((c * 360) / 100)
+
                     if (colorHolder.current && color)
                         colorHolder.current.style.backgroundColor = color.toHex()
+
                     if (onColorChanged && color)
                         onColorChanged(color)
                 }}
                 onProgressChanging={c => {
                     color?.setHue((c * 360) / 100)
+                    rerender()
+
                     if (colorHolder.current && color)
                         colorHolder.current.style.backgroundColor = color.toHex()
+
                     if (onColorChanging && color)
                         onColorChanging(color)
                 }}
@@ -73,15 +81,20 @@ export const ColorPicker = memo(function ColorPicker({ mode, hasAlpha = true, co
                     defaultProgress={100 * (color?.getAlpha() ?? 1)}
                     onProgressChanged={c => {
                         color?.setAlpha(c / 100)
+
                         if (colorHolder.current && color)
                             colorHolder.current.style.backgroundColor = color.toHex()
+
                         if (onColorChanged && color)
                             onColorChanged(color)
                     }}
                     onProgressChanging={c => {
                         color?.setAlpha(c / 100)
+                        rerender()
+
                         if (colorHolder.current && color)
                             colorHolder.current.style.backgroundColor = color.toHex()
+
                         if (onColorChanging && color)
                             onColorChanging(color)
                     }}
