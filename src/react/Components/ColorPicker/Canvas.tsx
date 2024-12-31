@@ -153,11 +153,12 @@ export const Canvas = memo(function Canvas({ controlledColor, onColorChanged, on
     }, [controlledColor?.getHue()])
 
     useEffect(() => {
-        if (ctx && controlledColor && outerCircle && innerCircle && validatorCircle) {
+        console.log('useEffect', ctx, controlledColor, outerCircle, innerCircle)
+        if (ctx && controlledColor && outerCircle && innerCircle) {
             movePointer(ctx, calculateColorPosition(controlledColor))
-            setHue(controlledColor.getHue())
+            rerender()
         }
-    }, [controlledColor, outerCircle, innerCircle, validatorCircle])
+    }, [controlledColor, ctx, outerCircle, innerCircle])
 
     return (
         <div className="size-full" style={{ backgroundColor: `hsl(${hue ?? 0}, 100%, 50%)` }}>

@@ -7,7 +7,6 @@ import { Canvas } from './Canvas'
 import { cn } from '../../shadcn/lib/utils'
 
 export type ColorPickerProps = {
-    mode: ColorModes
     hasAlpha?: boolean
     controlledColor?: HSV
     onColorChanged?: (color: HSV) => void | Promise<void>
@@ -16,7 +15,7 @@ export type ColorPickerProps = {
     showValidZone?: boolean
 }
 
-export const ColorPicker = memo(function ColorPicker({ mode, hasAlpha = true, controlledColor, onColorChanged, onColorChanging, containerProps, showValidZone = false }: ColorPickerProps) {
+export const ColorPicker = memo(function ColorPicker({ hasAlpha = true, controlledColor, onColorChanged, onColorChanging, containerProps, showValidZone = false }: ColorPickerProps) {
     const [, rerender] = useReducer(x => x + 1, 0)
 
     const colorHolder = useRef<HTMLDivElement>(null)
@@ -30,7 +29,7 @@ export const ColorPicker = memo(function ColorPicker({ mode, hasAlpha = true, co
             setColor(controlledColor)
     }, [controlledColor])
 
-    console.log('ColorPicker', { mode, controlledColor, onColorChanged, color, hasAlpha })
+    console.log('ColorPicker', { controlledColor, onColorChanged, color, hasAlpha })
 
     return (
         <div id='color-picker-container' {...containerProps} className={cn(["flex flex-col items-center space-y-2 w-72 h-96 p-2 border rounded-lg"], containerProps?.className)}>

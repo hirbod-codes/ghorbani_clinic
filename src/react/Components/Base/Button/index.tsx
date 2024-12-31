@@ -35,7 +35,7 @@ export const Button = memo(function Button({ children, rippleEffect = true, ...p
                     props.onClick(e)
             }}
         >
-            <div className="absolute w-full h-full top-0 left-0 bg-white opacity-0 z-10 transition-opacity duration-300 hover:opacity-50" />
+            <div className="absolute w-full h-full top-0 left-0 bg-white opacity-0 transition-opacity duration-300 hover:opacity-50" />
             {children}
         </ShadcnButton>
     )

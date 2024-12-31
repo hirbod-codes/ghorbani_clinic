@@ -9,17 +9,22 @@ import { HSV } from "../../../Lib/Colors/HSV";
 import { ColorStatic } from "../../../Lib/Colors/ColorStatic";
 
 export type ColorProps = {
-    name: string,
-    option: ColorVariants,
-    onColorOptionChanging?: (key: string, option: ColorVariants) => void,
-    onColorOptionChanged?: (key: string, option: ColorVariants) => void
+    name: string
+    option: ColorVariants
+    colorCoefficient: number
+    onColorOptionChanging?: (name: string, option: ColorVariants) => void
+    onColorOptionChanged?: (name: string, option: ColorVariants) => void
+    onColorOptionChangeCancel?: (name: string, option: ColorVariants) => void
 }
 
-export const Color = memo(function Color({ name, option, onColorOptionChanging, onColorOptionChanged }: ColorProps) {
+export const Color = memo(function Color({ name, option, colorCoefficient, onColorOptionChanging, onColorOptionChanged, onColorOptionChangeCancel }: ColorProps) {
     const [color, setColor] = useState<HSV>(ColorStatic.parse(option.main).toHsv())
-    const [open, setOpen] = useState<string>()
+    const [open, setOpen] = useState<string | undefined>(undefined)
     const [text, setText] = useState<string>(ColorStatic.parse(option.main).toHex())
-    const anchorRef = useRef<HTMLDivElement>(null)
+    const lightRef = useRef<HTMLDivElement>(null)
+    const darkRef = useRef<HTMLDivElement>(null)
+    const mainRef = useRef<HTMLDivElement>(null)
+    const anchorRef = useRef<any>(null)
 
     useEffect(() => {
         setColor(ColorStatic.parse(option.main).toHsv())
@@ -32,27 +37,33 @@ export const Color = memo(function Color({ name, option, onColorOptionChanging, 
         <div className="border rounded-lg p-2 min-w-40">
             <p>{name}</p>
 
-            <div className="flex flex-col items-center w-full p-4 space-y-2">
-                <div className="flex flex-row justify-around items-center w-full">
-                    <div
-                        className="border rounded-lg p-5"
-                        style={{ color: 'grey', backgroundColor: option.dark }}
-                    >
-                        <MoonIcon />
+            <div className="flex flex-col items-stretch w-full py-4 space-y-1">
+                <div className="flex flex-row justify-around items-stretch w-full space-x-1">
+                    <div ref={darkRef} className="w-full">
+                        <Button
+                            className="border text-gray-500 rounded-lg p-5 w-full"
+                            style={{ backgroundColor: option.dark }}
+                            onClick={() => { if (darkRef.current) anchorRef.current = darkRef.current; setOpen('dark') }}
+                        >
+                            <MoonIcon />
+                        </Button>
                     </div>
-                    <div
-                        className="border rounded-lg p-5"
-                        style={{ color: 'grey', backgroundColor: option.light }}
-                    >
-                        <SunIcon />
+                    <div ref={lightRef} className="w-full">
+                        <Button
+                            className="border text-gray-500 rounded-lg p-5 w-full"
+                            style={{ backgroundColor: option.light }}
+                            onClick={() => { if (lightRef.current) anchorRef.current = lightRef.current; setOpen('light') }}
+                        >
+                            <SunIcon />
+                        </Button>
                     </div>
                 </div>
 
-                <div ref={anchorRef}>
+                <div ref={mainRef}>
                     <Button
                         className="border w-full"
                         style={{ backgroundColor: option.main }}
-                        onClick={() => setOpen(name)}
+                        onClick={() => { if (mainRef.current) anchorRef.current = mainRef.current; setOpen('main') }}
                     >
                         Change
                     </Button>
@@ -60,27 +71,50 @@ export const Color = memo(function Color({ name, option, onColorOptionChanging, 
 
                 <DropdownMenu
                     anchorRef={anchorRef}
-                    open={open === name}
+                    open={open !== undefined}
                     onOpenChange={(b) => {
-                        if (!b)
+                        if (!b) {
+                            if (onColorOptionChangeCancel)
+                                onColorOptionChangeCancel(name, option)
                             setOpen(undefined)
+                        }
                     }}
                     containerProps={{ className: 'bg-background' }}
                 >
                     <div className="flex flex-col border rounded-lg p-2 z-10">
                         <ColorPicker
-                            showValidZone={name !== 'border' && name !== 'input' && name !== 'background' && name !== 'foreground'}
                             containerProps={{ className: 'border-0' }}
-                            mode="hsva"
                             controlledColor={color}
                             onColorChanging={(c) => setText(c.toHex())}
                             onColorChanged={(c) => {
-                                console.log('Color.onColorChanged', c.toString(), c.toHex())
-                                option.main = c.toHsl().toString();
                                 setColor(c)
 
-                                if (onColorOptionChanging)
-                                    onColorOptionChanging(name, option)
+                                if (!onColorOptionChanging)
+                                    return
+
+                                if (open === 'main') {
+                                    option.main = c.toHex()
+
+                                    // creates new instance
+                                    let light = ColorStatic.parse(c.toHex()).toHsv()
+                                    light.setValue((1 - colorCoefficient) * 100)
+
+                                    option.light = light.toHsl().toString()
+
+                                    // creates new instance
+                                    let dark = ColorStatic.parse(c.toHex()).toHsv()
+                                    dark.setValue(colorCoefficient * 100)
+
+                                    option.dark = dark.toHsl().toString()
+                                }
+
+                                if (open === 'light')
+                                    option.light = c.toHex()
+
+                                if (open === 'dark')
+                                    option.dark = c.toHex()
+
+                                onColorOptionChanging(name, option)
                             }}
                         />
 

@@ -8,11 +8,13 @@ import { HSV } from "../../../Lib/Colors/HSV";
 import { ColorStatic } from "../../../Lib/Colors/ColorStatic";
 import { Color } from "./Color";
 import { ColorPicker } from "@/src/react/Components/ColorPicker";
+import { Button } from "@/src/react/Components/Base/Button";
+import { SaveIcon } from "@/src/react/Components/Icons/SaveIcon";
 
 export const ThemeSettings = memo(function ThemeSettings() {
     const c = useContext(ConfigurationContext)!
 
-    const [themeOptions, setThemeOptions] = useState({ ...c.themeOptions })
+    const [themeOptions, setThemeOptions] = useState({ ...structuredClone(c.themeOptions) })
 
     const [showGradientBackground, setShowGradientBackground] = useState<boolean>(c.showGradientBackground ?? false)
     const [loadingGradientBackground, setLoadingGradientBackground] = useState<boolean>(false)
@@ -35,44 +37,29 @@ export const ThemeSettings = memo(function ThemeSettings() {
     }
 
     const onColorOptionChanging = useCallback((k: string, option: ColorVariants) => {
-        console.log('onColorOptionChanging', k, option, ColorStatic.parse(option.main).toHex(), ColorStatic.parse(option.light).toHex(), ColorStatic.parse(option.dark).toHex())
-        updateThemeOption(k, option.main)
+        themeOptions.colors[k] = option
         setThemeOptions({ ...themeOptions })
     }, [])
 
     const onColorOptionChanged = useCallback((k: string, option: ColorVariants) => {
-        console.log('onColorOptionChanged', k, option, ColorStatic.parse(option.main).toHex(), ColorStatic.parse(option.light).toHex(), ColorStatic.parse(option.dark).toHex())
-        updateThemeOption(k, option.main)
-        updateThemeOptions()
+        themeOptions.colors[k] = option
         setThemeOptions({ ...themeOptions })
     }, [])
 
-    const updateThemeOptions = () => Object.keys(themeOptions.colors).map(k => updateThemeOption(k, themeOptions.colors[k].main))
-
-    const updateThemeOption = (k: string, mainColor: string) => {
-        let coefficient = themeOptions.colorCoefficient
-        if (['background', 'foreground', 'input', 'border'].includes(k))
-            return
-
-        themeOptions.colors[k].main = mainColor
-
-        // creates new instance
-        let light = ColorStatic.parse(mainColor).toHsv()
-        light.setValue((1 - coefficient) * 100)
-        themeOptions.colors[k].light = light.toHsl().toString()
-
-        // creates new instance
-        let dark = ColorStatic.parse(mainColor).toHsv()
-        dark.setValue(coefficient * 100)
-        themeOptions.colors[k].dark = dark.toHsl().toString()
-    }
+    const onColorOptionChangeCancel = useCallback((k: string, option: ColorVariants) => {
+        themeOptions.colors[k] = c.themeOptions.colors[k]
+        setThemeOptions({ ...themeOptions })
+    }, [])
 
     console.log('ThemeSettings', { c, themeOptions, colorCoefficient, foregroundCoefficient, showGradientBackground, loadingGradientBackground })
 
     return (
         <>
             <div className="flex flex-row flex-wrap items-start content-start size-full p-3 *:m-1 overflow-y-auto">
-                <Temp />
+                <Button className="absolute bottom-3 right-3" size='lg' onClick={() => c.updateTheme(undefined, themeOptions)}>
+                    <SaveIcon /> Save
+                </Button>
+
                 <div className="border rounded-lg p-2 min-w-40">
                     <Switch
                         label={t('ThemeSettings.showGradientBackground')}
@@ -87,9 +74,11 @@ export const ThemeSettings = memo(function ThemeSettings() {
                     <Color
                         key={k}
                         name={k}
+                        colorCoefficient={themeOptions.colorCoefficient}
                         option={themeOptions.colors[k]}
                         onColorOptionChanging={onColorOptionChanging}
                         onColorOptionChanged={onColorOptionChanged}
+                        onColorOptionChangeCancel={onColorOptionChangeCancel}
                     />
                 )}
 
@@ -104,7 +93,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                 return
 
                             themeOptions.radius = e.target.value + 'rem'
-                            c.updateTheme(undefined, c.themeOptions)
+                            setThemeOptions({ ...themeOptions })
                         }}
                     />
                 </div>
@@ -126,7 +115,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                 return
 
                             themeOptions.foregroundCoefficient = n
-                            updateThemeOptions()
+                            setThemeOptions({ ...themeOptions })
                         }}
                     />
                 </div>
@@ -149,7 +138,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                 return
 
                             themeOptions.colorCoefficient = n
-                            updateThemeOptions()
+                            setThemeOptions({ ...themeOptions })
                         }}
                     />
                 </div>
@@ -158,3 +147,71 @@ export const ThemeSettings = memo(function ThemeSettings() {
     )
 })
 
+export function Temp() {
+    const [color, setColor] = useState<HSV>(HSV.fromHex('#000000') as HSV)
+    const [text, setText] = useState<string>(color.toHex())
+
+    console.log('Temp', { color, text })
+
+    return (
+        <div className="bg-background border rounded-lg m-1 p-2">
+            <Input
+                containerProps={{ className: "w-full p-0" }}
+                className="h-6"
+                placeholder='color hex number'
+                value={text}
+                onChange={(e) => {
+                    setText(e.target.value)
+
+                    let c
+                    try { c = ColorStatic.parse(e.target.value).toHsv() }
+                    catch (e) { return }
+
+                    if (!c)
+                        return
+
+                    setColor(c)
+                }}
+            />
+
+            <ColorPicker
+                containerProps={{ className: 'border-0' }}
+                controlledColor={color}
+                onColorChanging={(c) => {
+                    setColor(c)
+                    setText(c.toHex())
+                }}
+                onColorChanged={(c) => {
+                    setColor(c)
+                    setText(c.toHex())
+                }}
+            />
+
+            <div className="flex flex-col flex-wrap bg-gray-600">
+                <div className="h-10 text-center text-nowrap" style={{ backgroundColor: color.toHsv().toString() }}>
+                    HSV: {color.toHsv().toString()}
+                </div>
+
+                <div className="h-10 text-center text-nowrap" style={{ backgroundColor: color.toHsl().toString() }}>
+                    HSL: {color.toHsl().toString()}
+                </div>
+
+                <div className="h-10 text-center text-nowrap" style={{ backgroundColor: color.toRgb().toString() }}>
+                    RGB: {color.toRgb().toString()}
+                </div>
+
+                <div className="h-10 text-center text-nowrap" style={{ backgroundColor: color.toHsv().toHex() }}>
+                    HSV hex: {color.toHsv().toHex()}
+                </div>
+
+                <div className="h-10 text-center text-nowrap" style={{ backgroundColor: color.toHsl().toHex() }}>
+                    HSL hex: {color.toHsl().toHex()}
+                </div>
+
+                <div className="h-10 text-center text-nowrap" style={{ backgroundColor: color.toRgb().toHex() }}>
+                    RGB hex: {color.toRgb().toHex()}
+                </div>
+            </div>
+        </div>
+    )
+}
