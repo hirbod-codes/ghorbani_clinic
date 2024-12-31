@@ -98,8 +98,6 @@ export function Slider({ defaultProgress, onProgressChanged, onProgressChanging,
         }
     }, [sliderRef.current, containerRef.current])
 
-    console.log('Slider', { containerRef: containerRef.current, sliderRef: sliderRef.current, pointerDown, controlledProgress: defaultProgress, containerProps, sliderProps })
-
     return (
         <div id="progressContainer" ref={containerRef} {...containerProps} className={cn(["w-full relative"], containerProps?.className)} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}>
             {children}

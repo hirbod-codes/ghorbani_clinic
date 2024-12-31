@@ -59,80 +59,180 @@ export function useConfigurationHook() {
                     main: 'hsl(183, 47%, 46%)',
                     dark: 'hsl(183, 47%, 46%)',
                     light: 'hsl(183, 47%, 46%)',
-                    'dark-foreground': 'hsl(222.2, 47.4%, 11.2%)',
-                    'light-foreground': 'hsl(222.2, 47.4%, 11.2%)',
+                },
+
+                "primary-background": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                },
+
+                "primary-foreground": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
                 },
 
                 "primary-container": {
                     main: 'hsl(183, 68%, 65%)',
                     dark: 'hsl(183, 68%, 65%)',
                     light: 'hsl(183, 68%, 65%)',
-                    'dark-foreground': 'hsl(222.2, 47.4%, 11.2%)',
-                    'light-foreground': 'hsl(222.2, 47.4%, 11.2%)',
+                },
+
+                "primary-container-background": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                },
+
+                "primary-container-foreground": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
                 },
 
                 secondary: {
                     main: 'hsl(158, 90%, 45%)',
                     dark: 'hsl(158, 90%, 45%)',
                     light: 'hsl(158, 90%, 45%)',
-                    'dark-foreground': 'hsl(222.2, 47.4%, 11.2%)',
-                    'light-foreground': 'hsl(222.2, 47.4%, 11.2%)',
+                },
+
+                "secondary-background": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                },
+
+                "secondary-foreground": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
                 },
 
                 "secondary-container": {
                     main: 'hsl(158, 67%, 63%)',
                     dark: 'hsl(158, 67%, 63%)',
                     light: 'hsl(158, 67%, 63%)',
-                    'dark-foreground': 'hsl(222.2, 47.4%, 11.2%)',
-                    'light-foreground': 'hsl(222.2, 47.4%, 11.2%)',
+                },
+
+                "secondary-container-background": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                },
+
+                "secondary-container-foreground": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
                 },
 
                 tertiary: {
                     main: 'hsl(52, 65%, 52%)',
                     dark: 'hsl(52, 65%, 52%)',
                     light: 'hsl(52, 65%, 52%)',
-                    'dark-foreground': 'hsl(222.2, 47.4%, 11.2%)',
-                    'light-foreground': 'hsl(222.2, 47.4%, 11.2%)',
+                },
+
+                "tertiary-background": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                },
+
+                "tertiary-foreground": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
                 },
 
                 info: {
                     main: 'hsl(218, 93%, 56%)',
                     dark: 'hsl(218, 93%, 56%)',
                     light: 'hsl(218, 93%, 56%)',
-                    'dark-foreground': 'hsl(222.2, 47.4%, 11.2%)',
-                    'light-foreground': 'hsl(222.2, 47.4%, 11.2%)',
+                },
+
+                "info-background": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                },
+
+                "info-foreground": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
                 },
 
                 success: {
                     main: 'hsl(134, 82%, 54%)',
                     dark: 'hsl(134, 82%, 54%)',
                     light: 'hsl(134, 82%, 54%)',
-                    'dark-foreground': 'hsl(222.2, 47.4%, 11.2%)',
-                    'light-foreground': 'hsl(222.2, 47.4%, 11.2%)',
+                },
+
+                "success-background": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                },
+
+                "success-foreground": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
                 },
 
                 warning: {
                     main: 'hsl(0, 100%, 50%)',
                     dark: 'hsl(0, 100%, 50%)',
                     light: 'hsl(0, 100%, 50%)',
-                    'dark-foreground': 'hsl(210, 40%, 98%)',
-                    'light-foreground': 'hsl(210, 40%, 98%)',
+                },
+
+                "warning-background": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                },
+
+                "warning-foreground": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
                 },
 
                 error: {
                     main: 'hsl(0, 100%, 50%)',
                     dark: 'hsl(0, 100%, 50%)',
                     light: 'hsl(0, 100%, 50%)',
-                    'dark-foreground': 'hsl(210, 40%, 98%)',
-                    'light-foreground': 'hsl(210, 40%, 98%)',
+                },
+
+                "error-background": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                },
+
+                "error-foreground": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
                 },
 
                 muted: {
                     main: 'hsl(210, 40%, 96.1%)',
                     dark: 'hsl(210, 40%, 96.1%)',
                     light: 'hsl(210, 40%, 96.1%)',
-                    'dark-foreground': 'hsl(215.4, 16.3%, 46.9%)',
-                    'light-foreground': 'hsl(215.4, 16.3%, 46.9%)',
+                },
+
+                "muted-background": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                },
+
+                "muted-foreground": {
+                    main: 'hsl(222.2, 47.4%, 11.2%)',
+                    dark: 'hsl(222.2, 47.4%, 11.2%)',
+                    light: 'hsl(222.2, 47.4%, 11.2%)',
                 },
             },
         },
@@ -187,8 +287,8 @@ export function useConfigurationHook() {
 
     const updateCssVars = (mode: ThemeMode, options: ThemeOptions) => {
         const stringifyColorForTailwind = (color: string) => {
-            let hsl = ColorStatic.toHsl(ColorStatic.parse(color)) as HSL
-            return `${hsl.getHue()} ${hsl.getSaturation()} ${hsl.getLightness()}`
+            let hsl = ColorStatic.parse(color).toHsl()
+            return `${hsl.getHue()} ${hsl.getSaturation()}% ${hsl.getLightness()}%`
         }
 
         const setCssVar = (k: string, v: string, isColor = false) => document.documentElement.style.setProperty(`--${k}`, isColor ? stringifyColorForTailwind(v) : v)
@@ -198,20 +298,9 @@ export function useConfigurationHook() {
         setCssVar('scrollbar-height', options['scrollbar-height'])
         setCssVar('scrollbar-border-radius', options['scrollbar-border-radius'])
 
-        setCssVar('scrollbar', options.colors.scrollbar[mode], true)
-        setCssVar('background', options.colors.background[mode], true)
-        setCssVar('foreground', options.colors.foreground[mode], true)
-        setCssVar('border', options.colors.border[mode], true)
-        setCssVar('input', options.colors.input[mode], true)
-
         Object
             .keys(options.colors)
-            .forEach(key => {
-                let color = ColorStatic.parse(options.colors[key][mode])
-                setCssVar(key, ColorStatic.parse(options.colors[key][mode]).toString(), true)
-                if (options.colors[key][`${mode}-foreground`])
-                    setCssVar(key + '-foreground', ColorStatic.parse(options.colors[key][`${mode}-foreground`]).toString(), true)
-            })
+            .forEach(key => setCssVar(key, options.colors[key][mode], true))
     }
 
     const [isConfigurationContextReady, setIsConfigurationContextReady] = useState<boolean>(false);

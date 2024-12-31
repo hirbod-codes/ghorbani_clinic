@@ -1,4 +1,4 @@
-import { ComponentProps, memo, ReactNode, RefObject, useEffect, useRef, useState } from "react";
+import { ComponentProps, memo, ReactNode, RefObject, useEffect, useReducer, useRef, useState } from "react";
 import { usePointerOutside } from "../usePointerOutside";
 import { cn } from "@/src/react/shadcn/lib/utils";
 
@@ -16,8 +16,6 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, op
     const [opacity, setOpacity] = useState<number>(0)
     const [open, setOpen] = useState<boolean>(defaultOpen ?? false)
     const containerRef = useRef<HTMLDivElement>(null)
-
-    console.log('DropdownMenu', { open, container: containerRef.current, display, opacity, controlledOpen, anchor: anchorRef.current })
 
     usePointerOutside(containerRef, (isOutside) => {
         if (isOutside)
@@ -45,12 +43,26 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, op
             setTimeout(() => { setOpacity(1) }, 1)
     }, [display])
 
-    useEffect(() => {
+    const updatePosition = () => {
         if (containerRef.current && anchorRef.current) {
-            containerRef.current.style.top = `${anchorRef.current.offsetTop + anchorRef.current.offsetHeight}px`
-            containerRef.current.style.left = `${anchorRef.current.offsetLeft + (anchorRef.current.offsetWidth / 2) - (containerRef.current.clientWidth / 2)}px`
+            const rect = anchorRef.current.getBoundingClientRect()
+            const cRect = containerRef.current.getBoundingClientRect()
+
+            console.log('updatePosition', 'ref', anchorRef.current, 'offsetTop', anchorRef.current.offsetTop, 'offsetLeft', anchorRef.current.offsetLeft, 'offsetHeight', anchorRef.current.offsetHeight, 'offsetWidth', anchorRef.current.offsetWidth, 'getBoundingClientRect', anchorRef.current.getBoundingClientRect())
+
+            containerRef.current.style.top = `${rect.bottom}px`
+            containerRef.current.style.left = `${rect.left + (rect.width / 2) - (cRect.width / 2)}px`
         }
+    }
+
+    useEffect(() => {
+        updatePosition()
     }, [display])
+
+    useEffect(() => {
+        document.addEventListener('scroll', updatePosition)
+        return () => document.removeEventListener('scroll', updatePosition)
+    }, [])
 
     return (
         <div
@@ -64,7 +76,7 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, op
                     setDisplay('none')
             }}
         >
-            {children}
+            {display !== 'none' && children}
         </div>
     )
 })

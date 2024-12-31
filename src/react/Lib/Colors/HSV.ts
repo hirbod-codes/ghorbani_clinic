@@ -1,5 +1,6 @@
 import { Color } from "./Color"
 import { ColorStatic } from "./ColorStatic"
+import { HSL } from "./HSL"
 import { IColor } from "./IColor"
 import { RGB } from "./RGB"
 
@@ -36,42 +37,94 @@ export class HSV extends Color implements IColor {
     }
 
     toString(): string {
-        return `${this.alpha !== undefined ? 'hsla' : 'hsl'}(${this.hue}, ${this.saturation}%, ${this.value}%${this.alpha !== undefined ? ', ' + this.alpha : ''})`
+        return `${this.alpha !== undefined ? 'hsva' : 'hsv'}(${this.hue.toFixed(2)}, ${this.saturation.toFixed(2)}%, ${this.value.toFixed(2)}%${this.alpha !== undefined ? ', ' + this.alpha.toFixed(2) : ''})`
+    }
+
+    toRgb(): RGB {
+        // const h = this.getHue();
+        // const s = this.getSaturation() / 100;
+        // let v = this.getValue() / 100;
+        // const hi = Math.floor(h) % 6;
+
+        // const f = h - Math.floor(h);
+        // const p = 255 * v * (1 - s);
+        // const q = 255 * v * (1 - (s * f));
+        // const t = 255 * v * (1 - (s * (1 - f)));
+        // v *= 255;
+
+        // let rgb: number[] = []
+        // switch (hi) {
+        //     case 0:
+        //         rgb = [v, t, p];
+        //     case 1:
+        //         rgb = [q, v, p];
+        //     case 2:
+        //         rgb = [p, v, t];
+        //     case 3:
+        //         rgb = [p, q, v];
+        //     case 4:
+        //         rgb = [t, p, v];
+        //     case 5:
+        //         rgb = [v, p, q];
+        // }
+        // return new RGB(rgb[0], rgb[1], rgb[2], this.getAlpha())
+
+        let h = this.hue/360, s = this.saturation / 100, v = this.value / 100
+        let r, g, b, i, f, p, q, t;
+
+        i = Math.floor(h * 6);
+        f = h * 6 - i;
+        p = v * (1 - s);
+        q = v * (1 - f * s);
+        t = v * (1 - (1 - f) * s);
+        switch (i % 6) {
+            case 0: r = v, g = t, b = p; break;
+            case 1: r = q, g = v, b = p; break;
+            case 2: r = p, g = v, b = t; break;
+            case 3: r = p, g = q, b = v; break;
+            case 4: r = t, g = p, b = v; break;
+            case 5: r = v, g = p, b = q; break;
+        }
+        r *= 255
+        g *= 255
+        b *= 255
+        return new RGB(r, g, b, this.getAlpha())
+    }
+
+    toHsl(): HSL {
+        const h = this.getHue();
+        const s = this.getSaturation() / 100;
+        const v = this.getValue() / 100;
+        const vmin = Math.max(v, 0.01);
+        let sl;
+        let l;
+
+        l = (2 - s) * v;
+        const lmin = (2 - s) * vmin;
+        sl = s * vmin;
+        sl /= (lmin <= 1) ? lmin : 2 - lmin;
+        sl = sl || 0;
+        l /= 2;
+
+        return new HSL(h, sl * 100, l * 100, this.getAlpha())
+
+        // let h = this.hue, s = this.saturation / 100, v = this.value / 100
+        // let l = v - v * s / 2
+        // let m = Math.min(l, 1 - l)
+        // return new HSL(h, (m ? (v - l) / m : 0) * 100, l * 100, this.getAlpha())
+    }
+
+    toHsv(): HSV {
+        return this
     }
 
     toHex(): string {
-        let h = this.hue, s = this.saturation / 100, v = this.value / 100
-        let f = (n, k = (n + h / 60) % 6) => v - v * s * Math.max(Math.min(k, 4 - k, 1), 0);
-        let twoDigit = (n: string) => n.length === 1 ? '0' + n : n
-        return `#${[f(5), f(3), f(1)].map(n => Math.round(n * 255).toString(16)).map(n => twoDigit(n)).join('')}${twoDigit(Math.round((this.getAlpha() ?? 1) * 255).toString(16))}`;
+        return this.toRgb().toHex()
     }
 
     static fromHex(color: string): IColor {
         const rgb = RGB.fromHex(color) as RGB
-        const rgba = [rgb.getRed(), rgb.getGreen(), rgb.getBlue()]
-        const a = rgb.getAlpha()
-
-        rgba[0] /= 255, rgba[1] /= 255, rgba[2] /= 255;
-
-        let max = Math.max(rgba[0], rgba[1], rgba[2]), min = Math.min(rgba[0], rgba[1], rgba[2]);
-        let h, s, v = max;
-
-        let d = max - min;
-        s = max == 0 ? 0 : d / max;
-
-        if (max == min) {
-            h = 0; // achromatic
-        } else {
-            switch (max) {
-                case rgba[0]: h = (rgba[1] - rgba[2]) / d + (rgba[1] < rgba[2] ? 6 : 0); break;
-                case rgba[1]: h = (rgba[2] - rgba[0]) / d + 2; break;
-                case rgba[2]: h = (rgba[0] - rgba[1]) / d + 4; break;
-            }
-
-            h /= 6;
-        }
-
-        return new HSV(h * 360, s * 100, v * 100, a)
+        return rgb.toHsv()
     }
 
     static parse(color: string): IColor {
@@ -80,7 +133,7 @@ export class HSV extends Color implements IColor {
         if (!type.startsWith('hsv'))
             throw new Error('Invalid input provided for parse method of HSV class');
 
-        let hsla = color.substring(marker + 1, color.length - 1).split(',').map(value => parseFloat(value))
+        let hsla = color.substring(marker + 1, color.length - 1).split(',').map(value => parseFloat(value.replace('%', '')))
 
         return new HSV(hsla[0], hsla[1], hsla[2], hsla[3])
     }

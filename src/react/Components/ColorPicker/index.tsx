@@ -1,102 +1,99 @@
-import { memo, useEffect, useReducer, useRef, useState } from 'react'
+import { ComponentProps, memo, useEffect, useReducer, useRef, useState } from 'react'
 import { ColorModes } from '../../Lib/Colors/index.d'
 import { AlphaSlider } from './Sliders/AlphaSlider'
 import { HueSlider } from './Sliders/HueSlider'
 import { HSV } from '../../Lib/Colors/HSV'
-import { ColorStatic } from '../../Lib/Colors/ColorStatic'
 import { Canvas } from './Canvas'
+import { cn } from '../../shadcn/lib/utils'
 
-export const ColorPicker = memo(function ColorPicker({ mode, hasAlpha = true, controlledColor, defaultColor, onColorChanged, onColorChanging }: { mode: ColorModes, hasAlpha?: boolean, controlledColor?: HSV, defaultColor?: HSV, onColorChanged?: (color: HSV) => void | Promise<void>, onColorChanging?: (color: HSV) => void | Promise<void> }) {
+export type ColorPickerProps = {
+    mode: ColorModes
+    hasAlpha?: boolean
+    controlledColor?: HSV
+    onColorChanged?: (color: HSV) => void | Promise<void>
+    onColorChanging?: (color: HSV) => void | Promise<void>
+    containerProps?: ComponentProps<'div'>
+    showValidZone?: boolean
+}
+
+export const ColorPicker = memo(function ColorPicker({ mode, hasAlpha = true, controlledColor, onColorChanged, onColorChanging, containerProps, showValidZone = false }: ColorPickerProps) {
     const [, rerender] = useReducer(x => x + 1, 0)
 
     const colorHolder = useRef<HTMLDivElement>(null)
-    const [color, setColor] = useState<HSV>()
+    const [color, setColor] = useState<HSV>(controlledColor ?? HSV.fromHex('#ff0000') as HSV)
 
     useEffect(() => {
-        if (defaultColor)
-            setColor(ColorStatic.toHsv(defaultColor))
-    }, [])
-
-    useEffect(() => {
-        if (controlledColor)
-            setColor(controlledColor)
-
         if (colorHolder.current && controlledColor)
             colorHolder.current.style.backgroundColor = controlledColor.toHex()
+
+        if (controlledColor)
+            setColor(controlledColor)
     }, [controlledColor])
 
     console.log('ColorPicker', { mode, controlledColor, onColorChanged, color, hasAlpha })
 
     return (
-        <div id='color-picker' className="flex flex-col items-center space-y-2 w-72 h-96 p-2 border rounded-lg">
-            <div className="w-full h-10" ref={colorHolder} />
+        <div id='color-picker-container' {...containerProps} className={cn(["flex flex-col items-center space-y-2 w-72 h-96 p-2 border rounded-lg"], containerProps?.className)}>
+            <div className="w-full h-10" ref={colorHolder} style={{ backgroundColor: color.toHex() }} />
 
             <div className="size-72 p-2 m-1">
                 <Canvas
-                    hue={color?.getHue() ?? 0}
-                    defaultColor={defaultColor}
-                    controlledColor={controlledColor}
+                    controlledColor={color}
+                    showValidZone={showValidZone}
                     onColorChanged={(c) => {
                         setColor(c)
+
+                        if (colorHolder.current)
+                            colorHolder.current.style.backgroundColor = c.toHex()
 
                         if (onColorChanged)
                             onColorChanged(c)
                     }}
                     onColorChanging={(c) => {
-                        if (onColorChanging)
-                            onColorChanging(c)
-
                         if (colorHolder.current)
                             colorHolder.current.style.backgroundColor = c.toHex()
+
+                        if (onColorChanging)
+                            onColorChanging(c)
                     }}
                 />
             </div>
 
             <HueSlider
-                defaultProgress={100 * ((color?.getHue() ?? 0) / 360)}
+                defaultProgress={100 * ((color.getHue() ?? 0) / 360)}
                 onProgressChanged={c => {
-                    color?.setHue((c * 360) / 100)
-
-                    if (colorHolder.current && color)
-                        colorHolder.current.style.backgroundColor = color.toHex()
+                    color.setHue((c * 360) / 100)
 
                     if (onColorChanged && color)
                         onColorChanged(color)
+                    rerender()
                 }}
                 onProgressChanging={c => {
-                    color?.setHue((c * 360) / 100)
-                    rerender()
-
-                    if (colorHolder.current && color)
-                        colorHolder.current.style.backgroundColor = color.toHex()
+                    color.setHue((c * 360) / 100)
 
                     if (onColorChanging && color)
                         onColorChanging(color)
+                    rerender()
                 }}
             />
 
             {/* Alpha */}
             {hasAlpha &&
                 <AlphaSlider
-                    defaultProgress={100 * (color?.getAlpha() ?? 1)}
+                    defaultProgress={100 * (color.getAlpha() ?? 1)}
                     onProgressChanged={c => {
-                        color?.setAlpha(c / 100)
-
-                        if (colorHolder.current && color)
-                            colorHolder.current.style.backgroundColor = color.toHex()
+                        color.setAlpha(c / 100)
 
                         if (onColorChanged && color)
                             onColorChanged(color)
+                        rerender()
                     }}
                     onProgressChanging={c => {
-                        color?.setAlpha(c / 100)
-                        rerender()
-
-                        if (colorHolder.current && color)
-                            colorHolder.current.style.backgroundColor = color.toHex()
+                        color.setAlpha(c / 100)
 
                         if (onColorChanging && color)
                             onColorChanging(color)
+                        rerender()
                     }}
                 />
             }

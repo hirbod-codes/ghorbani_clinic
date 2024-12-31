@@ -1,7 +1,7 @@
 export class Color {
     protected alpha: number | undefined
 
-    constructor(alpha?: number) {
+    constructor(alpha = 1) {
         if (alpha !== undefined && (alpha < 0 || alpha > 1))
             throw new Error('Invalid color values provided.')
 

@@ -1,5 +1,6 @@
 import { Color } from "./Color"
 import { ColorStatic } from "./ColorStatic"
+import { HSV } from "./HSV"
 import { IColor } from "./IColor"
 import { RGB } from "./RGB"
 
@@ -36,75 +37,111 @@ export class HSL extends Color implements IColor {
     }
 
     toString(): string {
-        return `${this.alpha !== undefined ? 'hsla' : 'hsl'}(${this.hue}, ${this.saturation}%, ${this.lightness}%${this.alpha !== undefined ? ', ' + this.alpha : ''})`
+        return `${this.alpha !== undefined ? 'hsla' : 'hsl'}(${this.hue.toFixed(2)}, ${this.saturation.toFixed(2)}%, ${this.lightness.toFixed(2)}%${this.alpha !== undefined ? ', ' + this.alpha.toFixed(2) : ''})`
+    }
+
+    toRgb(): RGB {
+        const h = this.getHue() / 360;
+        const s = this.getSaturation() / 100;
+        const l = this.getLightness() / 100;
+        let t2;
+        let t3;
+        let val;
+
+        if (s === 0) {
+            val = l * 255;
+            return new RGB(val, val, val, this.getAlpha())
+        }
+
+        if (l < 0.5) {
+            t2 = l * (1 + s);
+        } else {
+            t2 = l + s - l * s;
+        }
+
+        const t1 = 2 * l - t2;
+
+        const rgb = [0, 0, 0];
+        for (let i = 0; i < 3; i++) {
+            t3 = h + 1 / 3 * -(i - 1);
+            if (t3 < 0)
+                t3++;
+
+            if (t3 > 1)
+                t3--;
+
+            if (6 * t3 < 1)
+                val = t1 + (t2 - t1) * 6 * t3;
+            else if (2 * t3 < 1)
+                val = t2;
+            else if (3 * t3 < 2)
+                val = t1 + (t2 - t1) * (2 / 3 - t3) * 6;
+            else
+                val = t1;
+
+            rgb[i] = val * 255;
+        }
+
+        return new RGB(rgb[0], rgb[1], rgb[2], this.getAlpha())
+
+        // let h = this.hue, s = this.saturation, l = this.lightness
+        // h /= 360
+        // s /= 100
+        // l /= 100
+
+        // let r, g, b
+        // if (s === 0)
+        //     r = g = b = l // achromatic
+        // else {
+        //     const hue2rgb = (p, q, t) => {
+        //         if (t < 0) t += 1
+        //         if (t > 1) t -= 1
+        //         if (t < 1 / 6) return p + (q - p) * 6 * t
+        //         if (t < 1 / 2) return q
+        //         if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
+        //         return p
+        //     }
+        //     const q = l < 0.5 ? l * (1 + s) : l + s - l * s
+        //     const p = 2 * l - q
+        //     r = hue2rgb(p, q, h + 1 / 3)
+        //     g = hue2rgb(p, q, h)
+        //     b = hue2rgb(p, q, h - 1 / 3)
+        // }
+
+        // return new RGB(r * 255, g * 255, b * 255, this.getAlpha())
+    }
+
+    toHsl(): HSL {
+        return this
+    }
+
+    toHsv(): HSV {
+        const h = this.getHue();
+        let s = this.getSaturation() / 100;
+        let l = this.getLightness() / 100;
+        let smin = s;
+        const lmin = Math.max(l, 0.01);
+
+        l *= 2;
+        s *= (l <= 1) ? l : 2 - l;
+        smin *= lmin <= 1 ? lmin : 2 - lmin;
+        const v = (l + s) / 2;
+        const sv = l === 0 ? (2 * smin) / (lmin + smin) : (2 * s) / (l + s);
+
+        return new HSV(h, sv * 100, v * 100, this.getAlpha())
+
+        // let h = this.hue, s = this.saturation / 100, l = this.lightness / 100
+        // let v = s * Math.min(l, 1 - l) + l
+        // return new HSV(h, (v ? 2 - 2 * l / v : 0) * 100, v * 100, this.getAlpha())
     }
 
     toHex(): string {
-        let h = this.hue, s = this.saturation, l = this.lightness
-
-        l /= 100;
-        const a = s * Math.min(l, 1 - l) / 100;
-        const f = n => {
-            const k = (n + h / 30) % 12;
-            const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
-            return Math.round(255 * color).toString(16).padStart(2, '0');   // convert to Hex and prefix "0" if needed
-        };
-        return `#${f(0)}${f(8)}${f(4)}${Math.round((this.getAlpha() ?? 1) * 255).toString(16)}`;
+        return this.toRgb().toHex()
     }
 
     static fromHex(color: string): IColor {
         const rgb = RGB.fromHex(color) as RGB
-
-        const rgba = [rgb.getRed(), rgb.getGreen(), rgb.getBlue(), rgb.getAlpha()]
-
-        let r = (rgba[0] ?? 0) / 255;
-        let g = (rgba[1] ?? 0) / 255;
-        let b = (rgba[2] ?? 0) / 255;
-        let a = (rgba[3] ?? 1);
-
-        // Find greatest and smallest channel values
-        let cmin = Math.min(r, g, b),
-            cmax = Math.max(r, g, b),
-            delta = cmax - cmin,
-            h = 0,
-            s = 0,
-            l = 0;
-
-        // Calculate hue
-        // No difference
-        if (delta === 0)
-            h = 0;
-        // Red is max
-        else if (cmax === r)
-            h = ((g - b) / delta) % 6;
-        // Green is max
-        else if (cmax === g)
-            h = (b - r) / delta + 2;
-        // Blue is max
-        else
-            h = (r - g) / delta + 4;
-
-        h = Math.round(h * 60);
-
-        // Make negative hues positive behind 360°
-        if (h < 0)
-            h += 360;
-
-        // Calculate lightness
-        l = (cmax + cmin) / 2;
-
-        // Calculate saturation
-        s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
-
-        // Multiply l and s by 100
-        s = +(s * 100).toFixed(1);
-        l = +(l * 100).toFixed(1);
-
-        h = +h.toFixed(2)
-        s = +s.toFixed(2)
-        l = +l.toFixed(2)
-
-        return new HSL(h, s, l, a)
+        return rgb.toHsl()
     }
 
     static parse(color: string): IColor {
@@ -116,7 +153,7 @@ export class HSL extends Color implements IColor {
         if (!type.startsWith('hsl'))
             throw new Error('Invalid input provided for parse method of HSL class');
 
-        let hsla = color.substring(marker + 1, color.length - 1).split(',').map(value => parseFloat(value))
+        let hsla = color.substring(marker + 1, color.length - 1).split(',').map(value => parseFloat(value.replace('%', '')))
 
         return new HSL(hsla[0], hsla[1], hsla[2], hsla[3])
     }
