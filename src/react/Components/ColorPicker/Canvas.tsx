@@ -153,7 +153,6 @@ export const Canvas = memo(function Canvas({ controlledColor, onColorChanged, on
     }, [controlledColor?.getHue()])
 
     useEffect(() => {
-        console.log('useEffect', ctx, controlledColor, outerCircle, innerCircle)
         if (ctx && controlledColor && outerCircle && innerCircle) {
             movePointer(ctx, calculateColorPosition(controlledColor))
             rerender()

@@ -60,34 +60,28 @@ export type ThemeOptions = {
         background: ColorVariants
         foreground: ColorVariants
         primary: ColorVariants
-        'primary-background': ColorVariants
         'primary-foreground': ColorVariants
         'primary-container': ColorVariants
-        'primary-container-background': ColorVariants
         'primary-container-foreground': ColorVariants
         secondary: ColorVariants
-        'secondary-background': ColorVariants
         'secondary-foreground': ColorVariants
         'secondary-container': ColorVariants
-        'secondary-container-background': ColorVariants
         'secondary-container-foreground': ColorVariants
         tertiary: ColorVariants
-        'tertiary-background': ColorVariants
         'tertiary-foreground': ColorVariants
+        'tertiary-container': ColorVariants
+        'tertiary-container-foreground': ColorVariants
         info: ColorVariants
-        'info-background': ColorVariants
         'info-foreground': ColorVariants
         success: ColorVariants
-        'success-background': ColorVariants
         'success-foreground': ColorVariants
         warning: ColorVariants
-        'warning-background': ColorVariants
         'warning-foreground': ColorVariants
         error: ColorVariants
-        'error-background': ColorVariants
         'error-foreground': ColorVariants
+        'error-container': ColorVariants
+        'error-container-foreground': ColorVariants
         muted: ColorVariants
-        'muted-background': ColorVariants
         'muted-foreground': ColorVariants
     }
 }

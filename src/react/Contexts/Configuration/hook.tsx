@@ -1,13 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from "react-i18next";
 import type { Calendar, Config, configAPI, LanguageCodes, ThemeMode, ThemeOptions, TimeZone } from '../../../Electron/Configuration/renderer.d';
-import { IColor } from '../../Lib/Colors/IColor';
 import { ColorStatic } from '../../Lib/Colors/ColorStatic';
-import { HSV } from '../../Lib/Colors/HSV';
-import { HSL } from '../../Lib/Colors/HSL';
+import { argbFromHex } from '@material/material-color-utilities';
 
 export function useConfigurationHook() {
-    const { i18n } = useTranslation();
+    // console.log('####################################',argbFromHex('#0000ff'))
 
     const defaultConfiguration: Config = {
         local: {
@@ -26,15 +24,15 @@ export function useConfigurationHook() {
             colorCoefficient: 0.3,
             colors: {
                 border: {
-                    main: 'hsl(214.3, 31.8%, 91.4%)',
-                    dark: 'hsl(214.3, 31.8%, 91.4%)',
-                    light: 'hsl(214.3, 31.8%, 91.4%)',
+                    main: '#000000',
+                    dark: '#ffffff',
+                    light: '#000000',
                 },
 
                 input: {
-                    main: 'hsl(214.3, 31.8%, 91.4%)',
-                    dark: 'hsl(214.3, 31.8%, 91.4%)',
-                    light: 'hsl(214.3, 31.8%, 91.4%)',
+                    main: '#000000',
+                    dark: '#ffffff',
+                    light: '#000000',
                 },
 
                 scrollbar: {
@@ -44,199 +42,165 @@ export function useConfigurationHook() {
                 },
 
                 background: {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(0, 0%, 100%)',
+                    main: '#ffffff',
+                    dark: '#000000',
+                    light: '#ffffff',
                 },
 
                 foreground: {
-                    main: 'hsl(0, 0%, 100%)',
-                    dark: 'hsl(0, 0%, 100%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#000000',
+                    dark: '#ffffff',
+                    light: '#000000',
                 },
 
                 primary: {
-                    main: 'hsl(183, 47%, 46%)',
-                    dark: 'hsl(183, 47%, 46%)',
-                    light: 'hsl(183, 47%, 46%)',
-                },
-
-                "primary-background": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#415f91',
+                    dark: '#aac7ff',
+                    light: '#415f91',
                 },
 
                 "primary-foreground": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#ffffff',
+                    dark: '#0a305f',
+                    light: '#ffffff',
                 },
 
                 "primary-container": {
-                    main: 'hsl(183, 68%, 65%)',
-                    dark: 'hsl(183, 68%, 65%)',
-                    light: 'hsl(183, 68%, 65%)',
-                },
-
-                "primary-container-background": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#d6e3ff',
+                    dark: '#284777',
+                    light: '#d6e3ff',
                 },
 
                 "primary-container-foreground": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#001b3e',
+                    dark: '#d6e3ff',
+                    light: '#001b3e',
                 },
 
                 secondary: {
-                    main: 'hsl(158, 90%, 45%)',
-                    dark: 'hsl(158, 90%, 45%)',
-                    light: 'hsl(158, 90%, 45%)',
-                },
-
-                "secondary-background": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#3e5f90',
+                    dark: '#a8c8ff',
+                    light: '#3e5f90',
                 },
 
                 "secondary-foreground": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#ffffff',
+                    dark: '#05305f',
+                    light: '#ffffff',
                 },
 
                 "secondary-container": {
-                    main: 'hsl(158, 67%, 63%)',
-                    dark: 'hsl(158, 67%, 63%)',
-                    light: 'hsl(158, 67%, 63%)',
-                },
-
-                "secondary-container-background": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#d5e3ff',
+                    dark: '#254777',
+                    light: '#d5e3ff',
                 },
 
                 "secondary-container-foreground": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#001b3c',
+                    dark: '#d5e3ff',
+                    light: '#001b3c',
                 },
 
                 tertiary: {
-                    main: 'hsl(52, 65%, 52%)',
-                    dark: 'hsl(52, 65%, 52%)',
-                    light: 'hsl(52, 65%, 52%)',
-                },
-
-                "tertiary-background": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#705575',
+                    dark: '#ddbce0',
+                    light: '#705575',
                 },
 
                 "tertiary-foreground": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#ffffff',
+                    dark: '#3f2844',
+                    light: '#ffffff',
+                },
+
+                "tertiary-container": {
+                    main: '#fad8fd',
+                    dark: '#573e5c',
+                    light: '#fad8fd',
+                },
+
+                "tertiary-container-foreground": {
+                    main: '#28132e',
+                    dark: '#fad8fd',
+                    light: '#28132e',
                 },
 
                 info: {
-                    main: 'hsl(218, 93%, 56%)',
-                    dark: 'hsl(218, 93%, 56%)',
-                    light: 'hsl(218, 93%, 56%)',
-                },
-
-                "info-background": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#3e5f90',
+                    dark: '#aac7ff',
+                    light: '#3e5f90',
                 },
 
                 "info-foreground": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#ffffff',
+                    dark: '#0a305f',
+                    light: '#ffffff',
                 },
 
                 success: {
-                    main: 'hsl(134, 82%, 54%)',
-                    dark: 'hsl(134, 82%, 54%)',
-                    light: 'hsl(134, 82%, 54%)',
-                },
-
-                "success-background": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#00ff00',
+                    dark: '#00ff00',
+                    light: '#00ff00',
                 },
 
                 "success-foreground": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#ffffff',
+                    dark: '#ffffff',
+                    light: '#ffffff',
                 },
 
                 warning: {
-                    main: 'hsl(0, 100%, 50%)',
-                    dark: 'hsl(0, 100%, 50%)',
-                    light: 'hsl(0, 100%, 50%)',
-                },
-
-                "warning-background": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#ddb300',
+                    dark: '#ddb300',
+                    light: '#ddb300',
                 },
 
                 "warning-foreground": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#ffffff',
+                    dark: '#ffffff',
+                    light: '#ffffff',
                 },
 
                 error: {
-                    main: 'hsl(0, 100%, 50%)',
-                    dark: 'hsl(0, 100%, 50%)',
-                    light: 'hsl(0, 100%, 50%)',
-                },
-
-                "error-background": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#ba1a1a',
+                    dark: '#ffb4ab',
+                    light: '#ba1a1a',
                 },
 
                 "error-foreground": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#ffffff',
+                    dark: '#690005',
+                    light: '#ffffff',
+                },
+
+                "error-container": {
+                    main: '#ffdad6',
+                    dark: '#93000a',
+                    light: '#ffdad6',
+                },
+
+                "error-container-foreground": {
+                    main: '#410002',
+                    dark: '#ffdad6',
+                    light: '#410002',
                 },
 
                 muted: {
-                    main: 'hsl(210, 40%, 96.1%)',
-                    dark: 'hsl(210, 40%, 96.1%)',
-                    light: 'hsl(210, 40%, 96.1%)',
-                },
-
-                "muted-background": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#b7b7b7',
+                    dark: '#b7b7b7',
+                    light: '#b7b7b7',
                 },
 
                 "muted-foreground": {
-                    main: 'hsl(222.2, 47.4%, 11.2%)',
-                    dark: 'hsl(222.2, 47.4%, 11.2%)',
-                    light: 'hsl(222.2, 47.4%, 11.2%)',
+                    main: '#000000',
+                    dark: '#000000',
+                    light: '#000000',
                 },
             },
         },
-    };
+    }
+
+    const { i18n } = useTranslation();
 
     const [configuration, setConfiguration] = useState<Config>(defaultConfiguration);
 

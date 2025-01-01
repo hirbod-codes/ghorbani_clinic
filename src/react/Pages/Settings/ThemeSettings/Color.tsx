@@ -12,14 +12,16 @@ export type ColorProps = {
     name: string
     option: ColorVariants
     colorCoefficient: number
-    onColorOptionChanging?: (name: string, option: ColorVariants) => void
-    onColorOptionChanged?: (name: string, option: ColorVariants) => void
+    onColorOptionChange?: (name: string, option: ColorVariants) => void
     onColorOptionChangeCancel?: (name: string, option: ColorVariants) => void
 }
 
-export const Color = memo(function Color({ name, option, colorCoefficient, onColorOptionChanging, onColorOptionChanged, onColorOptionChangeCancel }: ColorProps) {
+export const Color = memo(function Color({ name, option, colorCoefficient, onColorOptionChange, onColorOptionChangeCancel }: ColorProps) {
+    const [, rerender] = useReducer(x => x + 1, 0)
+
     const [color, setColor] = useState<HSV>(ColorStatic.parse(option.main).toHsv())
     const [open, setOpen] = useState<string | undefined>(undefined)
+    const [cancel, setCancel] = useState<boolean>(true)
     const [text, setText] = useState<string>(ColorStatic.parse(option.main).toHex())
     const lightRef = useRef<HTMLDivElement>(null)
     const darkRef = useRef<HTMLDivElement>(null)
@@ -27,9 +29,18 @@ export const Color = memo(function Color({ name, option, colorCoefficient, onCol
     const anchorRef = useRef<any>(null)
 
     useEffect(() => {
+        if (open)
+            setText(option[open])
+    }, [open])
+
+    useEffect(() => {
         setColor(ColorStatic.parse(option.main).toHsv())
         setText(ColorStatic.parse(option.main).toHex())
     }, [option.main])
+
+    useEffect(() => {
+        rerender()
+    }, [option.light, option.dark])
 
     console.log('Color', { k: name, option, color, open, text, anchorRef: anchorRef.current })
 
@@ -74,8 +85,10 @@ export const Color = memo(function Color({ name, option, colorCoefficient, onCol
                     open={open !== undefined}
                     onOpenChange={(b) => {
                         if (!b) {
-                            if (onColorOptionChangeCancel)
+                            if (cancel && onColorOptionChangeCancel)
                                 onColorOptionChangeCancel(name, option)
+                            if (!cancel)
+                                setCancel(false)
                             setOpen(undefined)
                         }
                     }}
@@ -89,7 +102,7 @@ export const Color = memo(function Color({ name, option, colorCoefficient, onCol
                             onColorChanged={(c) => {
                                 setColor(c)
 
-                                if (!onColorOptionChanging)
+                                if (!onColorOptionChange)
                                     return
 
                                 if (open === 'main') {
@@ -97,13 +110,13 @@ export const Color = memo(function Color({ name, option, colorCoefficient, onCol
 
                                     // creates new instance
                                     let light = ColorStatic.parse(c.toHex()).toHsv()
-                                    light.setValue((1 - colorCoefficient) * 100)
+                                    light.shadeColor(70)
 
                                     option.light = light.toHsl().toString()
 
                                     // creates new instance
                                     let dark = ColorStatic.parse(c.toHex()).toHsv()
-                                    dark.setValue(colorCoefficient * 100)
+                                    dark.shadeColor(30)
 
                                     option.dark = dark.toHsl().toString()
                                 }
@@ -114,48 +127,58 @@ export const Color = memo(function Color({ name, option, colorCoefficient, onCol
                                 if (open === 'dark')
                                     option.dark = c.toHex()
 
-                                onColorOptionChanging(name, option)
+                                onColorOptionChange(name, option)
                             }}
                         />
 
-                        <div className="flex flex-row items-center w-full p-0 space-x-1">
-                            <Input
-                                containerProps={{ className: "w-full p-0" }}
-                                className="h-6"
-                                placeholder='color hex number'
-                                value={text}
-                                onChange={(e) => { setText(e.target.value) }}
-                            />
+                        <Input
+                            containerProps={{ className: "w-full p-0" }}
+                            className="h-6"
+                            placeholder='color hex number'
+                            value={text}
+                            onChange={(e) => {
+                                setText(e.target.value)
 
-                            <Button
-                                className="h-6 w-6"
-                                size='icon'
-                                onClick={() => {
-                                    let tc: HSV | undefined = undefined;
-                                    try { tc = ColorStatic.parse(text).toHsv() }
-                                    catch (e) { return; }
-                                    if (!tc)
-                                        return;
+                                let tc: HSV | undefined = undefined;
+                                try { tc = ColorStatic.parse(e.target.value).toHsv() }
+                                catch (e) { return; }
+                                if (!tc)
+                                    return;
 
-                                    option.main = tc.toHsl().toString()
-                                    setColor(tc)
+                                setColor(tc)
 
-                                    if (onColorOptionChanging)
-                                        onColorOptionChanging(name, option)
-                                }}
-                            >
-                                <CheckIcon />
-                            </Button>
-                        </div>
+                                if (!onColorOptionChange)
+                                    return
+
+                                if (open === 'main') {
+                                    option.main = tc.toHex()
+
+                                    // creates new instance
+                                    let light = ColorStatic.parse(tc.toHex()).toRgb()
+                                    light.shadeColor(70)
+
+                                    option.light = light.toHsl().toString()
+
+                                    // creates new instance
+                                    let dark = ColorStatic.parse(tc.toHex()).toRgb()
+                                    dark.shadeColor(30)
+
+                                    option.dark = dark.toHsl().toString()
+                                }
+
+                                if (open === 'light')
+                                    option.light = tc.toHex()
+
+                                if (open === 'dark')
+                                    option.dark = tc.toHex()
+
+                                onColorOptionChange(name, option)
+                            }}
+                        />
 
                         <Button
                             className="w-full"
-                            onClick={() => {
-                                if (onColorOptionChanged)
-                                    onColorOptionChanged(name, option)
-
-                                setOpen(undefined)
-                            }}
+                            onClick={() => { setCancel(false); setOpen(undefined) }}
                         >
                             <CheckIcon /> Done
                         </Button>

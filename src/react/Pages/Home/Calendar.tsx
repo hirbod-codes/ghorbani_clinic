@@ -58,7 +58,7 @@ export function Calendar() {
                 <AnimatedCard
                     animationKey={cardKey ?? 0}
                     open={showVisitsStats}
-                    paperProps={{ sx: { minWidth: '10rem', maxWidth: '20rem', minHeight: '10rem' } }}
+                    props={{ sx: { minWidth: '10rem', maxWidth: '20rem', minHeight: '10rem' } }}
                 >
                     {fetchingVisits && <CircularLoading />}
                     {!fetchingVisits &&

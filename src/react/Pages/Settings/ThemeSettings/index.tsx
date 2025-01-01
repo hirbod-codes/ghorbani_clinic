@@ -1,20 +1,22 @@
-import { memo, useCallback, useContext, useRef, useState } from "react";
+import { memo, useCallback, useContext, useState } from "react";
 import { ConfigurationContext } from '../../../Contexts/Configuration/ConfigurationContext';
 import { t } from 'i18next';
 import { ColorVariants, configAPI } from '@/src/Electron/Configuration/renderer.d';
 import { Switch } from "../../../Components/Base/Switch";
 import { Input } from "../../../Components/Base/Input";
-import { HSV } from "../../../Lib/Colors/HSV";
-import { ColorStatic } from "../../../Lib/Colors/ColorStatic";
 import { Color } from "./Color";
-import { ColorPicker } from "@/src/react/Components/ColorPicker";
 import { Button } from "@/src/react/Components/Base/Button";
 import { SaveIcon } from "@/src/react/Components/Icons/SaveIcon";
+import { RGB } from "@/src/react/Lib/Colors/RGB";
+import { IColor } from "@/src/react/Lib/Colors/IColor";
+import { HSV } from "@/src/react/Lib/Colors/HSV";
+import { HSL } from "@/src/react/Lib/Colors/HSL";
 
 export const ThemeSettings = memo(function ThemeSettings() {
     const c = useContext(ConfigurationContext)!
 
-    const [themeOptions, setThemeOptions] = useState({ ...structuredClone(c.themeOptions) })
+    // JSON is slow but acceptable for this use case
+    const [themeOptions, setThemeOptions] = useState(() => JSON.parse(JSON.stringify(c.themeOptions)))
 
     const [showGradientBackground, setShowGradientBackground] = useState<boolean>(c.showGradientBackground ?? false)
     const [loadingGradientBackground, setLoadingGradientBackground] = useState<boolean>(false)
@@ -36,18 +38,14 @@ export const ThemeSettings = memo(function ThemeSettings() {
         setShowGradientBackground(v)
     }
 
-    const onColorOptionChanging = useCallback((k: string, option: ColorVariants) => {
+    const onColorOptionChange = useCallback((k: string, option: ColorVariants) => {
         themeOptions.colors[k] = option
         setThemeOptions({ ...themeOptions })
     }, [])
 
-    const onColorOptionChanged = useCallback((k: string, option: ColorVariants) => {
-        themeOptions.colors[k] = option
-        setThemeOptions({ ...themeOptions })
-    }, [])
-
-    const onColorOptionChangeCancel = useCallback((k: string, option: ColorVariants) => {
-        themeOptions.colors[k] = c.themeOptions.colors[k]
+    const onColorOptionChangeCancel = useCallback(async (k: string, option: ColorVariants) => {
+        const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
+        themeOptions.colors[k] = conf.themeOptions.colors[k]
         setThemeOptions({ ...themeOptions })
     }, [])
 
@@ -56,19 +54,11 @@ export const ThemeSettings = memo(function ThemeSettings() {
     return (
         <>
             <div className="flex flex-row flex-wrap items-start content-start size-full p-3 *:m-1 overflow-y-auto">
+                {/* Color tones */}
+                <ColorTones />
                 <Button className="absolute bottom-3 right-3" size='lg' onClick={() => c.updateTheme(undefined, themeOptions)}>
                     <SaveIcon /> Save
                 </Button>
-
-                <div className="border rounded-lg p-2 min-w-40">
-                    <Switch
-                        label={t('ThemeSettings.showGradientBackground')}
-                        labelId={t('ThemeSettings.showGradientBackground')}
-                        checked={showGradientBackground}
-                        disabled={loadingGradientBackground}
-                        onCheckedChange={async (e) => await updateShowGradientBackground(e)}
-                    />
-                </div>
 
                 {Object.keys(themeOptions.colors).map((k, i) =>
                     <Color
@@ -76,8 +66,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                         name={k}
                         colorCoefficient={themeOptions.colorCoefficient}
                         option={themeOptions.colors[k]}
-                        onColorOptionChanging={onColorOptionChanging}
-                        onColorOptionChanged={onColorOptionChanged}
+                        onColorOptionChange={onColorOptionChange}
                         onColorOptionChangeCancel={onColorOptionChangeCancel}
                     />
                 )}
@@ -142,76 +131,92 @@ export const ThemeSettings = memo(function ThemeSettings() {
                         }}
                     />
                 </div>
+
+                <div className="border rounded-lg p-2 min-w-40">
+                    <Switch
+                        label={t('ThemeSettings.showGradientBackground')}
+                        labelId={t('ThemeSettings.showGradientBackground')}
+                        checked={showGradientBackground}
+                        disabled={loadingGradientBackground}
+                        onCheckedChange={async (e) => await updateShowGradientBackground(e)}
+                    />
+                </div>
             </div >
         </>
     )
 })
 
-export function Temp() {
-    const [color, setColor] = useState<HSV>(HSV.fromHex('#000000') as HSV)
-    const [text, setText] = useState<string>(color.toHex())
+export function ColorTones() {
+    const count = 21
+    const hex = '#ff0000'
+    const mid = Math.floor(count / 2)
 
-    console.log('Temp', { color, text })
+    function getModifiedColor(hex: string, n: number, total: number): IColor {
+        const color = RGB.fromHex(hex)
+        const mid = Math.floor(total / 2)
+
+        if (n >= mid)
+            color.lighten((n - mid) / mid)
+        else
+            color.darken(1 - (n / mid))
+
+        return color
+    }
 
     return (
-        <div className="bg-background border rounded-lg m-1 p-2">
-            <Input
-                containerProps={{ className: "w-full p-0" }}
-                className="h-6"
-                placeholder='color hex number'
-                value={text}
-                onChange={(e) => {
-                    setText(e.target.value)
+        <>
+            <div className="w-full overflow-auto m-1 border rounded-lg">
+                <div className="h-14 flex flex-row space-x-1">
+                    {Array.from(Array(count).keys()).map(n => {
+                        const c = HSV.fromHex(hex)
+                        if (n <= mid)
+                            c.darken(1 - (n / mid))
+                        else
+                            c.lighten((n - mid) / mid)
 
-                    let c
-                    try { c = ColorStatic.parse(e.target.value).toHsv() }
-                    catch (e) { return }
-
-                    if (!c)
-                        return
-
-                    setColor(c)
-                }}
-            />
-
-            <ColorPicker
-                containerProps={{ className: 'border-0' }}
-                controlledColor={color}
-                onColorChanging={(c) => {
-                    setColor(c)
-                    setText(c.toHex())
-                }}
-                onColorChanged={(c) => {
-                    setColor(c)
-                    setText(c.toHex())
-                }}
-            />
-
-            <div className="flex flex-col flex-wrap bg-gray-600">
-                <div className="h-10 text-center text-nowrap" style={{ backgroundColor: color.toHsv().toString() }}>
-                    HSV: {color.toHsv().toString()}
+                        return (
+                            <div className="size-14 flex flex-col justify-center items-center text-gray-500" style={{ backgroundColor: c.toHex() }}>
+                                {n * 5}
+                            </div>
+                        )
+                    })}
                 </div>
+                <div className="h-14 flex flex-row space-x-1">
+                    {Array.from(Array(count).keys()).map(n => {
+                        const c = HSL.fromHex(hex)
+                        if (n <= mid)
+                            c.darken(1 - (n / mid))
+                        else
+                            c.lighten((n - mid) / mid)
 
-                <div className="h-10 text-center text-nowrap" style={{ backgroundColor: color.toHsl().toString() }}>
-                    HSL: {color.toHsl().toString()}
+                        return (
+                            <div className="size-14 flex flex-col justify-center items-center text-gray-500" style={{ backgroundColor: c.toHex() }}>
+                                {n * 5}
+                            </div>
+                        )
+                    })}
                 </div>
+                <div className="h-14 flex flex-row space-x-1">
+                    {Array.from(Array(count).keys()).map(n => {
+                        const c = RGB.fromHex(hex)
+                        if (n <= mid)
+                            c.darken(1 - (n / mid))
+                        else
+                            c.lighten((n - mid) / mid)
 
-                <div className="h-10 text-center text-nowrap" style={{ backgroundColor: color.toRgb().toString() }}>
-                    RGB: {color.toRgb().toString()}
-                </div>
-
-                <div className="h-10 text-center text-nowrap" style={{ backgroundColor: color.toHsv().toHex() }}>
-                    HSV hex: {color.toHsv().toHex()}
-                </div>
-
-                <div className="h-10 text-center text-nowrap" style={{ backgroundColor: color.toHsl().toHex() }}>
-                    HSL hex: {color.toHsl().toHex()}
-                </div>
-
-                <div className="h-10 text-center text-nowrap" style={{ backgroundColor: color.toRgb().toHex() }}>
-                    RGB hex: {color.toRgb().toHex()}
+                        return (
+                            <div className="size-14 flex flex-col justify-center items-center text-gray-500" style={{ backgroundColor: c.toHex() }}>
+                                {n * 5}
+                            </div>
+                        )
+                    })}
                 </div>
             </div>
-        </div>
+
+            <div className="size-14 flex flex-col justify-center items-center text-gray-500" style={{ backgroundColor: getModifiedColor(hex, 80, 100).toHex() }}>
+                80
+            </div>
+        </>
     )
 }
+

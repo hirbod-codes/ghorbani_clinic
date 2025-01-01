@@ -1,8 +1,8 @@
-import { memo, ReactNode } from "react"
-import { Paper, PaperProps } from "@mui/material"
+import { ComponentProps, memo, ReactNode } from "react"
 import { AnimatePresence, motion } from 'framer-motion'
+import { cn } from "@/src/react/shadcn/lib/utils"
 
-export const AnimatedCard = memo(function AnimatedCard({ animationKey, open, children, paperProps }: { animationKey: string | number, open: boolean, children?: ReactNode, paperProps?: PaperProps }) {
+export const AnimatedCard = memo(function AnimatedCard({ animationKey, open, children, props }: { animationKey: string | number, open: boolean, children?: ReactNode, props?: ComponentProps<'div'> }) {
     return (
         <AnimatePresence mode='sync'>
             {open &&
@@ -23,9 +23,9 @@ export const AnimatedCard = memo(function AnimatedCard({ animationKey, open, chi
                     layout='position'
                     style={{ top: '0', overflow: 'hidden', position: 'absolute' }}
                 >
-                    <Paper sx={{ p: 1 }} {...paperProps}>
+                    <div {...props} className={cn(["p-1"], props?.className)}>
                         {children}
-                    </Paper>
+                    </div>
                 </motion.div>
             }
         </AnimatePresence>

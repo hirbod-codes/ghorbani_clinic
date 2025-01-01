@@ -1,5 +1,4 @@
 import { Color } from "./Color"
-import { ColorStatic } from "./ColorStatic"
 import { HSV } from "./HSV"
 import { IColor } from "./IColor"
 import { RGB } from "./RGB"
@@ -28,12 +27,35 @@ export class HSL extends Color implements IColor {
     setSaturation(v: number) { this.saturation = v }
     setLightness(v: number) { this.lightness = v }
 
+    shadeColor(shade: number): void {
+        const mid = Math.floor(100 / 2)
+
+        if (shade >= mid)
+            this.lighten((shade - mid) / mid)
+        else
+            this.darken(1 - (shade / mid))
+    }
+
     lighten(coefficient: number): void {
-        this.saturation = +(this.saturation + ((100 - this.saturation) * coefficient)).toFixed(2)
+        let rgb = this.toRgb()
+        rgb.lighten(coefficient)
+
+        let hsv = rgb.toHsl()
+
+        this.hue = hsv.getHue()
+        this.saturation = hsv.getSaturation()
+        this.lightness = hsv.getLightness()
     }
 
     darken(coefficient: number): void {
-        this.saturation = +(this.saturation * (1 - Math.abs(coefficient))).toFixed(2)
+        let rgb = this.toRgb()
+        rgb.darken(coefficient)
+
+        let hsv = rgb.toHsl()
+
+        this.hue = hsv.getHue()
+        this.saturation = hsv.getSaturation()
+        this.lightness = hsv.getLightness()
     }
 
     toString(): string {
@@ -83,32 +105,6 @@ export class HSL extends Color implements IColor {
         }
 
         return new RGB(rgb[0], rgb[1], rgb[2], this.getAlpha())
-
-        // let h = this.hue, s = this.saturation, l = this.lightness
-        // h /= 360
-        // s /= 100
-        // l /= 100
-
-        // let r, g, b
-        // if (s === 0)
-        //     r = g = b = l // achromatic
-        // else {
-        //     const hue2rgb = (p, q, t) => {
-        //         if (t < 0) t += 1
-        //         if (t > 1) t -= 1
-        //         if (t < 1 / 6) return p + (q - p) * 6 * t
-        //         if (t < 1 / 2) return q
-        //         if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
-        //         return p
-        //     }
-        //     const q = l < 0.5 ? l * (1 + s) : l + s - l * s
-        //     const p = 2 * l - q
-        //     r = hue2rgb(p, q, h + 1 / 3)
-        //     g = hue2rgb(p, q, h)
-        //     b = hue2rgb(p, q, h - 1 / 3)
-        // }
-
-        // return new RGB(r * 255, g * 255, b * 255, this.getAlpha())
     }
 
     toHsl(): HSL {
@@ -129,10 +125,6 @@ export class HSL extends Color implements IColor {
         const sv = l === 0 ? (2 * smin) / (lmin + smin) : (2 * s) / (l + s);
 
         return new HSV(h, sv * 100, v * 100, this.getAlpha())
-
-        // let h = this.hue, s = this.saturation / 100, l = this.lightness / 100
-        // let v = s * Math.min(l, 1 - l) + l
-        // return new HSV(h, (v ? 2 - 2 * l / v : 0) * 100, v * 100, this.getAlpha())
     }
 
     toHex(): string {

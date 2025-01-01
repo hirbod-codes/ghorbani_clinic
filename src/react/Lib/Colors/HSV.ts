@@ -1,5 +1,4 @@
 import { Color } from "./Color"
-import { ColorStatic } from "./ColorStatic"
 import { HSL } from "./HSL"
 import { IColor } from "./IColor"
 import { RGB } from "./RGB"
@@ -28,12 +27,35 @@ export class HSV extends Color implements IColor {
     setSaturation(v: number) { this.saturation = v }
     setValue(v: number) { this.value = v }
 
+    shadeColor(shade: number): void {
+        const mid = Math.floor(100 / 2)
+
+        if (shade >= mid)
+            this.lighten((shade - mid) / mid)
+        else
+            this.darken(1 - (shade / mid))
+    }
+
     lighten(coefficient: number): void {
-        this.saturation = +(this.saturation + ((100 - this.saturation) * coefficient)).toFixed(2)
+        let rgb = this.toRgb()
+        rgb.lighten(coefficient)
+
+        let hsv = rgb.toHsv()
+
+        this.hue = hsv.getHue()
+        this.saturation = hsv.getSaturation()
+        this.value = hsv.getValue()
     }
 
     darken(coefficient: number): void {
-        this.saturation = +(this.saturation * (1 - Math.abs(coefficient))).toFixed(2)
+        let rgb = this.toRgb()
+        rgb.darken(coefficient)
+
+        let hsv = rgb.toHsv()
+
+        this.hue = hsv.getHue()
+        this.saturation = hsv.getSaturation()
+        this.value = hsv.getValue()
     }
 
     toString(): string {
@@ -41,35 +63,7 @@ export class HSV extends Color implements IColor {
     }
 
     toRgb(): RGB {
-        // const h = this.getHue();
-        // const s = this.getSaturation() / 100;
-        // let v = this.getValue() / 100;
-        // const hi = Math.floor(h) % 6;
-
-        // const f = h - Math.floor(h);
-        // const p = 255 * v * (1 - s);
-        // const q = 255 * v * (1 - (s * f));
-        // const t = 255 * v * (1 - (s * (1 - f)));
-        // v *= 255;
-
-        // let rgb: number[] = []
-        // switch (hi) {
-        //     case 0:
-        //         rgb = [v, t, p];
-        //     case 1:
-        //         rgb = [q, v, p];
-        //     case 2:
-        //         rgb = [p, v, t];
-        //     case 3:
-        //         rgb = [p, q, v];
-        //     case 4:
-        //         rgb = [t, p, v];
-        //     case 5:
-        //         rgb = [v, p, q];
-        // }
-        // return new RGB(rgb[0], rgb[1], rgb[2], this.getAlpha())
-
-        let h = this.hue/360, s = this.saturation / 100, v = this.value / 100
+        let h = this.hue / 360, s = this.saturation / 100, v = this.value / 100
         let r, g, b, i, f, p, q, t;
 
         i = Math.floor(h * 6);
@@ -107,11 +101,6 @@ export class HSV extends Color implements IColor {
         l /= 2;
 
         return new HSL(h, sl * 100, l * 100, this.getAlpha())
-
-        // let h = this.hue, s = this.saturation / 100, v = this.value / 100
-        // let l = v - v * s / 2
-        // let m = Math.min(l, 1 - l)
-        // return new HSL(h, (m ? (v - l) / m : 0) * 100, l * 100, this.getAlpha())
     }
 
     toHsv(): HSV {

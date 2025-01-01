@@ -19,6 +19,15 @@ export class RGB extends Color implements IColor {
         this.blue = blue
     }
 
+    shadeColor(shade: number): void {
+        const mid = Math.floor(100 / 2)
+
+        if (shade >= mid)
+            this.lighten((shade - mid) / mid)
+        else
+            this.darken(1 - (shade / mid))
+    }
+
     getRed() { return this.red }
     getGreen() { return this.green }
     getBlue() { return this.blue }
