@@ -42,7 +42,7 @@ export const Color = memo(function Color({ name, option, colorCoefficient, onCol
         rerender()
     }, [option.light, option.dark])
 
-    console.log('Color', { k: name, option, color, open, text, anchorRef: anchorRef.current })
+    console.log('Color', { k: name, option, cancel, color, open, text, anchorRef: anchorRef.current })
 
     return (
         <div className="border rounded-lg p-2 min-w-40">
@@ -54,36 +54,174 @@ export const Color = memo(function Color({ name, option, colorCoefficient, onCol
                         <Button
                             className="border text-gray-500 rounded-lg p-5 w-full"
                             style={{ backgroundColor: option.dark }}
-                            onClick={() => { if (darkRef.current) anchorRef.current = darkRef.current; setOpen('dark') }}
+                            onClick={() => { setOpen('dark') }}
                         >
                             <MoonIcon />
                         </Button>
                     </div>
+
+                    <DropdownMenu
+                        anchorRef={darkRef}
+                        open={open === 'dark'}
+                        onOpenChange={(b) => {
+                            if (open !== 'dark')
+                                return
+
+                            if (!b) {
+                                if (cancel && onColorOptionChangeCancel)
+                                    onColorOptionChangeCancel(name, option)
+                                if (!cancel)
+                                    setCancel(false)
+                                setOpen(undefined)
+                            }
+                        }}
+                    >
+                        <div className="flex flex-col border rounded-lg p-2">
+                            <ColorPicker
+                                containerProps={{ className: 'border-0' }}
+                                controlledColor={color}
+                                onColorChanging={(c) => setText(c.toHex())}
+                                onColorChanged={(c) => {
+                                    setColor(c)
+
+                                    if (!onColorOptionChange)
+                                        return
+
+                                    option.dark = c.toHex()
+
+                                    onColorOptionChange(name, option)
+                                }}
+                            />
+
+                            <Input
+                                containerProps={{ className: "w-full p-0" }}
+                                className="h-6"
+                                placeholder='color hex number'
+                                value={text}
+                                onChange={(e) => {
+                                    setText(e.target.value)
+
+                                    let tc: HSV | undefined = undefined;
+                                    try { tc = ColorStatic.parse(e.target.value).toHsv() }
+                                    catch (e) { return; }
+                                    if (!tc)
+                                        return;
+
+                                    setColor(tc)
+
+                                    if (!onColorOptionChange)
+                                        return
+
+                                    option.dark = tc.toHex()
+
+                                    onColorOptionChange(name, option)
+                                }}
+                            />
+
+                            <Button
+                                className="w-full"
+                                onClick={() => { setCancel(false); setOpen(undefined) }}
+                            >
+                                <CheckIcon /> Done
+                            </Button>
+                        </div>
+                    </DropdownMenu>
+
                     <div ref={lightRef} className="w-full">
                         <Button
                             className="border text-gray-500 rounded-lg p-5 w-full"
                             style={{ backgroundColor: option.light }}
-                            onClick={() => { if (lightRef.current) anchorRef.current = lightRef.current; setOpen('light') }}
+                            onClick={() => { setOpen('light') }}
                         >
                             <SunIcon />
                         </Button>
                     </div>
+
+                    <DropdownMenu
+                        anchorRef={lightRef}
+                        open={open === 'light'}
+                        onOpenChange={(b) => {
+                            if (open !== 'light')
+                                return
+
+                            if (!b) {
+                                if (cancel && onColorOptionChangeCancel)
+                                    onColorOptionChangeCancel(name, option)
+                                if (!cancel)
+                                    setCancel(false)
+                                setOpen(undefined)
+                            }
+                        }}
+                    >
+                        <div className="flex flex-col border rounded-lg p-2">
+                            <ColorPicker
+                                containerProps={{ className: 'border-0' }}
+                                controlledColor={color}
+                                onColorChanging={(c) => setText(c.toHex())}
+                                onColorChanged={(c) => {
+                                    setColor(c)
+
+                                    if (!onColorOptionChange)
+                                        return
+
+                                    option.light = c.toHex()
+
+                                    onColorOptionChange(name, option)
+                                }}
+                            />
+
+                            <Input
+                                containerProps={{ className: "w-full p-0" }}
+                                className="h-6"
+                                placeholder='color hex number'
+                                value={text}
+                                onChange={(e) => {
+                                    setText(e.target.value)
+
+                                    let tc: HSV | undefined = undefined;
+                                    try { tc = ColorStatic.parse(e.target.value).toHsv() }
+                                    catch (e) { return; }
+                                    if (!tc)
+                                        return;
+
+                                    setColor(tc)
+
+                                    if (!onColorOptionChange)
+                                        return
+
+                                    option.light = tc.toHex()
+
+                                    onColorOptionChange(name, option)
+                                }}
+                            />
+
+                            <Button
+                                className="w-full"
+                                onClick={() => { setCancel(false); setOpen(undefined) }}
+                            >
+                                <CheckIcon /> Done
+                            </Button>
+                        </div>
+                    </DropdownMenu>
                 </div>
 
                 <div ref={mainRef}>
                     <Button
                         className="border w-full"
                         style={{ backgroundColor: option.main }}
-                        onClick={() => { if (mainRef.current) anchorRef.current = mainRef.current; setOpen('main') }}
+                        onClick={() => { setOpen('main') }}
                     >
                         Change
                     </Button>
                 </div>
 
                 <DropdownMenu
-                    anchorRef={anchorRef}
-                    open={open !== undefined}
+                    anchorRef={mainRef}
+                    open={open === 'main'}
                     onOpenChange={(b) => {
+                        if (open !== 'main')
+                            return
+
                         if (!b) {
                             if (cancel && onColorOptionChangeCancel)
                                 onColorOptionChangeCancel(name, option)
@@ -94,7 +232,7 @@ export const Color = memo(function Color({ name, option, colorCoefficient, onCol
                     }}
                     containerProps={{ className: 'bg-background' }}
                 >
-                    <div className="flex flex-col border rounded-lg p-2 z-10">
+                    <div className="flex flex-col border rounded-lg p-2">
                         <ColorPicker
                             containerProps={{ className: 'border-0' }}
                             controlledColor={color}
@@ -120,12 +258,6 @@ export const Color = memo(function Color({ name, option, colorCoefficient, onCol
 
                                     option.dark = dark.toHsl().toString()
                                 }
-
-                                if (open === 'light')
-                                    option.light = c.toHex()
-
-                                if (open === 'dark')
-                                    option.dark = c.toHex()
 
                                 onColorOptionChange(name, option)
                             }}

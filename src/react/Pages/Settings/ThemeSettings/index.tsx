@@ -56,7 +56,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
             <div className="flex flex-row flex-wrap items-start content-start size-full p-3 *:m-1 overflow-y-auto">
                 {/* Color tones */}
                 <ColorTones />
-                <Button className="absolute bottom-3 right-3" size='lg' onClick={() => c.updateTheme(undefined, themeOptions)}>
+                <Button className="absolute z-10 bottom-3 right-3" size='lg' onClick={() => c.updateTheme(undefined, themeOptions)}>
                     <SaveIcon /> Save
                 </Button>
 
@@ -167,7 +167,7 @@ export function ColorTones() {
         <>
             <div className="w-full overflow-auto m-1 border rounded-lg">
                 <div className="h-14 flex flex-row space-x-1">
-                    {Array.from(Array(count).keys()).map(n => {
+                    {Array.from(Array(count).keys()).map((n, i) => {
                         const c = HSV.fromHex(hex)
                         if (n <= mid)
                             c.darken(1 - (n / mid))
@@ -175,14 +175,14 @@ export function ColorTones() {
                             c.lighten((n - mid) / mid)
 
                         return (
-                            <div className="size-14 flex flex-col justify-center items-center text-gray-500" style={{ backgroundColor: c.toHex() }}>
+                            <div key={i} className="size-14 flex flex-col justify-center items-center text-gray-500" style={{ backgroundColor: c.toHex() }}>
                                 {n * 5}
                             </div>
                         )
                     })}
                 </div>
                 <div className="h-14 flex flex-row space-x-1">
-                    {Array.from(Array(count).keys()).map(n => {
+                    {Array.from(Array(count).keys()).map((n, i) => {
                         const c = HSL.fromHex(hex)
                         if (n <= mid)
                             c.darken(1 - (n / mid))
@@ -190,14 +190,14 @@ export function ColorTones() {
                             c.lighten((n - mid) / mid)
 
                         return (
-                            <div className="size-14 flex flex-col justify-center items-center text-gray-500" style={{ backgroundColor: c.toHex() }}>
+                            <div key={i} className="size-14 flex flex-col justify-center items-center text-gray-500" style={{ backgroundColor: c.toHex() }}>
                                 {n * 5}
                             </div>
                         )
                     })}
                 </div>
                 <div className="h-14 flex flex-row space-x-1">
-                    {Array.from(Array(count).keys()).map(n => {
+                    {Array.from(Array(count).keys()).map((n, i) => {
                         const c = RGB.fromHex(hex)
                         if (n <= mid)
                             c.darken(1 - (n / mid))
@@ -205,7 +205,7 @@ export function ColorTones() {
                             c.lighten((n - mid) / mid)
 
                         return (
-                            <div className="size-14 flex flex-col justify-center items-center text-gray-500" style={{ backgroundColor: c.toHex() }}>
+                            <div key={i} className="size-14 flex flex-col justify-center items-center text-gray-500" style={{ backgroundColor: c.toHex() }}>
                                 {n * 5}
                             </div>
                         )

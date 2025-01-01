@@ -27,7 +27,7 @@ export const Button = memo(function Button({ children, rippleEffect = true, ...p
     return (
         <ShadcnButton
             {...props}
-            className={cn(['overflow-hidden relative hover:bg-opacity-90'], props.className)}
+            className={cn(['overflow-hidden relative hover:bg-opacity-90'], props?.className)}
             onClick={(e: MouseEvent<HTMLButtonElement>) => {
                 if (rippleEffect)
                     ripple(e)
@@ -35,7 +35,7 @@ export const Button = memo(function Button({ children, rippleEffect = true, ...p
                     props.onClick(e)
             }}
         >
-            <div className="absolute w-full h-full top-0 left-0 bg-white opacity-0 transition-opacity duration-300 hover:opacity-50" />
+            <div className="absolute size-full top-0 left-0 bg-white opacity-0 transition-opacity duration-100 hover:opacity-50" style={{ borderRadius: 'inherit' }} />
             {children}
         </ShadcnButton>
     )
