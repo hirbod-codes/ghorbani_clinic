@@ -26,8 +26,8 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, op
         const aRect = anchorRef.current.getBoundingClientRect()
         const cRect = containerRef.current.getBoundingClientRect()
 
-        console.log('updatePosition', verticalPosition, horizontalPosition, { visualViewport: window.visualViewport, 'ref': anchorRef.current, 'scrollTop': anchorRef.current.scrollTop, 'offsetTop': anchorRef.current.offsetTop, 'offsetLeft': anchorRef.current.offsetLeft, 'offsetHeight': anchorRef.current.offsetHeight, 'offsetWidth': anchorRef.current.offsetWidth, 'aRect.top': aRect.top, 'aRect.bottom': aRect.bottom, 'aRect.left': aRect.left, 'aRect.right': aRect.right, 'aRect.width': aRect.width, 'aRect.height': aRect.height })
-        console.log('updatePosition', verticalPosition, horizontalPosition, { 'ref': containerRef.current, 'offsetTop': containerRef.current.offsetTop, 'offsetLeft': containerRef.current.offsetLeft, 'offsetHeight': containerRef.current.offsetHeight, 'offsetWidth': containerRef.current.offsetWidth, 'cRect.top': cRect.top, 'cRect.bottom': cRect.bottom, 'cRect.left': cRect.left, 'cRect.right': cRect.right, 'cRect.width': cRect.width, 'cRect.height': cRect.height })
+        // console.log('updatePosition', verticalPosition, horizontalPosition, { visualViewport: window.visualViewport, 'ref': anchorRef.current, 'scrollTop': anchorRef.current.scrollTop, 'offsetTop': anchorRef.current.offsetTop, 'offsetLeft': anchorRef.current.offsetLeft, 'offsetHeight': anchorRef.current.offsetHeight, 'offsetWidth': anchorRef.current.offsetWidth, 'aRect.top': aRect.top, 'aRect.bottom': aRect.bottom, 'aRect.left': aRect.left, 'aRect.right': aRect.right, 'aRect.width': aRect.width, 'aRect.height': aRect.height })
+        // console.log('updatePosition', verticalPosition, horizontalPosition, { 'ref': containerRef.current, 'offsetTop': containerRef.current.offsetTop, 'offsetLeft': containerRef.current.offsetLeft, 'offsetHeight': containerRef.current.offsetHeight, 'offsetWidth': containerRef.current.offsetWidth, 'cRect.top': cRect.top, 'cRect.bottom': cRect.bottom, 'cRect.left': cRect.left, 'cRect.right': cRect.right, 'cRect.width': cRect.width, 'cRect.height': cRect.height })
 
         containerRef.current.style.bottom = ''
         containerRef.current.style.top = ''
@@ -63,10 +63,14 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, op
 
     useEffect(() => {
         updatePosition()
+        window.addEventListener('resize', updatePosition)
+        return () => window.removeEventListener('resize', updatePosition)
     }, [])
 
     return createPortal(
         <motion.div
+            layout={false}
+            // layout='position'
             id="dropdown-container"
             ref={containerRef}
             {...containerProps}
@@ -111,8 +115,14 @@ function positionElement(element: HTMLElement, verticalPosition: 'top' | 'center
                     putBottom(element, anchor)
                 else
                     putAbsoluteTop(element)
-            else
+            else if (!isVerticalCenterNegative(anchor, container, screenHeight))
                 putCenterVertically(element, anchor, container)
+            else if (isVerticalCenterTopNegative(anchor, container))
+                putAbsoluteTop(element)
+            else if (isVerticalCenterBottomNegative(anchor, container, screenHeight))
+                putAbsoluteBottom(element)
+            else
+                putAbsoluteTop(element)
             break;
 
         case 'bottom':
@@ -160,8 +170,14 @@ function positionElement(element: HTMLElement, verticalPosition: 'top' | 'center
                     putRight(element, anchor)
                 else
                     putAbsoluteLeft(element)
-            else
+            else if (!isHorizontalCenterNegative(anchor, container, screenWidth))
                 putCenterHorizontally(element, anchor, container)
+            else if (isHorizontalCenterLeftNegative(anchor, container))
+                putAbsoluteLeft(element)
+            else if (isHorizontalCenterRightNegative(anchor, container, screenWidth))
+                putAbsoluteRight(element)
+            else
+                putAbsoluteLeft(element)
             break;
 
         case 'right':
@@ -200,8 +216,15 @@ function isRightNegative(anchor: DOMRect, container: DOMRect, screenWidth: numbe
 }
 
 function isVerticalCenterNegative(anchor: DOMRect, container: DOMRect, screenHeight: number): boolean {
-    const t = anchor.top + (anchor.height / 2) - (container.height / 2)
-    return t < 0 || (t + container.height) > screenHeight
+    return isVerticalCenterTopNegative(anchor, container) || isVerticalCenterBottomNegative(anchor, container, screenHeight)
+}
+
+function isVerticalCenterTopNegative(anchor: DOMRect, container: DOMRect): boolean {
+    return anchor.top + (anchor.height / 2) - (container.height / 2) < 0
+}
+
+function isVerticalCenterBottomNegative(anchor: DOMRect, container: DOMRect, screenHeight: number): boolean {
+    return (anchor.top + (anchor.height / 2) - (container.height / 2) + container.height) > screenHeight
 }
 
 function isHorizontalCenterNegative(anchor: DOMRect, container: DOMRect, screenWidth: number): boolean {
