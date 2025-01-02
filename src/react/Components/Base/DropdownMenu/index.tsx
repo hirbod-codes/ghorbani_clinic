@@ -2,14 +2,14 @@ import { ComponentProps, memo, ReactNode, RefObject, useEffect, useReducer, useR
 import { usePointerOutside } from "../usePointerOutside";
 import { cn } from "@/src/react/shadcn/lib/utils";
 import { createPortal } from "react-dom";
-import { motion } from 'framer-motion'
+import { motion, MotionProps } from 'framer-motion'
 
 export type DropdownMenuProps = {
     children: ReactNode
     anchorRef: RefObject<HTMLElement>
     open?: boolean
     onOpenChange?: (open: boolean) => void
-    containerProps?: ComponentProps<'div'>
+    containerProps?: MotionProps & ComponentProps<'div'>
     verticalPosition?: 'top' | 'center' | 'bottom'
     horizontalPosition?: 'left' | 'center' | 'right'
 }
