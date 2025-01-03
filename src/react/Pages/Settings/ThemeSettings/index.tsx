@@ -51,7 +51,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                 <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.palette[k][themeOptions.mode].foreground, backgroundColor: themeOptions.colors.palette[k][themeOptions.mode].main }}>
                     {`${k}`}
                 </Text>
-                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode]['inverse-primary-foreground'], backgroundColor: themeOptions.colors.palette[k][themeOptions.mode].foreground }}>
+                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.palette[k][themeOptions.mode].main, backgroundColor: themeOptions.colors.palette[k][themeOptions.mode].foreground }}>
                     {`${k} foreground`}
                 </Text>
             </div>
