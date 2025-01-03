@@ -1,22 +1,18 @@
-import { ComponentProps, memo, ReactNode, useContext, useRef, useState } from "react";
+import { ComponentProps, memo, useContext, useRef, useState } from "react";
 import { ConfigurationContext } from '../../../Contexts/Configuration/ConfigurationContext';
-import { t } from 'i18next';
-import { Color as ColorType, configAPI, PaletteVariants, ThemeOptions } from '@/src/Electron/Configuration/renderer.d';
-import { Switch } from "../../../Components/Base/Switch";
-import { Input } from "../../../Components/Base/Input";
-import { Button } from "@/src/react/Components/Base/Button";
-import { SaveIcon } from "@/src/react/Components/Icons/SaveIcon";
+import { Color as ColorType, configAPI, PaletteVariants, ThemeMode, ThemeOptions } from '@/src/Electron/Configuration/renderer.d';
 import { RGB } from "@/src/react/Lib/Colors/RGB";
 import { IColor } from "@/src/react/Lib/Colors/IColor";
 import { HSV } from "@/src/react/Lib/Colors/HSV";
 import { HSL } from "@/src/react/Lib/Colors/HSL";
 import { ColorPicker } from "@/src/react/Components/ColorPicker";
 import { Checkbox } from "@mui/material";
-import { DropdownMenu } from "@/src/react/Components/Base/DropdownMenu";
-import { ColorStatic } from "@/src/react/Lib/Colors/ColorStatic";
 import { Separator } from "@/src/react/shadcn/components/ui/separator";
-import { cn } from "@/src/react/shadcn/lib/utils";
 import { Text } from "@/src/react/Components/Base/Text";
+import { ClipboardCopyIcon, SaveIcon } from "lucide-react";
+import { ColorVariant } from "./ColorVariant";
+import { cn } from "@/src/react/shadcn/lib/utils";
+import { Button } from "@/src/react/Components/Base/Button";
 
 export const ThemeSettings = memo(function ThemeSettings() {
     const c = useContext(ConfigurationContext)!
@@ -45,396 +41,265 @@ export const ThemeSettings = memo(function ThemeSettings() {
 
     console.log('ThemeSettings', { c, themeOptions, colorCoefficient, foregroundCoefficient, showGradientBackground, loadingGradientBackground })
 
-    const p = (k, i) =>
-        <div key={i} className="col-span-1 row-span-1 flex flex-col space-y-1 *:text-nowrap *:text-xs">
-            <div id='main' className="flex flex-col">
-                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.palette[k][themeOptions.mode].foreground, backgroundColor: themeOptions.colors.palette[k][themeOptions.mode].main }}>
-                    {`${k}`}
-                </Text>
-                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.palette[k][themeOptions.mode].main, backgroundColor: themeOptions.colors.palette[k][themeOptions.mode].foreground }}>
-                    {`${k} foreground`}
-                </Text>
-            </div>
-            <div id='container' className="flex flex-col">
-                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.palette[k][themeOptions.mode]['container-foreground'], backgroundColor: themeOptions.colors.palette[k][themeOptions.mode].container }}>
-                    {`${k} container`}
-                </Text>
-                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].container, backgroundColor: themeOptions.colors.palette[k][themeOptions.mode]['container-foreground'] }}>
-                    {`${k} container foreground`}
-                </Text>
-            </div>
-            <div id='fixed' className="flex flex-col">
-                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.palette[k][themeOptions.mode]['fixed-foreground'], backgroundColor: themeOptions.colors.palette[k][themeOptions.mode].fixed }}>
-                    {`${k} fixed`}
-                </Text>
-                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.palette[k][themeOptions.mode]['fixed-foreground'], backgroundColor: themeOptions.colors.palette[k][themeOptions.mode]['fixed-dim'] }}>
-                    {`${k} fixed dim`}
-                </Text>
-                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.palette[k][themeOptions.mode].fixed, backgroundColor: themeOptions.colors.palette[k][themeOptions.mode]['fixed-foreground'] }}>
-                    {`${k} fixed foreground`}
-                </Text>
-                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.palette[k][themeOptions.mode].fixed, backgroundColor: themeOptions.colors.palette[k][themeOptions.mode]['fixed-foreground-variant'] }}>
-                    {`${k} fixed foreground variant`}
-                </Text>
-            </div>
-        </div>
+    const paletteColorCards = (k, i) =>
+        <PaletteColorCards
+            key={i}
+            options={themeOptions.colors.palette[k]}
+            name={k as keyof (typeof themeOptions.colors.palette)}
+            mode={themeOptions.mode}
+            onOptionChangeCancel={async () => {
+                const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
+                themeOptions.colors.palette[k] = conf.themeOptions.colors.palette[k]
+                setThemeOptions({ ...themeOptions })
+            }}
+            onOptionChange={(option: ColorType<PaletteVariants>) => {
+                themeOptions.colors.palette[k] = option
+                setThemeOptions({ ...themeOptions })
+            }}
+        />
 
     return (
-        <div className="grid grid-cols-12 grid-rows-1 items-stretch size-full p-2 overflow-hidden *:m-2">
-            <div id='grid-item-1' className="col-span-5 row-span-1 flex flex-row">
-                <div className="w-full flex flex-col items-stretch space-y-4 px-2 overflow-y-auto">
-                    <div>
-                        <p className="text-xl">Core Colors</p>
-                        <p className="text-sm ">Override or set key colors that will be used to generate tonal palettes and schemes.</p>
-                    </div>
-                    <div>
-                        <p className="text-xl">Color match</p>
-                        <div className="flex flex-row items-center justify-between w-full">
-                            <p className="text-sm ">Stay true to my color inputs.</p>
-                            <Checkbox defaultChecked={true} size='small' />
+        <div className="flex flex-col h-full">
+            <div className="flex-grow grid grid-cols-12 grid-rows-1 items-stretch size-full p-2 overflow-hidden *:m-2">
+                <div id='grid-item-1' className="col-span-5 row-span-1 flex flex-row">
+                    <div className="w-full flex flex-col items-stretch space-y-4 px-2 overflow-y-auto">
+                        <div>
+                            <p className="text-xl">Core Colors</p>
+                            <p className="text-sm ">Override or set key colors that will be used to generate tonal palettes and schemes.</p>
+                        </div>
+                        <div>
+                            <p className="text-xl">Color match</p>
+                            <div className="flex flex-row items-center justify-between w-full">
+                                <p className="text-sm ">Stay true to my color inputs.</p>
+                                <Checkbox defaultChecked={true} size='small' />
+                            </div>
+                        </div>
+
+                        {Object.keys(themeOptions.colors.palette).map((k, i) =>
+                            <ColorVariant
+                                mode={themeOptions.mode}
+                                options={themeOptions.colors.palette[k]}
+                                variant='main'
+                                anchorProps={{
+                                    className: "rounded-full size-[1.2cm]"
+                                }}
+                                containerProps={{
+                                    className: "flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3",
+                                    style: {
+                                        color: themeOptions.colors.surface[themeOptions.mode].inverse,
+                                        backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground']
+                                    }
+                                }}
+                                onColorChanged={(o) => {
+                                    themeOptions.colors.palette[k] = o
+                                    setThemeOptions({ ...themeOptions })
+                                }}
+                                onColorChangeCancel={async () => {
+                                    const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
+                                    themeOptions.colors.palette[k][themeOptions.mode] = conf.themeOptions.colors.palette[k][themeOptions.mode]
+                                    setThemeOptions({ ...themeOptions })
+                                }}
+                            >
+                                <div>
+                                    <p className="text-xl text-nowrap">{k}</p>
+                                    {k === 'primary' &&
+                                        <p className="text-sm text-nowrap">Acts as custom source color</p>
+                                    }
+                                </div>
+                            </ColorVariant>
+                        )}
+                        <div className="flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
+                            <div className="rounded-full size-[1.2cm]" style={{ backgroundColor: themeOptions.colors.natural }} />
+                            <div>
+                                <p className="text-xl text-nowrap">Natural</p>
+                                <p className="text-sm text-nowrap">Used for background and surfaces</p>
+                            </div>
+                        </div>
+                        <div className="flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
+                            <div className="rounded-full size-[1.2cm]" style={{ backgroundColor: themeOptions.colors.naturalVariant }} />
+                            <div>
+                                <p className="text-xl text-nowrap">Natural Variants</p>
+                                <p className="text-sm text-nowrap">Used for medium emphasis and variants</p>
+                            </div>
                         </div>
                     </div>
+                    <Separator orientation="vertical" className="mx-4 my-8 h-auto" />
+                </div>
 
-                    {Object.keys(themeOptions.colors.palette).map((k, i) =>
-                        <Variant<PaletteVariants>
-                            mode={themeOptions.mode}
-                            options={themeOptions.colors.palette[k]}
-                            variant='main'
-                            anchorProps={{
-                                className: "rounded-full size-[1.2cm]"
-                            }}
-                            containerProps={{
-                                className: "flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3",
-                                style: {
-                                    color: themeOptions.colors.surface[themeOptions.mode].inverse,
-                                    backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground']
-                                }
-                            }}
-                            onColorChanged={(o) => {
-                                themeOptions.colors.palette[k] = o
-                                setThemeOptions({ ...themeOptions })
-                            }}
-                            onColorChangeCancel={async () => {
-                                const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
-                                themeOptions.colors.palette[k][themeOptions.mode] = conf.themeOptions.colors.palette[k][themeOptions.mode]
-                                setThemeOptions({ ...themeOptions })
-                            }}
-                        >
-                            <div>
-                                <p className="text-xl text-nowrap">{k}</p>
-                                {k === 'primary' &&
-                                    <p className="text-sm text-nowrap">Acts as custom source color</p>
+                <div id='grid-item-2' className="col-span-7 row-span-1">
+                    <div className="size-full bg-surface-container rounded-xl p-2">
+                        <div className='grid grid-cols-4 items-start size-full content-start overflow-y-auto pr-2 *:m-2 *:text-xs'>
+                            <div className="col-span-4 flex flex-row justify-between">
+                                {
+                                    Object
+                                        .keys(themeOptions.colors.palette)
+                                        .filter(f => ['primary', 'secondary', 'tertiary'].includes(f))
+                                        .map((k, i) =>
+                                            <div key={i} className="flex flex-col space-y-1" style={{ width: 'calc((100% - 1rem)/3)' }}>
+                                                {paletteColorCards(k, i)}
+                                            </div>
+                                        )
                                 }
                             </div>
-                        </Variant>
-                    )}
-                    <div className="flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
-                        <div className="rounded-full size-[1.2cm]" style={{ backgroundColor: themeOptions.colors.natural }} />
-                        <div>
-                            <p className="text-xl text-nowrap">Natural</p>
-                            <p className="text-sm text-nowrap">Used for background and surfaces</p>
-                        </div>
-                    </div>
-                    <div className="flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
-                        <div className="rounded-full size-[1.2cm]" style={{ backgroundColor: themeOptions.colors.naturalVariant }} />
-                        <div>
-                            <p className="text-xl text-nowrap">Natural Variants</p>
-                            <p className="text-sm text-nowrap">Used for medium emphasis and variants</p>
-                        </div>
-                    </div>
-                </div>
-                <Separator orientation="vertical" className="mx-4 my-8 h-auto" />
-            </div>
-
-            <div id='grid-item-2' className="col-span-7 row-span-1">
-                <div className="size-full bg-surface-container rounded-xl p-2">
-                    <div className='grid grid-cols-4 items-start *:m-2 size-full content-start overflow-y-auto *:text-xs'>
-                        {
-                            Object
-                                .keys(themeOptions.colors.palette)
-                                .filter(f => ['primary', 'secondary', 'tertiary', 'error'].includes(f))
-                                .map(p)
-                        }
-                        <div className="col-span-3 flex flex-row space-x-1">
-                            <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].dim }}>
-                                surface dim
-                            </Text>
-                            <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].main }}>
-                                surface
-                            </Text>
-                            <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].bright }}>
-                                surface bright
-                            </Text>
-                        </div>
-                        <div className="col-span-1 row-span-2 flex flex-col space-y-1">
-                            <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'], backgroundColor: themeOptions.colors.surface[themeOptions.mode].inverse }}>
-                                surface inverse
-                            </Text>
-                            <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
-                                surface inverse foreground
-                            </Text>
-                            <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-primary-foreground'] }}>
-                                surface inverse primary foreground
-                            </Text>
-                        </div>
-                        <div className="col-span-3 flex flex-row space-x-1">
-                            <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].dim }}>
-                                surface dim
-                            </Text>
-                            <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].main }}>
-                                surface
-                            </Text>
-                            <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].bright }}>
-                                surface bright
-                            </Text>
-                            <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].main }}>
-                                surface
-                            </Text>
-                            <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].bright }}>
-                                surface bright
-                            </Text>
-                        </div>
-                        <div className="col-span-4 flex flex-row space-x-1">
-                            <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.surface[themeOptions.mode].foreground }}>
-                                surface foreground
-                            </Text>
-                            <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.surface[themeOptions.mode]["foreground-variant"] }}>
-                                surface foreground variant
-                            </Text>
-                            <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.outline[themeOptions.mode].main }}>
-                                outline
-                            </Text>
-                            <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.outline[themeOptions.mode].variant }}>
-                                outline variant
-                            </Text>
-                        </div>
-                        {
-                            Object
-                                .keys(themeOptions.colors.palette)
-                                .filter(f => !['primary', 'secondary', 'tertiary', 'error'].includes(f))
-                                .map(p)
-                        }
-                    </div>
-                </div>
-            </div>
-        </div>
-    )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    return (
-        <>
-
-
-            <div className="flex flex-row flex-wrap items-start content-start size-full p-3 *:m-1 overflow-y-auto">
-                {/* Color tones */}
-                <ColorTones />
-                <Button className="absolute z-10 bottom-3 right-3" size='lg' onClick={() => c.updateTheme(undefined, themeOptions)}>
-                    <SaveIcon /> Save
-                </Button>
-
-                {/* 
-                    <Color
-                        key={k}
-                        name={k}
-                        colorCoefficient={themeOptions.colorCoefficient}
-                        option={themeOptions.colors[k]}
-                        onColorOptionChange={onColorOptionChange}
-                        onColorOptionChangeCancel={onColorOptionChangeCancel}
-                    />
-                */}
-
-                {Object.keys(themeOptions.colors.palette).map((k, i) =>
-                    <Variant<PaletteVariants>
-                        mode={themeOptions.mode}
-                        options={themeOptions.colors.palette[k]}
-                        variant='main'
-                        onColorChanged={(o) => {
-                            themeOptions.colors.palette[k] = o
-                            setThemeOptions({ ...themeOptions })
-                        }}
-                        onColorChangeCancel={async () => {
-                            const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
-                            themeOptions.colors.palette[k][themeOptions.mode] = conf.themeOptions.colors.palette[k][themeOptions.mode]
-                            setThemeOptions({ ...themeOptions })
-                        }}
-                    >
-                        <div>
-                            <p className="text-xl text-nowrap">{k}</p>
-                            {k === 'primary' &&
-                                <p className="text-sm text-nowrap">Acts as custom source color</p>
+                            <div className="col-span-3 flex flex-row space-x-1">
+                                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].dim }}>
+                                    surface dim
+                                </Text>
+                                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].main }}>
+                                    surface
+                                </Text>
+                                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].bright }}>
+                                    surface bright
+                                </Text>
+                            </div>
+                            <div className="col-span-1 row-span-2 flex flex-col space-y-1">
+                                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'], backgroundColor: themeOptions.colors.surface[themeOptions.mode].inverse }}>
+                                    surface inverse
+                                </Text>
+                                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
+                                    surface inverse foreground
+                                </Text>
+                                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-primary-foreground'] }}>
+                                    surface inverse primary foreground
+                                </Text>
+                            </div>
+                            <div className="col-span-3 flex flex-row space-x-1">
+                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].dim }}>
+                                    surface dim
+                                </Text>
+                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].main }}>
+                                    surface
+                                </Text>
+                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].bright }}>
+                                    surface bright
+                                </Text>
+                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].main }}>
+                                    surface
+                                </Text>
+                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].bright }}>
+                                    surface bright
+                                </Text>
+                            </div>
+                            <div className="col-span-4 flex flex-row space-x-1">
+                                <Text className="py-2 w-1/4 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.surface[themeOptions.mode].foreground }}>
+                                    surface foreground
+                                </Text>
+                                <Text className="py-2 w-1/4 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.surface[themeOptions.mode]["foreground-variant"] }}>
+                                    surface foreground variant
+                                </Text>
+                                <Text className="py-2 w-1/4 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.outline[themeOptions.mode].main }}>
+                                    outline
+                                </Text>
+                                <Text className="py-2 w-1/4 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.outline[themeOptions.mode].variant }}>
+                                    outline variant
+                                </Text>
+                            </div>
+                            {
+                                Object
+                                    .keys(themeOptions.colors.palette)
+                                    .filter(f => !['primary', 'secondary', 'tertiary'].includes(f))
+                                    .map((k, i) =>
+                                        <div key={i} className="col-span-4 row-span-1">
+                                            <div className="flex flex-row space-x-1 size-full *:w-1/3">
+                                                {paletteColorCards(k, i)}
+                                            </div>
+                                        </div>
+                                    )
                             }
                         </div>
-                    </Variant>
-                )}
-
-                <div className="border rounded-lg p-2 min-w-40">
-                    <Input
-                        className="w-[2cm]"
-                        label={t('ThemeSettings.radius')}
-                        labelId={t('ThemeSettings.radius')}
-                        value={themeOptions.radius.replace('rem', '')}
-                        onChange={(e) => {
-                            if (e.target.value.match(/[^0-9 .]/) !== null)
-                                return
-
-                            themeOptions.radius = e.target.value + 'rem'
-                            setThemeOptions({ ...themeOptions })
-                        }}
-                    />
+                    </div>
                 </div>
-
-                <div className="border rounded-lg p-2 min-w-40">
-                    <Input
-                        className="w-[2cm]"
-                        label={t('ThemeSettings.foregroundCoefficient')}
-                        labelId={t('ThemeSettings.foregroundCoefficient')}
-                        value={foregroundCoefficient}
-                        onChange={(e) => {
-                            if (e.target.value.match(/[^0-9 .]/) !== null)
-                                return
-
-                            setForegroundCoefficient(e.target.value)
-
-                            const n = Number(e.target.value)
-                            if (Number.isNaN(n) || Number.isFinite(n) || n < 0 || n > 1)
-                                return
-
-                            themeOptions.foregroundCoefficient = n
-                            setThemeOptions({ ...themeOptions })
-                        }}
-                    />
-                </div>
-
-                <div className="border rounded-lg p-2">
-                    <Input
-                        className="w-[2cm]"
-                        label={t('ThemeSettings.colorCoefficient')}
-                        labelId={t('ThemeSettings.colorCoefficient')}
-                        value={colorCoefficient}
-                        errorText={(Number(colorCoefficient) > 1 || Number(colorCoefficient) < 0) ? 'Value Must be between 0 and 1' : undefined}
-                        onChange={(e) => {
-                            if (e.target.value.match(/[^0-9 .]/) !== null)
-                                return
-
-                            setColorCoefficient(e.target.value)
-
-                            const n = Number(e.target.value)
-                            if (Number.isNaN(n) || !Number.isFinite(n) || n < 0 || n > 1)
-                                return
-
-                            themeOptions.colorCoefficient = n
-                            setThemeOptions({ ...themeOptions })
-                        }}
-                    />
-                </div>
-
-                <div className="border rounded-lg p-2 min-w-40">
-                    <Switch
-                        label={t('ThemeSettings.showGradientBackground')}
-                        labelId={t('ThemeSettings.showGradientBackground')}
-                        checked={showGradientBackground}
-                        disabled={loadingGradientBackground}
-                        onCheckedChange={async (e) => await updateShowGradientBackground(e)}
-                    />
-                </div>
-            </div >
-        </>
+            </div>
+            <div className="flex flex-row-reverse px-4 py-2">
+                <Button onClick={() => c.updateTheme(themeOptions.mode, themeOptions)}>
+                    <SaveIcon /> Save
+                </Button>
+            </div>
+        </div>
     )
 })
 
-export type VariantProps<T extends { [k: string]: string }> = {
-    children?: ReactNode
-    options: ColorType<T>
-    mode: keyof ColorType<T>
-    variant: keyof T
-    onColorChanged?: (options: ColorType<T>) => void | Promise<void>
-    onColorChangeCancel?: () => void | Promise<void>
-    calculateShades?: boolean
-    containerProps?: ComponentProps<'div'>
-    anchorProps?: ComponentProps<'div'>
-    anchorChildren?: ReactNode
-}
-
-export function Variant<T extends { [k: string]: string }>({ children, anchorChildren, anchorProps, options, mode, variant, onColorChanged, onColorChangeCancel, containerProps, calculateShades = true }: VariantProps<T>) {
+export const ColorCard = memo(function ColorCard({ bg, fg, text, containerProps }: { bg: string, fg: string, text: string, containerProps?: ComponentProps<'div'> }) {
     const ref = useRef<HTMLDivElement>(null)
 
-    const [open, setOpen] = useState<boolean>(false)
-    const [color, setColor] = useState<HSV>(ColorStatic.parse(options[mode][variant as string]).toHsv())
-
     return (
-        <div {...containerProps}>
+        <div style={{ backgroundColor: bg, color: fg }} {...containerProps} className={cn(['relative'], containerProps?.className)} onPointerOver={() => { if (ref.current) ref.current.style.opacity = '1' }} onPointerOut={() => { if (ref.current) ref.current.style.opacity = '0' }}>
             <div
                 ref={ref}
-                style={{ backgroundColor: color.toHex() }}
-                onClick={() => setOpen(true)}
-                {...anchorProps}
-                className={cn(['cursor-pointer'], anchorProps?.className)}
+                className="absolute bottom-1 right-1 transition"
+                style={{ opacity: 0 }}
+                onClick={async () => { if (navigator.clipboard) await navigator.clipboard.writeText(text) }}
             >
-                {anchorChildren}
+                <ClipboardCopyIcon size={18} color={fg} />
             </div>
-            <DropdownMenu
-                anchorRef={ref}
-                open={open}
-                onOpenChange={(b) => {
-                    if (!b) {
-                        setOpen(false)
-                        if (onColorChangeCancel)
-                            onColorChangeCancel()
-                    }
-                }}
-            >
-                <ColorPicker
-                    controlledColor={color}
-                    onColorChanging={(c) => {
-                        if (ref.current)
-                            ref.current.style.backgroundColor = c.toHex()
-                    }}
-                    onColorChanged={(c) => {
-                        setColor(c)
-                        if (onColorChanged) {
-                            if (variant === 'main' && calculateShades) {
-                                options[mode][variant as string] = {
-                                    main: c.toHex(),
-                                    foreground: (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades'].foreground); return rgb.toHex() })(),
-                                    container: (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades'].container); return rgb.toHex() })(),
-                                    'container-foreground': (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades']['container-foreground']); return rgb.toHex() })(),
-                                    fixed: (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades'].fixed); return rgb.toHex() })(),
-                                    'fixed-dim': (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades']['fixed-dim']); return rgb.toHex() })(),
-                                    'fixed-foreground': (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades']['fixed-foreground']); return rgb.toHex() })(),
-                                    'fixed-foreground-variant': (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades']['fixed-foreground-variant']); return rgb.toHex() })(),
-                                }
-                            } else {
-                                let rgb = RGB.fromHex(c.toHex())
-                                rgb.shadeColor(options[mode + '-shades'][variant as string])
-                                options[mode][variant as string] = rgb.toHex()
-                            }
-
-                            onColorChanged(options)
-                        }
-                    }}
-                />
-            </DropdownMenu>
-            {children}
+            <Text className="pr-6">
+                {text}
+            </Text>
         </div>
     )
-}
+})
+
+
+export const PaletteColorCards = memo(function PaletteColorCards({ options, name, mode, onOptionChange, onOptionChangeCancel }: { options: ColorType<PaletteVariants>, mode: ThemeMode, name: keyof ThemeOptions['colors']['palette'], onOptionChange?: (option: ColorType<PaletteVariants>) => void | Promise<void>, onOptionChangeCancel?: () => void | Promise<void> }) {
+    return (
+        <>
+            <div id='main' className="flex flex-col">
+                <ColorCard
+                    text={name}
+                    fg={options[mode].foreground}
+                    bg={options[mode].main}
+                    containerProps={{ className: "h-20 w-full p-1" }}
+                />
+                <ColorCard
+                    text={name + ' foreground'}
+                    fg={options[mode].main}
+                    bg={options[mode].foreground}
+                    containerProps={{ className: "py-2 w-full p-1" }}
+                />
+            </div>
+            <div id='container' className="flex flex-col">
+                <ColorCard
+                    text={name + ' container'}
+                    fg={options[mode]["container-foreground"]}
+                    bg={options[mode].container}
+                    containerProps={{ className: "h-20 w-full p-1" }}
+                />
+                <ColorCard
+                    text={name + ' container foreground'}
+                    fg={options[mode].container}
+                    bg={options[mode]["container-foreground"]}
+                    containerProps={{ className: "py-2 w-full p-1" }}
+                />
+            </div>
+            <div id='fixed' className="flex flex-col">
+                <ColorCard
+                    text={name + ' fixed'}
+                    fg={options[mode]["fixed-foreground"]}
+                    bg={options[mode].fixed}
+                    containerProps={{ className: "h-20 w-full p-1" }}
+                />
+                <ColorCard
+                    text={name + ' fixed dim'}
+                    fg={options[mode]["fixed-foreground"]}
+                    bg={options[mode]["fixed-dim"]}
+                    containerProps={{ className: "py-2 w-full p-1" }}
+                />
+                <ColorCard
+                    text={name + ' fixed foreground'}
+                    fg={options[mode]["fixed-foreground"]}
+                    bg={options[mode].fixed}
+                    containerProps={{ className: "py-2 w-full p-1" }}
+                />
+                <ColorCard
+                    text={name + ' fixed foreground variant'}
+                    fg={options[mode].fixed}
+                    bg={options[mode]["fixed-foreground-variant"]}
+                    containerProps={{ className: "py-2 w-full p-1" }}
+                />
+            </div>
+        </>
+    )
+})
 
 export function ColorTones() {
     const count = 21

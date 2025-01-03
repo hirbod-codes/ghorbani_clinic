@@ -5,7 +5,7 @@ import { Tooltip } from "../Tooltip";
 export function Text({ children, ...props }: { children?: ReactNode } & ComponentProps<'div'>) {
     return (
         <div {...props}>
-            <Tooltip tooltipContent={children} triggerProps={{ className: 'text-nowrap text-ellipsis overflow-hidden w-full' }}>
+            <Tooltip tooltipContent={children} triggerProps={{ className: 'text-nowrap text-ellipsis overflow-hidden max-w-full' }}>
                 {children}
             </Tooltip>
         </div>
