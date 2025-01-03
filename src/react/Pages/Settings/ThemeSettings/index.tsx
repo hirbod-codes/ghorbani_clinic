@@ -1,10 +1,9 @@
-import { memo, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { ComponentProps, memo, ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { ConfigurationContext } from '../../../Contexts/Configuration/ConfigurationContext';
 import { t } from 'i18next';
-import { ColorVariants, configAPI, ThemeOptions } from '@/src/Electron/Configuration/renderer.d';
+import { Color as ColorType, configAPI, PaletteVariants, SurfaceVariants, ThemeOptions } from '@/src/Electron/Configuration/renderer.d';
 import { Switch } from "../../../Components/Base/Switch";
 import { Input } from "../../../Components/Base/Input";
-import { Color } from "./Color";
 import { Button } from "@/src/react/Components/Base/Button";
 import { SaveIcon } from "@/src/react/Components/Icons/SaveIcon";
 import { RGB } from "@/src/react/Lib/Colors/RGB";
@@ -15,12 +14,21 @@ import { ColorPicker } from "@/src/react/Components/ColorPicker";
 import { Checkbox } from "@mui/material";
 import { DropdownMenu } from "@/src/react/Components/Base/DropdownMenu";
 import { ColorStatic } from "@/src/react/Lib/Colors/ColorStatic";
+import { Separator } from "@/src/react/shadcn/components/ui/separator";
+import { cn } from "@/src/react/shadcn/lib/utils";
+
+export function Text({ children, ...props }: { children?: ReactNode } & ComponentProps<'div'>) {
+    return (
+        <div {...props} className={cn(["text-nowrap text-ellipsis overflow-hidden size-full"], props?.className)}>
+            {children}
+        </div>
+    )
+}
 
 export const ThemeSettings = memo(function ThemeSettings() {
     const c = useContext(ConfigurationContext)!
 
-    // JSON is slow but acceptable for this use case
-    const [themeOptions, setThemeOptions] = useState<ThemeOptions>(() => JSON.parse(JSON.stringify(c.themeOptions)))
+    const [themeOptions, setThemeOptions] = useState<ThemeOptions>(() => structuredClone(c.themeOptions))
 
     const [showGradientBackground, setShowGradientBackground] = useState<boolean>(c.showGradientBackground ?? false)
     const [loadingGradientBackground, setLoadingGradientBackground] = useState<boolean>(false)
@@ -42,24 +50,47 @@ export const ThemeSettings = memo(function ThemeSettings() {
         setShowGradientBackground(v)
     }
 
-    const onColorOptionChange = useCallback((k: string, option: ColorVariants) => {
-        themeOptions.colors[k] = option
-        setThemeOptions({ ...themeOptions })
-    }, [])
-
-    const onColorOptionChangeCancel = useCallback(async (k: string, option: ColorVariants) => {
-        const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
-        themeOptions.colors[k] = conf.themeOptions.colors[k]
-        setThemeOptions({ ...themeOptions })
-    }, [])
-
     console.log('ThemeSettings', { c, themeOptions, colorCoefficient, foregroundCoefficient, showGradientBackground, loadingGradientBackground })
+
+    const p = (k, i) =>
+        <div key={i} className="col-span-1 row-span-1 flex flex-col space-y-1 *:text-nowrap *:text-xs">
+            <div id='main' className="flex flex-col">
+                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.palette[k][themeOptions.mode].foreground, backgroundColor: themeOptions.colors.palette[k][themeOptions.mode].main }}>
+                    {`${k}`}
+                </Text>
+                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode]['inverse-primary-foreground'], backgroundColor: themeOptions.colors.palette[k][themeOptions.mode].foreground }}>
+                    {`${k} foreground`}
+                </Text>
+            </div>
+            <div id='container' className="flex flex-col">
+                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.palette[k][themeOptions.mode]['container-foreground'], backgroundColor: themeOptions.colors.palette[k][themeOptions.mode].container }}>
+                    {`${k} container`}
+                </Text>
+                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].container, backgroundColor: themeOptions.colors.palette[k][themeOptions.mode]['container-foreground'] }}>
+                    {`${k} container foreground`}
+                </Text>
+            </div>
+            <div id='fixed' className="flex flex-col">
+                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.palette[k][themeOptions.mode]['fixed-foreground'], backgroundColor: themeOptions.colors.palette[k][themeOptions.mode].fixed }}>
+                    {`${k} fixed`}
+                </Text>
+                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.palette[k][themeOptions.mode]['fixed-foreground'], backgroundColor: themeOptions.colors.palette[k][themeOptions.mode]['fixed-dim'] }}>
+                    {`${k} fixed dim`}
+                </Text>
+                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.palette[k][themeOptions.mode].fixed, backgroundColor: themeOptions.colors.palette[k][themeOptions.mode]['fixed-foreground'] }}>
+                    {`${k} fixed foreground`}
+                </Text>
+                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.palette[k][themeOptions.mode].fixed, backgroundColor: themeOptions.colors.palette[k][themeOptions.mode]['fixed-foreground-variant'] }}>
+                    {`${k} fixed foreground variant`}
+                </Text>
+            </div>
+        </div>
 
     return (
         <>
-            {/* <div className="grid grid-cols-12">
-                <div className="grid md:col-span-4">
-                    <div className="size-full flex flex-col items-stretch space-y-4 px-2">
+            <div className="grid grid-cols-12 grid-rows-1 items-stretch size-full p-2 overflow-hidden *:m-2">
+                <div id='grid-item-1' className="col-span-5 row-span-1 flex flex-row">
+                    <div className="w-full flex flex-col items-stretch space-y-4 px-2 overflow-y-auto">
                         <div>
                             <p className="text-xl">Core Colors</p>
                             <p className="text-sm ">Override or set key colors that will be used to generate tonal palettes and schemes.</p>
@@ -72,18 +103,154 @@ export const ThemeSettings = memo(function ThemeSettings() {
                             </div>
                         </div>
 
-                        <div className="flex flex-row rounded-3xl bg-gray-500 p-1 space-x-3">
-                            <div className="rounded-full size-[1.2cm]" style={{ backgroundColor: 'blue' }} />
+                        {Object.keys(themeOptions.colors.palette).map((k, i) =>
+                            <Variant<PaletteVariants>
+                                mode={themeOptions.mode}
+                                options={themeOptions.colors.palette[k]}
+                                variant='main'
+                                anchorProps={{
+                                    className: "rounded-full size-[1.2cm]"
+                                }}
+                                containerProps={{
+                                    className: "flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3",
+                                    style: {
+                                        color: themeOptions.colors.surface[themeOptions.mode].inverse,
+                                        backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground']
+                                    }
+                                }}
+                                onColorChanged={(o) => {
+                                    themeOptions.colors.palette[k] = o
+                                    setThemeOptions({ ...themeOptions })
+                                }}
+                                onColorChangeCancel={async () => {
+                                    const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
+                                    themeOptions.colors.palette[k][themeOptions.mode] = conf.themeOptions.colors.palette[k][themeOptions.mode]
+                                    setThemeOptions({ ...themeOptions })
+                                }}
+                            >
+                                <div>
+                                    <p className="text-xl text-nowrap">{k}</p>
+                                    {k === 'primary' &&
+                                        <p className="text-sm text-nowrap">Acts as custom source color</p>
+                                    }
+                                </div>
+                            </Variant>
+                        )}
+                        <div className="flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
+                            <div className="rounded-full size-[1.2cm]" style={{ backgroundColor: themeOptions.colors.palette.primary.main }} />
                             <div>
-                                <p className="text-xl text-nowrap">Primary</p>
-                                <p className="text-sm text-nowrap">Acts as custom source color</p>
+                                <p className="text-xl text-nowrap">Natural</p>
+                                <p className="text-sm text-nowrap">Used for background and surfaces</p>
+                            </div>
+                        </div>
+                        <div className="flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
+                            <div className="rounded-full size-[1.2cm]" style={{ backgroundColor: themeOptions.colors.palette.primary.main }} />
+                            <div>
+                                <p className="text-xl text-nowrap">Natural Variants</p>
+                                <p className="text-sm text-nowrap">Used for medium emphasis and variants</p>
                             </div>
                         </div>
                     </div>
+                    <Separator orientation="vertical" className="mx-4 my-8 h-auto" />
                 </div>
-                <div className="grid">
+
+                <div id='grid-item-2' className="col-span-7 row-span-1">
+                    <div className="size-full bg-surface-container rounded-xl p-2">
+                        <div className='grid grid-cols-4 items-start *:m-2 size-full content-start overflow-y-auto *:text-xs'>
+                            {
+                                Object
+                                    .keys(themeOptions.colors.palette)
+                                    .filter(f => ['primary', 'secondary', 'tertiary', 'error'].includes(f))
+                                    .map(p)
+                            }
+                            <div className="col-span-3 flex flex-row space-x-1">
+                                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].dim }}>
+                                    surface dim
+                                </Text>
+                                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].main }}>
+                                    surface
+                                </Text>
+                                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].bright }}>
+                                    surface bright
+                                </Text>
+                            </div>
+                            <div className="col-span-1 row-span-2 flex flex-col space-y-1">
+                                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'], backgroundColor: themeOptions.colors.surface[themeOptions.mode].inverse }}>
+                                    surface inverse
+                                </Text>
+                                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
+                                    surface inverse foreground
+                                </Text>
+                                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-primary-foreground'] }}>
+                                    surface inverse primary foreground
+                                </Text>
+                            </div>
+                            <div className="col-span-3 flex flex-row space-x-1">
+                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].dim }}>
+                                    surface dim
+                                </Text>
+                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].main }}>
+                                    surface
+                                </Text>
+                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].bright }}>
+                                    surface bright
+                                </Text>
+                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].main }}>
+                                    surface
+                                </Text>
+                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].bright }}>
+                                    surface bright
+                                </Text>
+                            </div>
+                            <div className="col-span-4 flex flex-row space-x-1">
+                                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.surface[themeOptions.mode].foreground }}>
+                                    surface foreground
+                                </Text>
+                                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.surface[themeOptions.mode]["foreground-variant"] }}>
+                                    surface foreground variant
+                                </Text>
+                                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.outline[themeOptions.mode].main }}>
+                                    outline
+                                </Text>
+                                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.outline[themeOptions.mode].variant }}>
+                                    outline variant
+                                </Text>
+                            </div>
+                            {
+                                Object
+                                    .keys(themeOptions.colors.palette)
+                                    .filter(f => !['primary', 'secondary', 'tertiary', 'error'].includes(f))
+                                    .map(p)
+                            }
+                        </div>
+                    </div>
                 </div>
-            </div> */}
+            </div>
+        </>
+    )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    return (
+        <>
+
+
             <div className="flex flex-row flex-wrap items-start content-start size-full p-3 *:m-1 overflow-y-auto">
                 {/* Color tones */}
                 <ColorTones />
@@ -103,14 +270,27 @@ export const ThemeSettings = memo(function ThemeSettings() {
                 */}
 
                 {Object.keys(themeOptions.colors.palette).map((k, i) =>
-                    Object.keys(themeOptions.colors.palette[k][themeOptions.mode])
-                        .map((kk) =>
-                            <SingleColor color={themeOptions.colors.palette[k][themeOptions.mode][kk]} name={`${k + '-' + kk}`} />
-                        )
-                )}
-
-                {Object.keys(themeOptions.colors.surface[themeOptions.mode]).map((k, i) =>
-                    <SingleColor color={themeOptions.colors.surface[themeOptions.mode][k]} name={`surface-${k}`} />
+                    <Variant<PaletteVariants>
+                        mode={themeOptions.mode}
+                        options={themeOptions.colors.palette[k]}
+                        variant='main'
+                        onColorChanged={(o) => {
+                            themeOptions.colors.palette[k] = o
+                            setThemeOptions({ ...themeOptions })
+                        }}
+                        onColorChangeCancel={async () => {
+                            const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
+                            themeOptions.colors.palette[k][themeOptions.mode] = conf.themeOptions.colors.palette[k][themeOptions.mode]
+                            setThemeOptions({ ...themeOptions })
+                        }}
+                    >
+                        <div>
+                            <p className="text-xl text-nowrap">{k}</p>
+                            {k === 'primary' &&
+                                <p className="text-sm text-nowrap">Acts as custom source color</p>
+                            }
+                        </div>
+                    </Variant>
                 )}
 
                 <div className="border rounded-lg p-2 min-w-40">
@@ -188,97 +368,82 @@ export const ThemeSettings = memo(function ThemeSettings() {
     )
 })
 
-export function SingleColor({ name = '', color: defaultColor }: { name?: string, color: string }) {
-    const [open, setOpen] = useState(false)
-    const [color, setColor] = useState<HSV>()
+export type VariantProps<T extends { [k: string]: string }> = {
+    children?: ReactNode
+    options: ColorType<T>
+    mode: keyof ColorType<T>
+    variant: keyof T
+    onColorChanged?: (options: ColorType<T>) => void | Promise<void>
+    onColorChangeCancel?: () => void | Promise<void>
+    calculateShades?: boolean
+    containerProps?: ComponentProps<'div'>
+    anchorProps?: ComponentProps<'div'>
+    anchorChildren?: ReactNode
+}
+
+export function Variant<T extends { [k: string]: string }>({ children, anchorChildren, anchorProps, options, mode, variant, onColorChanged, onColorChangeCancel, containerProps, calculateShades = true }: VariantProps<T>) {
     const ref = useRef<HTMLDivElement>(null)
-    useEffect(() => {
-        try {
-            setColor(ColorStatic.parse(defaultColor).toHsv())
-        } catch (e) { console.error(e) }
-    }, [defaultColor])
+
+    const [open, setOpen] = useState<boolean>(false)
+    const [color, setColor] = useState<HSV>(ColorStatic.parse(options[mode][variant as string]).toHsv())
+
     return (
-        <>
-            <div ref={ref} className="text-center text-gray-500 min-h-[2cm] rounded-full border cursor-pointer" onClick={() => setOpen(true)} style={{ backgroundColor: color?.toHex() }}>
-                {name}
+        <div {...containerProps}>
+            <div
+                ref={ref}
+                style={{ backgroundColor: color.toHex() }}
+                onClick={() => setOpen(true)}
+                {...anchorProps}
+                className={cn(['cursor-pointer'], anchorProps?.className)}
+            >
+                {anchorChildren}
             </div>
             <DropdownMenu
                 anchorRef={ref}
                 open={open}
                 onOpenChange={(b) => {
-                    if (!b)
-                        setOpen(b)
+                    if (!b) {
+                        setOpen(false)
+                        if (onColorChangeCancel)
+                            onColorChangeCancel()
+                    }
                 }}
             >
                 <ColorPicker
+                    controlledColor={color}
                     onColorChanging={(c) => {
                         if (ref.current)
                             ref.current.style.backgroundColor = c.toHex()
                     }}
                     onColorChanged={(c) => {
                         setColor(c)
+                        if (onColorChanged) {
+                            if (variant === 'main' && calculateShades) {
+                                options[mode][variant as string] = {
+                                    main: c.toHex(),
+                                    foreground: (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades'].foreground); return rgb.toHex() })(),
+                                    container: (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades'].container); return rgb.toHex() })(),
+                                    'container-foreground': (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades']['container-foreground']); return rgb.toHex() })(),
+                                    fixed: (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades'].fixed); return rgb.toHex() })(),
+                                    'fixed-dim': (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades']['fixed-dim']); return rgb.toHex() })(),
+                                    'fixed-foreground': (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades']['fixed-foreground']); return rgb.toHex() })(),
+                                    'fixed-foreground-variant': (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades']['fixed-foreground-variant']); return rgb.toHex() })(),
+                                }
+                            } else {
+                                let rgb = RGB.fromHex(c.toHex())
+                                rgb.shadeColor(options[mode + '-shades'][variant as string])
+                                options[mode][variant as string] = rgb.toHex()
+                            }
+
+                            onColorChanged(options)
+                        }
                     }}
                 />
             </DropdownMenu>
-        </>
+            {children}
+        </div>
     )
 }
-
-
-const calculateTintAndShade = (
-    hexColor, // using #663399 as an example
-    percentage = 0.1 // using 10% as an example
-) => {
-    const r = parseInt(hexColor.slice(1, 3), 16); // r = 102
-    const g = parseInt(hexColor.slice(3, 5), 16); // g = 51
-    const b = parseInt(hexColor.slice(5, 7), 16); // b = 153
-
-    /* 
-       From this part, we are using our two formulas
-       in this case, here is the formula for tint,
-       please be aware that we are performing two validations
-       we are using Math.min to set the max level of tint to 255,
-       so we don't get values like 280 ;)
-       also, we have the Math.round so we don't have values like 243.2
-       both validations apply for both tint and shade as you can see */
-    const tintR = Math.round(Math.min(255, r + (255 - r) * percentage)); // 117
-    const tintG = Math.round(Math.min(255, g + (255 - g) * percentage)); // 71
-    const tintB = Math.round(Math.min(255, b + (255 - b) * percentage)); // 163
-
-
-    const shadeR = Math.round(Math.max(0, r - r * percentage)); // 92
-    const shadeG = Math.round(Math.max(0, g - g * percentage)); // 46
-    const shadeB = Math.round(Math.max(0, b - b * percentage)); // 138
-
-
-    /* 
-       Now with all the values calculated, the only missing stuff is 
-       getting our color back to hexadecimal, to achieve that, we are going
-       to perform a toString(16) on each value, so we get the hex value
-       for each color, and then we just append each value together and voilà!*/
-    return {
-        tint: {
-            r: tintR,
-            g: tintG,
-            b: tintB,
-            hex:
-                '#' +
-                [tintR, tintG, tintB]
-                    .map(x => x.toString(16).padStart(2, '0'))
-                    .join(''), // #7547a3 
-        },
-        shade: {
-            r: shadeR,
-            g: shadeG,
-            b: shadeB,
-            hex:
-                '#' +
-                [shadeR, shadeG, shadeB]
-                    .map(x => x.toString(16).padStart(2, '0'))
-                    .join(''), // #5c2e8a 
-        },
-    };
-};
 
 export function ColorTones() {
     const count = 21
@@ -307,14 +472,14 @@ export function ColorTones() {
             <div className="w-full overflow-auto m-1 border rounded-lg">
                 <div className="h-14 flex flex-row space-x-1">
                     {Array.from(Array(count).keys()).map((n, i) => {
-                        let color
+                        const c = HSL.fromHex(hex)
                         if (n <= mid)
-                            color = calculateTintAndShade(hex, 1 - (n / mid)).shade.hex
+                            c.darken(1 - (n / mid))
                         else
-                            color = calculateTintAndShade(hex, -1 + (n / mid)).tint.hex
+                            c.lighten((n - mid) / mid)
 
                         return (
-                            <div key={i} className="size-14 flex flex-col justify-center items-center text-gray-500" style={{ backgroundColor: color }}>
+                            <div key={i} className="size-14 flex flex-col justify-center items-center text-gray-500" style={{ backgroundColor: c.toHex() }}>
                                 {n * 5}
                             </div>
                         )

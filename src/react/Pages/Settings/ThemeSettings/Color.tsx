@@ -230,7 +230,7 @@ export const Color = memo(function Color({ name, option, colorCoefficient, onCol
                             setOpen(undefined)
                         }
                     }}
-                    containerProps={{ className: 'bg-background' }}
+                    containerProps={{ className: 'bg-surface' }}
                 >
                     <div className="flex flex-col border rounded-lg p-2">
                         <ColorPicker

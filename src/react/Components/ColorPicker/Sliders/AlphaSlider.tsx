@@ -3,7 +3,7 @@ import { Slider } from "../../Base/Slider"
 export function AlphaSlider({ defaultProgress, onProgressChanged, onProgressChanging }: { defaultProgress?: number, onProgressChanged?: (n: number) => void | Promise<void>, onProgressChanging?: (n: number) => void | Promise<void> }) {
     return (
         <Slider
-            containerProps={{ className: 'bg-background border h-7 bg-transparent' }}
+            containerProps={{ className: 'bg-surface border h-7 bg-transparent' }}
             sliderProps={{ className: 'w-[2mm] h-8 border-2 border-white-500 ' }}
             defaultProgress={defaultProgress}
             onProgressChanged={onProgressChanged}

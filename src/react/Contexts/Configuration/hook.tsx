@@ -74,6 +74,7 @@ function generatePalette(): ThemeOptions {
             ) as any,
             scrollbar: '#ffffff',
             surface: {
+                main: '#808080',
                 light: {
                     main: (() => { let c = RGB.fromHex(palette.natural); c.shadeColor(98); return c.toHex() })(),
                     dim: (() => { let c = RGB.fromHex(palette.natural); c.shadeColor(87); return c.toHex() })(),
@@ -480,6 +481,7 @@ export function useConfigurationHook() {
                 },
                 "scrollbar": "#ffffff",
                 "surface": {
+                    main: '#808080',
                     "light": {
                         "main": "#fbfbfbff",
                         "dim": "#e2e2e3ff",

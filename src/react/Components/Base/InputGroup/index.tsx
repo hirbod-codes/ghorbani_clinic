@@ -18,14 +18,14 @@ export function InputGroup({ fields = [], inputBorderRadius = 'md' }: { fields?:
                 return <input
                     key={i}
                     {...f.props}
-                    className={cn(`w-20 py-1 px-2 bg-background text-foreground border ${rightBorder} border-accent ${roundness}`, f?.props?.className)}
+                    className={cn(`w-20 py-1 px-2 bg-surface text-surface-foreground border ${rightBorder} border-accent ${roundness}`, f?.props?.className)}
                 />
 
             if (f.type === 'select')
                 return <Select
                     key={i}
                     {...f.props}
-                    triggerProps={{ className: cn(`w-20 py-1 px-2 bg-background text-foreground border ${rightBorder} border-accent ${roundness}`, f.props?.triggerProps?.className) }}
+                    triggerProps={{ className: cn(`w-20 py-1 px-2 bg-surface text-surface-foreground border ${rightBorder} border-accent ${roundness}`, f.props?.triggerProps?.className) }}
                 />
         }))
     )

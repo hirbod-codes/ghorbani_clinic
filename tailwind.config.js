@@ -5,9 +5,6 @@ module.exports = {
     theme: {
         extend: {
             colors: {
-                border: 'hsl(var(--border))',
-                background: 'hsl(var(--background))',
-                foreground: 'hsl(var(--foreground))',
                 scrollbar: 'hsl(var(--scrollbar))',
                 primary: {
                     DEFAULT: 'hsl(var(--primary))',
@@ -94,10 +91,14 @@ module.exports = {
                     'inverse-foreground': 'hsl(var(--surface-inverse-foreground))',
                     'inverse-primary-foreground': 'hsl(var(--surface-inverse-primary-foreground))',
                 },
+                background: 'hsl(var(--background))',
+                foreground: 'hsl(var(--foreground))',
                 outline: {
                     DEFAULT: 'hsl(var(--outline))',
                     variant: 'hsl(var(--outline-variant))',
-                }
+                },
+                border: 'hsl(var(--outline-variant))',
+                input: 'hsl(var(--outline))',
             },
             borderRadius: {
                 lg: 'var(--radius)',

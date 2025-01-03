@@ -45,7 +45,7 @@ export const Input = memo(function Input({ label, labelId, errorText, helperText
                         className="absolute -bottom-1 inline"
                     >
                         <Tooltip tooltipContent={helperText}>
-                            <p className="text-left text-xs text-foreground text-nowrap text-ellipsis w-full overflow-hidden">
+                            <p className="text-left text-xs text-surface-foreground text-nowrap text-ellipsis w-full overflow-hidden">
                                 {helperText}
                             </p>
                         </Tooltip>

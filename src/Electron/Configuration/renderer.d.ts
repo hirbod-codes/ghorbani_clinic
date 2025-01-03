@@ -39,48 +39,39 @@ export type Config = {
 
 export type ThemeMode = 'light' | 'dark'
 
-export type ColorVariants = {
+export type Color<T> = {
     main: string
-    light: {
-        main: string
-        foreground: string
-        container: string
-        'container-foreground': string
-        fixed: string
-        'fixed-dim': string
-        'fixed-foreground': string
-        'fixed-foreground-variant': string
-    }
-    'light-shades': {
-        main: number
-        foreground: number
-        container: number
-        'container-foreground': number
-        fixed: number
-        'fixed-dim': number
-        'fixed-foreground': number
-        'fixed-foreground-variant': number
-    }
-    dark: {
-        main: string
-        foreground: string
-        container: string
-        'container-foreground': string
-        fixed: string
-        'fixed-dim': string
-        'fixed-foreground': string
-        'fixed-foreground-variant': string
-    }
-    'dark-shades': {
-        main: number
-        foreground: number
-        container: number
-        'container-foreground': number
-        fixed: number
-        'fixed-dim': number
-        'fixed-foreground': number
-        'fixed-foreground-variant': number
-    }
+    light: T
+    'light-shades': { [k: keyof T]: number }
+    dark: T
+    'dark-shades': { [k: keyof T]: number }
+}
+
+export type PaletteVariants = {
+    main: string
+    foreground: string
+    container: string
+    'container-foreground': string
+    fixed: string
+    'fixed-dim': string
+    'fixed-foreground': string
+    'fixed-foreground-variant': string
+}
+
+export type SurfaceVariants = {
+    main: string
+    dim: string
+    bright: string
+    'container-highest': string
+    'container-high': string
+    'container': string
+    'container-low': string
+    'container-lowest': string
+    foreground: string
+    'foreground-variant': string
+    inverse: string
+    'inverse-foreground': string
+    'inverse-primary-foreground': string
 }
 
 export type ThemeOptions = {
@@ -94,76 +85,15 @@ export type ThemeOptions = {
     colors: {
         scrollbar: string
         palette: {
-            primary: ColorVariants
-            secondary: ColorVariants
-            tertiary: ColorVariants
-            info: ColorVariants
-            success: ColorVariants
-            warning: ColorVariants
-            error: ColorVariants
+            primary: Color<PaletteVariants>
+            secondary: Color<PaletteVariants>
+            tertiary: Color<PaletteVariants>
+            info: Color<PaletteVariants>
+            success: Color<PaletteVariants>
+            warning: Color<PaletteVariants>
+            error: Color<PaletteVariants>
         }
-        surface: {
-            light: {
-                main: string
-                dim: string
-                bright: string
-                'container-highest': string
-                'container-high': string
-                'container': string
-                'container-low': string
-                'container-lowest': string
-                foreground: string
-                'foreground-variant': string
-                inverse: string
-                'inverse-foreground': string
-                'inverse-primary-foreground': string
-            }
-            'light-shades': {
-                main: number
-                dim: number
-                bright: number
-                'container-highest': number
-                'container-high': number
-                'container': number
-                'container-low': number
-                'container-lowest': number
-                foreground: number
-                'foreground-variant': number
-                inverse: number
-                'inverse-foreground': number
-                'inverse-primary-foreground': number
-            }
-            dark: {
-                main: string
-                dim: string
-                bright: string
-                'container-highest': string
-                'container-high': string
-                'container': string
-                'container-low': string
-                'container-lowest': string
-                foreground: string
-                'foreground-variant': string
-                inverse: string
-                'inverse-foreground': string
-                'inverse-primary-foreground': string
-            }
-            'dark-shades': {
-                main: number
-                dim: number
-                bright: number
-                'container-highest': number
-                'container-high': number
-                'container': number
-                'container-low': number
-                'container-lowest': number
-                foreground: number
-                'foreground-variant': number
-                inverse: number
-                'inverse-foreground': number
-                'inverse-primary-foreground': number
-            }
-        }
+        surface: Color<SurfaceVariants>
         outline: {
             light: {
                 main: string

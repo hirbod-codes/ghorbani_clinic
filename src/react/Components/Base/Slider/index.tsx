@@ -101,7 +101,7 @@ export function Slider({ defaultProgress, onProgressChanged, onProgressChanging,
     return (
         <div id="progressContainer" ref={containerRef} {...containerProps} className={cn(["w-full relative"], containerProps?.className)} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}>
             {children}
-            <div id="thumb" ref={sliderRef} {...sliderProps} className={cn(["size-[5mm] border rounded-full absolute top-0 left-0 bg-background"], sliderProps?.className)} />
+            <div id="thumb" ref={sliderRef} {...sliderProps} className={cn(["size-[5mm] border rounded-full absolute top-0 left-0 bg-surface"], sliderProps?.className)} />
         </div>
     )
 }
