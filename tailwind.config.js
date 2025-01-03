@@ -6,60 +6,98 @@ module.exports = {
         extend: {
             colors: {
                 border: 'hsl(var(--border))',
-                input: 'hsl(var(--input))',
-                scrollbar: 'hsl(var(--scrollbar))',
                 background: 'hsl(var(--background))',
                 foreground: 'hsl(var(--foreground))',
+                scrollbar: 'hsl(var(--scrollbar))',
                 primary: {
                     DEFAULT: 'hsl(var(--primary))',
-                    background: 'hsl(var(--primary-background))',
-                    foreground: 'hsl(var(--primary-foreground))'
-                },
-                'primary-container': {
-                    DEFAULT: 'hsl(var(--primary-container))',
-                    background: 'hsl(var(--primary-container-background))',
-                    foreground: 'hsl(var(--primary-container-foreground))'
+                    foreground: 'hsl(var(--primary-foreground))',
+                    container: 'hsl(var(--primary-container))',
+                    'container-foreground': 'hsl(var(--primary-container-foreground))',
+                    fixed: 'hsl(var(--primary-fixed))',
+                    'fixed-dim': 'hsl(var(--primary-fixed-dim))',
+                    'fixed-foreground': 'hsl(var(--primary-fixed-foreground))',
+                    'fixed-foreground-variant': 'hsl(var(--primary-fixed-foreground-variant))',
                 },
                 secondary: {
                     DEFAULT: 'hsl(var(--secondary))',
-                    background: 'hsl(var(--secondary-background))',
-                    foreground: 'hsl(var(--secondary-foreground))'
+                    foreground: 'hsl(var(--secondary-foreground))',
+                    container: 'hsl(var(--secondary-container))',
+                    'container-foreground': 'hsl(var(--secondary-container-foreground))',
+                    fixed: 'hsl(var(--secondary-fixed))',
+                    'fixed-dim': 'hsl(var(--secondary-fixed-dim))',
+                    'fixed-foreground': 'hsl(var(--secondary-fixed-foreground))',
+                    'fixed-foreground-variant': 'hsl(var(--secondary-fixed-foreground-variant))',
                 },
-                'secondary-container': {
-                    DEFAULT: 'hsl(var(--secondary-container))',
-                    background: 'hsl(var(--secondary-container-background))',
-                    foreground: 'hsl(var(--secondary-container-foreground))'
+                tertiary: {
+                    DEFAULT: 'hsl(var(--tertiary))',
+                    foreground: 'hsl(var(--tertiary-foreground))',
+                    container: 'hsl(var(--tertiary-container))',
+                    'container-foreground': 'hsl(var(--tertiary-container-foreground))',
+                    fixed: 'hsl(var(--tertiary-fixed))',
+                    'fixed-dim': 'hsl(var(--tertiary-fixed-dim))',
+                    'fixed-foreground': 'hsl(var(--tertiary-fixed-foreground))',
+                    'fixed-foreground-variant': 'hsl(var(--tertiary-fixed-foreground-variant))',
                 },
-                tertiary:{
-                    DEFAULT: 'hsl(--var(--tertiary))',
-                    background: 'hsl(--var(--tertiary-background))',
-                    foreground: 'hsl(--var(--tertiary-foreground))'
+                info: {
+                    DEFAULT: 'hsl(var(--info))',
+                    foreground: 'hsl(var(--info-foreground))',
+                    container: 'hsl(var(--info-container))',
+                    'container-foreground': 'hsl(var(--info-container-foreground))',
+                    fixed: 'hsl(var(--info-fixed))',
+                    'fixed-dim': 'hsl(var(--info-fixed-dim))',
+                    'fixed-foreground': 'hsl(var(--info-fixed-foreground))',
+                    'fixed-foreground-variant': 'hsl(var(--info-fixed-foreground-variant))',
                 },
-                info:{
-                    DEFAULT: 'hsl(--var(--info))',
-                    background: 'hsl(--var(--info-background))',
-                    foreground: 'hsl(--var(--info-foreground))'
+                success: {
+                    DEFAULT: 'hsl(var(--success))',
+                    foreground: 'hsl(var(--success-foreground))',
+                    container: 'hsl(var(--success-container))',
+                    'container-foreground': 'hsl(var(--success-container-foreground))',
+                    fixed: 'hsl(var(--success-fixed))',
+                    'fixed-dim': 'hsl(var(--success-fixed-dim))',
+                    'fixed-foreground': 'hsl(var(--success-fixed-foreground))',
+                    'fixed-foreground-variant': 'hsl(var(--success-fixed-foreground-variant))',
                 },
-                success:{
-                    DEFAULT: 'hsl(--var(--success))',
-                    background: 'hsl(--var(--success-background))',
-                    foreground: 'hsl(--var(--success-foreground))'
+                warning: {
+                    DEFAULT: 'hsl(var(--warning))',
+                    foreground: 'hsl(var(--warning-foreground))',
+                    container: 'hsl(var(--warning-container))',
+                    'container-foreground': 'hsl(var(--warning-container-foreground))',
+                    fixed: 'hsl(var(--warning-fixed))',
+                    'fixed-dim': 'hsl(var(--warning-fixed-dim))',
+                    'fixed-foreground': 'hsl(var(--warning-fixed-foreground))',
+                    'fixed-foreground-variant': 'hsl(var(--warning-fixed-foreground-variant))',
                 },
-                warning:{
-                    DEFAULT: 'hsl(--var(--warning))',
-                    background: 'hsl(--var(--warning-background))',
-                    foreground: 'hsl(--var(--warning-foreground))'
+                error: {
+                    DEFAULT: 'hsl(var(--error))',
+                    foreground: 'hsl(var(--error-foreground))',
+                    container: 'hsl(var(--error-container))',
+                    'container-foreground': 'hsl(var(--error-container-foreground))',
+                    fixed: 'hsl(var(--error-fixed))',
+                    'fixed-dim': 'hsl(var(--error-fixed-dim))',
+                    'fixed-foreground': 'hsl(var(--error-fixed-foreground))',
+                    'fixed-foreground-variant': 'hsl(var(--error-fixed-foreground-variant))',
                 },
-                error:{
-                    DEFAULT: 'hsl(--var(--error))',
-                    background: 'hsl(--var(--error-background))',
-                    foreground: 'hsl(--var(--error-foreground))'
+                surface: {
+                    DEFAULT: 'hsl(var(--surface))',
+                    dim: 'hsl(var(--surface-dim))',
+                    bright: 'hsl(var(--surface-bright))',
+                    'container-highest': 'hsl(var(--surface-container-highest))',
+                    'container-high': 'hsl(var(--surface-container-high))',
+                    'container': 'hsl(var(--surface-container))',
+                    'container-low': 'hsl(var(--surface-container-low))',
+                    'container-lowest': 'hsl(var(--surface-container-lowest))',
+                    foreground: 'hsl(var(--surface-foreground))',
+                    'foreground-variant': 'hsl(var(--surface-foreground-variant))',
+                    inverse: 'hsl(var(--surface-inverse))',
+                    'inverse-foreground': 'hsl(var(--surface-inverse-foreground))',
+                    'inverse-primary-foreground': 'hsl(var(--surface-inverse-primary-foreground))',
                 },
-                muted:{
-                    DEFAULT: 'hsl(--var(--muted))',
-                    background: 'hsl(--var(--muted-background))',
-                    foreground: 'hsl(--var(--muted-foreground))'
-                },
+                outline: {
+                    DEFAULT: 'hsl(var(--outline))',
+                    variant: 'hsl(var(--outline-variant))',
+                }
             },
             borderRadius: {
                 lg: 'var(--radius)',

@@ -1,7 +1,7 @@
-import { memo, useCallback, useContext, useState } from "react";
+import { memo, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { ConfigurationContext } from '../../../Contexts/Configuration/ConfigurationContext';
 import { t } from 'i18next';
-import { ColorVariants, configAPI } from '@/src/Electron/Configuration/renderer.d';
+import { ColorVariants, configAPI, ThemeOptions } from '@/src/Electron/Configuration/renderer.d';
 import { Switch } from "../../../Components/Base/Switch";
 import { Input } from "../../../Components/Base/Input";
 import { Color } from "./Color";
@@ -13,12 +13,14 @@ import { HSV } from "@/src/react/Lib/Colors/HSV";
 import { HSL } from "@/src/react/Lib/Colors/HSL";
 import { ColorPicker } from "@/src/react/Components/ColorPicker";
 import { Checkbox } from "@mui/material";
+import { DropdownMenu } from "@/src/react/Components/Base/DropdownMenu";
+import { ColorStatic } from "@/src/react/Lib/Colors/ColorStatic";
 
 export const ThemeSettings = memo(function ThemeSettings() {
     const c = useContext(ConfigurationContext)!
 
     // JSON is slow but acceptable for this use case
-    const [themeOptions, setThemeOptions] = useState(() => JSON.parse(JSON.stringify(c.themeOptions)))
+    const [themeOptions, setThemeOptions] = useState<ThemeOptions>(() => JSON.parse(JSON.stringify(c.themeOptions)))
 
     const [showGradientBackground, setShowGradientBackground] = useState<boolean>(c.showGradientBackground ?? false)
     const [loadingGradientBackground, setLoadingGradientBackground] = useState<boolean>(false)
@@ -55,9 +57,9 @@ export const ThemeSettings = memo(function ThemeSettings() {
 
     return (
         <>
-            <div className="grid grid-cols-12">
+            {/* <div className="grid grid-cols-12">
                 <div className="grid md:col-span-4">
-                    <div className="size-full flex flex-col items-stretch space-y-4 space-x-2">
+                    <div className="size-full flex flex-col items-stretch space-y-4 px-2">
                         <div>
                             <p className="text-xl">Core Colors</p>
                             <p className="text-sm ">Override or set key colors that will be used to generate tonal palettes and schemes.</p>
@@ -69,11 +71,19 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                 <Checkbox defaultChecked={true} size='small' />
                             </div>
                         </div>
+
+                        <div className="flex flex-row rounded-3xl bg-gray-500 p-1 space-x-3">
+                            <div className="rounded-full size-[1.2cm]" style={{ backgroundColor: 'blue' }} />
+                            <div>
+                                <p className="text-xl text-nowrap">Primary</p>
+                                <p className="text-sm text-nowrap">Acts as custom source color</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div className="grid">
                 </div>
-            </div>
+            </div> */}
             <div className="flex flex-row flex-wrap items-start content-start size-full p-3 *:m-1 overflow-y-auto">
                 {/* Color tones */}
                 <ColorTones />
@@ -81,7 +91,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                     <SaveIcon /> Save
                 </Button>
 
-                {Object.keys(themeOptions.colors).map((k, i) =>
+                {/* 
                     <Color
                         key={k}
                         name={k}
@@ -90,6 +100,17 @@ export const ThemeSettings = memo(function ThemeSettings() {
                         onColorOptionChange={onColorOptionChange}
                         onColorOptionChangeCancel={onColorOptionChangeCancel}
                     />
+                */}
+
+                {Object.keys(themeOptions.colors.palette).map((k, i) =>
+                    Object.keys(themeOptions.colors.palette[k][themeOptions.mode])
+                        .map((kk) =>
+                            <SingleColor color={themeOptions.colors.palette[k][themeOptions.mode][kk]} name={`${k + '-' + kk}`} />
+                        )
+                )}
+
+                {Object.keys(themeOptions.colors.surface[themeOptions.mode]).map((k, i) =>
+                    <SingleColor color={themeOptions.colors.surface[themeOptions.mode][k]} name={`surface-${k}`} />
                 )}
 
                 <div className="border rounded-lg p-2 min-w-40">
@@ -167,6 +188,43 @@ export const ThemeSettings = memo(function ThemeSettings() {
     )
 })
 
+export function SingleColor({ name = '', color: defaultColor }: { name?: string, color: string }) {
+    const [open, setOpen] = useState(false)
+    const [color, setColor] = useState<HSV>()
+    const ref = useRef<HTMLDivElement>(null)
+    useEffect(() => {
+        try {
+            setColor(ColorStatic.parse(defaultColor).toHsv())
+        } catch (e) { console.error(e) }
+    }, [defaultColor])
+    return (
+        <>
+            <div ref={ref} className="text-center text-gray-500 min-h-[2cm] rounded-full border cursor-pointer" onClick={() => setOpen(true)} style={{ backgroundColor: color?.toHex() }}>
+                {name}
+            </div>
+            <DropdownMenu
+                anchorRef={ref}
+                open={open}
+                onOpenChange={(b) => {
+                    if (!b)
+                        setOpen(b)
+                }}
+            >
+                <ColorPicker
+                    onColorChanging={(c) => {
+                        if (ref.current)
+                            ref.current.style.backgroundColor = c.toHex()
+                    }}
+                    onColorChanged={(c) => {
+                        setColor(c)
+                    }}
+                />
+            </DropdownMenu>
+        </>
+    )
+}
+
+
 const calculateTintAndShade = (
     hexColor, // using #663399 as an example
     percentage = 0.1 // using 10% as an example
@@ -225,7 +283,7 @@ const calculateTintAndShade = (
 export function ColorTones() {
     const count = 21
     // const hex = '#000000'
-    const [hex, setHex] = useState('#000000')
+    const [hex, setHex] = useState('#415f91')
     const mid = Math.floor(count / 2)
 
     function getModifiedColor(hex: string, n: number, total: number): IColor {
@@ -297,6 +355,7 @@ export function ColorTones() {
             <div className="size-14 flex flex-col justify-center items-center text-gray-500" style={{ backgroundColor: getModifiedColor(hex, 80, 100).toHex() }}>
                 80
             </div>
+            <div className="size-[1.5cm] rounded-full" style={{ backgroundColor: '#d6e3ff' }} />
         </>
     )
 }

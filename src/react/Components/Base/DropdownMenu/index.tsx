@@ -74,7 +74,7 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, op
             id="dropdown-container"
             ref={containerRef}
             {...containerProps}
-            className={cn(['bg-background absolute z-10 transition-opacity duration-500'], containerProps?.className)}
+            className={cn(['bg-surface-container absolute z-10 transition-opacity duration-500'], containerProps?.className)}
             style={{ display, opacity }}
             onTransitionEnd={() => {
                 if (opacity === 0)

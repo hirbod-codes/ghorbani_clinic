@@ -40,9 +40,47 @@ export type Config = {
 export type ThemeMode = 'light' | 'dark'
 
 export type ColorVariants = {
-    'main': string;
-    'dark': string;
-    'light': string;
+    main: string
+    light: {
+        main: string
+        foreground: string
+        container: string
+        'container-foreground': string
+        fixed: string
+        'fixed-dim': string
+        'fixed-foreground': string
+        'fixed-foreground-variant': string
+    }
+    'light-shades': {
+        main: number
+        foreground: number
+        container: number
+        'container-foreground': number
+        fixed: number
+        'fixed-dim': number
+        'fixed-foreground': number
+        'fixed-foreground-variant': number
+    }
+    dark: {
+        main: string
+        foreground: string
+        container: string
+        'container-foreground': string
+        fixed: string
+        'fixed-dim': string
+        'fixed-foreground': string
+        'fixed-foreground-variant': string
+    }
+    'dark-shades': {
+        main: number
+        foreground: number
+        container: number
+        'container-foreground': number
+        fixed: number
+        'fixed-dim': number
+        'fixed-foreground': number
+        'fixed-foreground-variant': number
+    }
 }
 
 export type ThemeOptions = {
@@ -54,35 +92,96 @@ export type ThemeOptions = {
     foregroundCoefficient: number;
     colorCoefficient: number;
     colors: {
-        border: ColorVariants
-        input: ColorVariants
-        scrollbar: ColorVariants
-        background: ColorVariants
-        foreground: ColorVariants
-        primary: ColorVariants
-        'primary-foreground': ColorVariants
-        'primary-container': ColorVariants
-        'primary-container-foreground': ColorVariants
-        secondary: ColorVariants
-        'secondary-foreground': ColorVariants
-        'secondary-container': ColorVariants
-        'secondary-container-foreground': ColorVariants
-        tertiary: ColorVariants
-        'tertiary-foreground': ColorVariants
-        'tertiary-container': ColorVariants
-        'tertiary-container-foreground': ColorVariants
-        info: ColorVariants
-        'info-foreground': ColorVariants
-        success: ColorVariants
-        'success-foreground': ColorVariants
-        warning: ColorVariants
-        'warning-foreground': ColorVariants
-        error: ColorVariants
-        'error-foreground': ColorVariants
-        'error-container': ColorVariants
-        'error-container-foreground': ColorVariants
-        muted: ColorVariants
-        'muted-foreground': ColorVariants
+        scrollbar: string
+        palette: {
+            primary: ColorVariants
+            secondary: ColorVariants
+            tertiary: ColorVariants
+            info: ColorVariants
+            success: ColorVariants
+            warning: ColorVariants
+            error: ColorVariants
+        }
+        surface: {
+            light: {
+                main: string
+                dim: string
+                bright: string
+                'container-highest': string
+                'container-high': string
+                'container': string
+                'container-low': string
+                'container-lowest': string
+                foreground: string
+                'foreground-variant': string
+                inverse: string
+                'inverse-foreground': string
+                'inverse-primary-foreground': string
+            }
+            'light-shades': {
+                main: number
+                dim: number
+                bright: number
+                'container-highest': number
+                'container-high': number
+                'container': number
+                'container-low': number
+                'container-lowest': number
+                foreground: number
+                'foreground-variant': number
+                inverse: number
+                'inverse-foreground': number
+                'inverse-primary-foreground': number
+            }
+            dark: {
+                main: string
+                dim: string
+                bright: string
+                'container-highest': string
+                'container-high': string
+                'container': string
+                'container-low': string
+                'container-lowest': string
+                foreground: string
+                'foreground-variant': string
+                inverse: string
+                'inverse-foreground': string
+                'inverse-primary-foreground': string
+            }
+            'dark-shades': {
+                main: number
+                dim: number
+                bright: number
+                'container-highest': number
+                'container-high': number
+                'container': number
+                'container-low': number
+                'container-lowest': number
+                foreground: number
+                'foreground-variant': number
+                inverse: number
+                'inverse-foreground': number
+                'inverse-primary-foreground': number
+            }
+        }
+        outline: {
+            light: {
+                main: string
+                variant: string
+            }
+            'light-shades': {
+                main: number
+                variant: number
+            }
+            dark: {
+                main: string
+                variant: string
+            }
+            'dark-shades': {
+                main: number
+                variant: number
+            }
+        }
     }
 }
 
