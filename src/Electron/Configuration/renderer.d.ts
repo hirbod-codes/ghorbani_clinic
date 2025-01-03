@@ -94,6 +94,8 @@ export type ThemeOptions = {
             error: Color<PaletteVariants>
         }
         surface: Color<SurfaceVariants>
+        natural: string
+        naturalVariant: string
         outline: {
             light: {
                 main: string

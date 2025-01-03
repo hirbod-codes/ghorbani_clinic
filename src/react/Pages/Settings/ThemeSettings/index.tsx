@@ -1,7 +1,7 @@
-import { ComponentProps, memo, ReactNode, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { ComponentProps, memo, ReactNode, useContext, useRef, useState } from "react";
 import { ConfigurationContext } from '../../../Contexts/Configuration/ConfigurationContext';
 import { t } from 'i18next';
-import { Color as ColorType, configAPI, PaletteVariants, SurfaceVariants, ThemeOptions } from '@/src/Electron/Configuration/renderer.d';
+import { Color as ColorType, configAPI, PaletteVariants, ThemeOptions } from '@/src/Electron/Configuration/renderer.d';
 import { Switch } from "../../../Components/Base/Switch";
 import { Input } from "../../../Components/Base/Input";
 import { Button } from "@/src/react/Components/Base/Button";
@@ -16,14 +16,7 @@ import { DropdownMenu } from "@/src/react/Components/Base/DropdownMenu";
 import { ColorStatic } from "@/src/react/Lib/Colors/ColorStatic";
 import { Separator } from "@/src/react/shadcn/components/ui/separator";
 import { cn } from "@/src/react/shadcn/lib/utils";
-
-export function Text({ children, ...props }: { children?: ReactNode } & ComponentProps<'div'>) {
-    return (
-        <div {...props} className={cn(["text-nowrap text-ellipsis overflow-hidden size-full"], props?.className)}>
-            {children}
-        </div>
-    )
-}
+import { Text } from "@/src/react/Components/Base/Text";
 
 export const ThemeSettings = memo(function ThemeSettings() {
     const c = useContext(ConfigurationContext)!
@@ -87,146 +80,144 @@ export const ThemeSettings = memo(function ThemeSettings() {
         </div>
 
     return (
-        <>
-            <div className="grid grid-cols-12 grid-rows-1 items-stretch size-full p-2 overflow-hidden *:m-2">
-                <div id='grid-item-1' className="col-span-5 row-span-1 flex flex-row">
-                    <div className="w-full flex flex-col items-stretch space-y-4 px-2 overflow-y-auto">
-                        <div>
-                            <p className="text-xl">Core Colors</p>
-                            <p className="text-sm ">Override or set key colors that will be used to generate tonal palettes and schemes.</p>
-                        </div>
-                        <div>
-                            <p className="text-xl">Color match</p>
-                            <div className="flex flex-row items-center justify-between w-full">
-                                <p className="text-sm ">Stay true to my color inputs.</p>
-                                <Checkbox defaultChecked={true} size='small' />
-                            </div>
-                        </div>
-
-                        {Object.keys(themeOptions.colors.palette).map((k, i) =>
-                            <Variant<PaletteVariants>
-                                mode={themeOptions.mode}
-                                options={themeOptions.colors.palette[k]}
-                                variant='main'
-                                anchorProps={{
-                                    className: "rounded-full size-[1.2cm]"
-                                }}
-                                containerProps={{
-                                    className: "flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3",
-                                    style: {
-                                        color: themeOptions.colors.surface[themeOptions.mode].inverse,
-                                        backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground']
-                                    }
-                                }}
-                                onColorChanged={(o) => {
-                                    themeOptions.colors.palette[k] = o
-                                    setThemeOptions({ ...themeOptions })
-                                }}
-                                onColorChangeCancel={async () => {
-                                    const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
-                                    themeOptions.colors.palette[k][themeOptions.mode] = conf.themeOptions.colors.palette[k][themeOptions.mode]
-                                    setThemeOptions({ ...themeOptions })
-                                }}
-                            >
-                                <div>
-                                    <p className="text-xl text-nowrap">{k}</p>
-                                    {k === 'primary' &&
-                                        <p className="text-sm text-nowrap">Acts as custom source color</p>
-                                    }
-                                </div>
-                            </Variant>
-                        )}
-                        <div className="flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
-                            <div className="rounded-full size-[1.2cm]" style={{ backgroundColor: themeOptions.colors.palette.primary.main }} />
-                            <div>
-                                <p className="text-xl text-nowrap">Natural</p>
-                                <p className="text-sm text-nowrap">Used for background and surfaces</p>
-                            </div>
-                        </div>
-                        <div className="flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
-                            <div className="rounded-full size-[1.2cm]" style={{ backgroundColor: themeOptions.colors.palette.primary.main }} />
-                            <div>
-                                <p className="text-xl text-nowrap">Natural Variants</p>
-                                <p className="text-sm text-nowrap">Used for medium emphasis and variants</p>
-                            </div>
+        <div className="grid grid-cols-12 grid-rows-1 items-stretch size-full p-2 overflow-hidden *:m-2">
+            <div id='grid-item-1' className="col-span-5 row-span-1 flex flex-row">
+                <div className="w-full flex flex-col items-stretch space-y-4 px-2 overflow-y-auto">
+                    <div>
+                        <p className="text-xl">Core Colors</p>
+                        <p className="text-sm ">Override or set key colors that will be used to generate tonal palettes and schemes.</p>
+                    </div>
+                    <div>
+                        <p className="text-xl">Color match</p>
+                        <div className="flex flex-row items-center justify-between w-full">
+                            <p className="text-sm ">Stay true to my color inputs.</p>
+                            <Checkbox defaultChecked={true} size='small' />
                         </div>
                     </div>
-                    <Separator orientation="vertical" className="mx-4 my-8 h-auto" />
-                </div>
 
-                <div id='grid-item-2' className="col-span-7 row-span-1">
-                    <div className="size-full bg-surface-container rounded-xl p-2">
-                        <div className='grid grid-cols-4 items-start *:m-2 size-full content-start overflow-y-auto *:text-xs'>
-                            {
-                                Object
-                                    .keys(themeOptions.colors.palette)
-                                    .filter(f => ['primary', 'secondary', 'tertiary', 'error'].includes(f))
-                                    .map(p)
-                            }
-                            <div className="col-span-3 flex flex-row space-x-1">
-                                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].dim }}>
-                                    surface dim
-                                </Text>
-                                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].main }}>
-                                    surface
-                                </Text>
-                                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].bright }}>
-                                    surface bright
-                                </Text>
+                    {Object.keys(themeOptions.colors.palette).map((k, i) =>
+                        <Variant<PaletteVariants>
+                            mode={themeOptions.mode}
+                            options={themeOptions.colors.palette[k]}
+                            variant='main'
+                            anchorProps={{
+                                className: "rounded-full size-[1.2cm]"
+                            }}
+                            containerProps={{
+                                className: "flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3",
+                                style: {
+                                    color: themeOptions.colors.surface[themeOptions.mode].inverse,
+                                    backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground']
+                                }
+                            }}
+                            onColorChanged={(o) => {
+                                themeOptions.colors.palette[k] = o
+                                setThemeOptions({ ...themeOptions })
+                            }}
+                            onColorChangeCancel={async () => {
+                                const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
+                                themeOptions.colors.palette[k][themeOptions.mode] = conf.themeOptions.colors.palette[k][themeOptions.mode]
+                                setThemeOptions({ ...themeOptions })
+                            }}
+                        >
+                            <div>
+                                <p className="text-xl text-nowrap">{k}</p>
+                                {k === 'primary' &&
+                                    <p className="text-sm text-nowrap">Acts as custom source color</p>
+                                }
                             </div>
-                            <div className="col-span-1 row-span-2 flex flex-col space-y-1">
-                                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'], backgroundColor: themeOptions.colors.surface[themeOptions.mode].inverse }}>
-                                    surface inverse
-                                </Text>
-                                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
-                                    surface inverse foreground
-                                </Text>
-                                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-primary-foreground'] }}>
-                                    surface inverse primary foreground
-                                </Text>
-                            </div>
-                            <div className="col-span-3 flex flex-row space-x-1">
-                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].dim }}>
-                                    surface dim
-                                </Text>
-                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].main }}>
-                                    surface
-                                </Text>
-                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].bright }}>
-                                    surface bright
-                                </Text>
-                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].main }}>
-                                    surface
-                                </Text>
-                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].bright }}>
-                                    surface bright
-                                </Text>
-                            </div>
-                            <div className="col-span-4 flex flex-row space-x-1">
-                                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.surface[themeOptions.mode].foreground }}>
-                                    surface foreground
-                                </Text>
-                                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.surface[themeOptions.mode]["foreground-variant"] }}>
-                                    surface foreground variant
-                                </Text>
-                                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.outline[themeOptions.mode].main }}>
-                                    outline
-                                </Text>
-                                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.outline[themeOptions.mode].variant }}>
-                                    outline variant
-                                </Text>
-                            </div>
-                            {
-                                Object
-                                    .keys(themeOptions.colors.palette)
-                                    .filter(f => !['primary', 'secondary', 'tertiary', 'error'].includes(f))
-                                    .map(p)
-                            }
+                        </Variant>
+                    )}
+                    <div className="flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
+                        <div className="rounded-full size-[1.2cm]" style={{ backgroundColor: themeOptions.colors.natural }} />
+                        <div>
+                            <p className="text-xl text-nowrap">Natural</p>
+                            <p className="text-sm text-nowrap">Used for background and surfaces</p>
                         </div>
+                    </div>
+                    <div className="flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
+                        <div className="rounded-full size-[1.2cm]" style={{ backgroundColor: themeOptions.colors.naturalVariant }} />
+                        <div>
+                            <p className="text-xl text-nowrap">Natural Variants</p>
+                            <p className="text-sm text-nowrap">Used for medium emphasis and variants</p>
+                        </div>
+                    </div>
+                </div>
+                <Separator orientation="vertical" className="mx-4 my-8 h-auto" />
+            </div>
+
+            <div id='grid-item-2' className="col-span-7 row-span-1">
+                <div className="size-full bg-surface-container rounded-xl p-2">
+                    <div className='grid grid-cols-4 items-start *:m-2 size-full content-start overflow-y-auto *:text-xs'>
+                        {
+                            Object
+                                .keys(themeOptions.colors.palette)
+                                .filter(f => ['primary', 'secondary', 'tertiary', 'error'].includes(f))
+                                .map(p)
+                        }
+                        <div className="col-span-3 flex flex-row space-x-1">
+                            <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].dim }}>
+                                surface dim
+                            </Text>
+                            <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].main }}>
+                                surface
+                            </Text>
+                            <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].bright }}>
+                                surface bright
+                            </Text>
+                        </div>
+                        <div className="col-span-1 row-span-2 flex flex-col space-y-1">
+                            <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'], backgroundColor: themeOptions.colors.surface[themeOptions.mode].inverse }}>
+                                surface inverse
+                            </Text>
+                            <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
+                                surface inverse foreground
+                            </Text>
+                            <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-primary-foreground'] }}>
+                                surface inverse primary foreground
+                            </Text>
+                        </div>
+                        <div className="col-span-3 flex flex-row space-x-1">
+                            <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].dim }}>
+                                surface dim
+                            </Text>
+                            <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].main }}>
+                                surface
+                            </Text>
+                            <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].bright }}>
+                                surface bright
+                            </Text>
+                            <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].main }}>
+                                surface
+                            </Text>
+                            <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].bright }}>
+                                surface bright
+                            </Text>
+                        </div>
+                        <div className="col-span-4 flex flex-row space-x-1">
+                            <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.surface[themeOptions.mode].foreground }}>
+                                surface foreground
+                            </Text>
+                            <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.surface[themeOptions.mode]["foreground-variant"] }}>
+                                surface foreground variant
+                            </Text>
+                            <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.outline[themeOptions.mode].main }}>
+                                outline
+                            </Text>
+                            <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.outline[themeOptions.mode].variant }}>
+                                outline variant
+                            </Text>
+                        </div>
+                        {
+                            Object
+                                .keys(themeOptions.colors.palette)
+                                .filter(f => !['primary', 'secondary', 'tertiary', 'error'].includes(f))
+                                .map(p)
+                        }
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     )
 
 

@@ -25,6 +25,8 @@ function generatePalette(): ThemeOptions {
         foregroundCoefficient: 1,
         colorCoefficient: 0.3,
         colors: {
+            natural: '#919093',
+            naturalVariant: '#8e9098',
             palette: Object.fromEntries(
                 ['primary', 'secondary', 'tertiary', 'info', 'success', 'warning', 'error']
                     .map(p => [p, {
@@ -176,6 +178,8 @@ export function useConfigurationHook() {
             "foregroundCoefficient": 1,
             "colorCoefficient": 0.3,
             "colors": {
+                natural: '#919093',
+                naturalVariant: '#8e9098',
                 "palette": {
                     "primary": {
                         "main": "#769cdf",
