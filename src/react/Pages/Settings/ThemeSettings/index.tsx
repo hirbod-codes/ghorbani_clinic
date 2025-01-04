@@ -1,6 +1,6 @@
-import { ComponentProps, memo, useContext, useRef, useState } from "react";
+import { memo, useContext, useEffect, useRef, useState } from "react";
 import { ConfigurationContext } from '../../../Contexts/Configuration/ConfigurationContext';
-import { Color as ColorType, configAPI, PaletteVariants, ThemeMode, ThemeOptions } from '@/src/Electron/Configuration/renderer.d';
+import { Color as ColorType, configAPI, PaletteVariants, ThemeOptions } from '@/src/Electron/Configuration/renderer.d';
 import { RGB } from "@/src/react/Lib/Colors/RGB";
 import { IColor } from "@/src/react/Lib/Colors/IColor";
 import { HSV } from "@/src/react/Lib/Colors/HSV";
@@ -8,13 +8,13 @@ import { HSL } from "@/src/react/Lib/Colors/HSL";
 import { ColorPicker } from "@/src/react/Components/ColorPicker";
 import { Checkbox } from "@mui/material";
 import { Separator } from "@/src/react/shadcn/components/ui/separator";
-import { Text } from "@/src/react/Components/Base/Text";
-import { ClipboardCopyIcon, SaveIcon } from "lucide-react";
+import { CheckIcon, SaveIcon } from "lucide-react";
 import { ColorVariant } from "./ColorVariant";
-import { cn } from "@/src/react/shadcn/lib/utils";
 import { Button } from "@/src/react/Components/Base/Button";
 import { PaletteColorCards } from "./PaletteColorCards";
 import { ColorCard } from "./ColorCard";
+import { Input } from "@/src/react/Components/Base/Input";
+import { usePointerOutside } from "@/src/react/Components/Base/usePointerOutside";
 
 export const ThemeSettings = memo(function ThemeSettings() {
     const c = useContext(ConfigurationContext)!
@@ -55,7 +55,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                 setThemeOptions({ ...themeOptions })
             }}
             onOptionChange={(option: ColorType<PaletteVariants>) => {
-                themeOptions.colors.palette[k] = option[k]
+                themeOptions.colors.palette[k] = option
                 setThemeOptions({ ...themeOptions })
             }}
         />
@@ -94,12 +94,10 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                     }
                                 }}
                                 onColorChanged={(o) => {
-                                    console.log('onColorChanged', o)
                                     themeOptions.colors.palette[k] = o
                                     setThemeOptions({ ...themeOptions })
                                 }}
                                 onColorChangeCancel={async () => {
-                                    console.log('onColorChangeCancel')
                                     const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
                                     themeOptions.colors.palette[k] = conf.themeOptions.colors.palette[k]
                                     setThemeOptions({ ...themeOptions })
@@ -147,219 +145,233 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                 }
                             </div>
                             <div id='surface' className="col-span-4 row-span-1 flex flex-row *:w-1/3">
-                                <ColorVariant
-                                    mode={themeOptions.mode}
-                                    options={themeOptions.colors.surface}
-                                    variant={'dim'}
-                                    anchorChildren={
-                                        <ColorCard
-                                            text={'surface dim'}
-                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
-                                            bg={themeOptions.colors.surface[themeOptions.mode].dim}
-                                            containerProps={{ className: "h-24 p-1" }}
+                                {Object
+                                    .keys(themeOptions.colors.surface[themeOptions.mode])
+                                    .filter(f => ['main', 'dim', 'bright'].includes(f))
+                                    .map((k, i) =>
+                                        <ColorVariant
+                                            key={i}
+                                            mode={themeOptions.mode}
+                                            options={themeOptions.colors.surface}
+                                            variant={k}
+                                            onColorChanged={async (o) => {
+                                                themeOptions.colors.palette[k] = o
+                                                setThemeOptions({ ...themeOptions })
+                                            }}
+                                            onColorChangeCancel={async () => {
+                                                const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
+                                                themeOptions.colors.palette[k] = conf.themeOptions.colors.palette[k]
+                                                setThemeOptions({ ...themeOptions })
+                                            }}
+                                            anchorChildren={
+                                                <ColorCard
+                                                    subText={
+                                                        <ColorShade
+                                                            mode={themeOptions.mode}
+                                                            options={themeOptions.colors.surface}
+                                                            variant={k}
+                                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
+                                                            onChangeCancel={async () => {
+                                                                const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
+                                                                themeOptions.colors.surface[themeOptions.mode + '-shades'][k] = conf.themeOptions.colors.surface[themeOptions.mode + '-shades'][k]
+                                                                setThemeOptions({ ...themeOptions })
+                                                            }}
+                                                            onChange={(shade) => {
+                                                                themeOptions.colors.surface[themeOptions.mode + '-shades'][k] = shade
+                                                                setThemeOptions({ ...themeOptions })
+                                                            }}
+                                                        />
+                                                    }
+                                                    text={`surface ${k === 'main' ? '' : k.replace('-', ' ')}`}
+                                                    fg={themeOptions.colors.surface[themeOptions.mode].foreground}
+                                                    bg={themeOptions.colors.surface[themeOptions.mode][k]}
+                                                    containerProps={{ className: "h-24 p-1" }}
+                                                />
+                                            }
                                         />
-                                    }
-                                />
-                                <ColorVariant
-                                    mode={themeOptions.mode}
-                                    options={themeOptions.colors.surface}
-                                    variant={'main'}
-                                    anchorChildren={
-                                        <ColorCard
-                                            text={'surface'}
-                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
-                                            bg={themeOptions.colors.surface[themeOptions.mode].main}
-                                            containerProps={{ className: "h-24 p-1" }}
-                                        />
-                                    }
-                                />
-                                <ColorVariant
-                                    mode={themeOptions.mode}
-                                    options={themeOptions.colors.surface}
-                                    variant={'bright'}
-                                    anchorChildren={
-                                        <ColorCard
-                                            text={'surface bright'}
-                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
-                                            bg={themeOptions.colors.surface[themeOptions.mode].bright}
-                                            containerProps={{ className: "h-24 p-1" }}
-                                        />
-                                    }
-                                />
+                                    )
+                                }
                             </div>
                             <div id='surface-inverse' className="col-span-4 row-span-1 flex flex-row *:w-1/3">
-                                <ColorVariant
-                                    mode={themeOptions.mode}
-                                    options={themeOptions.colors.surface}
-                                    variant={'inverse'}
-                                    anchorChildren={
-                                        <ColorCard
-                                            text={'surface inverse'}
-                                            fg={themeOptions.colors.surface[themeOptions.mode]["inverse-foreground"]}
-                                            bg={themeOptions.colors.surface[themeOptions.mode].inverse}
-                                            containerProps={{ className: "h-24 p-1" }}
+                                {Object
+                                    .keys(themeOptions.colors.surface[themeOptions.mode])
+                                    .filter(f => f.includes('inverse'))
+                                    .map((k, i) =>
+                                        <ColorVariant
+                                            key={i}
+                                            mode={themeOptions.mode}
+                                            options={themeOptions.colors.surface}
+                                            variant={k}
+                                            onColorChanged={async (o) => {
+                                                themeOptions.colors.palette[k] = o
+                                                setThemeOptions({ ...themeOptions })
+                                            }}
+                                            onColorChangeCancel={async () => {
+                                                const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
+                                                themeOptions.colors.palette[k] = conf.themeOptions.colors.palette[k]
+                                                setThemeOptions({ ...themeOptions })
+                                            }}
+                                            anchorChildren={
+                                                <ColorCard
+                                                    subText={
+                                                        <ColorShade
+                                                            mode={themeOptions.mode}
+                                                            options={themeOptions.colors.surface}
+                                                            variant={k}
+                                                            fg={themeOptions.colors.surface[themeOptions.mode][k.includes('foreground') ? 'inverse' : 'inverse-foreground']}
+                                                            onChangeCancel={async () => {
+                                                                const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
+                                                                themeOptions.colors.surface[themeOptions.mode + '-shades'][k] = conf.themeOptions.colors.surface[themeOptions.mode + '-shades'][k]
+                                                                setThemeOptions({ ...themeOptions })
+                                                            }}
+                                                            onChange={(shade) => {
+                                                                themeOptions.colors.surface[themeOptions.mode + '-shades'][k] = shade
+                                                                setThemeOptions({ ...themeOptions })
+                                                            }}
+                                                        />
+                                                    }
+                                                    text={`surface ${k.replace('-', ' ')}`}
+                                                    fg={themeOptions.colors.surface[themeOptions.mode][k.includes('foreground') ? 'inverse' : 'inverse-foreground']}
+                                                    bg={themeOptions.colors.surface[themeOptions.mode][k]}
+                                                    containerProps={{ className: "h-24 p-1" }}
+                                                />
+                                            }
                                         />
-                                    }
-                                />
-                                <ColorVariant
-                                    mode={themeOptions.mode}
-                                    options={themeOptions.colors.surface}
-                                    variant={'inverse-foreground'}
-                                    anchorChildren={
-                                        <ColorCard
-                                            text={'surface inverse foreground'}
-                                            fg={themeOptions.colors.surface[themeOptions.mode].inverse}
-                                            bg={themeOptions.colors.surface[themeOptions.mode]["inverse-foreground"]}
-                                            containerProps={{ className: "h-24 p-1" }}
-                                        />
-                                    }
-                                />
-                                <ColorVariant
-                                    mode={themeOptions.mode}
-                                    options={themeOptions.colors.surface}
-                                    variant={'inverse-primary-foreground'}
-                                    anchorChildren={
-                                        <ColorCard
-                                            text={'surface inverse primary foreground'}
-                                            fg={themeOptions.colors.surface[themeOptions.mode].inverse}
-                                            bg={themeOptions.colors.surface[themeOptions.mode]["inverse-primary-foreground"]}
-                                            containerProps={{ className: "h-24 p-1" }}
-                                        />
-                                    }
-                                />
+                                    )
+                                }
                             </div>
                             <div id='surface-container' className="col-span-4 row-span-1 flex flex-row *:w-1/5">
-                                <ColorVariant
-                                    mode={themeOptions.mode}
-                                    options={themeOptions.colors.surface}
-                                    variant={'container-lowest'}
-                                    anchorChildren={
-                                        <ColorCard
-                                            text={'surface container lowest'}
-                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
-                                            bg={themeOptions.colors.surface[themeOptions.mode]["container-lowest"]}
-                                            containerProps={{ className: "h-24 p-1" }}
+                                {Object
+                                    .keys(themeOptions.colors.surface[themeOptions.mode])
+                                    .filter(f => f.includes('container'))
+                                    .reverse()
+                                    .map((k, i) =>
+                                        <ColorVariant
+                                            key={i}
+                                            mode={themeOptions.mode}
+                                            options={themeOptions.colors.surface}
+                                            variant={k}
+                                            onColorChanged={async (o) => {
+                                                themeOptions.colors.palette[k] = o
+                                                setThemeOptions({ ...themeOptions })
+                                            }}
+                                            onColorChangeCancel={async () => {
+                                                const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
+                                                themeOptions.colors.palette[k] = conf.themeOptions.colors.palette[k]
+                                                setThemeOptions({ ...themeOptions })
+                                            }}
+                                            anchorChildren={
+                                                <ColorCard
+                                                    subText={
+                                                        <ColorShade
+                                                            mode={themeOptions.mode}
+                                                            options={themeOptions.colors.surface}
+                                                            variant={k}
+                                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
+                                                            onChangeCancel={async () => {
+                                                                const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
+                                                                themeOptions.colors.surface[themeOptions.mode + '-shades'][k] = conf.themeOptions.colors.surface[themeOptions.mode + '-shades'][k]
+                                                                setThemeOptions({ ...themeOptions })
+                                                            }}
+                                                            onChange={(shade) => {
+                                                                themeOptions.colors.surface[themeOptions.mode + '-shades'][k] = shade
+                                                                setThemeOptions({ ...themeOptions })
+                                                            }}
+                                                        />
+                                                    }
+                                                    text={`surface ${k.replace('-', ' ')}`}
+                                                    fg={themeOptions.colors.surface[themeOptions.mode].foreground}
+                                                    bg={themeOptions.colors.surface[themeOptions.mode][k]}
+                                                    containerProps={{ className: "h-24 p-1" }}
+                                                />
+                                            }
                                         />
-                                    }
-                                />
-                                <ColorVariant
-                                    mode={themeOptions.mode}
-                                    options={themeOptions.colors.surface}
-                                    variant={'container-low'}
-                                    anchorChildren={
-                                        <ColorCard
-                                            text={'surface container low'}
-                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
-                                            bg={themeOptions.colors.surface[themeOptions.mode]["container-low"]}
-                                            containerProps={{ className: "h-24 p-1" }}
-                                        />
-                                    }
-                                />
-                                <ColorVariant
-                                    mode={themeOptions.mode}
-                                    options={themeOptions.colors.surface}
-                                    variant={'container'}
-                                    anchorChildren={
-                                        <ColorCard
-                                            text={'surface container'}
-                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
-                                            bg={themeOptions.colors.surface[themeOptions.mode].container}
-                                            containerProps={{ className: "h-24 p-1" }}
-                                        />
-                                    }
-                                />
-                                <ColorVariant
-                                    mode={themeOptions.mode}
-                                    options={themeOptions.colors.surface}
-                                    variant={'container-high'}
-                                    anchorChildren={
-                                        <ColorCard
-                                            text={'surface container high'}
-                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
-                                            bg={themeOptions.colors.surface[themeOptions.mode]["container-high"]}
-                                            containerProps={{ className: "h-24 p-1" }}
-                                        />
-                                    }
-                                />
-                                <ColorVariant
-                                    mode={themeOptions.mode}
-                                    options={themeOptions.colors.surface}
-                                    variant={'container-highest'}
-                                    anchorChildren={
-                                        <ColorCard
-                                            text={'surface container highest'}
-                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
-                                            bg={themeOptions.colors.surface[themeOptions.mode]["container-highest"]}
-                                            containerProps={{ className: "h-24 p-1" }}
-                                        />
-                                    }
-                                />
+                                    )
+                                }
                             </div>
                             <div id='surface-foreground-outline' className="col-span-4 row-span-1 flex flex-row *:w-1/4">
-                                <ColorVariant
-                                    mode={themeOptions.mode}
-                                    options={themeOptions.colors.surface}
-                                    variant={'foreground'}
-                                    anchorChildren={
-                                        <ColorCard
-                                            text={'surface foreground'}
-                                            fg={themeOptions.colors.surface[themeOptions.mode].main}
-                                            bg={themeOptions.colors.surface[themeOptions.mode].foreground}
-                                            containerProps={{ className: "h-24 p-1" }}
+                                {Object
+                                    .keys(themeOptions.colors.surface[themeOptions.mode])
+                                    .filter(f => ['foreground', 'foreground-variant'].includes(f))
+                                    .map((k, i) =>
+                                        <ColorVariant
+                                            key={i}
+                                            mode={themeOptions.mode}
+                                            options={themeOptions.colors.surface}
+                                            variant={k}
+                                            onColorChanged={async (o) => {
+                                                themeOptions.colors.palette[k] = o
+                                                setThemeOptions({ ...themeOptions })
+                                            }}
+                                            onColorChangeCancel={async () => {
+                                                const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
+                                                themeOptions.colors.palette[k] = conf.themeOptions.colors.palette[k]
+                                                setThemeOptions({ ...themeOptions })
+                                            }}
+                                            anchorChildren={
+                                                <ColorCard
+                                                    subText={
+                                                        <ColorShade
+                                                            mode={themeOptions.mode}
+                                                            options={themeOptions.colors.surface}
+                                                            variant={k}
+                                                            fg={themeOptions.colors.surface[themeOptions.mode].main}
+                                                            onChangeCancel={async () => {
+                                                                const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
+                                                                themeOptions.colors.surface[themeOptions.mode + '-shades'][k] = conf.themeOptions.colors.surface[themeOptions.mode + '-shades'][k]
+                                                                setThemeOptions({ ...themeOptions })
+                                                            }}
+                                                            onChange={(shade) => {
+                                                                themeOptions.colors.surface[themeOptions.mode + '-shades'][k] = shade
+                                                                setThemeOptions({ ...themeOptions })
+                                                            }}
+                                                        />
+                                                    }
+                                                    text={`surface ${k.replace('-', ' ')}`}
+                                                    fg={themeOptions.colors.surface[themeOptions.mode].main}
+                                                    bg={themeOptions.colors.surface[themeOptions.mode][k]}
+                                                    containerProps={{ className: "h-24 p-1" }}
+                                                />
+                                            }
                                         />
-                                    }
-                                />
-                                <ColorVariant
-                                    mode={themeOptions.mode}
-                                    options={themeOptions.colors.surface}
-                                    variant={'foreground-variant'}
-                                    anchorChildren={
-                                        <ColorCard
-                                            text={'surface foreground variant'}
-                                            fg={themeOptions.colors.surface[themeOptions.mode].main}
-                                            bg={themeOptions.colors.surface[themeOptions.mode]["foreground-variant"]}
-                                            containerProps={{ className: "h-24 p-1" }}
+                                    )
+                                }
+                                {Object
+                                    .keys(themeOptions.colors.outline[themeOptions.mode])
+                                    .map((k, i) =>
+                                        <ColorVariant
+                                            key={i}
+                                            mode={themeOptions.mode}
+                                            options={themeOptions.colors.outline}
+                                            variant={k}
+                                            anchorChildren={
+                                                <ColorCard
+                                                    subText={
+                                                        <ColorShade
+                                                            mode={themeOptions.mode}
+                                                            options={themeOptions.colors.outline}
+                                                            variant={k}
+                                                            fg={themeOptions.colors.surface[themeOptions.mode][k === 'main' ? 'main' : 'foreground']}
+                                                            onChangeCancel={async () => {
+                                                                const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
+                                                                themeOptions.colors.outline[themeOptions.mode + '-shades'][k] = conf.themeOptions.colors.outline[themeOptions.mode + '-shades'][k]
+                                                                setThemeOptions({ ...themeOptions })
+                                                            }}
+                                                            onChange={(shade) => {
+                                                                themeOptions.colors.outline[themeOptions.mode + '-shades'][k] = shade
+                                                                setThemeOptions({ ...themeOptions })
+                                                            }}
+                                                        />
+                                                    }
+                                                    text={`outline ${k === 'main' ? '' : k.replace('-', ' ')}`}
+                                                    fg={themeOptions.colors.surface[themeOptions.mode][k === 'main' ? 'main' : 'foreground']}
+                                                    bg={themeOptions.colors.outline[themeOptions.mode][k]}
+                                                    containerProps={{ className: "h-24 p-1" }}
+                                                />
+                                            }
                                         />
-                                    }
-                                />
-                                <ColorVariant
-                                    mode={themeOptions.mode}
-                                    options={themeOptions.colors.outline}
-                                    variant={'main'}
-                                    anchorChildren={
-                                        <ColorCard
-                                            text={'outline'}
-                                            fg={themeOptions.colors.surface[themeOptions.mode].main}
-                                            bg={themeOptions.colors.outline[themeOptions.mode].main}
-                                            containerProps={{ className: "h-24 p-1" }}
-                                        />
-                                    }
-                                />
-                                <ColorVariant
-                                    mode={themeOptions.mode}
-                                    options={themeOptions.colors.outline}
-                                    variant={'variant'}
-                                    anchorChildren={
-                                        <ColorCard
-                                            text={'outline variant'}
-                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
-                                            bg={themeOptions.colors.outline[themeOptions.mode].variant}
-                                            containerProps={{ className: "h-24 p-1" }}
-                                        />
-                                    }
-                                />
-                                {/* <Text className="py-2 w-1/4 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.surface[themeOptions.mode].foreground }}>
-                                    surface foreground
-                                </Text>
-                                <Text className="py-2 w-1/4 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.surface[themeOptions.mode]["foreground-variant"] }}>
-                                    surface foreground variant
-                                </Text>
-                                <Text className="py-2 w-1/4 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.outline[themeOptions.mode].main }}>
-                                    outline
-                                </Text>
-                                <Text className="py-2 w-1/4 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.outline[themeOptions.mode].variant }}>
-                                    outline variant
-                                </Text> */}
+                                    )
+                                }
                             </div>
                             {/* secondary-palette */}
                             {
@@ -386,6 +398,89 @@ export const ThemeSettings = memo(function ThemeSettings() {
         </div>
     )
 })
+
+export type ColorShadeProps<T extends { [k: string]: string }> = {
+    options: ColorType<T>
+    mode: keyof ColorType<T>
+    variant: keyof T
+    fg: string
+    onChange?: (shade: number) => void | Promise<void>
+    onChangeCancel?: () => void | Promise<void>
+}
+
+export const ColorShade = memo(function ColorShade<T extends { [k: string]: string }>({ options, mode, variant, fg, onChange, onChangeCancel }: ColorShadeProps<T>) {
+    const [editingShade, setEditingShade] = useState<boolean>(false)
+    const [error, setError] = useState<string | undefined>(undefined)
+
+    const [text, setText] = useState<string>(options[mode + '-shades'][variant])
+
+    useEffect(() => {
+        setEditingShade(false)
+        setText(options[mode + '-shades'][variant])
+    }, [options[mode + '-shades'][variant]])
+
+    const ref = useRef<HTMLDivElement>(null)
+
+    usePointerOutside(ref, (isOutside) => {
+        if (isOutside) {
+            setEditingShade(false)
+            if (onChangeCancel)
+                onChangeCancel()
+        }
+    }, [ref])
+
+    console.log('ColorShade', { error, text, editingShade, ref: ref.current, options, mode, variant, fg })
+
+    return (
+        <div ref={ref} className="w-fit hover:opacity-50" onClick={(e) => { e.stopPropagation(); setEditingShade(true) }}>
+            {editingShade
+                ?
+                <div className="flex flex-row space-x-1">
+                    <Input
+                        containerProps={{ className: 'w-[1cm]' }}
+                        className="size-full p-0"
+                        style={{ backgroundColor: options[mode as string][variant], color: fg, borderColor: fg }}
+                        value={text}
+                        errorText={error}
+                        onChange={(e) => {
+                            e.stopPropagation();
+                            setText(e.target.value)
+
+                            let n = Number(e.target.value)
+                            if (Number.isNaN(n) || n === Infinity)
+                                setError('Value must be a number.')
+                            else if (n < 0 || n > 100)
+                                setError('Value must be between 0 and 100.')
+                            else
+                                setError(undefined)
+                        }}
+                    />
+                    <Button
+                        size='icon'
+                        className="size-5 p-0 m-0"
+                        onClick={async () => {
+                            if (error !== undefined)
+                                return
+
+                            setEditingShade(false)
+
+                            if (onChange)
+                                await onChange(Number(text))
+                        }}
+                        style={{ backgroundColor: fg }}
+                        color={fg}
+                    >
+                        <CheckIcon
+                            color={options[mode as string][variant]}
+                        />
+                    </Button>
+                </div>
+                : 'P-' + options[mode + '-shades'][variant]
+            }
+        </div>
+    )
+})
+
 
 export function ColorTones() {
     const count = 21
