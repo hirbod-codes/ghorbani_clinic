@@ -202,7 +202,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                             }}
                                             onColorChangeCancel={async () => {
                                                 const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
-                                                themeOptions.colors.palette[k] = conf.themeOptions.colors.palette[k]
+                                                themeOptions.colors.surface[k] = conf.themeOptions.colors.surface[k]
                                                 setThemeOptions({ ...themeOptions })
                                             }}
                                             anchorChildren={
@@ -251,7 +251,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                             }}
                                             onColorChangeCancel={async () => {
                                                 const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
-                                                themeOptions.colors.palette[k] = conf.themeOptions.colors.palette[k]
+                                                themeOptions.colors.surface[k] = conf.themeOptions.colors.surface[k]
                                                 setThemeOptions({ ...themeOptions })
                                             }}
                                             anchorChildren={
@@ -299,7 +299,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                             }}
                                             onColorChangeCancel={async () => {
                                                 const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
-                                                themeOptions.colors.palette[k] = conf.themeOptions.colors.palette[k]
+                                                themeOptions.colors.surface[k] = conf.themeOptions.colors.surface[k]
                                                 setThemeOptions({ ...themeOptions })
                                             }}
                                             anchorChildren={
@@ -338,6 +338,15 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                             mode={themeOptions.mode}
                                             options={themeOptions.colors.outline}
                                             variant={k}
+                                            onColorChanged={async (o) => {
+                                                themeOptions.colors.outline[k] = o[k]
+                                                setThemeOptions({ ...themeOptions })
+                                            }}
+                                            onColorChangeCancel={async () => {
+                                                const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
+                                                themeOptions.colors.outline[k] = conf.themeOptions.colors.outline[k]
+                                                setThemeOptions({ ...themeOptions })
+                                            }}
                                             anchorChildren={
                                                 <ColorCard
                                                     subText={
