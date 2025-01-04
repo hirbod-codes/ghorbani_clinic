@@ -1,20 +1,14 @@
-import { memo, useContext, useEffect, useRef, useState } from "react";
+import { memo, useContext, useState } from "react";
 import { ConfigurationContext } from '../../../Contexts/Configuration/ConfigurationContext';
 import { Color as ColorType, configAPI, PaletteVariants, ThemeOptions } from '@/src/Electron/Configuration/renderer.d';
-import { RGB } from "@/src/react/Lib/Colors/RGB";
-import { IColor } from "@/src/react/Lib/Colors/IColor";
-import { HSV } from "@/src/react/Lib/Colors/HSV";
-import { HSL } from "@/src/react/Lib/Colors/HSL";
-import { ColorPicker } from "@/src/react/Components/ColorPicker";
 import { Checkbox } from "@mui/material";
 import { Separator } from "@/src/react/shadcn/components/ui/separator";
-import { CheckIcon, SaveIcon } from "lucide-react";
+import { SaveIcon } from "lucide-react";
 import { ColorVariant } from "./ColorVariant";
 import { Button } from "@/src/react/Components/Base/Button";
 import { PaletteColorCards } from "./PaletteColorCards";
 import { ColorCard } from "./ColorCard";
-import { Input } from "@/src/react/Components/Base/Input";
-import { usePointerOutside } from "@/src/react/Components/Base/usePointerOutside";
+import { ColorShade } from "./ColorShade";
 
 export const ThemeSettings = memo(function ThemeSettings() {
     const c = useContext(ConfigurationContext)!
@@ -155,12 +149,12 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                             options={themeOptions.colors.surface}
                                             variant={k}
                                             onColorChanged={async (o) => {
-                                                themeOptions.colors.palette[k] = o
+                                                themeOptions.colors.surface[k] = o[k]
                                                 setThemeOptions({ ...themeOptions })
                                             }}
                                             onColorChangeCancel={async () => {
                                                 const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
-                                                themeOptions.colors.palette[k] = conf.themeOptions.colors.palette[k]
+                                                themeOptions.colors.surface[k] = conf.themeOptions.colors.surface[k]
                                                 setThemeOptions({ ...themeOptions })
                                             }}
                                             anchorChildren={
@@ -203,7 +197,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                             options={themeOptions.colors.surface}
                                             variant={k}
                                             onColorChanged={async (o) => {
-                                                themeOptions.colors.palette[k] = o
+                                                themeOptions.colors.surface[k] = o[k]
                                                 setThemeOptions({ ...themeOptions })
                                             }}
                                             onColorChangeCancel={async () => {
@@ -252,7 +246,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                             options={themeOptions.colors.surface}
                                             variant={k}
                                             onColorChanged={async (o) => {
-                                                themeOptions.colors.palette[k] = o
+                                                themeOptions.colors.surface[k] = o[k]
                                                 setThemeOptions({ ...themeOptions })
                                             }}
                                             onColorChangeCancel={async () => {
@@ -300,7 +294,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                             options={themeOptions.colors.surface}
                                             variant={k}
                                             onColorChanged={async (o) => {
-                                                themeOptions.colors.palette[k] = o
+                                                themeOptions.colors.surface[k] = o[k]
                                                 setThemeOptions({ ...themeOptions })
                                             }}
                                             onColorChangeCancel={async () => {
@@ -398,167 +392,3 @@ export const ThemeSettings = memo(function ThemeSettings() {
         </div>
     )
 })
-
-export type ColorShadeProps<T extends { [k: string]: string }> = {
-    options: ColorType<T>
-    mode: keyof ColorType<T>
-    variant: keyof T
-    fg: string
-    onChange?: (shade: number) => void | Promise<void>
-    onChangeCancel?: () => void | Promise<void>
-}
-
-export const ColorShade = memo(function ColorShade<T extends { [k: string]: string }>({ options, mode, variant, fg, onChange, onChangeCancel }: ColorShadeProps<T>) {
-    const [editingShade, setEditingShade] = useState<boolean>(false)
-    const [error, setError] = useState<string | undefined>(undefined)
-
-    const [text, setText] = useState<string>(options[mode + '-shades'][variant])
-
-    useEffect(() => {
-        setEditingShade(false)
-        setText(options[mode + '-shades'][variant])
-    }, [options[mode + '-shades'][variant]])
-
-    const ref = useRef<HTMLDivElement>(null)
-
-    usePointerOutside(ref, (isOutside) => {
-        if (isOutside) {
-            setEditingShade(false)
-            if (onChangeCancel)
-                onChangeCancel()
-        }
-    }, [ref])
-
-    console.log('ColorShade', { error, text, editingShade, ref: ref.current, options, mode, variant, fg })
-
-    return (
-        <div ref={ref} className="w-fit hover:opacity-50" onClick={(e) => { e.stopPropagation(); setEditingShade(true) }}>
-            {editingShade
-                ?
-                <div className="flex flex-row space-x-1">
-                    <Input
-                        containerProps={{ className: 'w-[1cm]' }}
-                        className="size-full p-0"
-                        style={{ backgroundColor: options[mode as string][variant], color: fg, borderColor: fg }}
-                        value={text}
-                        errorText={error}
-                        onChange={(e) => {
-                            e.stopPropagation();
-                            setText(e.target.value)
-
-                            let n = Number(e.target.value)
-                            if (Number.isNaN(n) || n === Infinity)
-                                setError('Value must be a number.')
-                            else if (n < 0 || n > 100)
-                                setError('Value must be between 0 and 100.')
-                            else
-                                setError(undefined)
-                        }}
-                    />
-                    <Button
-                        size='icon'
-                        className="size-5 p-0 m-0"
-                        onClick={async () => {
-                            if (error !== undefined)
-                                return
-
-                            setEditingShade(false)
-
-                            if (onChange)
-                                await onChange(Number(text))
-                        }}
-                        style={{ backgroundColor: fg }}
-                        color={fg}
-                    >
-                        <CheckIcon
-                            color={options[mode as string][variant]}
-                        />
-                    </Button>
-                </div>
-                : 'P-' + options[mode + '-shades'][variant]
-            }
-        </div>
-    )
-})
-
-
-export function ColorTones() {
-    const count = 21
-    // const hex = '#000000'
-    const [hex, setHex] = useState('#415f91')
-    const mid = Math.floor(count / 2)
-
-    function getModifiedColor(hex: string, n: number, total: number): IColor {
-        const color = RGB.fromHex(hex)
-        const mid = Math.floor(total / 2)
-
-        if (n >= mid)
-            color.lighten((n - mid) / mid)
-        else
-            color.darken(1 - (n / mid))
-
-        return color
-    }
-
-    return (
-        <>
-            <ColorPicker
-                controlledColor={HSV.fromHex(hex) as HSV}
-                onColorChanging={(c) => setHex(c.toHex())}
-            />
-            <div className="w-full overflow-auto m-1 border rounded-lg">
-                <div className="h-14 flex flex-row space-x-1">
-                    {Array.from(Array(count).keys()).map((n, i) => {
-                        const c = HSL.fromHex(hex)
-                        if (n <= mid)
-                            c.darken(1 - (n / mid))
-                        else
-                            c.lighten((n - mid) / mid)
-
-                        return (
-                            <div key={i} className="size-14 flex flex-col justify-center items-center text-gray-500" style={{ backgroundColor: c.toHex() }}>
-                                {n * 5}
-                            </div>
-                        )
-                    })}
-                </div>
-                <div className="h-14 flex flex-row space-x-1">
-                    {Array.from(Array(count).keys()).map((n, i) => {
-                        const c = HSL.fromHex(hex)
-                        if (n <= mid)
-                            c.darken(1 - (n / mid))
-                        else
-                            c.lighten((n - mid) / mid)
-
-                        return (
-                            <div key={i} className="size-14 flex flex-col justify-center items-center text-gray-500" style={{ backgroundColor: c.toHex() }}>
-                                {n * 5}
-                            </div>
-                        )
-                    })}
-                </div>
-                <div className="h-14 flex flex-row space-x-1">
-                    {Array.from(Array(count).keys()).map((n, i) => {
-                        const c = RGB.fromHex(hex)
-                        if (n <= mid)
-                            c.darken(1 - (n / mid))
-                        else
-                            c.lighten((n - mid) / mid)
-
-                        return (
-                            <div key={i} className="size-14 flex flex-col justify-center items-center text-gray-500" style={{ backgroundColor: c.toHex() }}>
-                                {n * 5}
-                            </div>
-                        )
-                    })}
-                </div>
-            </div>
-
-            <div className="size-14 flex flex-col justify-center items-center text-gray-500" style={{ backgroundColor: getModifiedColor(hex, 80, 100).toHex() }}>
-                80
-            </div>
-            <div className="size-[1.5cm] rounded-full" style={{ backgroundColor: '#d6e3ff' }} />
-        </>
-    )
-}
-

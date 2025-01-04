@@ -2,7 +2,7 @@ import { memo } from "react";
 import { Color as ColorType, configAPI, PaletteVariants, ThemeMode, ThemeOptions } from '@/src/Electron/Configuration/renderer.d';
 import { ColorCard } from "./ColorCard";
 import { ColorVariant } from "./ColorVariant";
-import { ColorShade } from ".";
+import { ColorShade } from "./ColorShade";
 
 export const PaletteColorCards = memo(function PaletteColorCards({ options, name, mode, onOptionChange, onOptionChangeCancel }: { options: ColorType<PaletteVariants>, mode: ThemeMode, name: keyof ThemeOptions['colors']['palette'], onOptionChange?: (option: ColorType<PaletteVariants>) => void | Promise<void>, onOptionChangeCancel?: () => void | Promise<void> }) {
     console.log('PaletteColorCards', { options, name, mode })
