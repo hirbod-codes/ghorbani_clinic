@@ -32,8 +32,9 @@ export const ColorVariant = memo(function ColorVariant<T extends { [k: string]: 
         <div {...containerProps}>
             <div
                 ref={ref}
+                id='anchor'
                 style={{ backgroundColor: color.toHex() }}
-                onClick={() => setOpen(true)}
+                onClick={(e) => { console.log(e.target, e.currentTarget); if ((e.target as any).id !== 'action') setOpen(true) }}
                 {...anchorProps}
                 className={cn(['cursor-pointer'], anchorProps?.className)}
             >
@@ -84,6 +85,6 @@ export const ColorVariant = memo(function ColorVariant<T extends { [k: string]: 
                 />
             </DropdownMenu>
             {children}
-        </div>
+        </div >
     )
 })

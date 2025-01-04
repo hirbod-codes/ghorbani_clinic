@@ -13,6 +13,7 @@ import { ClipboardCopyIcon, SaveIcon } from "lucide-react";
 import { ColorVariant } from "./ColorVariant";
 import { cn } from "@/src/react/shadcn/lib/utils";
 import { Button } from "@/src/react/Components/Base/Button";
+import { PaletteColorCards } from "./PaletteColorCards";
 
 export const ThemeSettings = memo(function ThemeSettings() {
     const c = useContext(ConfigurationContext)!
@@ -53,7 +54,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                 setThemeOptions({ ...themeOptions })
             }}
             onOptionChange={(option: ColorType<PaletteVariants>) => {
-                themeOptions.colors.palette[k] = option
+                themeOptions.colors.palette[k] = option[k]
                 setThemeOptions({ ...themeOptions })
             }}
         />
@@ -77,6 +78,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
 
                         {Object.keys(themeOptions.colors.palette).map((k, i) =>
                             <ColorVariant
+                                key={i}
                                 mode={themeOptions.mode}
                                 options={themeOptions.colors.palette[k]}
                                 variant='main'
@@ -91,12 +93,12 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                     }
                                 }}
                                 onColorChanged={(o) => {
-                                    themeOptions.colors.palette[k] = o
+                                    themeOptions.colors.palette[k] = o[k]
                                     setThemeOptions({ ...themeOptions })
                                 }}
                                 onColorChangeCancel={async () => {
                                     const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
-                                    themeOptions.colors.palette[k][themeOptions.mode] = conf.themeOptions.colors.palette[k][themeOptions.mode]
+                                    themeOptions.colors.palette[k] = conf.themeOptions.colors.palette[k]
                                     setThemeOptions({ ...themeOptions })
                                 }}
                             >
@@ -216,88 +218,6 @@ export const ThemeSettings = memo(function ThemeSettings() {
                 </Button>
             </div>
         </div>
-    )
-})
-
-export const ColorCard = memo(function ColorCard({ bg, fg, text, containerProps }: { bg: string, fg: string, text: string, containerProps?: ComponentProps<'div'> }) {
-    const ref = useRef<HTMLDivElement>(null)
-
-    return (
-        <div style={{ backgroundColor: bg, color: fg }} {...containerProps} className={cn(['relative'], containerProps?.className)} onPointerOver={() => { if (ref.current) ref.current.style.opacity = '1' }} onPointerOut={() => { if (ref.current) ref.current.style.opacity = '0' }}>
-            <div
-                ref={ref}
-                className="absolute bottom-1 right-1 transition"
-                style={{ opacity: 0 }}
-                onClick={async () => { if (navigator.clipboard) await navigator.clipboard.writeText(text) }}
-            >
-                <ClipboardCopyIcon size={18} color={fg} />
-            </div>
-            <Text className="pr-6">
-                {text}
-            </Text>
-        </div>
-    )
-})
-
-
-export const PaletteColorCards = memo(function PaletteColorCards({ options, name, mode, onOptionChange, onOptionChangeCancel }: { options: ColorType<PaletteVariants>, mode: ThemeMode, name: keyof ThemeOptions['colors']['palette'], onOptionChange?: (option: ColorType<PaletteVariants>) => void | Promise<void>, onOptionChangeCancel?: () => void | Promise<void> }) {
-    return (
-        <>
-            <div id='main' className="flex flex-col">
-                <ColorCard
-                    text={name}
-                    fg={options[mode].foreground}
-                    bg={options[mode].main}
-                    containerProps={{ className: "h-20 w-full p-1" }}
-                />
-                <ColorCard
-                    text={name + ' foreground'}
-                    fg={options[mode].main}
-                    bg={options[mode].foreground}
-                    containerProps={{ className: "py-2 w-full p-1" }}
-                />
-            </div>
-            <div id='container' className="flex flex-col">
-                <ColorCard
-                    text={name + ' container'}
-                    fg={options[mode]["container-foreground"]}
-                    bg={options[mode].container}
-                    containerProps={{ className: "h-20 w-full p-1" }}
-                />
-                <ColorCard
-                    text={name + ' container foreground'}
-                    fg={options[mode].container}
-                    bg={options[mode]["container-foreground"]}
-                    containerProps={{ className: "py-2 w-full p-1" }}
-                />
-            </div>
-            <div id='fixed' className="flex flex-col">
-                <ColorCard
-                    text={name + ' fixed'}
-                    fg={options[mode]["fixed-foreground"]}
-                    bg={options[mode].fixed}
-                    containerProps={{ className: "h-20 w-full p-1" }}
-                />
-                <ColorCard
-                    text={name + ' fixed dim'}
-                    fg={options[mode]["fixed-foreground"]}
-                    bg={options[mode]["fixed-dim"]}
-                    containerProps={{ className: "py-2 w-full p-1" }}
-                />
-                <ColorCard
-                    text={name + ' fixed foreground'}
-                    fg={options[mode]["fixed-foreground"]}
-                    bg={options[mode].fixed}
-                    containerProps={{ className: "py-2 w-full p-1" }}
-                />
-                <ColorCard
-                    text={name + ' fixed foreground variant'}
-                    fg={options[mode].fixed}
-                    bg={options[mode]["fixed-foreground-variant"]}
-                    containerProps={{ className: "py-2 w-full p-1" }}
-                />
-            </div>
-        </>
     )
 })
 
