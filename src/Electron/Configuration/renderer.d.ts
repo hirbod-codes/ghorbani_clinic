@@ -96,24 +96,10 @@ export type ThemeOptions = {
         surface: Color<SurfaceVariants>
         natural: string
         naturalVariant: string
-        outline: {
-            light: {
-                main: string
-                variant: string
-            }
-            'light-shades': {
-                main: number
-                variant: number
-            }
-            dark: {
-                main: string
-                variant: string
-            }
-            'dark-shades': {
-                main: number
-                variant: number
-            }
-        }
+        outline: Color<{
+            main: string
+            variant: string
+        }>
     }
 }
 

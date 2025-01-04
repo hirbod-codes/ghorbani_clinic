@@ -76,7 +76,7 @@ function generatePalette(): ThemeOptions {
             ) as any,
             scrollbar: '#ffffff',
             surface: {
-                main: '#808080',
+                main: palette.natural,
                 light: {
                     main: (() => { let c = RGB.fromHex(palette.natural); c.shadeColor(98); return c.toHex() })(),
                     dim: (() => { let c = RGB.fromHex(palette.natural); c.shadeColor(87); return c.toHex() })(),
@@ -87,7 +87,7 @@ function generatePalette(): ThemeOptions {
                     'container-low': (() => { let c = RGB.fromHex(palette.natural); c.shadeColor(96); return c.toHex() })(),
                     'container-lowest': (() => { let c = RGB.fromHex(palette.natural); c.shadeColor(100); return c.toHex() })(),
                     foreground: (() => { let c = RGB.fromHex(palette.natural); c.shadeColor(10); return c.toHex() })(),
-                    'foreground-variant': (() => { let c = RGB.fromHex(palette.naturalVariant); c.shadeColor(30); return c.toHex() })(),
+                    'foreground-variant': (() => { let c = RGB.fromHex(palette.natural); c.shadeColor(30); return c.toHex() })(),
                     inverse: (() => { let c = RGB.fromHex(palette.natural); c.shadeColor(20); return c.toHex() })(),
                     'inverse-foreground': (() => { let c = RGB.fromHex(palette.natural); c.shadeColor(95); return c.toHex() })(),
                     'inverse-primary-foreground': (() => { let c = RGB.fromHex(palette.primary); c.shadeColor(80); return c.toHex() })(),
@@ -139,6 +139,7 @@ function generatePalette(): ThemeOptions {
                 },
             },
             outline: {
+                main: palette.naturalVariant,
                 light: {
                     main: (() => { let c = RGB.fromHex(palette.naturalVariant); c.shadeColor(50); return c.toHex() })(),
                     variant: (() => { let c = RGB.fromHex(palette.naturalVariant); c.shadeColor(80); return c.toHex() })(),
@@ -485,7 +486,7 @@ export function useConfigurationHook() {
                 },
                 "scrollbar": "#ffffff",
                 "surface": {
-                    main: '#808080',
+                    main: '#919093',
                     "light": {
                         "main": "#fbfbfbff",
                         "dim": "#e2e2e3ff",
@@ -548,6 +549,7 @@ export function useConfigurationHook() {
                     }
                 },
                 "outline": {
+                    main: '#8e9098',
                     "light": {
                         "main": "#8e9098ff",
                         "variant": "#d2d3d6ff"

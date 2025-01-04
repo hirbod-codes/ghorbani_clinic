@@ -14,6 +14,7 @@ import { ColorVariant } from "./ColorVariant";
 import { cn } from "@/src/react/shadcn/lib/utils";
 import { Button } from "@/src/react/Components/Base/Button";
 import { PaletteColorCards } from "./PaletteColorCards";
+import { ColorCard } from "./ColorCard";
 
 export const ThemeSettings = memo(function ThemeSettings() {
     const c = useContext(ConfigurationContext)!
@@ -93,10 +94,12 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                     }
                                 }}
                                 onColorChanged={(o) => {
-                                    themeOptions.colors.palette[k] = o[k]
+                                    console.log('onColorChanged', o)
+                                    themeOptions.colors.palette[k] = o
                                     setThemeOptions({ ...themeOptions })
                                 }}
                                 onColorChangeCancel={async () => {
+                                    console.log('onColorChangeCancel')
                                     const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
                                     themeOptions.colors.palette[k] = conf.themeOptions.colors.palette[k]
                                     setThemeOptions({ ...themeOptions })
@@ -131,7 +134,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                 <div id='grid-item-2' className="col-span-7 row-span-1">
                     <div className="size-full bg-surface-container rounded-xl p-2">
                         <div className='grid grid-cols-4 items-start size-full content-start overflow-y-auto pr-2 *:m-2 *:text-xs'>
-                            <div className="col-span-4 flex flex-row justify-between">
+                            <div id='primary-palette' className="col-span-4 flex flex-row justify-between">
                                 {
                                     Object
                                         .keys(themeOptions.colors.palette)
@@ -143,47 +146,209 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                         )
                                 }
                             </div>
-                            <div className="col-span-3 flex flex-row space-x-1">
-                                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].dim }}>
-                                    surface dim
-                                </Text>
-                                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].main }}>
-                                    surface
-                                </Text>
-                                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].bright }}>
-                                    surface bright
-                                </Text>
+                            <div id='surface' className="col-span-4 row-span-1 flex flex-row *:w-1/3">
+                                <ColorVariant
+                                    mode={themeOptions.mode}
+                                    options={themeOptions.colors.surface}
+                                    variant={'dim'}
+                                    anchorChildren={
+                                        <ColorCard
+                                            text={'surface dim'}
+                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
+                                            bg={themeOptions.colors.surface[themeOptions.mode].dim}
+                                            containerProps={{ className: "h-24 p-1" }}
+                                        />
+                                    }
+                                />
+                                <ColorVariant
+                                    mode={themeOptions.mode}
+                                    options={themeOptions.colors.surface}
+                                    variant={'main'}
+                                    anchorChildren={
+                                        <ColorCard
+                                            text={'surface'}
+                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
+                                            bg={themeOptions.colors.surface[themeOptions.mode].main}
+                                            containerProps={{ className: "h-24 p-1" }}
+                                        />
+                                    }
+                                />
+                                <ColorVariant
+                                    mode={themeOptions.mode}
+                                    options={themeOptions.colors.surface}
+                                    variant={'bright'}
+                                    anchorChildren={
+                                        <ColorCard
+                                            text={'surface bright'}
+                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
+                                            bg={themeOptions.colors.surface[themeOptions.mode].bright}
+                                            containerProps={{ className: "h-24 p-1" }}
+                                        />
+                                    }
+                                />
                             </div>
-                            <div className="col-span-1 row-span-2 flex flex-col space-y-1">
-                                <Text className="h-20 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'], backgroundColor: themeOptions.colors.surface[themeOptions.mode].inverse }}>
-                                    surface inverse
-                                </Text>
-                                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
-                                    surface inverse foreground
-                                </Text>
-                                <Text className="py-2 w-full p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-primary-foreground'] }}>
-                                    surface inverse primary foreground
-                                </Text>
+                            <div id='surface-inverse' className="col-span-4 row-span-1 flex flex-row *:w-1/3">
+                                <ColorVariant
+                                    mode={themeOptions.mode}
+                                    options={themeOptions.colors.surface}
+                                    variant={'inverse'}
+                                    anchorChildren={
+                                        <ColorCard
+                                            text={'surface inverse'}
+                                            fg={themeOptions.colors.surface[themeOptions.mode]["inverse-foreground"]}
+                                            bg={themeOptions.colors.surface[themeOptions.mode].inverse}
+                                            containerProps={{ className: "h-24 p-1" }}
+                                        />
+                                    }
+                                />
+                                <ColorVariant
+                                    mode={themeOptions.mode}
+                                    options={themeOptions.colors.surface}
+                                    variant={'inverse-foreground'}
+                                    anchorChildren={
+                                        <ColorCard
+                                            text={'surface inverse foreground'}
+                                            fg={themeOptions.colors.surface[themeOptions.mode].inverse}
+                                            bg={themeOptions.colors.surface[themeOptions.mode]["inverse-foreground"]}
+                                            containerProps={{ className: "h-24 p-1" }}
+                                        />
+                                    }
+                                />
+                                <ColorVariant
+                                    mode={themeOptions.mode}
+                                    options={themeOptions.colors.surface}
+                                    variant={'inverse-primary-foreground'}
+                                    anchorChildren={
+                                        <ColorCard
+                                            text={'surface inverse primary foreground'}
+                                            fg={themeOptions.colors.surface[themeOptions.mode].inverse}
+                                            bg={themeOptions.colors.surface[themeOptions.mode]["inverse-primary-foreground"]}
+                                            containerProps={{ className: "h-24 p-1" }}
+                                        />
+                                    }
+                                />
                             </div>
-                            <div className="col-span-3 flex flex-row space-x-1">
-                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].dim }}>
-                                    surface dim
-                                </Text>
-                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].main }}>
-                                    surface
-                                </Text>
-                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].bright }}>
-                                    surface bright
-                                </Text>
-                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].main }}>
-                                    surface
-                                </Text>
-                                <Text className="h-20 w-1/5 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.surface[themeOptions.mode].bright }}>
-                                    surface bright
-                                </Text>
+                            <div id='surface-container' className="col-span-4 row-span-1 flex flex-row *:w-1/5">
+                                <ColorVariant
+                                    mode={themeOptions.mode}
+                                    options={themeOptions.colors.surface}
+                                    variant={'container-lowest'}
+                                    anchorChildren={
+                                        <ColorCard
+                                            text={'surface container lowest'}
+                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
+                                            bg={themeOptions.colors.surface[themeOptions.mode]["container-lowest"]}
+                                            containerProps={{ className: "h-24 p-1" }}
+                                        />
+                                    }
+                                />
+                                <ColorVariant
+                                    mode={themeOptions.mode}
+                                    options={themeOptions.colors.surface}
+                                    variant={'container-low'}
+                                    anchorChildren={
+                                        <ColorCard
+                                            text={'surface container low'}
+                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
+                                            bg={themeOptions.colors.surface[themeOptions.mode]["container-low"]}
+                                            containerProps={{ className: "h-24 p-1" }}
+                                        />
+                                    }
+                                />
+                                <ColorVariant
+                                    mode={themeOptions.mode}
+                                    options={themeOptions.colors.surface}
+                                    variant={'container'}
+                                    anchorChildren={
+                                        <ColorCard
+                                            text={'surface container'}
+                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
+                                            bg={themeOptions.colors.surface[themeOptions.mode].container}
+                                            containerProps={{ className: "h-24 p-1" }}
+                                        />
+                                    }
+                                />
+                                <ColorVariant
+                                    mode={themeOptions.mode}
+                                    options={themeOptions.colors.surface}
+                                    variant={'container-high'}
+                                    anchorChildren={
+                                        <ColorCard
+                                            text={'surface container high'}
+                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
+                                            bg={themeOptions.colors.surface[themeOptions.mode]["container-high"]}
+                                            containerProps={{ className: "h-24 p-1" }}
+                                        />
+                                    }
+                                />
+                                <ColorVariant
+                                    mode={themeOptions.mode}
+                                    options={themeOptions.colors.surface}
+                                    variant={'container-highest'}
+                                    anchorChildren={
+                                        <ColorCard
+                                            text={'surface container highest'}
+                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
+                                            bg={themeOptions.colors.surface[themeOptions.mode]["container-highest"]}
+                                            containerProps={{ className: "h-24 p-1" }}
+                                        />
+                                    }
+                                />
                             </div>
-                            <div className="col-span-4 flex flex-row space-x-1">
-                                <Text className="py-2 w-1/4 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.surface[themeOptions.mode].foreground }}>
+                            <div id='surface-foreground-outline' className="col-span-4 row-span-1 flex flex-row *:w-1/4">
+                                <ColorVariant
+                                    mode={themeOptions.mode}
+                                    options={themeOptions.colors.surface}
+                                    variant={'foreground'}
+                                    anchorChildren={
+                                        <ColorCard
+                                            text={'surface foreground'}
+                                            fg={themeOptions.colors.surface[themeOptions.mode].main}
+                                            bg={themeOptions.colors.surface[themeOptions.mode].foreground}
+                                            containerProps={{ className: "h-24 p-1" }}
+                                        />
+                                    }
+                                />
+                                <ColorVariant
+                                    mode={themeOptions.mode}
+                                    options={themeOptions.colors.surface}
+                                    variant={'foreground-variant'}
+                                    anchorChildren={
+                                        <ColorCard
+                                            text={'surface foreground variant'}
+                                            fg={themeOptions.colors.surface[themeOptions.mode].main}
+                                            bg={themeOptions.colors.surface[themeOptions.mode]["foreground-variant"]}
+                                            containerProps={{ className: "h-24 p-1" }}
+                                        />
+                                    }
+                                />
+                                <ColorVariant
+                                    mode={themeOptions.mode}
+                                    options={themeOptions.colors.outline}
+                                    variant={'main'}
+                                    anchorChildren={
+                                        <ColorCard
+                                            text={'outline'}
+                                            fg={themeOptions.colors.surface[themeOptions.mode].main}
+                                            bg={themeOptions.colors.outline[themeOptions.mode].main}
+                                            containerProps={{ className: "h-24 p-1" }}
+                                        />
+                                    }
+                                />
+                                <ColorVariant
+                                    mode={themeOptions.mode}
+                                    options={themeOptions.colors.outline}
+                                    variant={'variant'}
+                                    anchorChildren={
+                                        <ColorCard
+                                            text={'outline variant'}
+                                            fg={themeOptions.colors.surface[themeOptions.mode].foreground}
+                                            bg={themeOptions.colors.outline[themeOptions.mode].variant}
+                                            containerProps={{ className: "h-24 p-1" }}
+                                        />
+                                    }
+                                />
+                                {/* <Text className="py-2 w-1/4 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.surface[themeOptions.mode].foreground }}>
                                     surface foreground
                                 </Text>
                                 <Text className="py-2 w-1/4 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].main, backgroundColor: themeOptions.colors.surface[themeOptions.mode]["foreground-variant"] }}>
@@ -194,8 +359,9 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                 </Text>
                                 <Text className="py-2 w-1/4 p-1" style={{ color: themeOptions.colors.surface[themeOptions.mode].foreground, backgroundColor: themeOptions.colors.outline[themeOptions.mode].variant }}>
                                     outline variant
-                                </Text>
+                                </Text> */}
                             </div>
+                            {/* secondary-palette */}
                             {
                                 Object
                                     .keys(themeOptions.colors.palette)

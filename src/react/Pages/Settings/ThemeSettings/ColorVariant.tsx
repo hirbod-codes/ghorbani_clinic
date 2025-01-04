@@ -6,6 +6,7 @@ import { HSV } from "@/src/react/Lib/Colors/HSV";
 import { DropdownMenu } from "@/src/react/Components/Base/DropdownMenu";
 import { ColorStatic } from "@/src/react/Lib/Colors/ColorStatic";
 import { cn } from "@/src/react/shadcn/lib/utils";
+import { Button } from "@/src/react/Components/Base/Button";
 
 export type ColorVariantProps<T extends { [k: string]: string }> = {
     children?: ReactNode
@@ -32,9 +33,8 @@ export const ColorVariant = memo(function ColorVariant<T extends { [k: string]: 
         <div {...containerProps}>
             <div
                 ref={ref}
-                id='anchor'
                 style={{ backgroundColor: color.toHex() }}
-                onClick={(e) => { console.log(e.target, e.currentTarget); if ((e.target as any).id !== 'action') setOpen(true) }}
+                onClick={() => { setOpen(true) }}
                 {...anchorProps}
                 className={cn(['cursor-pointer'], anchorProps?.className)}
             >
@@ -43,8 +43,9 @@ export const ColorVariant = memo(function ColorVariant<T extends { [k: string]: 
             <DropdownMenu
                 anchorRef={ref}
                 open={open}
+                containerProps={{ className: 'rounded-md border p-2 space-y-2' }}
                 onOpenChange={(b) => {
-                    if (!b) {
+                    if (!b && open) {
                         if (cancel && onColorChangeCancel)
                             onColorChangeCancel()
                         if (!cancel)
@@ -54,6 +55,8 @@ export const ColorVariant = memo(function ColorVariant<T extends { [k: string]: 
                 }}
             >
                 <ColorPicker
+                    containerProps={{ className: 'border-0 p-0 m-0' }}
+                    width={72}
                     controlledColor={color}
                     onColorChanging={(c) => {
                         if (ref.current)
@@ -63,7 +66,7 @@ export const ColorVariant = memo(function ColorVariant<T extends { [k: string]: 
                         setColor(c)
                         if (onColorChanged) {
                             if (variant === 'main' && calculateShades) {
-                                options[mode][variant as string] = {
+                                options[mode as string] = {
                                     main: c.toHex(),
                                     foreground: (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades'].foreground); return rgb.toHex() })(),
                                     container: (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades'].container); return rgb.toHex() })(),
@@ -83,6 +86,7 @@ export const ColorVariant = memo(function ColorVariant<T extends { [k: string]: 
                         }
                     }}
                 />
+                <Button size='sm' className="w-full" onClick={() => setCancel(false)}>Apply</Button>
             </DropdownMenu>
             {children}
         </div >
