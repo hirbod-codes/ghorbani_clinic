@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../shadcn/component
 import { Switch } from '../Base/Switch';
 import { Button } from '../../shadcn/components/ui/button';
 import { CircularLoading } from '../Base/CircularLoading';
+import { Stack } from '../Base/Stack';
 
 export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean }) {
     const [tabValue, setTabValue] = useState<number>(0);
@@ -43,142 +44,138 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                 </h5>
             }
 
-            <div className='w-full'>
-                <div className='border-b'>
-                    <Tabs defaultValue="Remote">
-                        <TabsList>
-                            <TabsTrigger value="Remote">Remote</TabsTrigger>
-                            <TabsTrigger value="Search">Search</TabsTrigger>
-                        </TabsList>
-                        <TabsContent value="Remote">
-                            <div className='flex flex-col space-x-2 space-y-2'>
-                                <Input value={username} onChange={(e) => setUsername(e.target.value)} label={t('DbSettingsForm.username')} />
-                                <Input type='password' value={password} onChange={(e) => setPassword(e.target.value)} label={t('DbSettingsForm.password')} />
+            <Tabs defaultValue="Remote">
+                <TabsList>
+                    <TabsTrigger value="Remote">Remote</TabsTrigger>
+                    <TabsTrigger value="Search">Search</TabsTrigger>
+                </TabsList>
+                <TabsContent value="Remote">
+                    <Stack direction='vertical'>
+                        <Input value={username} onChange={(e) => setUsername(e.target.value)} label={t('DbSettingsForm.username')} />
+                        <Input type='password' value={password} onChange={(e) => setPassword(e.target.value)} label={t('DbSettingsForm.password')} />
 
-                                <Input value={url.replace('mongodb://', '')} placeholder={t('DbSettingsForm.ip:port')} onChange={(e) => setUrl('mongodb://' + e.target.value.replace('mongodb://', ''))} label={t('DbSettingsForm.url')} />
-                                <Input value={databaseName} onChange={(e) => setDatabaseName(e.target.value)} label={t('DbSettingsForm.databaseName')} />
+                        <Input value={url.replace('mongodb://', '')} placeholder={t('DbSettingsForm.ip:port')} onChange={(e) => setUrl('mongodb://' + e.target.value.replace('mongodb://', ''))} label={t('DbSettingsForm.url')} />
+                        <Input value={databaseName} onChange={(e) => setDatabaseName(e.target.value)} label={t('DbSettingsForm.databaseName')} />
 
-                                <Switch
-                                    label={t('DbSettingsForm.supportsTransaction')}
-                                    labelId={t('DbSettingsForm.supportsTransaction')}
-                                    checked={supportsTransaction}
-                                    onChange={(e) => setSupportsTransaction(Boolean(e.currentTarget.value))}
-                                />
+                        <Switch
+                            label={t('DbSettingsForm.supportsTransaction')}
+                            labelId={t('DbSettingsForm.supportsTransaction')}
+                            checked={supportsTransaction}
+                            onChange={(e) => setSupportsTransaction(Boolean(e.currentTarget.value))}
+                        />
 
-                                <Button
-                                    variant='outline'
-                                    onClick={async () => {
-                                        const settings = {
-                                            url,
-                                            databaseName,
-                                            supportsTransaction,
-                                            auth: (username && password) ? { username, password } : undefined
-                                        }
+                        <Button
+                            variant='outline'
+                            onClick={async () => {
+                                const settings = {
+                                    url,
+                                    databaseName,
+                                    supportsTransaction,
+                                    auth: (username && password) ? { username, password } : undefined
+                                }
 
-                                        if (!settings.databaseName || !settings.databaseName.match(/[a-zA-Z]+/) || !settings.url) {
-                                            publish(RESULT_EVENT_NAME, {
-                                                severity: 'error',
-                                                message: t('DbSettingsForm.invalidSettingsProvided')
-                                            })
-                                            return
-                                        }
-                                        setLoading(true)
-                                        try {
-                                            let result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.updateConfig(settings)
-                                            if (!result) {
-                                                publish(RESULT_EVENT_NAME, {
-                                                    severity: 'error',
-                                                    message: t('DbSettingsForm.configUpdateFailed')
-                                                })
-
-                                                return
-                                            }
-
-                                            publish(RESULT_EVENT_NAME, {
-                                                severity: 'success',
-                                                message: t('DbSettingsForm.configUpdated')
-                                            })
-
-                                            result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.initializeDb()
-                                            setLoading(false)
-                                            if (!result) {
-                                                publish(RESULT_EVENT_NAME, {
-                                                    severity: 'error',
-                                                    message: t('DbSettingsForm.databaseInitializationFailed')
-                                                })
-
-                                                return
-                                            }
-
-                                            publish(RESULT_EVENT_NAME, {
-                                                severity: 'success',
-                                                message: t('DbSettingsForm.databaseInitialized')
-                                            })
-                                        } catch (e) {
-                                            console.error(e)
-                                        }
-                                    }}
-                                >
-                                    {loading ? <CircularLoading /> : t('DbSettingsForm.done')}
-                                </Button>
-                            </div>
-                        </TabsContent>
-                        <TabsContent value="Search">
-                            <div className='flex flex-col space-x-2 space-y-2'>
-                                <Input value={username} onChange={(e) => setUsername(e.target.value)} label={t('DbSettingsForm.username')} />
-                                <Input type='password' value={password} onChange={(e) => setPassword(e.target.value)} label={t('DbSettingsForm.password')} />
-
-                                <Input value={databaseName} onChange={(e) => setDatabaseName(e.target.value)} label={t('DbSettingsForm.databaseName')} />
-
-                                <Switch
-                                    label={t('DbSettingsForm.supportsTransaction')}
-                                    labelId={t('DbSettingsForm.supportsTransaction')}
-                                    checked={supportsTransaction}
-                                    onChange={(e) => setSupportsTransaction(Boolean(e.currentTarget.value))}
-                                />
-
-                                <Button
-                                    variant='outline'
-                                    onClick={async () => {
-                                        const settings = {
-                                            databaseName,
-                                            supportsTransaction,
-                                            auth: (username && password) ? { username, password } : undefined
-                                        }
-
-                                        if (!settings.databaseName || !settings.databaseName.match(/[a-zA-Z]+/)) {
-                                            publish(RESULT_EVENT_NAME, {
-                                                severity: 'error',
-                                                message: t('DbSettingsForm.invalidSettingsProvided')
-                                            })
-                                            return
-                                        }
-                                        setLoading(true)
-                                        const result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.searchForDbService(settings.databaseName, settings.supportsTransaction, settings.auth)
-                                        setLoading(false)
-                                        if (!result) {
-                                            publish(RESULT_EVENT_NAME, {
-                                                severity: 'error',
-                                                message: t('DbSettingsForm.failure')
-                                            })
-                                            return
-                                        }
-
+                                if (!settings.databaseName || !settings.databaseName.match(/[a-zA-Z]+/) || !settings.url) {
+                                    publish(RESULT_EVENT_NAME, {
+                                        severity: 'error',
+                                        message: t('DbSettingsForm.invalidSettingsProvided')
+                                    })
+                                    return
+                                }
+                                setLoading(true)
+                                try {
+                                    let result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.updateConfig(settings)
+                                    if (!result) {
                                         publish(RESULT_EVENT_NAME, {
-                                            severity: 'success',
-                                            message: t('DbSettingsForm.restartingIn3Seconds')
+                                            severity: 'error',
+                                            message: t('DbSettingsForm.configUpdateFailed')
                                         })
 
-                                        await (window as typeof window & { dbAPI: dbAPI }).dbAPI.initializeDb()
-                                    }}
-                                >
-                                    {loading ? <CircularLoading /> : t('DbSettingsForm.search')}
-                                </Button>
-                            </div>
-                        </TabsContent>
-                    </Tabs>
-                </div>
-            </div>
+                                        return
+                                    }
+
+                                    publish(RESULT_EVENT_NAME, {
+                                        severity: 'success',
+                                        message: t('DbSettingsForm.configUpdated')
+                                    })
+
+                                    result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.initializeDb()
+                                    setLoading(false)
+                                    if (!result) {
+                                        publish(RESULT_EVENT_NAME, {
+                                            severity: 'error',
+                                            message: t('DbSettingsForm.databaseInitializationFailed')
+                                        })
+
+                                        return
+                                    }
+
+                                    publish(RESULT_EVENT_NAME, {
+                                        severity: 'success',
+                                        message: t('DbSettingsForm.databaseInitialized')
+                                    })
+                                } catch (e) {
+                                    console.error(e)
+                                }
+                            }}
+                        >
+                            {loading ? <CircularLoading /> : t('DbSettingsForm.done')}
+                        </Button>
+                    </Stack>
+                </TabsContent>
+                <TabsContent value="Search">
+                    <Stack direction='vertical'>
+                        <Input value={username} onChange={(e) => setUsername(e.target.value)} label={t('DbSettingsForm.username')} />
+                        <Input type='password' value={password} onChange={(e) => setPassword(e.target.value)} label={t('DbSettingsForm.password')} />
+
+                        <Input value={databaseName} onChange={(e) => setDatabaseName(e.target.value)} label={t('DbSettingsForm.databaseName')} />
+
+                        <Switch
+                            label={t('DbSettingsForm.supportsTransaction')}
+                            labelId={t('DbSettingsForm.supportsTransaction')}
+                            checked={supportsTransaction}
+                            onChange={(e) => setSupportsTransaction(Boolean(e.currentTarget.value))}
+                        />
+
+                        <Button
+                            variant='outline'
+                            onClick={async () => {
+                                const settings = {
+                                    databaseName,
+                                    supportsTransaction,
+                                    auth: (username && password) ? { username, password } : undefined
+                                }
+
+                                if (!settings.databaseName || !settings.databaseName.match(/[a-zA-Z]+/)) {
+                                    publish(RESULT_EVENT_NAME, {
+                                        severity: 'error',
+                                        message: t('DbSettingsForm.invalidSettingsProvided')
+                                    })
+                                    return
+                                }
+                                setLoading(true)
+                                const result = await (window as typeof window & { dbAPI: dbAPI }).dbAPI.searchForDbService(settings.databaseName, settings.supportsTransaction, settings.auth)
+                                setLoading(false)
+                                if (!result) {
+                                    publish(RESULT_EVENT_NAME, {
+                                        severity: 'error',
+                                        message: t('DbSettingsForm.failure')
+                                    })
+                                    return
+                                }
+
+                                publish(RESULT_EVENT_NAME, {
+                                    severity: 'success',
+                                    message: t('DbSettingsForm.restartingIn3Seconds')
+                                })
+
+                                await (window as typeof window & { dbAPI: dbAPI }).dbAPI.initializeDb()
+                            }}
+                        >
+                            {loading ? <CircularLoading /> : t('DbSettingsForm.search')}
+                        </Button>
+                    </Stack>
+                </TabsContent>
+            </Tabs>
         </>
     )
 }

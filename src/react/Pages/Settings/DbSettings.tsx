@@ -10,6 +10,7 @@ import { Modal } from '../../Components/Base/Modal'
 import { Button } from '../../shadcn/components/ui/button'
 import { CircularLoading } from '../../Components/Base/CircularLoading'
 import { Separator } from '../../shadcn/components/ui/separator'
+import { Stack } from '../../Components/Base/Stack'
 
 export const DbSettings = memo(function DbSettings() {
     const auth = useContext(AuthContext)
@@ -36,8 +37,8 @@ export const DbSettings = memo(function DbSettings() {
             <div className='grid-cols-12'>
                 <div className='sm:col-span-3' />
                 <div className='sm:col-span-12 md:col-span-6'>
-                    <div className='flex flex-col space-x-2 space-y-2 p-2'>
-                        <div className='flex flex-row space-x-2 space-y-2'>
+                    <Stack direction='vertical'>
+                        <Stack>
                             <Button onClick={() => setOpenSeedQuestion(true)}>
                                 {t("DbSettings.Seed")}
                             </Button>
@@ -49,17 +50,17 @@ export const DbSettings = memo(function DbSettings() {
                             <Button color={connectionHealth ? 'success' : 'error'} onClick={async () => { setCheckingConnectionHealth(true); await checkConnectionHealth(); setCheckingConnectionHealth(false) }}>
                                 {t("DbSettings.CheckConnection")}{checkingConnectionHealth && <CircularLoading />}
                             </Button>
-                        </div>
+                        </Stack>
 
                         <Separator />
 
                         <DbSettingsForm noTitle />
-                    </div>
+                    </Stack>
                 </div>
                 <div className='sm:col-span-3' />
             </div >
 
-            <Modal open={openSeedQuestion} onClose={() => setOpenSeedQuestion(false)} title={t('DbSettings.doYouWantToSeedDB')}>
+            <Modal open={openSeedQuestion} onClose={() => setOpenSeedQuestion(false)}>
                 <Button
                     onClick={async () => {
                         try {
@@ -102,7 +103,7 @@ export const DbSettings = memo(function DbSettings() {
                 <Button onClick={() => setOpenSeedQuestion(false)}>{t('DbSettings.no')}</Button>
             </Modal>
 
-            <Modal open={openTruncateDbQuestion} onClose={() => setOpenTruncateDbQuestion(false)} title={t('DbSettings.doYouWantToTruncateDB')}>
+            <Modal open={openTruncateDbQuestion} onClose={() => setOpenTruncateDbQuestion(false)}>
                 <Button color='error' onClick={async () => {
                     try {
                         setTruncating(true);
