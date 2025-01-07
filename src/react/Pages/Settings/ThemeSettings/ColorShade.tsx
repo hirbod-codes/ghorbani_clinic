@@ -1,54 +1,66 @@
-import { memo, useEffect, useRef, useState } from "react";
-import { Color as ColorType } from '@/src/Electron/Configuration/renderer.d';
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { CheckIcon } from "lucide-react";
 import { Button } from "@/src/react/Components/Base/Button";
 import { Input } from "@/src/react/Components/Base/Input";
 import { usePointerOutside } from "@/src/react/Components/Base/usePointerOutside";
 
-export type ColorShadeProps<T extends { [k: string]: string }> = {
-    options: ColorType<T>
-    mode: keyof ColorType<T>
-    variant: keyof T
+export type ColorShadeProps = {
+    shade: number
+    bg: string
     fg: string
     onChange?: (shade: number) => void | Promise<void>
-    onChangeCancel?: () => void | Promise<void>
 }
 
-export const ColorShade = memo(function ColorShade<T extends { [k: string]: string }>({ options, mode, variant, fg, onChange, onChangeCancel }: ColorShadeProps<T>) {
+export const ColorShade = memo(function ColorShade({ shade, bg, fg, onChange }: ColorShadeProps) {
     const [editingShade, setEditingShade] = useState<boolean>(false)
     const [error, setError] = useState<string | undefined>(undefined)
 
-    const [text, setText] = useState<string>(options[mode + '-shades'][variant])
+    const [text, setText] = useState<string>(shade.toString())
+
+    const shadeContainerRef = useRef<HTMLDivElement>(null)
+
+    let memoizedShade: string | undefined
+    memoizedShade = useMemo(() => {
+        if (editingShade === true)
+            return shade.toString()
+        else
+            return memoizedShade ?? shade.toString()
+    }, [editingShade])
+
+    usePointerOutside(shadeContainerRef, (isOutside) => {
+        if (editingShade && isOutside) {
+            if (onChange)
+                onChange(Number(memoizedShade))
+            setEditingShade(false)
+        }
+    }, [shadeContainerRef])
 
     useEffect(() => {
         setEditingShade(false)
-        setText(options[mode + '-shades'][variant])
-    }, [options[mode + '-shades'][variant]])
+        setText(shade.toString())
+    }, [shade])
 
-    const ref = useRef<HTMLDivElement>(null)
-
-    usePointerOutside(ref, (isOutside) => {
-        if (editingShade && isOutside) {
-            setEditingShade(false)
-            if (onChangeCancel)
-                onChangeCancel()
+    useEffect(() => {
+        if (editingShade === true) {
+            setText(shade.toString())
+            setError(undefined)
         }
-    }, [ref])
+    }, [editingShade])
 
-    console.log('ColorShade', { error, text, editingShade, ref: ref.current, options, mode, variant, fg })
+    console.log('ColorShade', { shade, bg, fg, error, text, editingShade, memoizedShade, ref: shadeContainerRef.current })
 
     return (
-        <div ref={ref} className="w-fit hover:opacity-50" onClick={(e) => { e.stopPropagation(); setEditingShade(true) }}>
+        <div ref={shadeContainerRef} className="w-fit hover:opacity-50" onClick={(e) => { e.stopPropagation(); setEditingShade(true) }}>
             {editingShade
                 ?
                 <div className="flex flex-row space-x-1">
                     <Input
                         containerProps={{ className: 'w-[1cm]' }}
                         className="size-full p-0"
-                        style={{ backgroundColor: options[mode as string][variant], color: fg, borderColor: fg }}
+                        style={{ backgroundColor: bg, color: fg, borderColor: fg }}
                         value={text}
                         errorText={error}
-                        onChange={(e) => {
+                        onChange={async (e) => {
                             e.stopPropagation();
                             setText(e.target.value)
 
@@ -76,12 +88,10 @@ export const ColorShade = memo(function ColorShade<T extends { [k: string]: stri
                         style={{ backgroundColor: fg }}
                         color={fg}
                     >
-                        <CheckIcon
-                            color={options[mode as string][variant]}
-                        />
+                        <CheckIcon color={bg} />
                     </Button>
                 </div>
-                : 'P-' + options[mode + '-shades'][variant]
+                : 'P-' + shade
             }
         </div>
     )

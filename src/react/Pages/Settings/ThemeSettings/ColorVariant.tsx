@@ -1,94 +1,129 @@
-import { ComponentProps, memo, ReactNode, useRef, useState } from "react";
-import { Color as ColorType } from '@/src/Electron/Configuration/renderer.d';
-import { RGB } from "@/src/react/Lib/Colors/RGB";
-import { ColorPicker } from "@/src/react/Components/ColorPicker";
-import { HSV } from "@/src/react/Lib/Colors/HSV";
+import { ComponentProps, memo, ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { Button } from "@/src/react/Components/Base/Button";
+import { ColorCard } from "./ColorCard";
 import { DropdownMenu } from "@/src/react/Components/Base/DropdownMenu";
+import { HSV } from "@/src/react/Lib/Colors/HSV";
 import { ColorStatic } from "@/src/react/Lib/Colors/ColorStatic";
 import { cn } from "@/src/react/shadcn/lib/utils";
-import { Button } from "@/src/react/Components/Base/Button";
+import { ColorPicker } from "@/src/react/Components/ColorPicker";
+import { Input } from "@/src/react/Components/Base/Input";
+import { Text } from "@/src/react/Components/Base/Text";
+import { ColorShade } from "./ColorShade";
 
 export type ColorVariantProps<T extends { [k: string]: string }> = {
     children?: ReactNode
-    options: ColorType<T>
-    mode: keyof ColorType<T>
-    variant: keyof T
-    onColorChanged?: (options: ColorType<T>) => void | Promise<void>
-    onColorChangeCancel?: () => void | Promise<void>
-    calculateShades?: boolean
+    color: string
+    fg: string
+    shade: number
+    label: string
+    colorKey?: string
+    shadeKey?: string
+    onColorChange?: (color: string, colorKey?: string) => Promise<void> | void
+    onShadeChange?: (shade: number, shadeKey?: string) => Promise<void> | void
+    colorCardContainerProps?: ComponentProps<'div'>
+    colorCardTextProps?: ComponentProps<typeof Text>
     containerProps?: ComponentProps<'div'>
-    anchorProps?: ComponentProps<'div'>
-    anchorChildren?: ReactNode
 }
 
-export const ColorVariant = memo(function ColorVariant<T extends { [k: string]: string }>({ children, anchorChildren, anchorProps, options, mode, variant, onColorChanged, onColorChangeCancel, containerProps, calculateShades = true }: ColorVariantProps<T>) {
+export const ColorVariant = memo(function ColorVariant<T extends { [k: string]: string }>({ children, color: bg, fg, shade, label, onColorChange, onShadeChange, colorKey, shadeKey, containerProps, colorCardContainerProps, colorCardTextProps }: ColorVariantProps<T>) {
     const ref = useRef<HTMLDivElement>(null)
 
-    const [cancel, setCancel] = useState<boolean>(true)
+    const cancel = useRef<boolean>(true)
 
     const [open, setOpen] = useState<boolean>(false)
-    const [color, setColor] = useState<HSV>(ColorStatic.parse(options[mode][variant as string]).toHsv())
+    const [color, setColor] = useState<HSV>(ColorStatic.parse(bg).toHsv())
+    const [inputString, setInputString] = useState<string>(ColorStatic.parse(bg).toHex())
+
+    useEffect(() => {
+        setColor(ColorStatic.parse(bg).toHsv())
+        setInputString(ColorStatic.parse(bg).toHsv().toHex())
+    }, [bg])
+
+    let memoizedColor: string | undefined
+    memoizedColor = useMemo(() => {
+        if (open === true)
+            return bg
+        else
+            return memoizedColor ?? bg
+    }, [open])
+
+    const colorUpdate = (c: HSV) => {
+        if (onColorChange)
+            onColorChange(c.toHex(), colorKey)
+    }
+
+    console.log('ColorVariant', { cancel, open, color, shade, memoizedColor, ref: ref.current })
 
     return (
-        <div {...containerProps}>
+        <>
             <div
                 ref={ref}
                 style={{ backgroundColor: color.toHex() }}
                 onClick={() => { setOpen(true) }}
-                {...anchorProps}
-                className={cn(['cursor-pointer'], anchorProps?.className)}
+                {...containerProps}
+                className={cn(['cursor-pointer'], containerProps?.className)}
             >
-                {anchorChildren}
+                <ColorCard
+                    bg={bg}
+                    fg={fg}
+                    text={label}
+                    textProps={colorCardTextProps}
+                    containerProps={colorCardContainerProps}
+                    // containerProps={{ className: "h-24 p-1" }}
+                    subText={
+                        <ColorShade
+                            shade={shade}
+                            bg={color.toHex()}
+                            fg={fg}
+                            onChange={(s) => { if (onShadeChange) onShadeChange(s, shadeKey) }}
+                        />
+                    }
+                />
             </div>
+
             <DropdownMenu
                 anchorRef={ref}
                 open={open}
                 containerProps={{ className: 'rounded-md border p-2 space-y-2' }}
                 onOpenChange={(b) => {
                     if (!b && open) {
-                        if (cancel && onColorChangeCancel)
-                            onColorChangeCancel()
-                        if (!cancel)
-                            setCancel(false)
+                        if (cancel.current === false)
+                            colorUpdate(ColorStatic.parse(memoizedColor!).toHsv())
+                        else
+                            cancel.current = true
                         setOpen(false)
                     }
                 }}
             >
                 <ColorPicker
                     containerProps={{ className: 'border-0 p-0 m-0' }}
-                    width={72}
                     controlledColor={color}
                     onColorChanging={(c) => {
                         if (ref.current)
                             ref.current.style.backgroundColor = c.toHex()
+                        setInputString(c.toHex())
                     }}
                     onColorChanged={(c) => {
                         setColor(c)
-                        if (onColorChanged) {
-                            if (variant === 'main' && calculateShades) {
-                                options[mode as string] = {
-                                    main: c.toHex(),
-                                    foreground: (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades'].foreground); return rgb.toHex() })(),
-                                    container: (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades'].container); return rgb.toHex() })(),
-                                    'container-foreground': (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades']['container-foreground']); return rgb.toHex() })(),
-                                    fixed: (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades'].fixed); return rgb.toHex() })(),
-                                    'fixed-dim': (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades']['fixed-dim']); return rgb.toHex() })(),
-                                    'fixed-foreground': (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades']['fixed-foreground']); return rgb.toHex() })(),
-                                    'fixed-foreground-variant': (() => { let rgb = RGB.fromHex(c.toHex()); rgb.shadeColor(options[mode + '-shades']['fixed-foreground-variant']); return rgb.toHex() })(),
-                                }
-                            } else {
-                                let rgb = RGB.fromHex(c.toHex())
-                                rgb.shadeColor(options[mode + '-shades'][variant as string])
-                                options[mode][variant as string] = rgb.toHex()
-                            }
-
-                            onColorChanged(options)
-                        }
+                        colorUpdate(c)
                     }}
                 />
-                <Button size='sm' className="w-full" onClick={() => setCancel(false)}>Apply</Button>
+                <Input
+                    placeholder='color hex number'
+                    value={inputString}
+                    onChange={(e) => {
+                        setInputString(e.target.value)
+
+                        try {
+                            setColor(ColorStatic.parse(e.target.value).toHsv())
+                        } catch (e) { }
+                    }}
+                />
+                <Button size='sm' className="w-full" onClick={() => { cancel.current = false; setOpen(false) }}>
+                    Apply
+                </Button>
             </DropdownMenu>
             {children}
-        </div >
+        </>
     )
 })

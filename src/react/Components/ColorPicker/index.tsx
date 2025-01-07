@@ -12,11 +12,10 @@ export type ColorPickerProps = {
     onColorChanged?: (color: HSV) => void | Promise<void>
     onColorChanging?: (color: HSV) => void | Promise<void>
     containerProps?: ComponentProps<'div'>
-    width?: number | string
     showValidZone?: boolean
 }
 
-export const ColorPicker = memo(function ColorPicker({ hasAlpha = true, controlledColor, onColorChanged, onColorChanging, containerProps, width = 72, showValidZone = false }: ColorPickerProps) {
+export const ColorPicker = memo(function ColorPicker({ hasAlpha = true, controlledColor, onColorChanged, onColorChanging, containerProps, showValidZone = false }: ColorPickerProps) {
     const [, rerender] = useReducer(x => x + 1, 0)
 
     const colorHolder = useRef<HTMLDivElement>(null)
@@ -33,10 +32,10 @@ export const ColorPicker = memo(function ColorPicker({ hasAlpha = true, controll
     console.log('ColorPicker', { controlledColor, onColorChanged, color, hasAlpha })
 
     return (
-        <div id='color-picker-container' {...containerProps} className={cn([`flex flex-col items-center space-y-2 w-${width} h-96 p-2 border rounded-lg`], containerProps?.className)}>
+        <div id='color-picker-container' {...containerProps} className={cn([`flex flex-col items-center space-y-2 w-72 h-96 p-2 border rounded-lg`], containerProps?.className)}>
             <div className="w-full h-10" ref={colorHolder} style={{ backgroundColor: color.toHex() }} />
 
-            <div className={`size-${width}`}>
+            <div className={`w-72 h-72`}>
                 <Canvas
                     controlledColor={color}
                     showValidZone={showValidZone}
