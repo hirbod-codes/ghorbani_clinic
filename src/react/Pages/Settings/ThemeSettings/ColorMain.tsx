@@ -2,14 +2,13 @@ import { memo, useRef, ReactNode, ComponentProps } from "react";
 import { ColorDropdown } from "./ColorDropdown";
 
 export type ColorMainProps = {
-    children?: ReactNode
     color: string
     colorKey?: string
     onColorChange?: (color: string, colorKey?: string) => Promise<void> | void
     containerProps?: ComponentProps<'div'>
 }
 
-export const ColorMain = memo(function ColorMain({ children, color, onColorChange, colorKey, containerProps }: ColorMainProps) {
+export const ColorMain = memo(function ColorMain({ color, onColorChange, colorKey, containerProps }: ColorMainProps) {
     const ref = useRef<HTMLDivElement>(null);
 
     const cancel = useRef<boolean>(true);
@@ -24,7 +23,12 @@ export const ColorMain = memo(function ColorMain({ children, color, onColorChang
             onColorChange={onColorChange}
             anchorChildren={<div className="rounded-full size-[1.2cm]" style={{ backgroundColor: color }} />}
         >
-            {children}
+            <div>
+                <p className="text-xl text-nowrap">{colorKey?.split('.')[0]}</p>
+                {colorKey?.split('.')[0] === 'primary' &&
+                    <p className="text-sm text-nowrap">Acts as custom source color</p>
+                }
+            </div>
         </ColorDropdown>
     );
 });

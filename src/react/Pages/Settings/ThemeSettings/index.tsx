@@ -171,14 +171,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                         color={themeOptions.colors[k].main}
                                         containerProps={circleStyle}
                                         onColorChange={onColorChange}
-                                    >
-                                        {/* <div>
-                                            <p className="text-xl text-nowrap">{k}</p>
-                                            {k === 'primary' &&
-                                                <p className="text-sm text-nowrap">Acts as custom source color</p>
-                                            }
-                                        </div> */}
-                                    </ColorMain>
+                                    />
                                 </div>
                             )
                         }
