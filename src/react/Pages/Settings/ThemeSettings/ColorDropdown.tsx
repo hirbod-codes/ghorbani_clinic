@@ -34,7 +34,6 @@ export const ColorDropdown = memo(function ColorDropdown({ children, anchorChild
     memoizedColor = useMemo(() => {
         if (open === true)
             return bg;
-
         else
             return memoizedColor ?? bg;
     }, [open]);
@@ -44,7 +43,7 @@ export const ColorDropdown = memo(function ColorDropdown({ children, anchorChild
             onColorChange(c.toHex(), colorKey);
     };
 
-    console.log('ColorVariant', { cancel, open, color, memoizedColor, ref: ref.current });
+    console.log('ColorVariant', { color, inputString, bg, onColorChange, colorKey, containerProps, cancel, open, memoizedColor, ref: ref.current });
 
     return (
         <>
@@ -64,9 +63,8 @@ export const ColorDropdown = memo(function ColorDropdown({ children, anchorChild
                 containerProps={{ className: 'rounded-md border p-2 space-y-2' }}
                 onOpenChange={(b) => {
                     if (!b && open) {
-                        if (cancel.current === false)
+                        if (cancel.current === true)
                             colorUpdate(ColorStatic.parse(memoizedColor!).toHsv());
-
                         else
                             cancel.current = true;
                         setOpen(false);

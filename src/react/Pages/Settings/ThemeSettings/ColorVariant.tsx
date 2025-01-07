@@ -20,11 +20,7 @@ export type ColorVariantProps = {
 }
 
 export const ColorVariant = memo(function ColorVariant({ children, color, fg, shade, label, onColorChange, onShadeChange, colorKey, shadeKey, containerProps, colorCardContainerProps, colorCardTextProps }: ColorVariantProps) {
-    const ref = useRef<HTMLDivElement>(null)
-
-    const cancel = useRef<boolean>(true)
-
-    console.log('ColorVariant', { cancel, shade, ref: ref.current })
+    console.log('ColorVariant')
 
     return (
         <ColorDropdown

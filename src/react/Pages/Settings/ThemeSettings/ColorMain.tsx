@@ -3,14 +3,13 @@ import { ColorDropdown } from "./ColorDropdown";
 
 export type ColorMainProps = {
     children?: ReactNode
-    anchorChildren?: ReactNode
     color: string
     colorKey?: string
     onColorChange?: (color: string, colorKey?: string) => Promise<void> | void
     containerProps?: ComponentProps<'div'>
 }
 
-export const ColorMain = memo(function ColorMain({ children, anchorChildren, color, onColorChange, colorKey, containerProps }: ColorMainProps) {
+export const ColorMain = memo(function ColorMain({ children, color, onColorChange, colorKey, containerProps }: ColorMainProps) {
     const ref = useRef<HTMLDivElement>(null);
 
     const cancel = useRef<boolean>(true);
@@ -23,7 +22,7 @@ export const ColorMain = memo(function ColorMain({ children, anchorChildren, col
             colorKey={colorKey}
             containerProps={containerProps}
             onColorChange={onColorChange}
-            anchorChildren={anchorChildren}
+            anchorChildren={<div className="rounded-full size-[1.2cm]" style={{ backgroundColor: color }} />}
         >
             {children}
         </ColorDropdown>

@@ -1,4 +1,4 @@
-import { memo, useCallback, useContext, useMemo, useReducer, useState } from "react";
+import { memo, useCallback, useContext, useMemo, useState } from "react";
 import { ConfigurationContext } from '../../../Contexts/Configuration/ConfigurationContext';
 import { ThemeOptions } from '@/src/Electron/Configuration/renderer.d';
 import { Checkbox } from "@mui/material";
@@ -7,13 +7,13 @@ import { SaveIcon } from "lucide-react";
 import { Button } from "@/src/react/Components/Base/Button";
 import { ColorVariant } from "./ColorVariant";
 import { ColorMain } from "./ColorMain";
+import { ColorStatic } from "@/src/react/Lib/Colors/ColorStatic";
 
 export const ThemeSettings = memo(function ThemeSettings() {
-    const [, rerender] = useReducer(x => x + 1, 0)
-
     const c = useContext(ConfigurationContext)!
 
     const [themeOptions, setThemeOptions] = useState<ThemeOptions>(() => structuredClone(c.themeOptions))
+    const [shouldControlColors, setShouldControlColors] = useState<boolean>(true)
 
     console.log('ThemeSettings', { c, themeOptions, })
 
@@ -22,41 +22,51 @@ export const ThemeSettings = memo(function ThemeSettings() {
     const circleStyle = useMemo(() => ({ className: "rounded-full size-[1.2cm]" }), [])
 
     const onColorChange = useCallback((c: string | number, colorKey?: string) => {
+        console.log({ c, colorKey })
         if (!colorKey)
             return
 
         let v: any = themeOptions.colors
         let props = colorKey.split('.')
-        let lastProp = props.pop()!
-        props.forEach((s) => {
-            v = v[s]
-        })
-        v[lastProp] = c
+        if (props.length !== 3 && props.length !== 2)
+            throw new Error('Invalid color key provided')
+
+        if (props.length === 3)
+            v[props[0]][props[1]][props[2]] = c
+        else if (shouldControlColors)
+            Object
+                .keys(v[props[0]][props[1]])
+                .forEach(k => {
+                    let rgb = ColorStatic.parse(c as string).toRgb()
+                    rgb.shadeColor(v[props[0]][props[1] + '-shades'][k])
+                    v[props[0]][props[1]][k] = rgb.toHex()
+                })
+
         setThemeOptions({ ...themeOptions })
     }, [])
 
     const onShadeChange = useCallback(onColorChange, [])
 
-    const paletteColorCards = useCallback((k, i) => (
+    const paletteColorCards = useCallback((k) => (
         <>
             <div id='main' className="flex flex-col">
                 <ColorVariant
-                    colorKey={`palette.${k}.${themeOptions.mode}.main`}
-                    shadeKey={`palette.${k}.${themeOptions.mode}-shades.main`}
-                    color={themeOptions.colors.palette[k][themeOptions.mode].main}
-                    shade={themeOptions.colors.palette[k][themeOptions.mode + '-shades'].main}
-                    fg={themeOptions.colors.palette[k][themeOptions.mode].foreground}
+                    colorKey={`${k}.${themeOptions.mode}.main`}
+                    shadeKey={`${k}.${themeOptions.mode}-shades.main`}
+                    color={themeOptions.colors[k][themeOptions.mode].main}
+                    shade={themeOptions.colors[k][themeOptions.mode + '-shades'].main}
+                    fg={themeOptions.colors[k][themeOptions.mode].foreground}
                     label={k}
                     colorCardContainerProps={bigColorCardStyle}
                     onColorChange={onColorChange}
                     onShadeChange={onShadeChange}
                 />
                 <ColorVariant
-                    colorKey={`palette.${k}.${themeOptions.mode}.foreground`}
-                    shadeKey={`palette.${k}.${themeOptions.mode}-shades.foreground`}
-                    color={themeOptions.colors.palette[k][themeOptions.mode].foreground}
-                    shade={themeOptions.colors.palette[k][themeOptions.mode + '-shades'].foreground}
-                    fg={themeOptions.colors.palette[k][themeOptions.mode].main}
+                    colorKey={`${k}.${themeOptions.mode}.foreground`}
+                    shadeKey={`${k}.${themeOptions.mode}-shades.foreground`}
+                    color={themeOptions.colors[k][themeOptions.mode].foreground}
+                    shade={themeOptions.colors[k][themeOptions.mode + '-shades'].foreground}
+                    fg={themeOptions.colors[k][themeOptions.mode].main}
                     label={k + ' foreground'}
                     colorCardContainerProps={smallColorCardStyle}
                     onColorChange={onColorChange}
@@ -65,22 +75,22 @@ export const ThemeSettings = memo(function ThemeSettings() {
             </div>
             <div id='container' className="flex flex-col">
                 <ColorVariant
-                    colorKey={`palette.${k}.${themeOptions.mode}.container`}
-                    shadeKey={`palette.${k}.${themeOptions.mode}-shades.container`}
-                    color={themeOptions.colors.palette[k][themeOptions.mode].container}
-                    shade={themeOptions.colors.palette[k][themeOptions.mode + '-shades'].container}
-                    fg={themeOptions.colors.palette[k][themeOptions.mode]['container-foreground']}
+                    colorKey={`${k}.${themeOptions.mode}.container`}
+                    shadeKey={`${k}.${themeOptions.mode}-shades.container`}
+                    color={themeOptions.colors[k][themeOptions.mode].container}
+                    shade={themeOptions.colors[k][themeOptions.mode + '-shades'].container}
+                    fg={themeOptions.colors[k][themeOptions.mode]['container-foreground']}
                     label={k + ' container'}
                     colorCardContainerProps={bigColorCardStyle}
                     onColorChange={onColorChange}
                     onShadeChange={onShadeChange}
                 />
                 <ColorVariant
-                    colorKey={`palette.${k}.${themeOptions.mode}.container-foreground`}
-                    shadeKey={`palette.${k}.${themeOptions.mode}-shades.container-foreground`}
-                    color={themeOptions.colors.palette[k][themeOptions.mode]['container-foreground']}
-                    shade={themeOptions.colors.palette[k][themeOptions.mode + '-shades']['container-foreground']}
-                    fg={themeOptions.colors.palette[k][themeOptions.mode].container}
+                    colorKey={`${k}.${themeOptions.mode}.container-foreground`}
+                    shadeKey={`${k}.${themeOptions.mode}-shades.container-foreground`}
+                    color={themeOptions.colors[k][themeOptions.mode]['container-foreground']}
+                    shade={themeOptions.colors[k][themeOptions.mode + '-shades']['container-foreground']}
+                    fg={themeOptions.colors[k][themeOptions.mode].container}
                     label={k + ' container foreground'}
                     colorCardContainerProps={smallColorCardStyle}
                     onColorChange={onColorChange}
@@ -89,44 +99,44 @@ export const ThemeSettings = memo(function ThemeSettings() {
             </div>
             <div id='fixed' className="flex flex-col">
                 <ColorVariant
-                    colorKey={`palette.${k}.${themeOptions.mode}.fixed`}
-                    shadeKey={`palette.${k}.${themeOptions.mode}-shades.fixed`}
-                    color={themeOptions.colors.palette[k][themeOptions.mode].fixed}
-                    shade={themeOptions.colors.palette[k][themeOptions.mode + '-shades'].fixed}
-                    fg={themeOptions.colors.palette[k][themeOptions.mode]['fixed-foreground']}
+                    colorKey={`${k}.${themeOptions.mode}.fixed`}
+                    shadeKey={`${k}.${themeOptions.mode}-shades.fixed`}
+                    color={themeOptions.colors[k][themeOptions.mode].fixed}
+                    shade={themeOptions.colors[k][themeOptions.mode + '-shades'].fixed}
+                    fg={themeOptions.colors[k][themeOptions.mode]['fixed-foreground']}
                     label={k + ' fixed dim'}
                     colorCardContainerProps={bigColorCardStyle}
                     onColorChange={onColorChange}
                     onShadeChange={onShadeChange}
                 />
                 <ColorVariant
-                    colorKey={`palette.${k}.${themeOptions.mode}.fixed-dim`}
-                    shadeKey={`palette.${k}.${themeOptions.mode}-shades.fixed-dim`}
-                    color={themeOptions.colors.palette[k][themeOptions.mode]['fixed-dim']}
-                    shade={themeOptions.colors.palette[k][themeOptions.mode + '-shades']['fixed-dim']}
-                    fg={themeOptions.colors.palette[k][themeOptions.mode]['fixed-foreground']}
+                    colorKey={`${k}.${themeOptions.mode}.fixed-dim`}
+                    shadeKey={`${k}.${themeOptions.mode}-shades.fixed-dim`}
+                    color={themeOptions.colors[k][themeOptions.mode]['fixed-dim']}
+                    shade={themeOptions.colors[k][themeOptions.mode + '-shades']['fixed-dim']}
+                    fg={themeOptions.colors[k][themeOptions.mode]['fixed-foreground']}
                     label={k + ' fixed'}
                     colorCardContainerProps={bigColorCardStyle}
                     onColorChange={onColorChange}
                     onShadeChange={onShadeChange}
                 />
                 <ColorVariant
-                    colorKey={`palette.${k}.${themeOptions.mode}.fixed-foreground`}
-                    shadeKey={`palette.${k}.${themeOptions.mode}-shades.fixed-foreground`}
-                    color={themeOptions.colors.palette[k][themeOptions.mode]['fixed-foreground']}
-                    shade={themeOptions.colors.palette[k][themeOptions.mode + '-shades']['fixed-foreground']}
-                    fg={themeOptions.colors.palette[k][themeOptions.mode]['fixed']}
+                    colorKey={`${k}.${themeOptions.mode}.fixed-foreground`}
+                    shadeKey={`${k}.${themeOptions.mode}-shades.fixed-foreground`}
+                    color={themeOptions.colors[k][themeOptions.mode]['fixed-foreground']}
+                    shade={themeOptions.colors[k][themeOptions.mode + '-shades']['fixed-foreground']}
+                    fg={themeOptions.colors[k][themeOptions.mode]['fixed']}
                     label={k + ' fixed foreground'}
                     colorCardContainerProps={smallColorCardStyle}
                     onColorChange={onColorChange}
                     onShadeChange={onShadeChange}
                 />
                 <ColorVariant
-                    colorKey={`palette.${k}.${themeOptions.mode}.fixed-foreground-variant`}
-                    shadeKey={`palette.${k}.${themeOptions.mode}-shades.fixed-foreground-variant`}
-                    color={themeOptions.colors.palette[k][themeOptions.mode]['fixed-foreground-variant']}
-                    shade={themeOptions.colors.palette[k][themeOptions.mode + '-shades']['fixed-foreground-variant']}
-                    fg={themeOptions.colors.palette[k][themeOptions.mode]['fixed']}
+                    colorKey={`${k}.${themeOptions.mode}.fixed-foreground-variant`}
+                    shadeKey={`${k}.${themeOptions.mode}-shades.fixed-foreground-variant`}
+                    color={themeOptions.colors[k][themeOptions.mode]['fixed-foreground-variant']}
+                    shade={themeOptions.colors[k][themeOptions.mode + '-shades']['fixed-foreground-variant']}
+                    fg={themeOptions.colors[k][themeOptions.mode]['fixed']}
                     label={k + ' fixed foreground variant'}
                     colorCardContainerProps={smallColorCardStyle}
                     onColorChange={onColorChange}
@@ -153,26 +163,21 @@ export const ThemeSettings = memo(function ThemeSettings() {
                             </div>
                         </div>
 
-                        {Object
-                            .keys(themeOptions.colors.palette)
+                        {['primary', 'secondary', 'tertiary', 'info', 'success', 'warning', 'error']
                             .map((k, i) =>
-                                <div className="flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
+                                <div key={i} className="flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
                                     <ColorMain
-                                        key={i}
-                                        colorKey={`palette.${k}.${themeOptions.mode}.main`}
-                                        color={themeOptions.colors.palette[k][themeOptions.mode].main}
+                                        colorKey={`${k}.${themeOptions.mode}`}
+                                        color={themeOptions.colors[k].main}
                                         containerProps={circleStyle}
                                         onColorChange={onColorChange}
-                                        anchorChildren={
-                                            <div className="rounded-full size-[1.2cm]" style={{ backgroundColor: themeOptions.colors.palette[k][themeOptions.mode].main }} />
-                                        }
                                     >
-                                        <div>
+                                        {/* <div>
                                             <p className="text-xl text-nowrap">{k}</p>
                                             {k === 'primary' &&
                                                 <p className="text-sm text-nowrap">Acts as custom source color</p>
                                             }
-                                        </div>
+                                        </div> */}
                                     </ColorMain>
                                 </div>
                             )
@@ -203,7 +208,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                                 {['primary', 'secondary', 'tertiary']
                                     .map((k, i) =>
                                         <div key={i} className="flex flex-col space-y-1" style={{ width: 'calc((100% - 1rem)/3)' }}>
-                                            {paletteColorCards(k, i)}
+                                            {paletteColorCards(k)}
                                         </div>
                                     )
                                 }
@@ -299,9 +304,9 @@ export const ThemeSettings = memo(function ThemeSettings() {
                             {/* secondary-palette */}
                             {['info', 'success', 'warning', 'error']
                                 .map((k, i) =>
-                                    <div key={k} className="col-span-4 row-span-1">
+                                    <div key={i} className="col-span-4 row-span-1">
                                         <div className="flex flex-row space-x-1 size-full *:w-1/3">
-                                            {paletteColorCards(k, i)}
+                                            {paletteColorCards(k)}
                                         </div>
                                     </div>
                                 )

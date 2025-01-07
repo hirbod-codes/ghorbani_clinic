@@ -84,15 +84,13 @@ export type ThemeOptions = {
     colorCoefficient: number;
     colors: {
         scrollbar: string
-        palette: {
-            primary: Color<PaletteVariants>
-            secondary: Color<PaletteVariants>
-            tertiary: Color<PaletteVariants>
-            info: Color<PaletteVariants>
-            success: Color<PaletteVariants>
-            warning: Color<PaletteVariants>
-            error: Color<PaletteVariants>
-        }
+        primary: Color<PaletteVariants>
+        secondary: Color<PaletteVariants>
+        tertiary: Color<PaletteVariants>
+        info: Color<PaletteVariants>
+        success: Color<PaletteVariants>
+        warning: Color<PaletteVariants>
+        error: Color<PaletteVariants>
         surface: Color<SurfaceVariants>
         natural: string
         naturalVariant: string
