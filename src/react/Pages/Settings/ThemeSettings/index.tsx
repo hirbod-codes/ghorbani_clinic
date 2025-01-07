@@ -6,6 +6,7 @@ import { Separator } from "@/src/react/shadcn/components/ui/separator";
 import { SaveIcon } from "lucide-react";
 import { Button } from "@/src/react/Components/Base/Button";
 import { ColorVariant } from "./ColorVariant";
+import { ColorMain } from "./ColorMain";
 
 export const ThemeSettings = memo(function ThemeSettings() {
     const [, rerender] = useReducer(x => x + 1, 0)
@@ -18,6 +19,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
 
     const bigColorCardStyle = useMemo(() => ({ className: "h-24 p-1" }), [])
     const smallColorCardStyle = useMemo(() => ({ className: "py-2 w-full p-1" }), [])
+    const circleStyle = useMemo(() => ({ className: "rounded-full size-[1.2cm]" }), [])
 
     const onColorChange = useCallback((c: string | number, colorKey?: string) => {
         if (!colorKey)
@@ -151,52 +153,31 @@ export const ThemeSettings = memo(function ThemeSettings() {
                             </div>
                         </div>
 
-                        {/* {Object.keys(themeOptions.colors.palette).map((k, i) =>
-                            <ColorVariant
-                                key={i}
-                                mode={themeOptions.mode}
-                                options={themeOptions.colors.palette[k]}
-                                variant='main'
-                                anchorProps={{
-                                    className: "rounded-full size-[1.2cm]"
-                                }}
-                                containerProps={{
-                                    className: "flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3",
-                                    style: {
-                                        color: themeOptions.colors.surface[themeOptions.mode].inverse,
-                                        backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground']
-                                    }
-                                }}
-                                onColorChanged={(o) => {
-                                    themeOptions.colors.palette[k].main = o.main
-                                    themeOptions.colors.palette[k][mode as string] = {
-                                        main: o.main,
-                                        foreground: (() => { let rgb = RGB.fromHex(o.main); rgb.shadeColor(themeOptions.colors.palette[k][mode + '-shades'].foreground); return rgb.toHex() })(),
-                                        container: (() => { let rgb = RGB.fromHex(o.main); rgb.shadeColor(themeOptions.colors.palette[k][mode + '-shades'].container); return rgb.toHex() })(),
-                                        'container-foreground': (() => { let rgb = RGB.fromHex(o.main); rgb.shadeColor(themeOptions.colors.palette[k][mode + '-shades']['container-foreground']); return rgb.toHex() })(),
-                                        fixed: (() => { let rgb = RGB.fromHex(o.main); rgb.shadeColor(themeOptions.colors.palette[k][mode + '-shades'].fixed); return rgb.toHex() })(),
-                                        'fixed-dim': (() => { let rgb = RGB.fromHex(o.main); rgb.shadeColor(themeOptions.colors.palette[k][mode + '-shades']['fixed-dim']); return rgb.toHex() })(),
-                                        'fixed-foreground': (() => { let rgb = RGB.fromHex(o.main); rgb.shadeColor(themeOptions.colors.palette[k][mode + '-shades']['fixed-foreground']); return rgb.toHex() })(),
-                                        'fixed-foreground-variant': (() => { let rgb = RGB.fromHex(o.main); rgb.shadeColor(themeOptions.colors.palette[k][mode + '-shades']['fixed-foreground-variant']); return rgb.toHex() })(),
-                                    }
-                                    setThemeOptions(themeOptions)
-                                    rerender()
-                                }}
-                                onColorChangeCancel={async () => {
-                                    const conf = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
-                                    themeOptions.colors.palette[k] = conf.themeOptions.colors.palette[k]
-                                    setThemeOptions(themeOptions)
-                                    rerender()
-                                }}
-                            >
-                                <div>
-                                    <p className="text-xl text-nowrap">{k}</p>
-                                    {k === 'primary' &&
-                                        <p className="text-sm text-nowrap">Acts as custom source color</p>
-                                    }
+                        {Object
+                            .keys(themeOptions.colors.palette)
+                            .map((k, i) =>
+                                <div className="flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
+                                    <ColorMain
+                                        key={i}
+                                        colorKey={`palette.${k}.${themeOptions.mode}.main`}
+                                        color={themeOptions.colors.palette[k][themeOptions.mode].main}
+                                        containerProps={circleStyle}
+                                        onColorChange={onColorChange}
+                                        anchorChildren={
+                                            <div className="rounded-full size-[1.2cm]" style={{ backgroundColor: themeOptions.colors.palette[k][themeOptions.mode].main }} />
+                                        }
+                                    >
+                                        <div>
+                                            <p className="text-xl text-nowrap">{k}</p>
+                                            {k === 'primary' &&
+                                                <p className="text-sm text-nowrap">Acts as custom source color</p>
+                                            }
+                                        </div>
+                                    </ColorMain>
                                 </div>
-                            </ColorVariant>
-                        )} */}
+                            )
+                        }
+
                         <div className="flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
                             <div className="rounded-full size-[1.2cm]" style={{ backgroundColor: themeOptions.colors.natural }} />
                             <div>
