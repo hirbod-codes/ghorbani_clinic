@@ -1,7 +1,8 @@
 import { memo, useCallback, useContext, useMemo, useState } from "react";
 import { ConfigurationContext } from '../../../Contexts/Configuration/ConfigurationContext';
 import { ThemeOptions } from '@/src/Electron/Configuration/renderer.d';
-import { Checkbox } from "@mui/material";
+// import { Checkbox } from "@mui/material";
+import { CheckBox } from "@/src/react/Components/Base/CheckBox";
 import { Separator } from "@/src/react/shadcn/components/ui/separator";
 import { SaveIcon } from "lucide-react";
 import { Button } from "@/src/react/Components/Base/Button";
@@ -159,7 +160,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
                             <p className="text-xl">Color match</p>
                             <div className="flex flex-row items-center justify-between w-full">
                                 <p className="text-sm ">Stay true to my color inputs.</p>
-                                <Checkbox defaultChecked={true} size='small' />
+                                {/* <Checkbox defaultChecked={true} size='small' /> */}
                             </div>
                         </div>
 

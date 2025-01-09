@@ -89,51 +89,6 @@ export class RGB extends Color implements IColor {
         }
 
         return new HSL(h, s * 100, l * 100, this.getAlpha())
-
-
-
-        // let r = this.red, g = this.green, b = this.blue
-        // // Make r, g, and b fractions of 1
-        // r /= 255;
-        // g /= 255;
-        // b /= 255;
-
-        // // Find greatest and smallest channel values
-        // let cmin = Math.min(r, g, b),
-        //     cmax = Math.max(r, g, b),
-        //     delta = cmax - cmin, h = 0, s = 0, l = 0
-
-        // // Calculate hue
-        // // No difference
-        // if (delta === 0)
-        //     h = 0
-        // // Red is max
-        // else if (cmax === r)
-        //     h = ((g - b) / delta) % 6
-        // // Green is max
-        // else if (cmax === g)
-        //     h = (b - r) / delta + 2
-        // // Blue is max
-        // else
-        //     h = (r - g) / delta + 4
-
-        // h = Math.round(h * 60)
-
-        // // Make negative hues positive behind 360°
-        // if (h < 0)
-        //     h += 360
-
-        // // Calculate lightness
-        // l = (cmax + cmin) / 2
-
-        // // Calculate saturation
-        // s = delta === 0 ? 0 : delta / (1 - Math.abs(2 * l - 1))
-
-        // // Multiply l and s by 100
-        // s = +(s * 100).toFixed(1)
-        // l = +(l * 100).toFixed(1)
-
-        // return new HSL(h, s, l, this.getAlpha())
     }
 
     toHsv(): HSV {
@@ -177,29 +132,6 @@ export class RGB extends Color implements IColor {
         }
 
         return new HSV(h * 360, s * 100, v * 100, this.getAlpha())
-
-
-        // let r = this.red, g = this.green, b = this.blue
-
-        // let max = Math.max(r, g, b)
-        // let min = Math.min(r, g, b)
-        // let d = max - min
-        // let h
-        // let s = (max === 0 ? 0 : d / max)
-        // let v = max / 255
-
-        // switch (max) {
-        //     case min: h = 0
-        //         break
-        //     case r: h = (g - b) + d * (g < b ? 6 : 0); h /= 6 * d
-        //         break
-        //     case g: h = (b - r) + d * 2; h /= 6 * d
-        //         break
-        //     case b: h = (r - g) + d * 4; h /= 6 * d
-        //         break
-        // }
-
-        // return new HSV(h * 360, s * 100, v * 100)
     }
 
     toHex(): string {

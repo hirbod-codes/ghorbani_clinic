@@ -51,11 +51,11 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                 </TabsList>
                 <TabsContent value="Remote">
                     <Stack direction='vertical'>
-                        <Input value={username} onChange={(e) => setUsername(e.target.value)} label={t('DbSettingsForm.username')} />
-                        <Input type='password' value={password} onChange={(e) => setPassword(e.target.value)} label={t('DbSettingsForm.password')} />
+                        <Input value={username} placeholder={t('DbSettingsForm.username')} onChange={(e) => setUsername(e.target.value)} label={t('DbSettingsForm.username')} />
+                        <Input type='password' value={password} placeholder={t('DbSettingsForm.password')} onChange={(e) => setPassword(e.target.value)} label={t('DbSettingsForm.password')} />
 
-                        <Input value={url.replace('mongodb://', '')} placeholder={t('DbSettingsForm.ip:port')} onChange={(e) => setUrl('mongodb://' + e.target.value.replace('mongodb://', ''))} label={t('DbSettingsForm.url')} />
-                        <Input value={databaseName} onChange={(e) => setDatabaseName(e.target.value)} label={t('DbSettingsForm.databaseName')} />
+                        <Input value={url.replace('mongodb://', '')} placeholder={t('DbSettingsForm.ip_port')} onChange={(e) => setUrl('mongodb://' + e.target.value.replace('mongodb://', ''))} label={t('DbSettingsForm.url')} />
+                        <Input value={databaseName} onChange={(e) => setDatabaseName(e.target.value)} placeholder={t('DbSettingsForm.db_name')} label={t('DbSettingsForm.databaseName')} />
 
                         <Switch
                             label={t('DbSettingsForm.supportsTransaction')}
