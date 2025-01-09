@@ -75,7 +75,7 @@ export const CheckBox = memo(function CheckBox({
                 <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border rounded-sm ${sizeClass[0]} peer-checked:*:block`}>
                     <svg
                         style={{ backgroundColor: color }}
-                        className="hidden size-"
+                        className="hidden"
                         viewBox="0 0 20 20"
                         fill={colorForeground}
                         stroke={colorForeground}
