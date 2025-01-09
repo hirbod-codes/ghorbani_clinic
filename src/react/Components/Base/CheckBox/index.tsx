@@ -1,41 +1,85 @@
 import { cn } from "@/src/react/shadcn/lib/utils"
-import { ComponentProps, memo, ReactNode } from "react"
+import { ComponentProps, memo, ReactNode, useContext } from "react"
 import { ripple } from "../helpers"
 import { IColor } from "@/src/react/Lib/Colors/IColor"
 import { validateColor } from "@/src/react/Lib/Colors/helpers"
+import { ConfigurationContext } from "@/src/react/Contexts/Configuration/ConfigurationContext"
 
 export type CheckBoxProps = {
-    children?: ReactNode,
-    label?: string,
+    size?: 'xl' | 'lg' | 'md' | 'sm' | 'xs'
+    label?: string | ReactNode,
     inputId?: string,
     rippleEffect?: boolean,
     color?: string | IColor,
-    effectColor?: string | IColor,
     colorForeground?: string | IColor,
+    effectColor?: string | IColor,
     containerProps?: ComponentProps<'label'>,
     inputProps?: ComponentProps<'input'>
 }
 
-export const CheckBox = memo(function CheckBox({ label, inputId = 'checkboxId', rippleEffect = true, color = 'primary', colorForeground = 'primary-foreground', effectColor = 'rgba(255, 255, 255, 0.7)', containerProps, inputProps }: CheckBoxProps) {
+export const CheckBox = memo(function CheckBox({
+    size = 'md',
+    label,
+    inputId = 'checkboxId',
+    rippleEffect = true,
+    color,
+    colorForeground,
+    effectColor = 'rgba(255, 255, 255, 0.7)',
+    containerProps,
+    inputProps
+}: CheckBoxProps) {
+    if (color === undefined || colorForeground === undefined) {
+        const t = useContext(ConfigurationContext)!.themeOptions
+
+        color = t.colors.primary[t.mode].main
+        colorForeground = t.colors.primary[t.mode].foreground
+    }
+
     color = validateColor(color)
-    effectColor = validateColor(effectColor)
     colorForeground = validateColor(colorForeground)
+    effectColor = validateColor(effectColor)
+
+    let sizeClass: string[] = []
+    switch (size) {
+        case 'xl':
+            sizeClass = ['size-7', 'size-14']
+            break;
+
+        case 'lg':
+            sizeClass = ['size-7', 'size-12']
+            break;
+
+        case 'md':
+            sizeClass = ['size-5', 'size-9']
+            break;
+
+        case 'sm':
+            sizeClass = ['size-4', 'size-8']
+            break;
+
+        case 'xs':
+            sizeClass = ['size-3', 'size-7']
+            break;
+
+        default:
+            break;
+    }
 
     return (
         <label htmlFor={inputId} {...containerProps} className={cn(["select-none cursor-pointer flex flex-row items-center"], containerProps?.className)}>
-            <p className="align-middle">{label}</p>
+            <div>{label}</div>
 
-            <div className="overflow-hidden relative rounded-full block size-7 m-1" onClick={(e) => { if (rippleEffect) ripple(e, color, true) }}>
+            <div className={`overflow-hidden relative rounded-full block ${sizeClass[1]} m-1`} onClick={(e) => { if (rippleEffect) ripple(e, color, true) }}>
                 <input type="checkbox" id={inputId} {...inputProps} className={cn(["hidden invisible peer"], inputProps?.className)} />
 
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border rounded-sm size-3.5 peer-checked:*:block">
+                <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border rounded-sm ${sizeClass[0]} peer-checked:*:block`}>
                     <svg
                         style={{ backgroundColor: color }}
-                        className="hidden"
+                        className="hidden size-"
                         viewBox="0 0 20 20"
-                        fill="currentColor"
-                        stroke="currentColor"
-                        stroke-width="1"
+                        fill={colorForeground}
+                        stroke={colorForeground}
+                        strokeWidth="1"
                     >
                         <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                     </svg>

@@ -3,16 +3,12 @@ import { Analytics } from "./Analytics";
 import { Clock } from "../../Components/Clock";
 import { memo } from "react";
 import { Calendar } from "./Calendar";
-import { CheckBox } from "../../Components/Base/CheckBox";
-import { Button } from "../../Components/Base/Button";
 
 export const Home = memo(function Home() {
     console.log('Home')
 
     return (
         <div className="size-full overflow-y-auto overflow-x-hidden">
-            <Button variant={'outline'}>aaa</Button>
-            <CheckBox label="checked?" />
             <div className="grid grid-cols-12 justify-center w-full p-1 *:p-1">
 
                 <div className="sm:col-span-0 md:col-span-3" />
