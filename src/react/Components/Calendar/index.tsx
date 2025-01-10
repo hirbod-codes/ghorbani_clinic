@@ -140,7 +140,7 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
     console.log('Calendar', { locale: local, collection, columns, calendarManager })
 
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col *:select-none">
             <div className="flex flex-row items-center">
                 <NextPrevButtons onPrev={() => { calendarManager.previous(); rerender() }} onNext={() => { calendarManager.next(); rerender() }} />
 
