@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Badge } from "../../shadcn/components/ui/badge";
+import { Button } from "../Base/Button";
 
 export type SlideProps = {
     columns: number;
@@ -23,15 +23,17 @@ export const Slide = memo(function Slide({ columns, collection, headers, onElmCl
                     e === null
                         ? <div key={i} className='sm:col-span-1' />
                         : <div key={i} className='sm:col-span-1' >
-                            <Badge
+                            <Button
                                 onPointerOver={async () => { if (onPointerOver) await onPointerOver(e, i) }}
                                 onPointerOut={async () => { if (onPointerOut) await onPointerOut(e, i) }}
                                 className='m-1'
                                 variant="outline"
+                                isIcon
+                                size='xs'
                                 onClick={async () => { if (onElmClick) await onElmClick(e, i) }}
                             >
                                 {e}
-                            </Badge>
+                            </Button>
                         </div>
                 )}
             </div>
