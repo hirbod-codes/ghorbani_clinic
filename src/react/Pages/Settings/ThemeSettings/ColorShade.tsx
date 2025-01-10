@@ -86,7 +86,7 @@ export const ColorShade = memo(function ColorShade({ shade, bg, fg, onChange }: 
                                 await onChange(Number(text))
                         }}
                         style={{ backgroundColor: fg }}
-                        color={fg}
+                        color={fg as any}
                     >
                         <CheckIcon color={bg} />
                     </Button>
