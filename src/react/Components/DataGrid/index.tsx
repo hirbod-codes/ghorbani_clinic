@@ -53,7 +53,9 @@ export type DataGridProps = {
     showColumnHeaders?: boolean
     addCounterColumn?: boolean
     headerNodes?: ReactNode[],
+    defaultHeaderNodes?: boolean,
     footerNodes?: ReactNode[],
+    defaultFooterNodes?: boolean,
     appendHeaderNodes?: ReactNode[],
     appendFooterNodes?: ReactNode[],
     hasPagination?: boolean,
@@ -77,7 +79,9 @@ export function DataGrid({
     showColumnHeaders = true,
     addCounterColumn = true,
     headerNodes = [],
+    defaultHeaderNodes = true,
     footerNodes = [],
+    defaultFooterNodes = true,
     appendHeaderNodes = [],
     appendFooterNodes = [],
     hasPagination = false,
@@ -225,7 +229,7 @@ export function DataGrid({
         getPaginationRowModel: hasPagination && !onPagination ? getPaginationRowModel() : undefined,
     }))
 
-    if (headerNodes === undefined)
+    if (defaultHeaderNodes !== false)
         headerNodes = [
             <ColumnVisibilityButton />,
             <DensityButton />,
@@ -237,17 +241,21 @@ export function DataGrid({
     if (appendHeaderNodes && appendHeaderNodes.length !== 0)
         headerNodes = headerNodes.concat(appendHeaderNodes)
 
-    if (hasPagination === true && footerNodes === undefined)
+    if (hasPagination === true && defaultFooterNodes !== false)
         footerNodes = [
-            <Pagination paginationLimitOptions={paginationLimitOptions} onPagination={async (l, o) => {
-                console.log({ l, o })
-                if (onPagination)
-                    return await onPagination({ pageIndex: o, pageSize: l })
-                return true
-            }} setPaginationLimitChange={(size) => {
-                if (onPagination)
-                    onPagination({ pageIndex: 0, pageSize: size })
-            }} />
+            <Pagination
+                paginationLimitOptions={paginationLimitOptions}
+                onPagination={async (l, o) => {
+                    console.log({ l, o })
+                    if (onPagination)
+                        return await onPagination({ pageIndex: o, pageSize: l })
+                    return true
+                }}
+                setPaginationLimitChange={(size) => {
+                    if (onPagination)
+                        onPagination({ pageIndex: 0, pageSize: size })
+                }}
+            />
         ]
 
     if (prependFooterNodes && prependFooterNodes.length !== 0)

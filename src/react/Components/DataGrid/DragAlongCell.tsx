@@ -74,11 +74,11 @@ export const DragAlongCell = ({ cell }: { cell: Cell<any, unknown>; }) => {
             style={style}
             ref={setNodeRef}
         >
-            <p>
+            <div>
                 <Trans>
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                 </Trans>
-            </p>
+            </div>
         </motion.td>
     );
 };

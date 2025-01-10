@@ -7,6 +7,7 @@ import { AnimatedSlide } from "../Animations/AnimatedSlide";
 import { CircularLoading } from "../Base/CircularLoading";
 import { FinitePagination } from "./FinitePagination";
 import { Select } from "../Base/Select";
+import { Stack } from "../Base/Stack";
 
 export type PaginationProps = {
     paginationLimitOptions?: number[],
@@ -28,77 +29,80 @@ export function Pagination({ paginationLimitOptions = [10, 25, 50, 100], onPagin
     console.log('Pagination', { page, paginationLimit })
 
     return (
-        <>
-            <div className='flex flex-row flex-grow justify-end items-center'>
-                <Select
-                    value={paginationLimit.toString()}
-                    onValueChange={(value) => {
-                        setPaginationLimit(Number(value));
-                        if (setPaginationLimitChange)
-                            setPaginationLimitChange(Number(value))
-                        setPage(0)
-                    }}
-                    selectOptions={{ type: 'items', items: paginationLimitOptions.map((o, i) => ({ value: o.toString(), displayValue: o.toString() })) }}
-                />
+        <Stack stackProps={{ className: 'flex-grow justify-end items-center' }}>
+            <Select
+                triggerProps={{ className: 'w-fit' }}
+                value={paginationLimit.toString()}
+                onValueChange={(value) => {
+                    setPaginationLimit(Number(value));
+                    if (setPaginationLimitChange)
+                        setPaginationLimitChange(Number(value))
+                    setPage(0)
+                }}
+                selectOptions={{ type: 'items', items: paginationLimitOptions.map((o, i) => ({ value: o.toString(), displayValue: o.toString() })) }}
+            />
 
-                {
-                    !onPagination
-                        ?
-                        <FinitePagination
-                            count={Math.ceil(table.getRowCount() / paginationLimit)}
-                            onChange={(page) => {
-                                table.setPageIndex(page - 1)
+            {
+                !onPagination
+                    ?
+                    <FinitePagination
+                        count={Math.ceil(table.getRowCount() / paginationLimit)}
+                        onChange={(page) => {
+                            table.setPageIndex(page - 1)
 
-                                setPage(page)
-                            }} />
-                        :
-                        <div className='flex flex-row items-center'>
-                            <Button
-                                onClick={async () => {
-                                    setIsLoading(true)
-                                    const result = await onPagination(paginationLimit, page - 1)
-                                    setIsLoading(false)
+                            setPage(page)
+                        }} />
+                    :
+                    <Stack>
+                        <Button
+                            onClick={async () => {
+                                setIsLoading(true)
+                                const result = await onPagination(paginationLimit, page - 1)
+                                setIsLoading(false)
 
-                                    if (result)
-                                        setPage(page - 1)
-                                }}
-                                disabled={isLoading}
-                                isIcon
-                            >
-                                {
-                                    configuration.local.direction === 'ltr'
-                                        ? <ChevronLeftIcon fontSize="inherit" />
-                                        : <ChevronRightIcon fontSize="inherit" />
-                                }
-                            </Button>
+                                if (result)
+                                    setPage(page - 1)
+                            }}
+                            disabled={isLoading}
+                            isIcon
+                            variant="outline"
+                            size='sm'
+                        >
+                            {
+                                configuration.local.direction === 'ltr'
+                                    ? <ChevronLeftIcon fontSize="inherit" />
+                                    : <ChevronRightIcon fontSize="inherit" />
+                            }
+                        </Button>
 
-                            <AnimatedSlide open={isLoading}>
-                                <CircularLoading />
-                            </AnimatedSlide>
+                        <AnimatedSlide open={isLoading}>
+                            <CircularLoading />
+                        </AnimatedSlide>
 
-                            {!isLoading && <Button isIcon>{page}</Button>}
+                        {!isLoading && <Button size='sm' variant="outline" isIcon>{page}</Button>}
 
-                            <Button
-                                onClick={async () => {
-                                    setIsLoading(true)
-                                    const result = await onPagination(paginationLimit, page + 1)
-                                    setIsLoading(false)
+                        <Button
+                            onClick={async () => {
+                                setIsLoading(true)
+                                const result = await onPagination(paginationLimit, page + 1)
+                                setIsLoading(false)
 
-                                    if (result)
-                                        setPage(page + 1)
-                                }}
-                                disabled={isLoading}
-                                isIcon
-                            >
-                                {
-                                    configuration.local.direction === 'ltr'
-                                        ? <ChevronRightIcon fontSize="inherit" />
-                                        : <ChevronLeftIcon fontSize="inherit" />
-                                }
-                            </Button>
-                        </div>
-                }
-            </div >
-        </>
+                                if (result)
+                                    setPage(page + 1)
+                            }}
+                            disabled={isLoading}
+                            isIcon
+                            variant="outline"
+                            size='sm'
+                        >
+                            {
+                                configuration.local.direction === 'ltr'
+                                    ? <ChevronRightIcon fontSize="inherit" />
+                                    : <ChevronLeftIcon fontSize="inherit" />
+                            }
+                        </Button>
+                    </Stack>
+            }
+        </Stack >
     )
 }

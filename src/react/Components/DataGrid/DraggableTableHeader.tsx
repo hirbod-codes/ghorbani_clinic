@@ -82,6 +82,8 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
                     <Button
                         className="ml-1"
                         isIcon
+                        variant="text"
+                        size="xs"
                         onClick={(e) => {
                             if (header.column.getCanPin())
                                 header.column.pin('left')

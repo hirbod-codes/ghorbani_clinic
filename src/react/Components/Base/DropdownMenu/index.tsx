@@ -19,7 +19,7 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, op
     const containerRef = useRef<HTMLDivElement>(null)
 
     const updatePosition = () => {
-        if (!containerRef.current || !anchorRef.current)
+        if (!containerRef?.current || !anchorRef?.current)
             return
 
         const aRect = anchorRef.current.getBoundingClientRect()
@@ -53,7 +53,7 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, op
 
         if (onOpenChange)
             onOpenChange(open)
-    }, [open, display, anchorRef.current, containerRef.current])
+    }, [open, display, anchorRef?.current, containerRef?.current])
 
     useEffect(() => {
         if (display === 'block')

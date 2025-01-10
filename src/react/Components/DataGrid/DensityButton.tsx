@@ -1,48 +1,40 @@
 import { t } from "i18next";
-import { useContext, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { DataGridContext } from "./Context";
 import { DropdownMenu } from "../Base/DropdownMenu";
 import { Button } from "../../Components/Base/Button";
 import { MenuIcon } from "lucide-react";
+import { Stack } from "../Base/Stack";
 
 export function DensityButton() {
-    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-    const open = Boolean(anchorEl)
+    const ref = useRef<HTMLButtonElement>(null)
+    const [open, setOpen] = useState<boolean>(false)
 
     const ctx = useContext(DataGridContext)!
 
     return (
         <>
+            <Button variant="outline" buttonRef={ref} onClick={() => setOpen(true)}>
+                <MenuIcon />{t('DataGrid.density')}
+            </Button>
+
             <DropdownMenu
-                trigger={
-                    <Button>
-                        <MenuIcon />{t('DataGrid.density')}
+                anchorRef={ref}
+                open={open}
+                onOpenChange={(b) => { if (!b) setOpen(b) }}
+            >
+                <Stack direction="vertical">
+                    <Button variant='text' onClick={() => ctx.density.set('compact')}>
+                        {t('DataGrid.compact')}
                     </Button>
-                }
-                contents={[
-                    {
-                        type: 'item',
-                        options: {
-                            onClick: () => ctx.density.set('compact')
-                        },
-                        content: t('DataGrid.compact')
-                    },
-                    {
-                        type: 'item',
-                        options: {
-                            onClick: () => ctx.density.set('standard')
-                        },
-                        content: t('DataGrid.standard')
-                    },
-                    {
-                        type: 'item',
-                        options: {
-                            onClick: () => ctx.density.set('comfortable')
-                        },
-                        content: t('DataGrid.comfortable')
-                    }
-                ]}
-            />
+                    <Button variant='text' onClick={() => ctx.density.set('standard')}>
+                        {t('DataGrid.standard')}
+                    </Button>
+                    <Button variant='text' onClick={() => ctx.density.set('comfortable')}>
+                        {t('DataGrid.comfortable')}
+                    </Button>
+                </Stack>
+            </DropdownMenu>
         </>
     )
 }

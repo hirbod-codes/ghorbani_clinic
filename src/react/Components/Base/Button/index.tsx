@@ -1,5 +1,5 @@
 import { cn } from "@/src/react/shadcn/lib/utils";
-import { ComponentProps, CSSProperties, HTMLAttributes, memo, MouseEvent, ReactNode } from "react";
+import { ComponentProps, CSSProperties, HTMLAttributes, memo, MouseEvent, ReactNode, RefObject } from "react";
 import { ripple } from "../helpers";
 
 export type ButtonProps = {
@@ -9,9 +9,10 @@ export type ButtonProps = {
     color?: 'primary' | 'secondary' | 'tertiary' | 'surface' | 'outline' | 'info' | 'success' | 'warning' | 'error'
     size?: 'xl' | 'lg' | 'md' | 'sm' | 'xs'
     isIcon?: boolean
+    buttonRef?: RefObject<HTMLButtonElement>
 } & ComponentProps<'button'>
 
-export const Button = memo(function Button({ children, rippleEffect = true, variant = 'contained', color = 'primary', size = 'md', isIcon = false, ...buttonProps }: ButtonProps) {
+export const Button = memo(function Button({ children, rippleEffect = true, variant = 'contained', color = 'primary', size = 'md', isIcon = false, buttonRef, ...buttonProps }: ButtonProps) {
     let style: CSSProperties = {}
     let className: HTMLAttributes<HTMLButtonElement>['className'] = 'overflow-hidden relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0'
     switch (variant) {
@@ -64,6 +65,7 @@ export const Button = memo(function Button({ children, rippleEffect = true, vari
     return (
         <button
             {...buttonProps}
+            ref={buttonRef}
             className={className}
             style={style}
             onClick={(e: MouseEvent<HTMLButtonElement>) => {
