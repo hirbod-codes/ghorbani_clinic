@@ -54,7 +54,7 @@ export function TextEditorModal({ open, onClose, onSave: onChange, onSave, place
                 <div className="w-10/2 h-5/6 py-1 px-2 overflow-auto">
                     <div className="flex flex-col w-full h-full">
                         <Button
-                            size='icon'
+                            isIcon
                             onClick={async () => {
                                 if (onSave)
                                     await onSave(text)

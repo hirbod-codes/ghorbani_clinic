@@ -63,7 +63,7 @@ export function Pagination({ paginationLimitOptions = [10, 25, 50, 100], onPagin
                                         setPage(page - 1)
                                 }}
                                 disabled={isLoading}
-                                size='icon'
+                                isIcon
                             >
                                 {
                                     configuration.local.direction === 'ltr'
@@ -76,7 +76,7 @@ export function Pagination({ paginationLimitOptions = [10, 25, 50, 100], onPagin
                                 <CircularLoading />
                             </AnimatedSlide>
 
-                            {!isLoading && <Button size='icon'>{page}</Button>}
+                            {!isLoading && <Button isIcon>{page}</Button>}
 
                             <Button
                                 onClick={async () => {
@@ -88,7 +88,7 @@ export function Pagination({ paginationLimitOptions = [10, 25, 50, 100], onPagin
                                         setPage(page + 1)
                                 }}
                                 disabled={isLoading}
-                                size='icon'
+                                isIcon
                             >
                                 {
                                     configuration.local.direction === 'ltr'

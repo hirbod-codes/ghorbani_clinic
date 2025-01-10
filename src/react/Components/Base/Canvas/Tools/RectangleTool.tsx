@@ -142,7 +142,7 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
 
                 <Button
                     style={{ backgroundColor: color }}
-                    size='icon'
+                    isIcon
                     onClick={() => {
                         setStroke('#ff0000')
                         setFill('#00ff00')

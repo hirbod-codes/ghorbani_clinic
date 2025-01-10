@@ -208,7 +208,7 @@ export const Patients = memo(function Patients() {
                     {
                         updatesPatient
                             ? <Button
-                                size='icon'
+                                isIcon
                                 onClick={() => {
                                     setEditingPatientId(patients?.find(p => p._id === row.original._id)?._id as string)
                                 }}
@@ -220,7 +220,7 @@ export const Patients = memo(function Patients() {
                     {
                         deletesPatient
                             ? <Button
-                                size='icon'
+                                isIcon
                                 onClick={async () => {
                                     setDialog({
                                         open: true,

@@ -74,7 +74,7 @@ export const ColorShade = memo(function ColorShade({ shade, bg, fg, onChange }: 
                         }}
                     />
                     <Button
-                        size='icon'
+                        isIcon
                         className="size-5 p-0 m-0"
                         onClick={async () => {
                             if (error !== undefined)

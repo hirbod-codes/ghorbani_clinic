@@ -38,7 +38,7 @@ export const ColorCard = memo(function ColorCard({ bg, fg, text, textProps, subT
                     style={{ opacity: 0 }}
                     onClick={async (e) => { e.stopPropagation(); if (navigator.clipboard) await navigator.clipboard.writeText(bg) }}
                 >
-                    <Button size='icon' style={{ backgroundColor: 'transparent' }}>
+                    <Button isIcon style={{ backgroundColor: 'transparent' }}>
                         <ClipboardCopyIcon color={fg} />
                     </Button>
                 </div>

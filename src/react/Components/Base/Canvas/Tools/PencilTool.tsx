@@ -87,7 +87,7 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
                     ]}
                 />
 
-                <Button style={{ backgroundColor: color }} size='icon' onClick={() => setIsPressureSensitive(!isPressureSensitive)}>
+                <Button style={{ backgroundColor: color }} isIcon onClick={() => setIsPressureSensitive(!isPressureSensitive)}>
                     <PenConnectIcon color={themeOptions.colors.foreground} />
                 </Button>
 
@@ -107,7 +107,7 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
 
                 <Button
                     style={{ backgroundColor: color }}
-                    size='icon'
+                    isIcon
                     onClick={() => {
                         setColor(canvasBackground === themeOptions.colors.white ? themeOptions.colors.black : themeOptions.colors.white)
                         setLineWidth('1.2')

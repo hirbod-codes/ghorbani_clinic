@@ -150,7 +150,7 @@ export const Visits = memo(function Visits() {
             cell: ({ row }) =>
                 deletesVisit &&
                 <Button
-                    size='icon'
+                    isIcon
                     onClick={async () => {
                         try {
                             console.group('Visits', 'deletesVisit', 'onClick')

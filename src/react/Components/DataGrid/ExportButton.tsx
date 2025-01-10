@@ -12,7 +12,7 @@ export function ExportButton() {
     return (
         <>
             <Button
-                size='icon'
+                isIcon
                 onClick={async () => {
                     const json = JSON.stringify(([] as Row<any>[]).concat(table.getTopRows(), table.getCenterRows(), table.getBottomRows()), undefined, 4)
                     const path = await (window as typeof window & { appAPI: appAPI }).appAPI.saveFileDialog();

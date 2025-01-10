@@ -15,7 +15,7 @@ export function ColumnVisibilityButton() {
     return (
         <DropdownMenu
             trigger={
-                <Button size='icon'>
+                <Button isIcon>
                     <ViewWeekOutlined />{t('Columns.columns')}
                 </Button>
             }

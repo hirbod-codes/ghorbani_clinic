@@ -249,7 +249,7 @@ export const Users = memo(function Users() {
                                                 <AccordionTrigger></AccordionTrigger>
                                                 <AccordionContent>
                                                     <Button onClick={() => { setOpenManageRoleModal(true); setReadingRole(r) }} className="pl-4">
-                                                        <Button size='icon'>
+                                                        <Button isIcon>
                                                             <EyeOffIcon />
                                                         </Button>
                                                         <p>{t("Users.show")}</p>
@@ -267,7 +267,7 @@ export const Users = memo(function Users() {
                                                     {
                                                         deletesRole &&
                                                         <Button onClick={async () => { await deleteRole(r); await refresh() }} className="pl-4">
-                                                            <Button size='icon'>
+                                                            <Button isIcon>
                                                                 {deletingRole ? <CircularLoading /> : <TrashIcon />}
                                                             </Button>
                                                             <p>{t("Users.delete")}</p>
@@ -284,7 +284,7 @@ export const Users = memo(function Users() {
                                         <div className="mt-1" />
                                         <Separator />
                                         <div className="flex flex-row justify-center mt-1" onClick={() => setOpenManageRoleModal(true)}>
-                                            <Button size='icon'><PlusIcon /></Button>
+                                            <Button isIcon><PlusIcon /></Button>
                                         </div>
                                     </>
                                 }

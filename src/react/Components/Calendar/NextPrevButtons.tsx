@@ -5,10 +5,10 @@ import { Button } from "../../shadcn/components/ui/button";
 export const NextPrevButtons = memo(function NextPrevButtons({ onPrev, onNext }: { onPrev: () => void, onNext: () => void }) {
     return (
         <div className="flex flex-row">
-            <Button size='icon' onClick={onPrev}>
+            <Button isIcon onClick={onPrev}>
                 <ChevronLeftIcon strokeWidth={1.5} />
             </Button>
-            <Button size='icon' onClick={onNext}>
+            <Button isIcon onClick={onNext}>
                 <ChevronRightIcon strokeWidth={1.5} />
             </Button>
         </div>

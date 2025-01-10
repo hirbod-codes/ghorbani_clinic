@@ -105,7 +105,7 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                     {
                         deletesFile
                             ? <Button
-                                size='icon'
+                                isIcon
                                 onClick={async () => {
                                     try {
                                         console.group('DocumentManagement', 'deletesFile', 'onClick')

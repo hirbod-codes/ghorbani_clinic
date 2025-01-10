@@ -287,14 +287,14 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                     </div>
                     <div className="flex flex-row justify-end content-center items-center">
                         <Tooltip tooltipContent={t('Editor.View')}>
-                            <Button size='icon' onClick={() => { setStatus('showing') }}>
+                            <Button isIcon onClick={() => { setStatus('showing') }}>
                                 <EyeIcon color={themeOptions.colors.primary} />
                             </Button>
                         </Tooltip>
 
                         {!hideTextEditor &&
                             <Tooltip tooltipContent={t('Editor.Notes')}>
-                                <Button size='icon' onClick={() => { setStatus('typing') }}>
+                                <Button isIcon onClick={() => { setStatus('typing') }}>
                                     <FileTypeIcon strokeWidth={1.25} color={themeOptions.colors.primary} />
                                 </Button>
                             </Tooltip>
@@ -302,7 +302,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
 
                         {!hideCanvas &&
                             <Tooltip tooltipContent={t('Editor.WhiteBoard')}>
-                                <Button size='icon' onClick={() => { setStatus('drawing') }}>
+                                <Button isIcon onClick={() => { setStatus('drawing') }}>
                                     <SquarePenIcon strokeWidth={1.5} color={themeOptions.colors.primary} />
                                 </Button>
                             </Tooltip>
@@ -341,7 +341,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                         <Separator />
 
                         {onSave &&
-                            <Button size='icon' onClick={saveContent} color={contentHasUnsavedChanges ? themeOptions.colors.accent : themeOptions.colors.primary} >
+                            <Button isIcon onClick={saveContent} color={contentHasUnsavedChanges ? themeOptions.colors.accent : themeOptions.colors.primary} >
                                 {contentHasUnsavedChanges ? <SaveIcon color='warning' /> : <SaveIcon color='success' />}
                             </Button>
                         }
@@ -365,7 +365,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                         <Separator />
 
                         {onSave &&
-                            <Button size='icon' onClick={saveCanvas} color={canvasHasUnsavedChanges ? themeOptions.colors.accent : themeOptions.colors.primary} >
+                            <Button isIcon onClick={saveCanvas} color={canvasHasUnsavedChanges ? themeOptions.colors.accent : themeOptions.colors.primary} >
                                 {canvasHasUnsavedChanges ? <CloudUploadIcon color={themeOptions.colors.accent} /> : <FolderCheckIcon color={themeOptions.colors.primary} />}
                             </Button>
                         }
