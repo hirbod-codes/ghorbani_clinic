@@ -38,7 +38,7 @@ export function Modal({ children, open = false, onClose, containerProps, animate
             >
                 <Container containerRef={containerRef} {...containerProps} className={cn("bg-surface rounded p-4 relative", containerProps?.className)}>
                     {closeButton &&
-                        <Button isIcon className="absolute right-0 top-0 m-2 bg-transparent" onClick={() => { if (onClose) onClose() }}>
+                        <Button isIcon variant='text' color='error' className="absolute right-0 top-0 m-2" onClick={() => { if (onClose) onClose() }}>
                             {closeIcon}
                         </Button>
                     }
