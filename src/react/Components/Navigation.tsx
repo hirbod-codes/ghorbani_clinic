@@ -45,9 +45,9 @@ export const Navigation = memo(function Navigation() {
 
     return (
         <>
-            <div className='relative border-b-0 shadow-none bg-[#00000000]'>
+            <div className='relative border-b-0 shadow-none bg-surface-container'>
                 <div className='flex flex-row w-full items-center'>
-                    <Button size='icon' className='rounded-none bg-transparent' onClick={() => setOpenDrawer(true)}>
+                    <Button variant='text' isIcon className='rounded-none' onClick={() => setOpenDrawer(true)}>
                         <MenuIcon />
                     </Button>
                     <h6 className='flex-grow'>
@@ -56,7 +56,7 @@ export const Navigation = memo(function Navigation() {
                     </h6>
                     {
                         auth?.user &&
-                        <Button size='icon' className='rounded-none bg-transparent' onClick={async () => await auth?.logout()}>
+                        <Button variant='text' isIcon className='rounded-none' onClick={async () => await auth?.logout()}>
                             {
                                 auth?.isAuthLoading
                                     ? <CircularLoading />
@@ -66,7 +66,7 @@ export const Navigation = memo(function Navigation() {
                     }
                     {
                         !auth?.isAuthLoading && !auth?.user &&
-                        <Button size='icon' className='rounded-none bg-transparent' onClick={() => auth?.showModal()}>
+                        <Button variant='text' isIcon className='rounded-none' onClick={() => auth?.showModal()}>
                             {
                                 auth?.isAuthLoading
                                     ? <CircularLoading />
@@ -74,7 +74,7 @@ export const Navigation = memo(function Navigation() {
                             }
                         </Button>
                     }
-                    <Button size='icon' className='rounded-none bg-transparent' onClick={async () => await configuration.updateTheme(configuration.themeOptions.mode === 'dark' ? 'light' : 'dark')}>
+                    <Button id='theme' variant='text' isIcon className='rounded-none' onClick={async () => await configuration.updateTheme(configuration.themeOptions.mode === 'dark' ? 'light' : 'dark')}>
                         {configuration.themeOptions.mode == 'dark' ? <SunIcon fontSize='inherit' /> : <MoonIcon fontSize='inherit' />}
                     </Button>
                 </div>
@@ -83,11 +83,11 @@ export const Navigation = memo(function Navigation() {
             <div style={{ height: '2px', background: appBarBorderGradient, margin: '0 1rem' }} />
 
             <Drawer animatedSlideProps={{ open: openDrawer, motionKey: openDrawer.toString(), motionDivProps: { className: 'absolute top-0 h-screen z-10', layout: true } }} containerRef={containerRef} onClose={() => setOpenDrawer(false)}>
-                <div ref={containerRef} className={`flex flex-row items-center h-full w-fit`} style={{ background: drawerGradient }}>
+                <div ref={containerRef} className={`flex flex-row items-center h-full w-fit bg-surface-container`} style={{ background: drawerGradient }}>
                     <div className='flex flex-col overflow-auto h-full'>
                         <div className='mb-8' />
 
-                        <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/')}>
+                        <Button className='pr-8 rounded-none' onClick={() => moveTo('/')}>
                             <HomeIcon style={{ color: window.location.pathname !== '/' ? drawerForegroundColor : activeColor }} />
                             <p style={{ color: window.location.pathname !== '/' ? drawerForegroundColor : activeColor }}>{t('Navigation.home')}</p>
                         </Button>
@@ -95,7 +95,7 @@ export const Navigation = memo(function Navigation() {
                         <div className='mb-8' />
 
                         {readsUsers &&
-                            <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/Users')} >
+                            <Button className='pr-8 rounded-none' onClick={() => moveTo('/Users')} >
                                 <UsersIcon style={{ color: window.location.pathname !== '/Users' ? drawerForegroundColor : activeColor }} />
                                 <p style={{ color: window.location.pathname !== '/Users' ? drawerForegroundColor : activeColor }}>{t('Navigation.users')}</p>
                             </Button>}
@@ -103,7 +103,7 @@ export const Navigation = memo(function Navigation() {
                         <div className='mb-2' />
 
                         {readsPatients &&
-                            <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/Patients')} >
+                            <Button className='pr-8 rounded-none' onClick={() => moveTo('/Patients')} >
                                 <ShieldAlertIcon style={{ color: window.location.pathname !== '/Patients' ? drawerForegroundColor : activeColor }} />
                                 <p style={{ color: window.location.pathname !== '/Patients' ? drawerForegroundColor : activeColor }}>{t('Navigation.patients')}</p>
                             </Button>}
@@ -111,7 +111,7 @@ export const Navigation = memo(function Navigation() {
                         <div className='mb-2' />
 
                         {readsVisits &&
-                            <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/Visits')} >
+                            <Button className='pr-8 rounded-none' onClick={() => moveTo('/Visits')} >
                                 <TimerIcon style={{ color: window.location.pathname !== '/Visits' ? drawerForegroundColor : activeColor }} />
                                 <p style={{ color: window.location.pathname !== '/Visits' ? drawerForegroundColor : activeColor }}>{t('Navigation.visits')}</p>
                             </Button>}
@@ -119,26 +119,26 @@ export const Navigation = memo(function Navigation() {
                         <div className='mb-2' />
 
                         {readsMedicalHistories &&
-                            <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/MedicalHistories')} >
+                            <Button className='pr-8 rounded-none' onClick={() => moveTo('/MedicalHistories')} >
                                 <HistoryIcon style={{ color: window.location.pathname !== '/MedicalHistories' ? drawerForegroundColor : activeColor }} />
                                 <p style={{ color: window.location.pathname !== '/MedicalHistories' ? drawerForegroundColor : activeColor }}>{t('Navigation.MedicalHistories')}</p>
                             </Button>}
 
                         <div className='mb-8' />
 
-                        <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/General')} >
+                        <Button className='pr-8 rounded-none' onClick={() => moveTo('/General')} >
                             <SettingsIcon style={{ color: window.location.pathname !== '/General' ? drawerForegroundColor : activeColor }} />
                             <p style={{ color: window.location.pathname !== '/General' ? drawerForegroundColor : activeColor }}>{t("Navigation.general")}</p>
                         </Button>
 
-                        <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/ThemeSettings')} >
+                        <Button className='pr-8 rounded-none' onClick={() => moveTo('/ThemeSettings')} >
                             <PaintRollerIcon style={{ color: window.location.pathname !== '/ThemeSettings' ? drawerForegroundColor : activeColor }} />
                             <p style={{ color: window.location.pathname !== '/ThemeSettings' ? drawerForegroundColor : activeColor }}>{t("Navigation.Theme")}</p>
                         </Button>
 
                         <div className='mb-8' />
 
-                        <Button className='pr-8 rounded-none' variant={'ghost'} onClick={() => moveTo('/DbSettings')} >
+                        <Button className='pr-8 rounded-none' onClick={() => moveTo('/DbSettings')} >
                             <DatabaseIcon style={{ color: window.location.pathname !== '/DbSettings' ? drawerForegroundColor : activeColor }} />
                             <p style={{ color: window.location.pathname !== '/DbSettings' ? drawerForegroundColor : activeColor }}>{t("Navigation.Db")}</p>
                         </Button>

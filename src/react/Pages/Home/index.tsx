@@ -10,7 +10,6 @@ export const Home = memo(function Home() {
     return (
         <div className="size-full overflow-y-auto overflow-x-hidden">
             <div className="grid grid-cols-12 justify-center w-full p-1 *:p-1">
-
                 <div className="sm:col-span-0 md:col-span-3" />
                 <div className="sm:col-span-12 md:col-span-6 col-span-12">
                     <SearchPatientField />
