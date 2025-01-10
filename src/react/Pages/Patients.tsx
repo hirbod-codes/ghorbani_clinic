@@ -20,8 +20,9 @@ import { Modal } from "../Components/Base/Modal";
 import { DocumentManagement } from "../Components/DocumentManagement";
 import { Button } from "../Components/Base/Button";
 import { CircularLoading } from "../Components/Base/CircularLoading";
-import { EditIcon, PlusIcon, RefreshCwIcon } from "lucide-react";
+import { EditIcon, PlusIcon, RefreshCwIcon, Trash2Icon } from "lucide-react";
 import { TrashIcon } from "../Components/Icons/TrashIcon";
+import { Stack } from "../Components/Base/Stack";
 
 export const Patients = memo(function Patients() {
     const auth = useContext(AuthContext)
@@ -209,6 +210,7 @@ export const Patients = memo(function Patients() {
                         updatesPatient
                             ? <Button
                                 isIcon
+                                variant='text'
                                 onClick={() => {
                                     setEditingPatientId(patients?.find(p => p._id === row.original._id)?._id as string)
                                 }}
@@ -221,6 +223,8 @@ export const Patients = memo(function Patients() {
                         deletesPatient
                             ? <Button
                                 isIcon
+                                variant='text'
+                                color='error'
                                 onClick={async () => {
                                     setDialog({
                                         open: true,
@@ -251,7 +255,7 @@ export const Patients = memo(function Patients() {
                                     })
                                 }}
                             >
-                                {deletingPatientId === row.original._id ? <CircularLoading /> : <TrashIcon />}
+                                {deletingPatientId === row.original._id ? <CircularLoading /> : <Trash2Icon />}
                             </Button>
                             : null
                     }
@@ -295,8 +299,8 @@ export const Patients = memo(function Patients() {
                                     return result
                                 }}
                                 appendHeaderNodes={[
-                                    <Button onClick={async () => await init(page.offset, page.limit)}><RefreshCwIcon />{t('Patients.Refresh')}</Button>,
-                                    createsPatient && <Button onClick={() => setCreatingPatient(true)}><PlusIcon />{t('Patients.Create')}</Button>,
+                                    <Button variant="outline" onClick={async () => await init(page.offset, page.limit)}><RefreshCwIcon />{t('Patients.Refresh')}</Button>,
+                                    createsPatient && <Button variant="outline" onClick={() => setCreatingPatient(true)}><PlusIcon />{t('Patients.Create')}</Button>,
                                 ]}
                             />
                         }
@@ -397,17 +401,18 @@ export const Patients = memo(function Patients() {
             <Modal
                 open={dialog.open}
                 onClose={closeDialog}
-                title={dialog.title}
-                footer={<>
-                    <Button onClick={closeDialog}>{t('Patients.No')}</Button>
-                    <Button onClick={() => {
-                        if (dialog.action && typeof dialog.action === 'function')
-                            dialog.action()
-                        closeDialog()
-                    }}>{t('Patients.Yes')}</Button>
-                </>}
             >
-                {dialog.content}
+                <Stack direction="vertical" stackProps={{ className: 'justify-between' }}>
+                    {dialog.content}
+                    <Stack>
+                        <Button onClick={closeDialog}>{t('Patients.No')}</Button>
+                        <Button onClick={() => {
+                            if (dialog.action && typeof dialog.action === 'function')
+                                dialog.action()
+                            closeDialog()
+                        }}>{t('Patients.Yes')}</Button>
+                    </Stack>
+                </Stack>
             </Modal>
         </>
     )

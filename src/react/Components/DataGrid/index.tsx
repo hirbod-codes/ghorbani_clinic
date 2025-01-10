@@ -356,7 +356,7 @@ export function DataGrid({
                         }}
                         sensors={sensors}
                     >
-                        <div className='h-full flex flex-col px-1 overflow-hidden border text-nowrap'>
+                        <Stack direction='vertical' stackProps={{ className: 'h-full px-1 overflow-hidden border text-nowrap' }}>
                             {headerNodes.length > 0 &&
                                 <Stack>
                                     {...headerNodes.map((n, i) =>
@@ -409,15 +409,15 @@ export function DataGrid({
                                 )
                             }
                             {footerNodes.length > 0 &&
-                                <div className="flex flex-row p-1">
+                                <Stack stackProps={{ className: 'p-1' }}>
                                     {...footerNodes.map((n, i) =>
                                         <Fragment key={i}>
                                             {n}
                                         </Fragment>
                                     )}
-                                </div>
+                                </Stack>
                             }
-                        </div>
+                        </Stack>
                     </DndContext>
                 </div >
             </DataGridContext.Provider >

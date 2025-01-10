@@ -52,8 +52,9 @@ export const getColumns = (data: any[], overWriteColumns?: ColumnDef<any>[], add
 };
 
 export function getCommonPinningStyles(column: Column<any>): CSSProperties {
-    const theme = useTheme();
-    const direction = useContext(ConfigurationContext)!.local.direction
+    const c = useContext(ConfigurationContext)!
+    const theme = c.themeOptions
+    const direction = c.local.direction
 
     const isPinned = column.getIsPinned();
     const isLastLeftPinnedColumn = isPinned === 'left' && column.getIsLastColumn('left');
@@ -66,7 +67,8 @@ export function getCommonPinningStyles(column: Column<any>): CSSProperties {
     const right = isPinned === `right` ? `${column.getStart('right')}px` : undefined
 
     return {
-        backgroundColor: isPinned ? theme.palette.background.default : undefined,
+        color: isPinned ? theme.colors.surface[theme.mode].foreground : undefined,
+        backgroundColor: isPinned ? theme.colors.surface[theme.mode]['container-high'] : undefined,
         boxShadow: isLastLeftPinnedColumn ? '-4px 0 4px -4px gray inset' : isFirstRightPinnedColumn ? '4px 0 4px -4px gray inset' : undefined,
         left: direction === 'ltr' ? left : right,
         right: direction === 'ltr' ? right : left,

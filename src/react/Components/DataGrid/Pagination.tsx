@@ -75,11 +75,12 @@ export function Pagination({ paginationLimitOptions = [10, 25, 50, 100], onPagin
                             }
                         </Button>
 
-                        <AnimatedSlide open={isLoading}>
-                            <CircularLoading />
-                        </AnimatedSlide>
-
-                        {!isLoading && <Button size='sm' variant="outline" isIcon>{page}</Button>}
+                        {!isLoading
+                            ? <Button size='sm' variant="outline" isIcon>{page}</Button>
+                            : <Button disabled isIcon size='sm' variant='outline'>
+                                <CircularLoading />
+                            </Button>
+                        }
 
                         <Button
                             onClick={async () => {

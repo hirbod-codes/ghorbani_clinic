@@ -5,13 +5,11 @@ import { CSSProperties, useContext } from "react";
 import { DataGridContext } from "./Context";
 import { t } from "i18next";
 import { getCommonPinningStyles } from "./helpers";
-import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 import { Button } from "../../Components/Base/Button";
 import { PinIcon } from "lucide-react";
+import { Stack } from "../Base/Stack";
 
 export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>; }) => {
-    const themeOptions = useContext(ConfigurationContext)!.themeOptions
-
     const ctx = useContext(DataGridContext)!
     const table = ctx.table!
 
@@ -74,27 +72,29 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
                 style={style}
                 {...attributes}
             >
-                <div className='flex flex-row items-center justify-end'>
-                    <p {...listeners} className={`flex-grow text-center cursor-${isDragging ? 'grabbing' : 'grab'}`}>
-                        {t('Columns.' + header.column.columnDef.id)}
-                    </p>
+                <Stack direction="vertical" stackProps={{ className: 'items-center justify-end' }}>
+                    <div className='flex flex-row items-center justify-end'>
+                        <p {...listeners} className={`flex-grow text-center cursor-${isDragging ? 'grabbing' : 'grab'}`}>
+                            {t('Columns.' + header.column.columnDef.id)}
+                        </p>
 
-                    <Button
-                        className="ml-1"
-                        isIcon
-                        variant="text"
-                        size="xs"
-                        onClick={(e) => {
-                            if (header.column.getCanPin())
-                                header.column.pin('left')
-                        }}
-                    >
-                        <PinIcon fontSize="inherit" />
-                    </Button>
+                        <Button
+                            className="ml-1"
+                            isIcon
+                            variant="text"
+                            size="xs"
+                            onClick={(e) => {
+                                if (header.column.getCanPin())
+                                    header.column.pin('left')
+                            }}
+                        >
+                            <PinIcon fontSize="inherit" />
+                        </Button>
 
-                    {/* {header.index + 1 !== header.headerGroup.headers.length && <div style={{ height: '1.5rem', borderRight: `2px solid ${theme.palette.grey[400]}`, padding: '0 0.2rem', cursor: 'ew-resize' }} />} */}
-                    {header.index + 1 !== header.headerGroup.headers.length && <div className="h-[1.5rem] border-r-2 py-1" />}
-                </div>
+                        {/* {header.index + 1 !== header.headerGroup.headers.length && <div style={{ height: '1.5rem', borderRight: `2px solid ${theme.palette.grey[400]}`, padding: '0 0.2rem', cursor: 'ew-resize' }} />} */}
+                        {header.index + 1 !== header.headerGroup.headers.length && <div className="h-[1.5rem] border-r-2 py-1" />}
+                    </div>
+                </Stack>
             </th >
         </>
     );

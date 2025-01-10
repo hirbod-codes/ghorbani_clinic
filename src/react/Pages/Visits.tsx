@@ -16,7 +16,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "../Components/Base/Button";
 import { CircularLoading } from "../Components/Base/CircularLoading";
 import { TrashIcon } from "../Components/Icons/TrashIcon";
-import { RefreshCwIcon } from "lucide-react";
+import { RefreshCwIcon, Trash2Icon } from "lucide-react";
 
 export const Visits = memo(function Visits() {
     const auth = useContext(AuthContext)
@@ -151,6 +151,8 @@ export const Visits = memo(function Visits() {
                 deletesVisit &&
                 <Button
                     isIcon
+                    variant='text'
+                    color='error'
                     onClick={async () => {
                         try {
                             console.group('Visits', 'deletesVisit', 'onClick')
@@ -178,7 +180,7 @@ export const Visits = memo(function Visits() {
                         finally { console.groupEnd() }
                     }}
                 >
-                    {deletingVisitId === row.original._id ? <CircularLoading /> : <TrashIcon />}
+                    {deletingVisitId === row.original._id ? <CircularLoading /> : <Trash2Icon />}
                 </Button>
 
         },
@@ -207,7 +209,7 @@ export const Visits = memo(function Visits() {
                                     return result
                                 }}
                                 appendHeaderNodes={[
-                                    <Button onClick={async () => await init(page.offset, page.limit)}><RefreshCwIcon />{t('Visits.Refresh')}</Button>,
+                                    <Button variant='outline' onClick={async () => await init(page.offset, page.limit)}><RefreshCwIcon />{t('Visits.Refresh')}</Button>,
                                 ]}
                             />
                         }

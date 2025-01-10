@@ -22,7 +22,7 @@ export function ExportButton() {
                     (window as typeof window & { appAPI: appAPI }).appAPI.saveFile({ content: json, path: path.filePath })
                 }}
             >
-                <FileDownIcon strokeWidth={1.25} />{t('DataGrid.export')}
+                <FileDownIcon />{t('DataGrid.export')}
             </Button >
         </>
     )

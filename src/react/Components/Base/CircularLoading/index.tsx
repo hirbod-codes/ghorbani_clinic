@@ -1,12 +1,33 @@
-export function CircularLoading() {
+import { cn } from "@/src/react/shadcn/lib/utils";
+import { ComponentProps, CSSProperties } from "react";
+
+import './index.css'
+
+export function CircularLoading({ svgProps, styles }: { svgProps?: ComponentProps<'svg'>, styles?: CSSProperties }) {
     return (
-        <div className="absolute right-1/2 bottom-1/2 transform translate-x-1/2 translate-y-1/2">
-            <div className="p-4 bg-gradient-to-tr animate-spin from-green-500 to-blue-500 via-purple-500 rounded-full">
-                <div className="bg-white rounded-full">
-                    <div className="w-24 h-24 rounded-full"></div>
-                </div>
-            </div>
-        </div>
+        <svg
+            viewBox="25 25 50 50"
+            style={{
+                transformOrigin: 'center',
+                animation: 'rotate 2s linear infinite',
+                ...styles
+            }}
+            {...svgProps}
+            className={cn([""], svgProps?.className)}
+        >
+            <circle
+                style={{ animation: 'dash 1.5s ease-in-out infinite' }}
+                r="20"
+                cy="50"
+                cx="50"
+                fill='none'
+                stroke='hsl(214, 97%, 59%)'
+                strokeWidth='2'
+                strokeDasharray='1, 200'
+                strokeDashoffset='0'
+                strokeLinecap='round'
+            ></circle>
+        </svg >
     )
 }
 
