@@ -2,7 +2,7 @@ import { t } from "i18next";
 import { useContext, useState } from "react";
 import { DataGridContext } from "./Context";
 import { DropdownMenu } from "../Base/DropdownMenu";
-import { Button } from "../../shadcn/components/ui/button";
+import { Button } from "../../Components/Base/Button";
 import { MenuIcon } from "lucide-react";
 
 export function DensityButton() {

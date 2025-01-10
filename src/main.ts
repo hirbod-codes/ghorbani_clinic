@@ -13,6 +13,17 @@ if (!app.isPackaged && fs.existsSync(CONFIGURATION_FILE))
 
 const c = readConfig()
 
+if (!app.isPackaged)
+    c.mongodb = {
+        auth: {
+            username: 'admin',
+            password: 'password',
+        },
+        url: 'mongodb://localhost:8082',
+        databaseName: 'primaryDb',
+        supportsTransaction: false
+    }
+
 if (!c.appIdentifier || !c.appName || !c.port)
     throw new Error('Incomplete environment variables provided.')
 

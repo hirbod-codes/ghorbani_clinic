@@ -41,6 +41,7 @@ import { AnimatePresence } from 'framer-motion'
 import { getLuxonLocale } from '../../Lib/localization'
 import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext'
 import { CircularLoading } from '../Base/CircularLoading'
+import { Stack } from '../Base/Stack'
 
 export type DataGridProps = {
     configName?: string,
@@ -349,13 +350,13 @@ export function DataGrid({
                     >
                         <div className='h-full flex flex-col px-1 overflow-hidden border text-nowrap'>
                             {headerNodes.length > 0 &&
-                                <div className="flex flex-row p-1">
+                                <Stack>
                                     {...headerNodes.map((n, i) =>
                                         <Fragment key={i}>
                                             {n}
                                         </Fragment>
                                     )}
-                                </div>
+                                </Stack>
                             }
                             {loading
                                 ? <CircularLoading />

@@ -14,7 +14,7 @@ import { DataGrid } from "../DataGrid"
 import { EditorModal } from "../Base/Editor/EditorModal"
 import { Modal } from "../Base/Modal"
 import { MedicalHistorySearch } from "./MedicalHistorySearch"
-import { Button } from "../../shadcn/components/ui/button"
+import { Button } from "../../Components/Base/Button"
 import { PlusIcon, RefreshCwIcon, SearchIcon, TrashIcon } from "lucide-react"
 import { CircularLoading } from "../Base/CircularLoading"
 

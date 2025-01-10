@@ -6,7 +6,7 @@ import { PenConnectIcon } from "../../../Icons/PenConnectIcon";
 import { Line } from "../Shapes/Line";
 import { Shapes } from "../Shapes/Shapes";
 import { ConfigurationContext } from "@/src/react/Contexts/Configuration/ConfigurationContext";
-import { Button } from "@/src/react/shadcn/components/ui/button";
+import { Button } from "@/src/react/Components/Base/Button";
 import { PaletteIcon, PenLineIcon, RotateCcwIcon } from "lucide-react";
 import { Input } from "@/src/react/shadcn/components/ui/input";
 import { Label } from "@/src/react/shadcn/components/ui/label";

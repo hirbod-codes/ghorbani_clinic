@@ -6,7 +6,7 @@ import { DataGridContext } from "./Context";
 import { t } from "i18next";
 import { getCommonPinningStyles } from "./helpers";
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
-import { Button } from "../../shadcn/components/ui/button";
+import { Button } from "../../Components/Base/Button";
 import { PinIcon } from "lucide-react";
 
 export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>; }) => {

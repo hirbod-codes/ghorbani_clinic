@@ -7,7 +7,7 @@ import { configAPI } from '../../../Electron/Configuration/renderer.d';
 import { Input } from '../Base/Input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../shadcn/components/ui/tabs';
 import { Switch } from '../Base/Switch';
-import { Button } from '../../shadcn/components/ui/button';
+import { Button } from '../../Components/Base/Button';
 import { CircularLoading } from '../Base/CircularLoading';
 import { Stack } from '../Base/Stack';
 

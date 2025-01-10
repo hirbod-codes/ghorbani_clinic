@@ -13,7 +13,7 @@ import { EditorModal } from "../Components/Base/Editor/EditorModal";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import { useNavigate } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table";
-import { Button } from "../shadcn/components/ui/button";
+import { Button } from "../Components/Base/Button";
 import { CircularLoading } from "../Components/Base/CircularLoading";
 import { TrashIcon } from "../Components/Icons/TrashIcon";
 import { RefreshCwIcon } from "lucide-react";

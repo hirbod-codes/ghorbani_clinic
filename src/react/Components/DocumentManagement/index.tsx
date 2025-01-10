@@ -13,7 +13,7 @@ import { ConfigurationContext } from "../../Contexts/Configuration/Configuration
 import { getLuxonLocale } from "../../Lib/localization";
 import { DateTime } from "luxon";
 import { appAPI } from "../../../Electron/appRendererEvents";
-import { Button } from "../../shadcn/components/ui/button";
+import { Button } from "../../Components/Base/Button";
 import { CircularLoading } from "../Base/CircularLoading";
 import { TrashIcon } from "../Icons/TrashIcon";
 import { ExternalLinkIcon, FileDownIcon, FileUpIcon, PlusIcon } from "lucide-react";

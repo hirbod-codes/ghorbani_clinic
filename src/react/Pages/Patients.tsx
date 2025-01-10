@@ -18,7 +18,7 @@ import { ColumnDef } from "@tanstack/react-table";
 import { getLuxonLocale } from "../Lib/localization";
 import { Modal } from "../Components/Base/Modal";
 import { DocumentManagement } from "../Components/DocumentManagement";
-import { Button } from "../shadcn/components/ui/button";
+import { Button } from "../Components/Base/Button";
 import { CircularLoading } from "../Components/Base/CircularLoading";
 import { EditIcon, PlusIcon, RefreshCwIcon } from "lucide-react";
 import { TrashIcon } from "../Components/Icons/TrashIcon";

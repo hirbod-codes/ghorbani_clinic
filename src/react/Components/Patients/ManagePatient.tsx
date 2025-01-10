@@ -18,7 +18,7 @@ import { MainProcessResponse } from 'src/Electron/types';
 import { Modal } from '../Base/Modal';
 import { CircularLoading } from '../Base/CircularLoading';
 import { Input } from '../Base/Input';
-import { Button } from '../../shadcn/components/ui/button';
+import { Button } from '../../Components/Base/Button';
 import { Separator } from '../../shadcn/components/ui/separator';
 import { Select } from '../Base/Select';
 

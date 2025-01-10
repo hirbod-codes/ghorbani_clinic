@@ -1,7 +1,7 @@
 import { useContext, useState } from "react";
 import { DataGridContext } from "./Context";
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
-import { Button } from "../../shadcn/components/ui/button";
+import { Button } from "../../Components/Base/Button";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { AnimatedSlide } from "../Animations/AnimatedSlide";
 import { CircularLoading } from "../Base/CircularLoading";

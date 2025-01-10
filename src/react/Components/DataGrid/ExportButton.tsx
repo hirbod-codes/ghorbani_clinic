@@ -3,8 +3,8 @@ import { useContext } from "react";
 import { appAPI } from "src/Electron/appRendererEvents";
 import { DataGridContext } from "./Context";
 import { Row } from "@tanstack/react-table";
-import { Button } from "../../shadcn/components/ui/button";
 import { FileDownIcon } from "lucide-react";
+import { Button } from "../Base/Button";
 
 export function ExportButton() {
     const table = useContext(DataGridContext)!.table!
@@ -12,6 +12,7 @@ export function ExportButton() {
     return (
         <>
             <Button
+                variant='outline'
                 isIcon
                 onClick={async () => {
                     const json = JSON.stringify(([] as Row<any>[]).concat(table.getTopRows(), table.getCenterRows(), table.getBottomRows()), undefined, 4)

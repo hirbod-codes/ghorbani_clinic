@@ -3,7 +3,7 @@ import { t } from 'i18next'
 import { ViewWeekOutlined } from '@mui/icons-material'
 import { DataGridContext } from './Context'
 import { DropdownMenu } from '../Base/DropdownMenu'
-import { Button } from '../../shadcn/components/ui/button'
+import { Button } from '../../Components/Base/Button'
 import { Switch } from '../Base/Switch'
 
 export function ColumnVisibilityButton() {

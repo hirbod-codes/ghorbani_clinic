@@ -3,7 +3,7 @@ import { ConfigurationContext } from "../../Contexts/Configuration/Configuration
 import { languages } from "../../i18next";
 import { t } from "i18next";
 import { Calendar, configAPI, LanguageCodes, TimeZone } from "src/Electron/Configuration/renderer.d";
-import { Button } from "../../shadcn/components/ui/button";
+import { Button } from "../../Components/Base/Button";
 import { Input } from "../../Components/Base/Input";
 import { Select } from "../../Components/Base/Select";
 

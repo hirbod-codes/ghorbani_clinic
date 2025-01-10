@@ -11,7 +11,7 @@ import { EditorModal } from "../Base/Editor/EditorModal";
 import { AnimatedList } from "../Animations/AnimatedList";
 import { Input } from "../Base/Input";
 import { CircularLoading } from "../Base/CircularLoading";
-import { Button } from "../../shadcn/components/ui/button";
+import { Button } from "../../Components/Base/Button";
 import { CheckIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { Switch } from "../Base/Switch";
 import { Separator } from "../../shadcn/components/ui/separator";

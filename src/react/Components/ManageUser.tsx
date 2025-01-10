@@ -9,7 +9,7 @@ import { publish } from '../Lib/Events';
 import { Separator } from '../shadcn/components/ui/separator';
 import { Select } from './Base/Select';
 import { Input } from './Base/Input';
-import { Button } from '../shadcn/components/ui/button';
+import { Button } from '../Components/Base/Button';
 import { CheckIcon } from 'lucide-react';
 
 export default function ManageUser({ roles, defaultUser, onFinish }: { roles: string[], defaultUser?: User, onFinish?: () => Promise<void> | void }) {

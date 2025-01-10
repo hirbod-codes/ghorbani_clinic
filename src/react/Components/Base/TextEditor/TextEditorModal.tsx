@@ -3,7 +3,7 @@ import { TextEditor, TextEditorProps } from './TextEditor';
 import { t } from "i18next";
 import { Modal } from "../Modal";
 import { Separator } from "@/src/react/shadcn/components/ui/separator";
-import { Button } from "@/src/react/shadcn/components/ui/button";
+import { Button } from "@/src/react/Components/Base/Button";
 import { ConfigurationContext } from "@/src/react/Contexts/Configuration/ConfigurationContext";
 import { SaveIcon } from "../../Icons/SaveIcon";
 

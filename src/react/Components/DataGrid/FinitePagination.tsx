@@ -1,5 +1,5 @@
 import { Fragment, ReactNode, useContext, useEffect, useMemo, useState } from "react"
-import { Button } from "../../shadcn/components/ui/button"
+import { Button } from "../../Components/Base/Button"
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext"
 import { ChevronLeftIcon, ChevronRightIcon, EllipsisIcon } from "lucide-react"
 

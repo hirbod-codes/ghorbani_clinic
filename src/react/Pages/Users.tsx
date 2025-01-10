@@ -15,7 +15,7 @@ import { publish, subscribe } from "../Lib/Events";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import { useNavigate } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table";
-import { Button } from "../shadcn/components/ui/button";
+import { Button } from "../Components/Base/Button";
 import { EditIcon, EyeOffIcon, PlusIcon, RefreshCwIcon } from "lucide-react";
 import { CircularLoading } from "../Components/Base/CircularLoading";
 import { TrashIcon } from "../Components/Icons/TrashIcon";

@@ -12,7 +12,7 @@ import { Canvas as CanvasModel } from "../../../../Electron/Database/Models/Canv
 import { AnimatedSlide } from "../../Animations/AnimatedSlide";
 import { CircularLoading } from "../CircularLoading";
 import { Separator } from "@/src/react/shadcn/components/ui/separator";
-import { Button } from "@/src/react/shadcn/components/ui/button";
+import { Button } from "@/src/react/Components/Base/Button";
 import { CloudUploadIcon, EyeIcon, FileTypeIcon, FolderCheckIcon, SquarePenIcon } from "lucide-react";
 import { Tooltip } from "../Tooltip";
 

@@ -6,7 +6,7 @@ import { DateTimeField } from '../Base/DateTime/DateTimeField';
 import { t } from 'i18next';
 import { EditorModal } from '../Base/Editor/EditorModal';
 import { toDateTimeView, toFormat } from '../../Lib/DateTime/date-time-helpers';
-import { Button } from '../../shadcn/components/ui/button';
+import { Button } from '../../Components/Base/Button';
 import { Separator } from '../../shadcn/components/ui/separator';
 import { PlusIcon, XIcon } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../../shadcn/components/ui/accordion';

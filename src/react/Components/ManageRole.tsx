@@ -6,7 +6,7 @@ import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { getAttributes } from "../../Electron/Database/Repositories/Auth/resources";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
 import { publish } from "../Lib/Events";
-import { Button } from "../shadcn/components/ui/button";
+import { Button } from "../Components/Base/Button";
 import { Separator } from "../shadcn/components/ui/separator";
 import { Input } from "./Base/Input";
 import { CircularLoading } from "./Base/CircularLoading";

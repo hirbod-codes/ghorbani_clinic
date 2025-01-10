@@ -7,7 +7,7 @@ import { MedicalHistorySearch } from "../MedicalHistory/MedicalHistorySearch";
 import { resources } from "../../../Electron/Database/Repositories/Auth/resources";
 import { AuthContext } from "../../Contexts/AuthContext";
 import { Separator } from "../../shadcn/components/ui/separator";
-import { Button } from "../../shadcn/components/ui/button";
+import { Button } from "../../Components/Base/Button";
 import { Tooltip } from "../Base/Tooltip";
 import { EditIcon } from "lucide-react";
 

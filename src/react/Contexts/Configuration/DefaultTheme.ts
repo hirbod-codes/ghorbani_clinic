@@ -302,7 +302,7 @@ export const defaultTheme: ThemeOptions = {
                 "fixed-foreground-variant": "#99322cff"
             },
             "dark-shades": {
-                "main": 80,
+                "main": 60,
                 "foreground": 20,
                 "container": 20,
                 "container-foreground": 90,

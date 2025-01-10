@@ -6,7 +6,7 @@ import { AnimatedCounter } from "../../Components/Animations/AnimatedCounter";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 import { motion } from "framer-motion";
-import { Button } from "../../shadcn/components/ui/button";
+import { Button } from "../../Components/Base/Button";
 import { CircularLoading } from "../../Components/Base/CircularLoading";
 import { RefreshCcwIcon } from "lucide-react";
 
