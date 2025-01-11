@@ -5,7 +5,6 @@ import { useReactToPrint } from "react-to-print";
 import { PencilTool } from "./Tools/PencilTool";
 import { Shapes } from "./Shapes/Shapes";
 import { RectangleTool } from "./Tools/RectangleTool";
-import { EraserIcon } from "../../Icons/EraserIcon";
 import { SelectTool } from "./Tools/SelectTool";
 import { mainTransition } from "../../../Styles/animations";
 import { t } from "i18next";
@@ -14,10 +13,10 @@ import { AnimatedSlide } from "../../Animations/AnimatedSlide";
 import { CircularLoading } from "../CircularLoading";
 import { Separator } from "@/src/react/shadcn/components/ui/separator";
 import { Tooltip } from "../Tooltip";
-import { PenConnectIcon } from "../../Icons/PenConnectIcon";
-import { MoonIcon, MousePointer2Icon, SquareIcon, SquareXIcon, SunIcon } from "lucide-react";
+import { EraserIcon, MoonIcon, MousePointer2Icon, PencilLineIcon, PenIcon, SquareIcon, SquareXIcon, SunIcon } from "lucide-react";
 import { AnimatedList } from "../../Animations/AnimatedList";
 import { Button } from "../Button";
+import { Stack } from "../Stack";
 
 const xOffset = 100;
 const variants = {
@@ -100,11 +99,12 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
             </AnimatedSlide>
 
             <div className="w-full h-full">
-                <div className="flex flex-col h-full items-stretch">
-                    <div className="flex flex-row row items-center w-max">
+                <Stack direction="vertical" stackProps={{ className: 'h-full items-stretch' }}>
+                    <Stack stackProps={{ className: 'items-center w-max' }}>
                         <Tooltip tooltipContent={t('Canvas.Print')}>
                             <Button
                                 isIcon
+                                variant='text'
                                 onClick={() => {
                                     if (!printRef.current)
                                         return
@@ -113,34 +113,36 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                     setLoading(true)
                                     print(null, () => printRef.current!);
                                 }}>
-                                <PenConnectIcon />
+                                <PenIcon />
                             </Button>
                         </Tooltip>
 
                         <Tooltip tooltipContent={t('Canvas.BackgroundColor')}>
                             <Button
                                 isIcon
+                                variant='text'
                                 onClick={() => {
                                     if (!canvasRef?.current?.style)
                                         return
 
-                                    if (canvasRef?.current?.style.backgroundColor === themeOptions.colors.surface[themeOptions.mode].bright)
-                                        canvasRef.current.style.backgroundColor = themeOptions.colors.surface[themeOptions.mode].dim
+                                    if (canvasRef?.current?.style.backgroundColor === themeOptions.colors.surface.light["container-high"])
+                                        canvasRef.current.style.backgroundColor = themeOptions.colors.surface.dark["container-high"]
                                     else
-                                        canvasRef.current.style.backgroundColor = themeOptions.colors.surface[themeOptions.mode].bright
+                                        canvasRef.current.style.backgroundColor = themeOptions.colors.surface.light["container-high"]
 
                                     rerender()
 
                                     if (onChange && shapes.shapes.length > 0)
                                         onChange(false)
                                 }}>
-                                {canvasRef.current?.style.backgroundColor === themeOptions.colors.surface[themeOptions.mode].bright ? <SunIcon fontSize='inherit' /> : <MoonIcon fontSize='inherit' />}
+                                {canvasRef.current?.style.backgroundColor === themeOptions.colors.surface.light["container-high"] ? <SunIcon fontSize='inherit' /> : <MoonIcon fontSize='inherit' />}
                             </Button>
                         </Tooltip>
 
                         <Tooltip tooltipContent={t('Canvas.BackgroundColor')}>
                             <Button
                                 isIcon
+                                variant='text'
                                 color='error'
                                 onClick={() => {
                                     clear()
@@ -149,15 +151,16 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                 <SquareXIcon fontSize="medium" />
                             </Button>
                         </Tooltip>
-                    </div>
+                    </Stack>
 
                     <Separator />
 
-                    <div className="flex flex-row row items-center w-max">
+                    <Stack stackProps={{ className: 'items-center w-max' }}>
                         <Tooltip tooltipContent={t('Canvas.Select')}>
                             <Button
                                 isIcon
-                                color={tool === 'select' ? 'primary' : undefined}
+                                variant={tool === 'select' ? 'outline' : 'text'}
+                                color={tool === 'select' ? 'success' : undefined}
                                 onClick={() => {
                                     setTool('select')
                                     setToolNode([{
@@ -175,7 +178,8 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                         <Tooltip tooltipContent={t('Canvas.Pencil')}>
                             <Button
                                 isIcon
-                                color={tool === 'pencil' ? 'primary' : undefined}
+                                variant={tool === 'pencil' ? 'outline' : 'text'}
+                                color={tool === 'pencil' ? 'success' : undefined}
                                 onClick={() => {
                                     setTool('pencil')
                                     setToolNode([{
@@ -186,14 +190,15 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                     }])
                                 }}
                             >
-                                <MousePointer2Icon />
+                                <PencilLineIcon />
                             </Button>
                         </Tooltip>
 
                         <Tooltip tooltipContent={t('Canvas.Eraser')}>
                             <Button
                                 isIcon
-                                color={tool === 'eraser' ? 'primary' : undefined}
+                                variant={tool === 'eraser' ? 'outline' : 'text'}
+                                color={tool === 'eraser' ? 'success' : undefined}
                                 onClick={() => {
                                     setTool('eraser')
                                     setToolNode([{
@@ -211,7 +216,8 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                         <Tooltip tooltipContent={t('Canvas.Rectangle')}>
                             <Button
                                 isIcon
-                                color={tool === 'eraser' ? 'primary' : undefined}
+                                variant={tool === 'rectangle' ? 'outline' : 'text'}
+                                color={tool === 'rectangle' ? 'success' : undefined}
                                 onClick={() => {
                                     setTool('rectangle')
                                     setToolNode([{
@@ -225,7 +231,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                 <SquareIcon />
                             </Button>
                         </Tooltip>
-                    </div>
+                    </Stack>
 
                     <Separator />
 
@@ -250,7 +256,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                             onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
                         />
                     </div>
-                </div>
+                </Stack>
             </div>
 
             <div style={{ display: 'none' }}>
