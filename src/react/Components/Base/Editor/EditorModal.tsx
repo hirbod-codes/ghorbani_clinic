@@ -62,7 +62,6 @@ export function EditorModal({ hideCanvas = false, hideTextEditor = false, open, 
                         onClose(dialog.e, dialog.r)
                     closeDialog()
                 }}
-                title={dialog.title}
             >
                 {dialog.content}
             </Modal>

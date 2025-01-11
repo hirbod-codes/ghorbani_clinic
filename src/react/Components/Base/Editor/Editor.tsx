@@ -15,6 +15,7 @@ import { Separator } from "@/src/react/shadcn/components/ui/separator";
 import { Button } from "@/src/react/Components/Base/Button";
 import { CloudUploadIcon, EyeIcon, FileTypeIcon, FolderCheckIcon, SquarePenIcon } from "lucide-react";
 import { Tooltip } from "../Tooltip";
+import { Stack } from "../Stack";
 
 export type EditorProps = {
     hideCanvas?: boolean;
@@ -280,41 +281,41 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                 <CircularLoading />
             </AnimatedSlide>
 
-            <div className="flex flex-col items-stretch w-full h-full">
-                <div className="flex flex-row justify-center overflow-auto">
+            <Stack direction='vertical' stackProps={{ className: "items-stretch size-full min-h-96", id: 'editor-container' }}>
+                <Stack stackProps={{ className: "justify-between items-center overflow-auto" }}>
                     <div className="overflow-auto text-nowrap">
                         <h6>{title}</h6>
                     </div>
-                    <div className="flex flex-row justify-end content-center items-center">
+                    <Stack stackProps={{ className: "content-center items-center" }}>
                         <Tooltip tooltipContent={t('Editor.View')}>
-                            <Button isIcon onClick={() => { setStatus('showing') }}>
-                                <EyeIcon color={themeOptions.colors.primary} />
+                            <Button isIcon variant='text' onClick={() => { setStatus('showing') }}>
+                                <EyeIcon />
                             </Button>
                         </Tooltip>
 
                         {!hideTextEditor &&
                             <Tooltip tooltipContent={t('Editor.Notes')}>
-                                <Button isIcon onClick={() => { setStatus('typing') }}>
-                                    <FileTypeIcon strokeWidth={1.25} color={themeOptions.colors.primary} />
+                                <Button isIcon variant='text' onClick={() => { setStatus('typing') }}>
+                                    <FileTypeIcon />
                                 </Button>
                             </Tooltip>
                         }
 
                         {!hideCanvas &&
                             <Tooltip tooltipContent={t('Editor.WhiteBoard')}>
-                                <Button isIcon onClick={() => { setStatus('drawing') }}>
-                                    <SquarePenIcon strokeWidth={1.5} color={themeOptions.colors.primary} />
+                                <Button isIcon variant='text' onClick={() => { setStatus('drawing') }}>
+                                    <SquarePenIcon />
                                 </Button>
                             </Tooltip>
                         }
-                    </div>
-                </div>
+                    </Stack>
+                </Stack>
 
                 {status === 'showing' &&
                     <>
                         <Separator />
 
-                        <div className="flex flex-col pr-1 overflow-auto flex-grow w-full">
+                        <Stack direction='vertical' stackProps={{ className: 'pr-1 overflow-auto flex-grow w-full' }}>
                             {text &&
                                 <>
                                     <h5>
@@ -332,7 +333,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                             {canvasId &&
                                 <img ref={imageRef} src={imageSrc} style={{ backgroundColor }} />
                             }
-                        </div>
+                        </Stack>
                     </>
                 }
 
@@ -341,22 +342,24 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                         <Separator />
 
                         {onSave &&
-                            <Button isIcon onClick={saveContent} color={contentHasUnsavedChanges ? themeOptions.colors.accent : themeOptions.colors.primary} >
-                                {contentHasUnsavedChanges ? <SaveIcon color='warning' /> : <SaveIcon color='success' />}
+                            <Button isIcon variant='text' onClick={saveContent} color={contentHasUnsavedChanges ? 'warning' : 'primary'} >
+                                {contentHasUnsavedChanges ? <SaveIcon color='inherit' /> : <SaveIcon color='inherit' />}
                             </Button>
                         }
 
                         <Separator />
 
-                        <TextEditor
-                            text={inputText}
-                            onChange={async (html) => {
-                                setContentHasUnsavedChanges(true)
-                                setText(html)
-                                if (onChange)
-                                    await onChange(html, canvasId)
-                            }}
-                        />
+                        <div className="flex-grow overflow-hidden">
+                            <TextEditor
+                                text={inputText}
+                                onChange={async (html) => {
+                                    setContentHasUnsavedChanges(true)
+                                    setText(html)
+                                    if (onChange)
+                                        await onChange(html, canvasId)
+                                }}
+                            />
+                        </div>
                     </>
                 }
 
@@ -365,8 +368,8 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                         <Separator />
 
                         {onSave &&
-                            <Button isIcon onClick={saveCanvas} color={canvasHasUnsavedChanges ? themeOptions.colors.accent : themeOptions.colors.primary} >
-                                {canvasHasUnsavedChanges ? <CloudUploadIcon color={themeOptions.colors.accent} /> : <FolderCheckIcon color={themeOptions.colors.primary} />}
+                            <Button isIcon variant='text' onClick={saveCanvas} color={canvasHasUnsavedChanges ? 'warning' : 'primary'}>
+                                {canvasHasUnsavedChanges ? <CloudUploadIcon color={themeOptions.colors.warning[themeOptions.mode].main} /> : <FolderCheckIcon color={themeOptions.colors.primary[themeOptions.mode].main} />}
                             </Button>
                         }
 
@@ -384,7 +387,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                         </div>
                     </>
                 }
-            </div>
+            </Stack>
         </>
     )
 })
