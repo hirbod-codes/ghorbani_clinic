@@ -1,4 +1,4 @@
-import { Fragment, ReactNode, useContext, useEffect, useMemo, useState } from 'react'
+import { ComponentProps, Fragment, ReactNode, useContext, useEffect, useMemo, useState } from 'react'
 import {
     ColumnDef,
     ColumnPinningState,
@@ -40,33 +40,40 @@ import { getColumns } from './helpers'
 import { AnimatePresence } from 'framer-motion'
 import { getLuxonLocale } from '../../Lib/localization'
 import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext'
-import { CircularLoading } from '../Base/CircularLoading'
+import { CircularLoadingIcon } from '../Base/CircularLoadingIcon'
 import { Stack } from '../Base/Stack'
+import { cn } from '../../shadcn/lib/utils'
 
 export type DataGridProps = {
-    configName?: string,
-    data: any[],
-    overWriteColumns?: ColumnDef<any>[];
-    additionalColumns?: ColumnDef<any>[];
-    prependHeaderNodes?: ReactNode[],
-    prependFooterNodes?: ReactNode[],
+    configName?: string
+    data: any[]
+    overWriteColumns?: ColumnDef<any>[]
+    additionalColumns?: ColumnDef<any>[]
+    prependHeaderNodes?: ReactNode[]
+    prependFooterNodes?: ReactNode[]
     showColumnHeaders?: boolean
     addCounterColumn?: boolean
-    headerNodes?: ReactNode[],
-    defaultHeaderNodes?: boolean,
-    footerNodes?: ReactNode[],
-    defaultFooterNodes?: boolean,
-    appendHeaderNodes?: ReactNode[],
-    appendFooterNodes?: ReactNode[],
-    hasPagination?: boolean,
-    paginationLimitOptions?: number[],
-    pagination?: PaginationState,
-    onPagination?: (pagination: PaginationState) => Promise<boolean> | boolean,
-    loading?: boolean,
-    defaultColumnPinningModel?: ColumnPinningState,
-    defaultColumnVisibilityModel?: VisibilityState,
-    defaultColumnOrderModel?: string[],
+    headerNodes?: ReactNode[]
+    defaultHeaderNodes?: boolean
+    footerNodes?: ReactNode[]
+    defaultFooterNodes?: boolean
+    appendHeaderNodes?: ReactNode[]
+    appendFooterNodes?: ReactNode[]
+    hasPagination?: boolean
+    paginationLimitOptions?: number[]
+    pagination?: PaginationState
+    onPagination?: (pagination: PaginationState) => Promise<boolean> | boolean
+    loading?: boolean
+    defaultColumnPinningModel?: ColumnPinningState
+    defaultColumnVisibilityModel?: VisibilityState
+    defaultColumnOrderModel?: string[]
     defaultTableDensity?: Density
+    tHeadProps?: ComponentProps<'thead'>
+    tBodyProps?: ComponentProps<'tbody'>
+    tableProps?: ComponentProps<'table'>
+    headerNodesContainerProps?: ComponentProps<typeof Stack>
+    footerNodesContainerProps?: ComponentProps<typeof Stack>
+    containerProps?: ComponentProps<'div'>
 }
 
 export function DataGrid({
@@ -92,7 +99,13 @@ export function DataGrid({
     defaultColumnPinningModel = { left: ['counter'], right: [] },
     defaultColumnVisibilityModel = {},
     defaultColumnOrderModel = ['counter'],
-    defaultTableDensity = 'compact'
+    defaultTableDensity = 'compact',
+    tHeadProps,
+    tBodyProps,
+    tableProps,
+    headerNodesContainerProps,
+    footerNodesContainerProps,
+    containerProps,
 }: DataGridProps) {
     const configuration = useContext(ConfigurationContext)!
     const themeOptions = configuration.themeOptions
@@ -338,7 +351,7 @@ export function DataGrid({
             }
             } >
                 {/* NOTE: This provider creates div elements, so don't nest inside of <table> elements */}
-                <div style={{ padding: '1rem', height: '100%' }}>
+                <div {...containerProps} className={cn('border rounded-md', containerProps?.className)} style={{ padding: '1rem', height: '100%', ...containerProps?.style }}>
                     <DndContext
                         collisionDetection={closestCenter}
                         modifiers={[restrictToHorizontalAxis]}
@@ -356,9 +369,9 @@ export function DataGrid({
                         }}
                         sensors={sensors}
                     >
-                        <Stack direction='vertical' stackProps={{ className: 'h-full px-1 overflow-hidden border text-nowrap' }}>
+                        <Stack direction='vertical' stackProps={{ className: 'h-full px-1 overflow-hidden text-nowrap' }}>
                             {headerNodes.length > 0 &&
-                                <Stack>
+                                <Stack {...headerNodesContainerProps}>
                                     {...headerNodes.map((n, i) =>
                                         <Fragment key={i}>
                                             {n}
@@ -367,15 +380,15 @@ export function DataGrid({
                                 </Stack>
                             }
                             {loading
-                                ? <CircularLoading />
+                                ? <CircularLoadingIcon />
                                 : (
                                     data.length === 0
                                         ? <p style={{ textAlign: 'center' }}>{t('DataGrid.noData')}</p>
                                         : <div style={{ overflow: 'auto', flexGrow: 2 }}>
                                             <AnimatePresence mode='sync'>
-                                                <table style={{ borderCollapse: 'separate', borderSpacing: 0, minWidth: '100%' }}>
+                                                <table {...tableProps} style={{ borderCollapse: 'separate', borderSpacing: 0, minWidth: '100%', ...tableProps?.style }}>
                                                     {showColumnHeaders &&
-                                                        <thead style={{ position: 'sticky', top: 0, userSelect: 'none', background: themeOptions.colors[`${themeOptions.mode}-background`], zIndex: 1 }}>
+                                                        <thead {...tHeadProps} style={{ position: 'sticky', top: 0, userSelect: 'none', background: themeOptions.colors[`${themeOptions.mode}-background`], zIndex: 1, ...tHeadProps?.style }}>
                                                             {table.getHeaderGroups().map(headerGroup => (
                                                                 <tr key={headerGroup.id} className='border-b'>
                                                                     <SortableContext
@@ -388,7 +401,7 @@ export function DataGrid({
                                                             ))}
                                                         </thead>
                                                     }
-                                                    <tbody>
+                                                    <tbody {...tBodyProps}>
                                                         {table.getRowModel().rows.map((row, i, arr) => (
                                                             <tr key={row.id} className={`text-nowrap ${i === (arr.length - 1) ? '' : 'border-b'}`}>
                                                                 {row.getVisibleCells().map(cell => (
@@ -409,7 +422,7 @@ export function DataGrid({
                                 )
                             }
                             {footerNodes.length > 0 &&
-                                <Stack stackProps={{ className: 'p-1' }}>
+                                <Stack {...footerNodesContainerProps}>
                                     {...footerNodes.map((n, i) =>
                                         <Fragment key={i}>
                                             {n}

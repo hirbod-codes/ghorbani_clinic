@@ -10,7 +10,7 @@ import { SaveIcon } from "../../Icons/SaveIcon";
 import { isCanvasEmpty } from "../Canvas/helpers";
 import { Canvas as CanvasModel } from "../../../../Electron/Database/Models/Canvas";
 import { AnimatedSlide } from "../../Animations/AnimatedSlide";
-import { CircularLoading } from "../CircularLoading";
+import { CircularLoadingIcon } from "../CircularLoadingIcon";
 import { Separator } from "@/src/react/shadcn/components/ui/separator";
 import { Button } from "@/src/react/Components/Base/Button";
 import { CloudUploadIcon, EyeIcon, FileTypeIcon, FolderCheckIcon, SquarePenIcon } from "lucide-react";
@@ -278,7 +278,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
     return (
         <>
             <AnimatedSlide open={loading}>
-                <CircularLoading />
+                <CircularLoadingIcon />
             </AnimatedSlide>
 
             <Stack direction='vertical' stackProps={{ className: "items-stretch size-full min-h-96", id: 'editor-container' }}>

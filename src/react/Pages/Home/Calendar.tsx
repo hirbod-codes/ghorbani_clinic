@@ -6,7 +6,7 @@ import { getVisitsInDate } from "../../Components/Visits/helpers";
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 import { DataGrid } from "../../Components/DataGrid";
 import { t } from "i18next";
-import { CircularLoading } from "../../Components/Base/CircularLoading";
+import { CircularLoadingIcon } from "../../Components/Base/CircularLoadingIcon";
 
 export function Calendar() {
     const locale = useContext(ConfigurationContext)!.local
@@ -60,7 +60,7 @@ export function Calendar() {
                     open={showVisitsStats}
                     props={{ sx: { minWidth: '10rem', maxWidth: '20rem', minHeight: '10rem' } }}
                 >
-                    {fetchingVisits && <CircularLoading />}
+                    {fetchingVisits && <CircularLoadingIcon />}
                     {!fetchingVisits &&
                         <>
                             <div className="flex flex-col space-x-1 space-y-1 p-1">

@@ -1,33 +1,32 @@
-import { cn } from "@/src/react/shadcn/lib/utils";
-import { ComponentProps, CSSProperties } from "react";
+import { CircularLoadingIcon } from "../CircularLoadingIcon";
 
-import './index.css'
+export function CircularLoading({ size = 'md' }: { size?: 'xl' | 'lg' | 'md' | 'sm' | 'xs' }) {
+    let className = ''
+    switch (size) {
+        case 'xl':
+            className += `size-16`
+            break;
+        case 'lg':
+            className += `size-14`
+            break;
+        case 'md':
+            className += `size-11`
+            break;
+        case 'sm':
+            className += `size-8`
+            break;
+        case 'xs':
+            className += `size-6`
+            break;
 
-export function CircularLoading({ svgProps, styles }: { svgProps?: ComponentProps<'svg'>, styles?: CSSProperties }) {
+        default:
+            break;
+    }
+
     return (
-        <svg
-            viewBox="25 25 50 50"
-            style={{
-                transformOrigin: 'center',
-                animation: 'rotate 2s linear infinite',
-                ...styles
-            }}
-            {...svgProps}
-            className={cn([""], svgProps?.className)}
-        >
-            <circle
-                style={{ animation: 'dash 1.5s ease-in-out infinite' }}
-                r="20"
-                cy="50"
-                cx="50"
-                fill='none'
-                stroke='hsl(214, 97%, 59%)'
-                strokeWidth='2'
-                strokeDasharray='1, 200'
-                strokeDashoffset='0'
-                strokeLinecap='round'
-            ></circle>
-        </svg >
+        <div className={className}>
+            <CircularLoadingIcon />
+        </div>
     )
 }
 

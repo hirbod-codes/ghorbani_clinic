@@ -5,7 +5,7 @@ import { ConfigurationContext } from '../Contexts/Configuration/ConfigurationCon
 import { resources } from '../../Electron/Database/Repositories/Auth/resources';
 import { useNavigate } from 'react-router-dom';
 import { DatabaseIcon, HistoryIcon, HomeIcon, LogInIcon, LogOutIcon, MenuIcon, MoonIcon, PaintRollerIcon, SettingsIcon, ShieldAlertIcon, SunIcon, TimerIcon, UserIcon, UsersIcon } from 'lucide-react';
-import { CircularLoading } from './Base/CircularLoading';
+import { CircularLoadingIcon } from './Base/CircularLoadingIcon';
 import { Drawer } from './Base/Drawer';
 import { Button } from './Base/Button';
 
@@ -41,7 +41,7 @@ export const Navigation = memo(function Navigation() {
         }, 50)
     }
 
-    const activeColor = configuration.themeOptions.colors.primary
+    const activeColor = 'primary'
 
     return (
         <>
@@ -59,7 +59,7 @@ export const Navigation = memo(function Navigation() {
                         <Button variant='text' isIcon className='rounded-none' onClick={async () => await auth?.logout()}>
                             {
                                 auth?.isAuthLoading
-                                    ? <CircularLoading />
+                                    ? <CircularLoadingIcon />
                                     : <LogOutIcon fontSize='inherit' />
                             }
                         </Button>
@@ -69,7 +69,7 @@ export const Navigation = memo(function Navigation() {
                         <Button variant='text' isIcon className='rounded-none' onClick={() => auth?.showModal()}>
                             {
                                 auth?.isAuthLoading
-                                    ? <CircularLoading />
+                                    ? <CircularLoadingIcon />
                                     : <LogInIcon fontSize='inherit' />
                             }
                         </Button>
@@ -87,60 +87,60 @@ export const Navigation = memo(function Navigation() {
                     <div className='flex flex-col overflow-auto h-full'>
                         <div className='mb-8' />
 
-                        <Button className='pr-8 rounded-none' onClick={() => moveTo('/')}>
-                            <HomeIcon style={{ color: window.location.pathname !== '/' ? drawerForegroundColor : activeColor }} />
-                            <p style={{ color: window.location.pathname !== '/' ? drawerForegroundColor : activeColor }}>{t('Navigation.home')}</p>
+                        <Button variant='text' color={window.location.pathname !== '/' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/')}>
+                            <HomeIcon />
+                            {t('Navigation.home')}
                         </Button>
 
                         <div className='mb-8' />
 
                         {readsUsers &&
-                            <Button className='pr-8 rounded-none' onClick={() => moveTo('/Users')} >
-                                <UsersIcon style={{ color: window.location.pathname !== '/Users' ? drawerForegroundColor : activeColor }} />
-                                <p style={{ color: window.location.pathname !== '/Users' ? drawerForegroundColor : activeColor }}>{t('Navigation.users')}</p>
+                            <Button variant='text' color={window.location.pathname !== '/Users' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/Users')} >
+                                <UsersIcon />
+                                {t('Navigation.users')}
                             </Button>}
 
                         <div className='mb-2' />
 
                         {readsPatients &&
-                            <Button className='pr-8 rounded-none' onClick={() => moveTo('/Patients')} >
-                                <ShieldAlertIcon style={{ color: window.location.pathname !== '/Patients' ? drawerForegroundColor : activeColor }} />
-                                <p style={{ color: window.location.pathname !== '/Patients' ? drawerForegroundColor : activeColor }}>{t('Navigation.patients')}</p>
+                            <Button variant='text' color={window.location.pathname !== '/Patients' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/Patients')} >
+                                <ShieldAlertIcon />
+                                {t('Navigation.patients')}
                             </Button>}
 
                         <div className='mb-2' />
 
                         {readsVisits &&
-                            <Button className='pr-8 rounded-none' onClick={() => moveTo('/Visits')} >
-                                <TimerIcon style={{ color: window.location.pathname !== '/Visits' ? drawerForegroundColor : activeColor }} />
-                                <p style={{ color: window.location.pathname !== '/Visits' ? drawerForegroundColor : activeColor }}>{t('Navigation.visits')}</p>
+                            <Button variant='text' color={window.location.pathname !== '/Visits' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/Visits')} >
+                                <TimerIcon />
+                                {t('Navigation.visits')}
                             </Button>}
 
                         <div className='mb-2' />
 
                         {readsMedicalHistories &&
-                            <Button className='pr-8 rounded-none' onClick={() => moveTo('/MedicalHistories')} >
-                                <HistoryIcon style={{ color: window.location.pathname !== '/MedicalHistories' ? drawerForegroundColor : activeColor }} />
-                                <p style={{ color: window.location.pathname !== '/MedicalHistories' ? drawerForegroundColor : activeColor }}>{t('Navigation.MedicalHistories')}</p>
+                            <Button variant='text' color={window.location.pathname !== '/MedicalHistories' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/MedicalHistories')} >
+                                <HistoryIcon />
+                                {t('Navigation.MedicalHistories')}
                             </Button>}
 
                         <div className='mb-8' />
 
-                        <Button className='pr-8 rounded-none' onClick={() => moveTo('/General')} >
-                            <SettingsIcon style={{ color: window.location.pathname !== '/General' ? drawerForegroundColor : activeColor }} />
-                            <p style={{ color: window.location.pathname !== '/General' ? drawerForegroundColor : activeColor }}>{t("Navigation.general")}</p>
+                        <Button variant='text' color={window.location.pathname !== '/General' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/General')} >
+                            <SettingsIcon />
+                            {t("Navigation.general")}
                         </Button>
 
-                        <Button className='pr-8 rounded-none' onClick={() => moveTo('/ThemeSettings')} >
-                            <PaintRollerIcon style={{ color: window.location.pathname !== '/ThemeSettings' ? drawerForegroundColor : activeColor }} />
-                            <p style={{ color: window.location.pathname !== '/ThemeSettings' ? drawerForegroundColor : activeColor }}>{t("Navigation.Theme")}</p>
+                        <Button variant='text' color={window.location.pathname !== '/ThemeSettings' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/ThemeSettings')} >
+                            <PaintRollerIcon />
+                            {t("Navigation.Theme")}
                         </Button>
 
                         <div className='mb-8' />
 
-                        <Button className='pr-8 rounded-none' onClick={() => moveTo('/DbSettings')} >
-                            <DatabaseIcon style={{ color: window.location.pathname !== '/DbSettings' ? drawerForegroundColor : activeColor }} />
-                            <p style={{ color: window.location.pathname !== '/DbSettings' ? drawerForegroundColor : activeColor }}>{t("Navigation.Db")}</p>
+                        <Button variant='text' color={window.location.pathname !== '/DbSettings' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/DbSettings')} >
+                            <DatabaseIcon />
+                            {t("Navigation.Db")}
                         </Button>
                     </div>
                     <div className={`h-full w-[2px]`} style={{ background: `radial-gradient(ellipse farthest-side at center, ${appBarBorderColor}, transparent)` }} />

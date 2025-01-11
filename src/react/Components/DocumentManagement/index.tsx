@@ -14,7 +14,7 @@ import { getLuxonLocale } from "../../Lib/localization";
 import { DateTime } from "luxon";
 import { appAPI } from "../../../Electron/appRendererEvents";
 import { Button } from "../../Components/Base/Button";
-import { CircularLoading } from "../Base/CircularLoading";
+import { CircularLoadingIcon } from "../Base/CircularLoadingIcon";
 import { TrashIcon } from "../Icons/TrashIcon";
 import { ExternalLinkIcon, FileDownIcon, FileUpIcon, PlusIcon } from "lucide-react";
 import { Modal } from "../Base/Modal";
@@ -131,7 +131,7 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                                     finally { console.groupEnd() }
                                 }}
                             >
-                                {deletingFileId === row.original._id ? <CircularLoading /> : <TrashIcon />}
+                                {deletingFileId === row.original._id ? <CircularLoadingIcon /> : <TrashIcon />}
                             </Button>
                             : null
                     }
@@ -156,7 +156,7 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                                     finally { console.groupEnd() }
                                 }}
                             >
-                                {openingFileId === row.original._id ? <CircularLoading /> : <ExternalLinkIcon />}
+                                {openingFileId === row.original._id ? <CircularLoadingIcon /> : <ExternalLinkIcon />}
                             </Button>
                             : null
                     }
@@ -190,7 +190,7 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                                     finally { console.groupEnd() }
                                 }}
                             >
-                                {downloadingFileId === row.original._id ? <CircularLoading /> : <FileDownIcon />}
+                                {downloadingFileId === row.original._id ? <CircularLoadingIcon /> : <FileDownIcon />}
                             </Button>
                             : null
                     }
@@ -233,7 +233,7 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
 
                                     await fetchAndSetDocuments();
                                 }}
-                                startIcon={adding ? <CircularLoading /> : <FileUpIcon />}
+                                startIcon={adding ? <CircularLoadingIcon /> : <FileUpIcon />}
                             />
                             : undefined
                     ]}

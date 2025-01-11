@@ -7,7 +7,7 @@ import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 import { motion } from "framer-motion";
 import { Button } from "../../Components/Base/Button";
-import { CircularLoading } from "../../Components/Base/CircularLoading";
+import { CircularLoadingIcon } from "../../Components/Base/CircularLoadingIcon";
 import { RefreshCcwIcon } from "lucide-react";
 
 export const Analytics = memo(function Analytics() {
@@ -98,7 +98,7 @@ export const Analytics = memo(function Analytics() {
                     initLoading
                         ?
                         <div className="flex flex-row justify-center items-center size-full">
-                            <CircularLoading />
+                            <CircularLoadingIcon />
                         </div>
                         :
                         <div className="flex flex-col justify-start items-center relative">
@@ -122,7 +122,7 @@ export const Analytics = memo(function Analytics() {
                                     </p>
                                 </motion.div>
                                 :
-                                <CircularLoading />
+                                <CircularLoadingIcon />
                             }
                             {expiredVisitsCount !== undefined
                                 ?
@@ -144,7 +144,7 @@ export const Analytics = memo(function Analytics() {
                                     </p>
                                 </motion.div>
                                 :
-                                <CircularLoading />
+                                <CircularLoadingIcon />
                             }
                             {patientsCount !== undefined
                                 ?
@@ -166,7 +166,7 @@ export const Analytics = memo(function Analytics() {
                                     </p>
                                 </motion.div>
                                 :
-                                <CircularLoading />
+                                <CircularLoadingIcon />
                             }
                         </div>
                 )}

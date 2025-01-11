@@ -16,7 +16,7 @@ import { DocumentManagement } from '../DocumentManagement';
 import { toDateTime, toDateTimeView } from '../../Lib/DateTime/date-time-helpers';
 import { MainProcessResponse } from 'src/Electron/types';
 import { Modal } from '../Base/Modal';
-import { CircularLoading } from '../Base/CircularLoading';
+import { CircularLoadingIcon } from '../Base/CircularLoadingIcon';
 import { Input } from '../Base/Input';
 import { Button } from '../../Components/Base/Button';
 import { Separator } from '../../shadcn/components/ui/separator';
@@ -135,7 +135,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
             <Modal onClose={onClose} open={open}>
                 <div className='w-[80%] h-[90%] px-2 py-8 overflow-auto'>
                     {loading
-                        ? <CircularLoading />
+                        ? <CircularLoadingIcon />
                         : (
                             errorMessage !== undefined
                                 ? <p className='text-center'>{errorMessage}</p>

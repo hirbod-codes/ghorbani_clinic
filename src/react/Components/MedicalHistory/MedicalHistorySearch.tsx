@@ -10,7 +10,7 @@ import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { EditorModal } from "../Base/Editor/EditorModal";
 import { AnimatedList } from "../Animations/AnimatedList";
 import { Input } from "../Base/Input";
-import { CircularLoading } from "../Base/CircularLoading";
+import { CircularLoadingIcon } from "../Base/CircularLoadingIcon";
 import { Button } from "../../Components/Base/Button";
 import { CheckIcon, PlusIcon, SearchIcon } from "lucide-react";
 import { Switch } from "../Base/Switch";
@@ -108,7 +108,7 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
                     />
 
                     {isSearching
-                        ? <CircularLoading />
+                        ? <CircularLoadingIcon />
                         : <Button onClick={search}>
                             <CheckIcon />
                         </Button>

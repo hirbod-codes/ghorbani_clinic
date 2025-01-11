@@ -8,7 +8,7 @@ import { Input } from '../Base/Input';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../shadcn/components/ui/tabs';
 import { Switch } from '../Base/Switch';
 import { Button } from '../../Components/Base/Button';
-import { CircularLoading } from '../Base/CircularLoading';
+import { CircularLoadingIcon } from '../Base/CircularLoadingIcon';
 import { Stack } from '../Base/Stack';
 
 export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean }) {
@@ -118,7 +118,7 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                                 }
                             }}
                         >
-                            {loading ? <CircularLoading /> : t('DbSettingsForm.done')}
+                            {loading ? <CircularLoadingIcon /> : t('DbSettingsForm.done')}
                         </Button>
                     </Stack>
                 </TabsContent>
@@ -171,7 +171,7 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                                 await (window as typeof window & { dbAPI: dbAPI }).dbAPI.initializeDb()
                             }}
                         >
-                            {loading ? <CircularLoading /> : t('DbSettingsForm.search')}
+                            {loading ? <CircularLoadingIcon /> : t('DbSettingsForm.search')}
                         </Button>
                     </Stack>
                 </TabsContent>

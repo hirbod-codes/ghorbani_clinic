@@ -10,7 +10,7 @@ import { mainTransition } from "../../../Styles/animations";
 import { t } from "i18next";
 import { ConfigurationContext } from "@/src/react/Contexts/Configuration/ConfigurationContext";
 import { AnimatedSlide } from "../../Animations/AnimatedSlide";
-import { CircularLoading } from "../CircularLoading";
+import { CircularLoadingIcon } from "../CircularLoadingIcon";
 import { Separator } from "@/src/react/shadcn/components/ui/separator";
 import { Tooltip } from "../Tooltip";
 import { EraserIcon, MoonIcon, MousePointer2Icon, PencilLineIcon, PenIcon, SquareIcon, SquareXIcon, SunIcon } from "lucide-react";
@@ -95,7 +95,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
     return (
         <>
             <AnimatedSlide open={loading}>
-                <CircularLoading />
+                <CircularLoadingIcon />
             </AnimatedSlide>
 
             <div className="w-full h-full">

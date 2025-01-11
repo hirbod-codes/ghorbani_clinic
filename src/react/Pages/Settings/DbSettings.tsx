@@ -8,7 +8,7 @@ import { RendererDbAPI } from '../../../Electron/Database/renderer'
 import { appAPI } from '../../../Electron/appRendererEvents'
 import { Modal } from '../../Components/Base/Modal'
 import { Button } from '../../Components/Base/Button'
-import { CircularLoading } from '../../Components/Base/CircularLoading'
+import { CircularLoadingIcon } from '../../Components/Base/CircularLoadingIcon'
 import { Separator } from '../../shadcn/components/ui/separator'
 import { Stack } from '../../Components/Base/Stack'
 
@@ -48,7 +48,7 @@ export const DbSettings = memo(function DbSettings() {
                             </Button>
 
                             <Button color={connectionHealth ? 'success' : 'error'} onClick={async () => { setCheckingConnectionHealth(true); await checkConnectionHealth(); setCheckingConnectionHealth(false) }}>
-                                {t("DbSettings.CheckConnection")}{checkingConnectionHealth && <CircularLoading />}
+                                {t("DbSettings.CheckConnection")}{checkingConnectionHealth && <CircularLoadingIcon />}
                             </Button>
                         </Stack>
 
@@ -98,7 +98,7 @@ export const DbSettings = memo(function DbSettings() {
                         }
                     }}
                 >
-                    {seeding ? <CircularLoading /> : t('DbSettings.yes')}
+                    {seeding ? <CircularLoadingIcon /> : t('DbSettings.yes')}
                 </Button>
                 <Button onClick={() => setOpenSeedQuestion(false)}>{t('DbSettings.no')}</Button>
             </Modal>
@@ -127,7 +127,7 @@ export const DbSettings = memo(function DbSettings() {
                         setTruncating(false);
                     }
                 }}>
-                    {truncating ? <CircularLoading /> : t('DbSettings.yes')}
+                    {truncating ? <CircularLoadingIcon /> : t('DbSettings.yes')}
                 </Button>
                 <Button onClick={() => setOpenTruncateDbQuestion(false)}>{t('DbSettings.no')}</Button>
             </Modal>

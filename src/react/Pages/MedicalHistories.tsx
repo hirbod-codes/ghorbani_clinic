@@ -2,7 +2,7 @@ import { MedicalHistoryDataGrid } from "../Components/MedicalHistory/MedicalHist
 import { memo, useEffect, useState } from "react";
 import { subscribe } from "../Lib/Events";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
-import { CircularLoading } from "../Components/Base/CircularLoading";
+import { CircularLoadingIcon } from "../Components/Base/CircularLoadingIcon";
 
 export const MedicalHistories = memo(function MedicalHistories() {
     const [showGrid, setShowGrid] = useState(false)
@@ -21,7 +21,7 @@ export const MedicalHistories = memo(function MedicalHistories() {
                     <div className="p-[1rem] h-full shadow-lg">
                         {showGrid
                             ? < MedicalHistoryDataGrid />
-                            : <CircularLoading />
+                            : <CircularLoadingIcon />
                         }
                     </div>
                 </div>

@@ -6,7 +6,7 @@ export type ButtonProps = {
     children?: ReactNode
     rippleEffect?: boolean
     variant?: 'outline' | 'contained' | 'text'
-    color?: 'primary' | 'secondary' | 'tertiary' | 'surface' | 'outline' | 'info' | 'success' | 'warning' | 'error'
+    color?: 'primary' | 'secondary' | 'tertiary' | 'surface' | 'outline' | 'info' | 'success' | 'warning' | 'error' | string
     size?: 'xl' | 'lg' | 'md' | 'sm' | 'xs'
     isIcon?: boolean
     buttonRef?: RefObject<HTMLButtonElement>
@@ -24,14 +24,14 @@ export const Button = memo(function Button({ children, rippleEffect = true, vari
 
         case 'outline':
             className += ` border bg-transparent`
-            style.color = `hsl(var(--${color}))`
-            style.borderColor = `hsl(var(--${color}))`
+            style.color = `hsl(var(--${color !== 'surface' ? color : color + '-foreground'}))`
+            style.borderColor = `hsl(var(--${color !== 'surface' ? color : color + '-foreground'}))`
             break;
 
         case 'text':
             className += ` border-0 bg-transparent`
-            style.color = `hsl(var(--${color}))`
-            style.borderColor = `hsl(var(--${color}))`
+            style.color = `hsl(var(--${color !== 'surface' ? color : color + '-foreground'}))`
+            style.borderColor = `hsl(var(--${color !== 'surface' ? color : color + '-foreground'}))`
             break;
 
         default:

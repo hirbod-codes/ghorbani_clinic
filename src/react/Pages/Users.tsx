@@ -17,12 +17,13 @@ import { useNavigate } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "../Components/Base/Button";
 import { EditIcon, EyeOffIcon, PlusIcon, RefreshCwIcon } from "lucide-react";
-import { CircularLoading } from "../Components/Base/CircularLoading";
+import { CircularLoadingIcon } from "../Components/Base/CircularLoadingIcon";
 import { TrashIcon } from "../Components/Icons/TrashIcon";
 import { Accordion, AccordionContent, AccordionTrigger } from "../shadcn/components/ui/accordion";
 import { AccordionItem } from "@radix-ui/react-accordion";
 import { Separator } from "../shadcn/components/ui/separator";
 import { Modal } from "../Components/Base/Modal";
+import { CircularLoadingScreen } from "../Components/Base/CircularLoadingScreen";
 
 export const Users = memo(function Users() {
     const configuration = useContext(ConfigurationContext)!
@@ -180,7 +181,7 @@ export const Users = memo(function Users() {
                         <Button
                             onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === row.original._id)) }}
                         >
-                            {editingUser === undefined ? <EditIcon /> : <CircularLoading />}
+                            {editingUser === undefined ? <EditIcon /> : <CircularLoadingIcon />}
                         </Button>
                     }
                     {
@@ -193,7 +194,7 @@ export const Users = memo(function Users() {
                                     await auth!.logout()
                             }}
                         >
-                            {deletingUser === undefined ? <TrashIcon /> : <CircularLoading />}
+                            {deletingUser === undefined ? <TrashIcon /> : <CircularLoadingIcon />}
                         </Button>
                     }
                 </div>
@@ -238,7 +239,7 @@ export const Users = memo(function Users() {
                                         }}
                                         onMouseLeave={() => { if (timeout.current.r) clearTimeout(timeout.current.r) }}
                                     >
-                                        <Button color={role === r ? configuration.themeOptions.colors.secondary : ''} onClick={async () => { await updateRows(r, false) }}>
+                                        <Button color={role === r ? 'secondary' : 'primary'} onClick={async () => { await updateRows(r, false) }}>
                                             <p>
                                                 {t(`Roles.${r}`)}
                                             </p>
@@ -268,7 +269,7 @@ export const Users = memo(function Users() {
                                                         deletesRole &&
                                                         <Button onClick={async () => { await deleteRole(r); await refresh() }} className="pl-4">
                                                             <Button isIcon>
-                                                                {deletingRole ? <CircularLoading /> : <TrashIcon />}
+                                                                {deletingRole ? <CircularLoadingIcon /> : <TrashIcon />}
                                                             </Button>
                                                             <p>{t("Users.delete")}</p>
                                                         </Button>
@@ -298,7 +299,7 @@ export const Users = memo(function Users() {
                     <div className={`sm:col-span-${readsRole ? 8 : 12} md:col-span-${readsRole ? 10 : 12}`}>
                         <div className="p-1 h-full shadow-lg">
                             {!showGrid
-                                ? <CircularLoading />
+                                ? <CircularLoadingScreen />
                                 : <DataGrid
                                     configName='users'
                                     data={rows}

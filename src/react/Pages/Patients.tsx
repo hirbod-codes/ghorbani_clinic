@@ -19,10 +19,12 @@ import { getLuxonLocale } from "../Lib/localization";
 import { Modal } from "../Components/Base/Modal";
 import { DocumentManagement } from "../Components/DocumentManagement";
 import { Button } from "../Components/Base/Button";
-import { CircularLoading } from "../Components/Base/CircularLoading";
+import { CircularLoadingIcon } from "../Components/Base/CircularLoadingIcon";
 import { EditIcon, PlusIcon, RefreshCwIcon, Trash2Icon } from "lucide-react";
 import { TrashIcon } from "../Components/Icons/TrashIcon";
 import { Stack } from "../Components/Base/Stack";
+import { CircularLoading } from "../Components/Base/CircularLoading";
+import { CircularLoadingScreen } from "../Components/Base/CircularLoadingScreen";
 
 export const Patients = memo(function Patients() {
     const auth = useContext(AuthContext)
@@ -215,7 +217,7 @@ export const Patients = memo(function Patients() {
                                     setEditingPatientId(patients?.find(p => p._id === row.original._id)?._id as string)
                                 }}
                             >
-                                {editingPatientId === row.original._id ? <CircularLoading /> : <EditIcon />}
+                                {editingPatientId === row.original._id ? <CircularLoadingIcon /> : <EditIcon />}
                             </Button>
                             : null
                     }
@@ -255,7 +257,7 @@ export const Patients = memo(function Patients() {
                                     })
                                 }}
                             >
-                                {deletingPatientId === row.original._id ? <CircularLoading /> : <Trash2Icon />}
+                                {deletingPatientId === row.original._id ? <CircularLoadingIcon /> : <Trash2Icon />}
                             </Button>
                             : null
                     }
@@ -282,7 +284,7 @@ export const Patients = memo(function Patients() {
                 <div className="sm:col-span-12 h-full">
                     <div className="p-[1rem] h-full shadow-lg">
                         {!patients || patients?.length === 0 || !showGrid
-                            ? <CircularLoading />
+                            ? <CircularLoadingScreen />
                             : <DataGrid
                                 configName='patients'
                                 data={patients ?? []}

@@ -16,7 +16,7 @@ import { Modal } from "../Base/Modal"
 import { MedicalHistorySearch } from "./MedicalHistorySearch"
 import { Button } from "../../Components/Base/Button"
 import { PlusIcon, RefreshCwIcon, SearchIcon, TrashIcon } from "lucide-react"
-import { CircularLoading } from "../Base/CircularLoading"
+import { CircularLoadingIcon } from "../Base/CircularLoadingIcon"
 import { Stack } from "../Base/Stack"
 
 export function MedicalHistoryDataGrid() {
@@ -158,7 +158,7 @@ export function MedicalHistoryDataGrid() {
                     })
                 }}
             >
-                {deletingMedicalHistoryId === row.original._id ? <CircularLoading /> : <TrashIcon />}
+                {deletingMedicalHistoryId === row.original._id ? <CircularLoadingIcon /> : <TrashIcon />}
             </Button>
         },
     ]

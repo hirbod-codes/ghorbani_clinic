@@ -6,7 +6,7 @@ import { ManagePatient } from "../Patients/ManagePatient";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 import { Input } from "../Base/Input";
-import { CircularLoading } from "../Base/CircularLoading";
+import { CircularLoadingIcon } from "../Base/CircularLoadingIcon";
 import { SearchIcon } from "lucide-react";
 
 export const SearchPatientField = memo(function SearchPatientField() {
@@ -49,7 +49,7 @@ export const SearchPatientField = memo(function SearchPatientField() {
                 placeholder={t('SearchPatientField.socialId')}
                 onChange={onSocialIdChange}
                 errorText={socialId !== undefined && socialId.length !== 0 && socialId.length !== 10 ? t('SearchPatientField.InvalidSocialId') : (!loading && socialId && socialId.length === 10 && !patient ? t('SearchPatientField.patientNotFound') : '')}
-                startIcon={loading ? <CircularLoading /> : <SearchIcon />}
+                startIcon={loading ? <CircularLoadingIcon /> : <SearchIcon />}
             />
 
             <ManagePatient

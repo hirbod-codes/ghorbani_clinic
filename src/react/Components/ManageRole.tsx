@@ -9,7 +9,7 @@ import { publish } from "../Lib/Events";
 import { Button } from "../Components/Base/Button";
 import { Separator } from "../shadcn/components/ui/separator";
 import { Input } from "./Base/Input";
-import { CircularLoading } from "./Base/CircularLoading";
+import { CircularLoadingIcon } from "./Base/CircularLoadingIcon";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../shadcn/components/ui/accordion";
 import { Switch } from "./Base/Switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../shadcn/components/ui/collapsible";
@@ -153,7 +153,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
     if (loading || !resources)
         return (
             <>
-                <CircularLoading />
+                <CircularLoadingIcon />
                 {
                     fetchRoleFailed &&
                     <Button onClick={async () => await fetchRole()}>
@@ -302,7 +302,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                 </Accordion>
             )}
             <Separator />
-            <Button disabled={finishing || !roleName || roleName.trim() === ''} onClick={done}>{finishing ? <CircularLoading /> : t('ManageRole.done')}</Button>
+            <Button disabled={finishing || !roleName || roleName.trim() === ''} onClick={done}>{finishing ? <CircularLoadingIcon /> : t('ManageRole.done')}</Button>
         </>
     )
 }

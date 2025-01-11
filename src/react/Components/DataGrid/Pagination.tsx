@@ -4,7 +4,7 @@ import { ConfigurationContext } from "../../Contexts/Configuration/Configuration
 import { Button } from "../../Components/Base/Button";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { AnimatedSlide } from "../Animations/AnimatedSlide";
-import { CircularLoading } from "../Base/CircularLoading";
+import { CircularLoadingIcon } from "../Base/CircularLoadingIcon";
 import { FinitePagination } from "./FinitePagination";
 import { Select } from "../Base/Select";
 import { Stack } from "../Base/Stack";
@@ -78,7 +78,7 @@ export function Pagination({ paginationLimitOptions = [10, 25, 50, 100], onPagin
                         {!isLoading
                             ? <Button size='sm' variant="outline" isIcon>{page}</Button>
                             : <Button disabled isIcon size='sm' variant='outline'>
-                                <CircularLoading />
+                                <CircularLoadingIcon />
                             </Button>
                         }
 

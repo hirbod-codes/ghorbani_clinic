@@ -14,9 +14,10 @@ import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import { useNavigate } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "../Components/Base/Button";
-import { CircularLoading } from "../Components/Base/CircularLoading";
+import { CircularLoadingIcon } from "../Components/Base/CircularLoadingIcon";
 import { TrashIcon } from "../Components/Icons/TrashIcon";
 import { RefreshCwIcon, Trash2Icon } from "lucide-react";
+import { CircularLoadingScreen } from "../Components/Base/CircularLoadingScreen";
 
 export const Visits = memo(function Visits() {
     const auth = useContext(AuthContext)
@@ -180,7 +181,7 @@ export const Visits = memo(function Visits() {
                         finally { console.groupEnd() }
                     }}
                 >
-                    {deletingVisitId === row.original._id ? <CircularLoading /> : <Trash2Icon />}
+                    {deletingVisitId === row.original._id ? <CircularLoadingIcon /> : <Trash2Icon />}
                 </Button>
 
         },
@@ -192,7 +193,7 @@ export const Visits = memo(function Visits() {
                 <div className="sm:col-span-12 h-full">
                     <div className="p-1 h-full overflow-auto shadow-lg">
                         {!visits || visits.length === 0 || !showGrid
-                            ? <CircularLoading />
+                            ? <CircularLoadingScreen />
                             : <DataGrid
                                 configName='visits'
                                 data={visits}
