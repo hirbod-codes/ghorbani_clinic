@@ -14,7 +14,7 @@ export type ButtonProps = {
 
 export const Button = memo(function Button({ children, rippleEffect = true, variant = 'contained', color = 'primary', size = 'md', isIcon = false, buttonRef, ...buttonProps }: ButtonProps) {
     let style: CSSProperties = {}
-    let className: HTMLAttributes<HTMLButtonElement>['className'] = 'overflow-hidden relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0'
+    let className: HTMLAttributes<HTMLButtonElement>['className'] = 'select-none overflow-hidden relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0'
     switch (variant) {
         case 'contained':
             className += ` border-0 bg-${color} text-${color}-foreground`
