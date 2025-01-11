@@ -52,7 +52,7 @@ export const Button = memo(function Button({ children, rippleEffect = true, vari
             className += ` h-8 ${isIcon ? 'w-8' : ''} ${isIcon ? 'rounded-[50%]' : 'rounded-sm'} py-1.5 px-4 text-xs`
             break;
         case 'xs':
-            className += ` h-6 ${isIcon ? 'w-6' : ''} ${isIcon ? 'rounded-[50%]' : 'rounded-sm'} py-0.5 px-2 text-xs`
+            className += ` h-7 ${isIcon ? 'w-7' : ''} ${isIcon ? 'rounded-[50%]' : 'rounded-sm'} py-0.5 px-2 text-xs`
             break;
 
         default:

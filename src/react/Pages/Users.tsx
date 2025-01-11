@@ -11,14 +11,12 @@ import ManageUser from "../Components/ManageUser";
 import { ManageRole } from "../Components/ManageRole";
 import { DataGrid } from "../Components/DataGrid";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
-import { publish, subscribe } from "../Lib/Events";
-import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
+import { publish } from "../Lib/Events";
 import { useNavigate } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "../Components/Base/Button";
 import { EditIcon, EyeOffIcon, PlusIcon, RefreshCwIcon, Trash2Icon } from "lucide-react";
 import { CircularLoadingIcon } from "../Components/Base/CircularLoadingIcon";
-import { TrashIcon } from "../Components/Icons/TrashIcon";
 import { Accordion, AccordionContent, AccordionTrigger } from "../shadcn/components/ui/accordion";
 import { AccordionItem } from "@radix-ui/react-accordion";
 import { Separator } from "../shadcn/components/ui/separator";
@@ -176,7 +174,7 @@ export const Users = memo(function Users() {
             id: 'actions',
             accessorKey: 'actions',
             cell: ({ row }) =>
-                <div className="flex flex-row items-center">
+                <Stack stackProps={{ className: "justify-evenly w-full" }}>
                     {
                         updatesUser &&
                         <Button
@@ -203,7 +201,7 @@ export const Users = memo(function Users() {
                             {deletingUser === undefined ? <Trash2Icon /> : <CircularLoadingIcon />}
                         </Button>
                     }
-                </div>
+                </Stack>
         }
     ] : []
 
@@ -226,12 +224,12 @@ export const Users = memo(function Users() {
 
     return (
         <>
-            <div className="grid grid-cols-12 space-x-1 space-y-1 p-2 h-full">
+            <div className="grid grid-cols-12 p-2 h-full">
                 {/* Roles */}
                 {
                     readsRole &&
-                    <div className="sm:col-span-full md:col-span-2" onMouseLeave={() => setRoleActionsCollapse([])}>
-                        <Stack direction='vertical'>
+                    <div className="max-sm:col-span-full sm:col-span-full md:col-span-2" onMouseLeave={() => setRoleActionsCollapse([])}>
+                        <Stack direction='vertical' stackProps={{ className: 'border rounded-md' }}>
                             <h4 className="text-center pt-2 pb-4">{t('Users.roles')}</h4>
                             <Separator />
                             <Stack direction='vertical'>
@@ -287,9 +285,8 @@ export const Users = memo(function Users() {
                                 {
                                     createsRole &&
                                     <>
-                                        <div className="mt-1" />
                                         <Separator />
-                                        <div className="flex flex-row justify-center mt-1" onClick={() => setOpenManageRoleModal(true)}>
+                                        <div className="flex flex-row justify-center" onClick={() => setOpenManageRoleModal(true)}>
                                             <Button isIcon><PlusIcon /></Button>
                                         </div>
                                     </>
@@ -301,10 +298,8 @@ export const Users = memo(function Users() {
                 {/* Users */}
                 {
                     readsUser &&
-                    <div
-                        className={`${readsRole ? 'sm:col-span-full md:col-span-10' : 'col-span-full'} md:${readsRole ? '' : 'col-span-12'}`}
-                    >
-                        <div className="p-1 h-full shadow-lg">
+                    <div className={`${readsRole ? 'max-sm:col-span-full sm:col-span-full md:col-span-10' : 'col-span-full'}`}>
+                        <div className="px-1 h-full shadow-lg">
                             {!showGrid
                                 ? <CircularLoadingScreen />
                                 : <DataGrid

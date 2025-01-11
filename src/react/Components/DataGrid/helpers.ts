@@ -68,7 +68,7 @@ export function getCommonPinningStyles(column: Column<any>): CSSProperties {
 
     return {
         color: isPinned ? theme.colors.surface[theme.mode].foreground : undefined,
-        backgroundColor: isPinned ? theme.colors.surface[theme.mode]['container-high'] : undefined,
+        backgroundColor: isPinned ? theme.colors.surface[theme.mode]['container-low'] : undefined,
         boxShadow: isLastLeftPinnedColumn ? '-4px 0 4px -4px gray inset' : isFirstRightPinnedColumn ? '4px 0 4px -4px gray inset' : undefined,
         left: direction === 'ltr' ? left : right,
         right: direction === 'ltr' ? right : left,

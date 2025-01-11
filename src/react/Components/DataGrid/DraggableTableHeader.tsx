@@ -72,8 +72,8 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
                 style={style}
                 {...attributes}
             >
-                <Stack direction="vertical" stackProps={{ className: 'items-center justify-end' }}>
-                    <div className='flex flex-row items-center justify-end'>
+                <Stack direction="vertical">
+                    <Stack>
                         <p {...listeners} className={`flex-grow text-center cursor-${isDragging ? 'grabbing' : 'grab'}`}>
                             {t('Columns.' + header.column.columnDef.id)}
                         </p>
@@ -90,10 +90,7 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
                         >
                             <PinIcon fontSize="inherit" />
                         </Button>
-
-                        {/* {header.index + 1 !== header.headerGroup.headers.length && <div style={{ height: '1.5rem', borderRight: `2px solid ${theme.palette.grey[400]}`, padding: '0 0.2rem', cursor: 'ew-resize' }} />} */}
-                        {header.index + 1 !== header.headerGroup.headers.length && <div className="h-[1.5rem] border-r-2 py-1" />}
-                    </div>
+                    </Stack>
                 </Stack>
             </th >
         </>

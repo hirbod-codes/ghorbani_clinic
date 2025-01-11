@@ -388,9 +388,9 @@ export function DataGrid({
                                             <AnimatePresence mode='sync'>
                                                 <table {...tableProps} style={{ borderCollapse: 'separate', borderSpacing: 0, minWidth: '100%', ...tableProps?.style }}>
                                                     {showColumnHeaders &&
-                                                        <thead {...tHeadProps} style={{ position: 'sticky', top: 0, userSelect: 'none', background: themeOptions.colors[`${themeOptions.mode}-background`], zIndex: 1, ...tHeadProps?.style }}>
+                                                        <thead {...tHeadProps} className={cn('border border-collapse rounded-lg bg-surface', tHeadProps?.className)} style={{ position: 'sticky', top: 0, userSelect: 'none', background: themeOptions.colors[`${themeOptions.mode}-background`], zIndex: 1, ...tHeadProps?.style }}>
                                                             {table.getHeaderGroups().map(headerGroup => (
-                                                                <tr key={headerGroup.id} className='border-b'>
+                                                                <tr key={headerGroup.id} className='border-b *:border-l first:[&_th]:border-l-0 my-2'>
                                                                     <SortableContext
                                                                         items={columnOrder}
                                                                         strategy={horizontalListSortingStrategy}
