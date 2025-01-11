@@ -87,7 +87,7 @@ export const Navigation = memo(function Navigation() {
                     <div className='flex flex-col overflow-auto h-full'>
                         <div className='mb-8' />
 
-                        <Button variant='text' color={window.location.pathname !== '/' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/')}>
+                        <Button variant='text' disabled={window.location.pathname === '/'} color={window.location.pathname !== '/' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/')}>
                             <HomeIcon />
                             {t('Navigation.home')}
                         </Button>
@@ -95,7 +95,7 @@ export const Navigation = memo(function Navigation() {
                         <div className='mb-8' />
 
                         {readsUsers &&
-                            <Button variant='text' color={window.location.pathname !== '/Users' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/Users')} >
+                            <Button variant='text' disabled={window.location.pathname === '/Users'} color={window.location.pathname !== '/Users' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/Users')} >
                                 <UsersIcon />
                                 {t('Navigation.users')}
                             </Button>}
@@ -103,7 +103,7 @@ export const Navigation = memo(function Navigation() {
                         <div className='mb-2' />
 
                         {readsPatients &&
-                            <Button variant='text' color={window.location.pathname !== '/Patients' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/Patients')} >
+                            <Button variant='text' disabled={window.location.pathname === '/Patients'} color={window.location.pathname !== '/Patients' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/Patients')} >
                                 <ShieldAlertIcon />
                                 {t('Navigation.patients')}
                             </Button>}
@@ -111,7 +111,7 @@ export const Navigation = memo(function Navigation() {
                         <div className='mb-2' />
 
                         {readsVisits &&
-                            <Button variant='text' color={window.location.pathname !== '/Visits' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/Visits')} >
+                            <Button variant='text' disabled={window.location.pathname === '/Visits'} color={window.location.pathname !== '/Visits' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/Visits')} >
                                 <TimerIcon />
                                 {t('Navigation.visits')}
                             </Button>}
@@ -119,26 +119,26 @@ export const Navigation = memo(function Navigation() {
                         <div className='mb-2' />
 
                         {readsMedicalHistories &&
-                            <Button variant='text' color={window.location.pathname !== '/MedicalHistories' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/MedicalHistories')} >
+                            <Button variant='text' disabled={window.location.pathname === '/MedicalHistories'} color={window.location.pathname !== '/MedicalHistories' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/MedicalHistories')} >
                                 <HistoryIcon />
                                 {t('Navigation.MedicalHistories')}
                             </Button>}
 
                         <div className='mb-8' />
 
-                        <Button variant='text' color={window.location.pathname !== '/General' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/General')} >
+                        <Button variant='text' disabled={window.location.pathname === '/General'} color={window.location.pathname !== '/General' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/General')} >
                             <SettingsIcon />
                             {t("Navigation.general")}
                         </Button>
 
-                        <Button variant='text' color={window.location.pathname !== '/ThemeSettings' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/ThemeSettings')} >
+                        <Button variant='text' disabled={window.location.pathname === '/ThemeSettings'} color={window.location.pathname !== '/ThemeSettings' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/ThemeSettings')} >
                             <PaintRollerIcon />
                             {t("Navigation.Theme")}
                         </Button>
 
                         <div className='mb-8' />
 
-                        <Button variant='text' color={window.location.pathname !== '/DbSettings' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/DbSettings')} >
+                        <Button variant='text' disabled={window.location.pathname === '/DbSettings'} color={window.location.pathname !== '/DbSettings' ? 'surface' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/DbSettings')} >
                             <DatabaseIcon />
                             {t("Navigation.Db")}
                         </Button>

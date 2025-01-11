@@ -113,10 +113,10 @@ export const Patients = memo(function Patients() {
             init(page.offset, page.limit)
                 .then(() => {
                     setLoading(false)
-                    subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
-                        if (e?.detail === '/Patients')
-                            setShowGrid(true)
-                    })
+                    // subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
+                    // if (e?.detail === '/Patients')
+                    setShowGrid(true)
+                    // })
                 })
     }, [])
 

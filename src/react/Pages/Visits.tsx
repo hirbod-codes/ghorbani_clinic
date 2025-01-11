@@ -104,10 +104,10 @@ export const Visits = memo(function Visits() {
         if (visits.length === 0)
             init(page.offset, page.limit).then(() => setLoading(false))
 
-        subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
-            if (e?.detail === '/Visits')
-                setShowGrid(true)
-        })
+        // subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
+        //     if (e?.detail === '/Visits')
+        setShowGrid(true)
+        // })
     }, [])
 
     const deletesVisit = useMemo(() => auth!.user && auth!.accessControl && auth!.accessControl.can(auth!.user?.roleName ?? '').delete(resources.VISIT), [auth])

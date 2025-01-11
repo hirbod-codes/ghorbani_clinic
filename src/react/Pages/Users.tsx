@@ -212,10 +212,10 @@ export const Users = memo(function Users() {
     }, [])
 
     useEffect(() => {
-        subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
-            if (e?.detail === '/Users')
-                setShowGrid(true)
-        })
+        // subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
+        //     if (e?.detail === '/Users')
+        setShowGrid(true)
+        // })
     }, [])
 
     return (
