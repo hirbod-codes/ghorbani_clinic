@@ -17,6 +17,7 @@ import { MedicalHistorySearch } from "./MedicalHistorySearch"
 import { Button } from "../../Components/Base/Button"
 import { PlusIcon, RefreshCwIcon, SearchIcon, TrashIcon } from "lucide-react"
 import { CircularLoading } from "../Base/CircularLoading"
+import { Stack } from "../Base/Stack"
 
 export function MedicalHistoryDataGrid() {
     const auth = useContext(AuthContext)
@@ -124,6 +125,9 @@ export function MedicalHistoryDataGrid() {
             id: 'actions',
             accessorKey: 'actions',
             cell: ({ row }) => <Button
+                isIcon
+                variant='text'
+                color='error'
                 onClick={async () => {
                     setDialog({
                         open: true,
@@ -178,9 +182,9 @@ export function MedicalHistoryDataGrid() {
                         return result
                     }}
                     appendHeaderNodes={[
-                        <Button onClick={async () => await init(page.offset, page.limit)} ><RefreshCwIcon />{t('MedicalHistories.Refresh')}</Button>,
-                        <Button onClick={async () => setSearchModalOpen(true)} ><SearchIcon />{t('MedicalHistories.Search')}</Button>,
-                        createsMedicalHistory && <Button onClick={() => setCreatingMedicalHistory(true)} ><PlusIcon />{t('MedicalHistories.Create')}</Button>,
+                        <Button variant='outline' onClick={async () => await init(page.offset, page.limit)} ><RefreshCwIcon />{t('MedicalHistories.Refresh')}</Button>,
+                        <Button variant='outline' onClick={async () => setSearchModalOpen(true)} ><SearchIcon />{t('MedicalHistories.Search')}</Button>,
+                        createsMedicalHistory && <Button variant='outline' onClick={() => setCreatingMedicalHistory(true)} ><PlusIcon />{t('MedicalHistories.Create')}</Button>,
                     ]}
                 />}
 
@@ -227,17 +231,18 @@ export function MedicalHistoryDataGrid() {
             <Modal
                 open={dialog.open}
                 onClose={closeDialog}
-                title={dialog.title}
-                footer={<>
-                    <Button onClick={closeDialog}>{t('MedicalHistories.No')}</Button>
-                    <Button onClick={() => {
-                        if (dialog.action && typeof dialog.action === 'function')
-                            dialog.action()
-                        closeDialog()
-                    }}>{t('MedicalHistories.Yes')}</Button>
-                </>}
             >
-                {dialog.content}
+                <Stack direction="vertical" stackProps={{ className: 'justify-between' }}>
+                    {dialog.content}
+                    <Stack>
+                        <Button onClick={closeDialog}>{t('MedicalHistories.No')}</Button>
+                        <Button onClick={() => {
+                            if (dialog.action && typeof dialog.action === 'function')
+                                dialog.action()
+                            closeDialog()
+                        }}>{t('MedicalHistories.Yes')}</Button>
+                    </Stack>
+                </Stack>
             </Modal>
         </>
     )

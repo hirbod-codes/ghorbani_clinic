@@ -6,6 +6,7 @@ import { AnimatedOutlet } from './AnimatedOutlet';
 import { MenuBar } from '../Components/MenuBar/MenuBar';
 import { GradientBackground } from '../Components/GradientBackground';
 import { memo, useMemo } from 'react';
+import { Stack } from '../Components/Base/Stack';
 
 
 export const Layout = memo(function Layout() {
@@ -15,17 +16,17 @@ export const Layout = memo(function Layout() {
         <>
             <GradientBackground />
 
-            <div className='size-full flex flex-col overflow-hidden'>
+            <Stack direction='vertical' stackProps={{ className: 'h-screen w-screen overflow-hidden m-0 *:m-0' }}>
                 <MenuBar />
 
-                <div className='flex flex-col flex-grow overflow-hidden'>
+                <Stack direction='vertical' stackProps={{ className: 'flex-grow overflow-hidden m-0 *:m-0' }}>
                     <Navigation />
 
-                    <div className='flex-grow w-full relative mt-3 overflow-hidden'>
+                    <div className='flex-grow w-full relative mt-1 overflow-hidden'>
                         <AnimatedOutlet />
                     </div>
-                </div>
-            </div>
+                </Stack>
+            </Stack>
         </>
     ), [])
 

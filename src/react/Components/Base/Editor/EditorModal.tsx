@@ -42,6 +42,7 @@ export function EditorModal({ hideCanvas = false, hideTextEditor = false, open, 
                         onClose(dialog.e, dialog.r)
                 }}
                 open={open}
+                containerProps={{ className: 'min-h-[66%]' }}
             >
                 <Editor
                     hideCanvas={hideCanvas}

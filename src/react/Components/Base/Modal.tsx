@@ -5,6 +5,7 @@ import { Button } from "./Button"
 import { XIcon } from "lucide-react"
 import { cn } from "../../shadcn/lib/utils"
 import { Container } from "./Container"
+import { createPortal } from "react-dom"
 
 export type ModalProps = {
     children?: ReactNode
@@ -26,17 +27,17 @@ export function Modal({ children, open = false, onClose, containerProps, animate
             onClose()
     }, [open])
 
-    return (
+    return createPortal(
         <>
-            {open && <div className="h-screen w-screen overflow-hidden absolute top-0 left-0 bg-[black] opacity-70" />}
+            {open && <div className="h-screen w-screen overflow-hidden absolute top-0 left-0 bg-[black] opacity-70 my-12" />}
 
             <AnimatedSlide
                 motionKey={open.toString()}
                 open={open}
                 layout={true}
-                {...{ ...animatedSlideProps, motionDivProps: { ...animatedSlideProps?.motionDivProps, className: cn("absolute top-0 left-0 h-screen w-screen flex flex-col justify-center items-center", animatedSlideProps?.motionDivProps?.className) } }}
+                {...{ ...animatedSlideProps, motionDivProps: { ...animatedSlideProps?.motionDivProps, className: cn("absolute top-0 left-0 h-screen w-screen z-10", animatedSlideProps?.motionDivProps?.className) } }}
             >
-                <Container containerRef={containerRef} {...containerProps} className={cn("bg-surface-container rounded py-4 px-10 relative", containerProps?.className)}>
+                <Container containerRef={containerRef} {...containerProps} className={cn("bg-surface-container rounded py-4 px-10 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2", containerProps?.className)}>
                     {closeButton &&
                         <Button isIcon variant='text' color='error' className="absolute right-0 top-0 m-2" onClick={() => { if (onClose) onClose() }}>
                             {closeIcon}
@@ -46,5 +47,6 @@ export function Modal({ children, open = false, onClose, containerProps, animate
                 </Container>
             </AnimatedSlide>
         </>
+        , document.body
     )
 }
