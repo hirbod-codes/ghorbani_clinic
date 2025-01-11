@@ -351,7 +351,7 @@ export function DataGrid({
             }
             } >
                 {/* NOTE: This provider creates div elements, so don't nest inside of <table> elements */}
-                <div {...containerProps} className={cn('border rounded-md', containerProps?.className)} style={{ padding: '1rem', height: '100%', ...containerProps?.style }}>
+                <div {...containerProps} className={cn('p-2 border rounded-md h-full', containerProps?.className)}>
                     <DndContext
                         collisionDetection={closestCenter}
                         modifiers={[restrictToHorizontalAxis]}
@@ -369,9 +369,9 @@ export function DataGrid({
                         }}
                         sensors={sensors}
                     >
-                        <Stack direction='vertical' stackProps={{ className: 'h-full px-1 overflow-hidden text-nowrap' }}>
+                        <Stack direction='vertical' stackProps={{ className: 'h-full overflow-hidden text-nowrap px-0' }}>
                             {headerNodes.length > 0 &&
-                                <Stack {...headerNodesContainerProps}>
+                                <Stack {...headerNodesContainerProps} stackProps={{ className: cn('bg-surface-container-low p-2 rounded-md', headerNodesContainerProps?.stackProps?.className), ...headerNodesContainerProps?.stackProps }}>
                                     {...headerNodes.map((n, i) =>
                                         <Fragment key={i}>
                                             {n}
@@ -384,45 +384,49 @@ export function DataGrid({
                                 : (
                                     data.length === 0
                                         ? <p style={{ textAlign: 'center' }}>{t('DataGrid.noData')}</p>
-                                        : <div style={{ overflow: 'auto', flexGrow: 2 }}>
-                                            <AnimatePresence mode='sync'>
-                                                <table {...tableProps} style={{ borderCollapse: 'separate', borderSpacing: 0, minWidth: '100%', ...tableProps?.style }}>
-                                                    {showColumnHeaders &&
-                                                        <thead {...tHeadProps} className={cn('border border-collapse rounded-lg bg-surface', tHeadProps?.className)} style={{ position: 'sticky', top: 0, userSelect: 'none', background: themeOptions.colors[`${themeOptions.mode}-background`], zIndex: 1, ...tHeadProps?.style }}>
-                                                            {table.getHeaderGroups().map(headerGroup => (
-                                                                <tr key={headerGroup.id} className='border-b *:border-l first:[&_th]:border-l-0 my-2'>
-                                                                    <SortableContext
-                                                                        items={columnOrder}
-                                                                        strategy={horizontalListSortingStrategy}
-                                                                    >
-                                                                        {headerGroup.headers.map(header => (<DraggableTableHeader key={header.id} header={header} />))}
-                                                                    </SortableContext>
-                                                                </tr>
-                                                            ))}
-                                                        </thead>
-                                                    }
-                                                    <tbody {...tBodyProps}>
-                                                        {table.getRowModel().rows.map((row, i, arr) => (
-                                                            <tr key={row.id} className={`text-nowrap ${i === (arr.length - 1) ? '' : 'border-b'}`}>
-                                                                {row.getVisibleCells().map(cell => (
-                                                                    <SortableContext
-                                                                        key={cell.id}
-                                                                        items={columnOrder}
-                                                                        strategy={horizontalListSortingStrategy}
-                                                                    >
-                                                                        <DragAlongCell key={cell.id} cell={cell} />
-                                                                    </SortableContext>
-                                                                ))}
+                                        :
+                                        <div className='overflow-auto flex-grow border rounded-md'>
+                                            {/* <AnimatePresence mode='sync'> */}
+                                            <table {...tableProps} className={cn('min-w-full border-collapse', tableProps?.className)}>
+                                                {showColumnHeaders &&
+                                                    <thead {...tHeadProps} className={cn('sticky select-none z-[1] top-0', tableProps?.className)}>
+                                                        {table.getHeaderGroups().map(headerGroup => (
+                                                            <tr
+                                                                key={headerGroup.id}
+                                                                // className='border-b *:border-l first:[&_th]:border-l-0'
+                                                            >
+                                                                <SortableContext
+                                                                    items={columnOrder}
+                                                                    strategy={horizontalListSortingStrategy}
+                                                                >
+                                                                    {headerGroup.headers.map(header => (<DraggableTableHeader key={header.id} header={header} />))}
+                                                                </SortableContext>
                                                             </tr>
                                                         ))}
-                                                    </tbody>
-                                                </table>
-                                            </AnimatePresence>
+                                                    </thead>
+                                                }
+                                                <tbody {...tBodyProps} className={cn('even:[&_tr]:bg-surface-container', tBodyProps?.className)}>
+                                                    {table.getRowModel().rows.map((row, i, arr) => (
+                                                        <tr key={row.id} className={`text-nowrap ${i === (arr.length - 1) ? '' : 'border-b'}`}>
+                                                            {row.getVisibleCells().map(cell => (
+                                                                <SortableContext
+                                                                    key={cell.id}
+                                                                    items={columnOrder}
+                                                                    strategy={horizontalListSortingStrategy}
+                                                                >
+                                                                    <DragAlongCell key={cell.id} cell={cell} />
+                                                                </SortableContext>
+                                                            ))}
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                            {/*     </AnimatePresence> */}
                                         </div>
                                 )
                             }
                             {footerNodes.length > 0 &&
-                                <Stack {...footerNodesContainerProps}>
+                                <Stack {...footerNodesContainerProps} stackProps={{ className: cn('bg-surface-container-low p-2 rounded-md', footerNodesContainerProps?.stackProps?.className), ...footerNodesContainerProps?.stackProps }}>
                                     {...footerNodes.map((n, i) =>
                                         <Fragment key={i}>
                                             {n}

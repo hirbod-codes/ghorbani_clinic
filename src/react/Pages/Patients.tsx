@@ -21,9 +21,7 @@ import { DocumentManagement } from "../Components/DocumentManagement";
 import { Button } from "../Components/Base/Button";
 import { CircularLoadingIcon } from "../Components/Base/CircularLoadingIcon";
 import { EditIcon, PlusIcon, RefreshCwIcon, Trash2Icon } from "lucide-react";
-import { TrashIcon } from "../Components/Icons/TrashIcon";
 import { Stack } from "../Components/Base/Stack";
-import { CircularLoading } from "../Components/Base/CircularLoading";
 import { CircularLoadingScreen } from "../Components/Base/CircularLoadingScreen";
 
 export const Patients = memo(function Patients() {
@@ -280,34 +278,30 @@ export const Patients = memo(function Patients() {
 
     return (
         <>
-            <div className="grid-cols-12 space-x-1 space-y-1 p-2 h-full">
-                <div className="sm:col-span-12 h-full">
-                    <div className="p-[1rem] h-full shadow-lg">
-                        {!patients || patients?.length === 0 || !showGrid
-                            ? <CircularLoadingScreen />
-                            : <DataGrid
-                                configName='patients'
-                                data={patients ?? []}
-                                defaultColumnOrderModel={['counter', 'actions', 'socialId', 'firstName', 'lastName', 'age', 'documents', 'medicalHistory', 'phoneNumber', 'gender', 'address', 'birthDate']}
-                                overWriteColumns={overWriteColumns}
-                                additionalColumns={additionalColumns}
-                                loading={loading}
-                                hasPagination
-                                pagination={{ pageSize: page.limit, pageIndex: page.offset }}
-                                onPagination={async (p) => {
-                                    const result = await init(p.pageIndex, p.pageSize)
-                                    if (result)
-                                        setPage({ limit: p.pageSize, offset: p.pageIndex })
-                                    return result
-                                }}
-                                appendHeaderNodes={[
-                                    <Button variant="outline" onClick={async () => await init(page.offset, page.limit)}><RefreshCwIcon />{t('Patients.Refresh')}</Button>,
-                                    createsPatient && <Button variant="outline" onClick={() => setCreatingPatient(true)}><PlusIcon />{t('Patients.Create')}</Button>,
-                                ]}
-                            />
-                        }
-                    </div>
-                </div>
+            <div className="p-2 size-full shadow-lg">
+                {!patients || patients?.length === 0 || !showGrid
+                    ? <CircularLoadingScreen />
+                    : <DataGrid
+                        configName='patients'
+                        data={patients ?? []}
+                        defaultColumnOrderModel={['counter', 'actions', 'socialId', 'firstName', 'lastName', 'age', 'documents', 'medicalHistory', 'phoneNumber', 'gender', 'address', 'birthDate']}
+                        overWriteColumns={overWriteColumns}
+                        additionalColumns={additionalColumns}
+                        loading={loading}
+                        hasPagination
+                        pagination={{ pageSize: page.limit, pageIndex: page.offset }}
+                        onPagination={async (p) => {
+                            const result = await init(p.pageIndex, p.pageSize)
+                            if (result)
+                                setPage({ limit: p.pageSize, offset: p.pageIndex })
+                            return result
+                        }}
+                        appendHeaderNodes={[
+                            <Button variant="outline" onClick={async () => await init(page.offset, page.limit)}><RefreshCwIcon />{t('Patients.Refresh')}</Button>,
+                            createsPatient && <Button variant="outline" onClick={() => setCreatingPatient(true)}><PlusIcon />{t('Patients.Create')}</Button>,
+                        ]}
+                    />
+                }
             </div>
 
             <Modal open={showingDocuments} onClose={() => setShowingDocuments(false)}>

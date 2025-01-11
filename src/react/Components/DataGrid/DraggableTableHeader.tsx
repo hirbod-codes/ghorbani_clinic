@@ -30,26 +30,24 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
         whiteSpace: 'nowrap',
         width: header.column.getSize(),
         zIndex: isDragging ? 1 : 0,
-        paddingLeft: '1rem',
         ...getCommonPinningStyles(header.column),
     };
 
     switch (ctx.density.value) {
         case 'compact':
-            style.paddingTop = '1rem';
-            style.paddingBottom = '1rem';
+            style.padding = '0.5rem 1rem';
             break;
         case 'standard':
-            style.paddingTop = '1.25rem';
-            style.paddingBottom = '1.25rem';
+            style.padding = '0.75rem 1.25.rem';
             break;
         case 'comfortable':
-            style.paddingTop = '1.75rem';
-            style.paddingBottom = '1.75rem';
+            style.padding = '1rem 1.75rem';
             break;
         default:
             break;
     }
+
+    const visibleFlatColumns = table.getVisibleFlatColumns()
 
     return (
         <>
@@ -70,28 +68,29 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
                     setNodeRef(th)
                 }}
                 style={style}
+                className="relative"
                 {...attributes}
             >
-                <Stack direction="vertical">
-                    <Stack>
-                        <p {...listeners} className={`flex-grow text-center cursor-${isDragging ? 'grabbing' : 'grab'}`}>
-                            {t('Columns.' + header.column.columnDef.id)}
-                        </p>
+                <Stack stackProps={{ className: 'items-center justify-center' }}>
+                    <p {...listeners} className={`flex-grow text-center cursor-${isDragging ? 'grabbing' : 'grab'}`}>
+                        {t('Columns.' + header.column.columnDef.id)}
+                    </p>
 
-                        <Button
-                            className="ml-1"
-                            isIcon
-                            variant="text"
-                            size="xs"
-                            onClick={(e) => {
-                                if (header.column.getCanPin())
-                                    header.column.pin('left')
-                            }}
-                        >
-                            <PinIcon fontSize="inherit" />
-                        </Button>
-                    </Stack>
+                    <Button
+                        className="ml-1"
+                        isIcon
+                        variant="text"
+                        size="xs"
+                        onClick={(e) => {
+                            if (header.column.getCanPin())
+                                header.column.pin('left')
+                        }}
+                    >
+                        <PinIcon fontSize="inherit" />
+                    </Button>
                 </Stack>
+
+                <div id='border' className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-4/6 w-full${visibleFlatColumns[visibleFlatColumns.length - 1].id === header.column.id ? '' : ' border-r'}`} />
             </th >
         </>
     );

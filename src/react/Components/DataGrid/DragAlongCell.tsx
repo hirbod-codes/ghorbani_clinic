@@ -50,16 +50,13 @@ export const DragAlongCell = ({ cell }: { cell: Cell<any, unknown>; }) => {
 
     switch (useContext(DataGridContext)!.density.value) {
         case 'compact':
-            style.paddingTop = '0.25rem';
-            style.paddingBottom = '0.25rem';
+            style.padding = '0.25rem 0.25rem';
             break;
         case 'standard':
-            style.paddingTop = '0.5rem';
-            style.paddingBottom = '0.5rem';
+            style.padding = '0.5rem 0.5rem';
             break;
         case 'comfortable':
-            style.paddingTop = '0.75rem';
-            style.paddingBottom = '0.75rem';
+            style.padding = '0.75rem 0.75rem';
             break;
         default:
             break;
