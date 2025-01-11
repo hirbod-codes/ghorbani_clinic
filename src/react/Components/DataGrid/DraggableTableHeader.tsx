@@ -90,7 +90,7 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
                     </Button>
                 </Stack>
 
-                <div id='border' className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-4/6 w-full${visibleFlatColumns[visibleFlatColumns.length - 1].id === header.column.id ? '' : ' border-r'}`} />
+                <div id='border' className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-4/6 z-[-1] w-full${visibleFlatColumns[visibleFlatColumns.length - 1].id === header.column.id ? '' : ' border-r'}`} />
             </th >
         </>
     );

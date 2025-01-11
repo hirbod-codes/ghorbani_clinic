@@ -174,7 +174,7 @@ export const Users = memo(function Users() {
             id: 'actions',
             accessorKey: 'actions',
             cell: ({ row }) =>
-                <Stack stackProps={{ className: "justify-evenly w-full" }}>
+                <Stack stackProps={{ className: "justify-center w-full" }}>
                     {
                         updatesUser &&
                         <Button

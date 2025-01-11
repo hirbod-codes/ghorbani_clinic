@@ -205,7 +205,7 @@ export const Patients = memo(function Patients() {
             id: 'actions',
             accessorKey: 'actions',
             cell: ({ row }) =>
-                <div className="flex flex-row items-center">
+                <Stack stackProps={{ className: "items-center justify-center" }}>
                     {
                         updatesPatient
                             ? <Button
@@ -259,7 +259,7 @@ export const Patients = memo(function Patients() {
                             </Button>
                             : null
                     }
-                </div>
+                </Stack>
         },
         {
             id: 'documents',
