@@ -281,7 +281,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                 <CircularLoadingIcon />
             </AnimatedSlide>
 
-            <Stack direction='vertical' stackProps={{ className: "items-stretch size-full min-h-96", id: 'editor-container' }}>
+            <Stack direction='vertical' stackProps={{ className: "mx-0 items-stretch size-full min-h-96", id: 'editor-container' }}>
                 <Stack stackProps={{ className: "justify-between items-center overflow-auto" }}>
                     <div className="overflow-auto text-nowrap">
                         <h6>{title}</h6>
@@ -349,7 +349,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
 
                         <Separator />
 
-                        <div className="flex-grow overflow-hidden">
+                        <div className="flex-grow">
                             <TextEditor
                                 text={inputText}
                                 onChange={async (html) => {
@@ -375,7 +375,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
 
                         <Separator />
 
-                        <div className="flex-grow overflow-hidden">
+                        <div className="flex-grow">
                             <Canvas
                                 canvasRef={canvas}
                                 onChange={async (empty) => {

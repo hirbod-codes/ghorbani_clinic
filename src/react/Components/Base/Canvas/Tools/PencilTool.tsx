@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Draw } from "../types";
 import { t } from "i18next";
 import { HexAlphaColorPicker } from "react-colorful";
@@ -7,10 +7,12 @@ import { Line } from "../Shapes/Line";
 import { Shapes } from "../Shapes/Shapes";
 import { ConfigurationContext } from "@/src/react/Contexts/Configuration/ConfigurationContext";
 import { Button } from "@/src/react/Components/Base/Button";
-import { PaletteIcon, PenLineIcon, RotateCcwIcon } from "lucide-react";
+import { PaletteIcon, PenIcon, PenLineIcon, RotateCcwIcon } from "lucide-react";
 import { Input } from "@/src/react/shadcn/components/ui/input";
 import { Label } from "@/src/react/shadcn/components/ui/label";
 import { DropdownMenu } from "../../DropdownMenu";
+import { ColorPicker } from "../../../ColorPicker";
+import { Stack } from "../../Stack";
 
 export type PencilToolProps = {
     shapes: Shapes,
@@ -23,11 +25,13 @@ export type PencilToolProps = {
 }
 
 export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, setOnDownHook, mode = 'pencil' }: PencilToolProps) {
-    const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+    const [open, setOpen] = useState<boolean>(false)
+    const ref = useRef<HTMLButtonElement>(null)
 
     const themeOptions = useContext(ConfigurationContext)!.themeOptions
 
-    const [color, setColor] = useState<string>(canvasBackground === themeOptions.colors.white ? themeOptions.colors.black : themeOptions.colors.white)
+    const getDefaultColor = () => canvasBackground === themeOptions.colors.surface.light["container-lowest"] ? themeOptions.colors.surface.dark["container-lowest"] : themeOptions.colors.surface.light["container-lowest"]
+    const [color, setColor] = useState<string>(getDefaultColor())
     const [lineWidth, setLineWidth] = useState<string>('1.2')
 
     const [isPressureSensitive, setIsPressureSensitive] = useState<boolean>(true)
@@ -69,55 +73,50 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
     }, [color, lineWidth, instance, hasMoved])
 
     return (
-        <>
-            <div className='flex flex-row items-center w-min min-w-full space-y-2'>
-                <DropdownMenu
-                    trigger={<PaletteIcon stroke={themeOptions.colors.foreground} style={{ backgroundColor: color }} />}
-                    contents={[
-                        {
-                            type: 'label',
-                            content: t('PencilTool.selectColor')
-                        },
-                        { type: 'separator', },
-                        {
-                            type: 'item',
-                            options: {},
-                            content: <HexAlphaColorPicker color={color} onChange={(c) => setColor(c)} />
-                        }
-                    ]}
-                />
+        <Stack stackProps={{ className: 'items-center w-max' }}>
+            <Button buttonRef={ref} isIcon variant='text' onClick={() => setOpen(true)}>
+                <PaletteIcon />
+            </Button>
 
-                <Button style={{ backgroundColor: color }} isIcon onClick={() => setIsPressureSensitive(!isPressureSensitive)}>
-                    <PenConnectIcon color={themeOptions.colors.foreground} />
-                </Button>
+            <DropdownMenu
+                anchorRef={ref}
+                open={open}
+                onOpenChange={(b) => { if (!b) setOpen(false) }}
+            >
+                <ColorPicker />
+            </DropdownMenu>
 
-                <div className="flex items-center space-x-2">
-                    <Label htmlFor="lineWidth">
-                        {t('Canvas .lineWidth')}
-                    </Label>
-                    <Input type='text' id='lineWidth' onChange={(e) => setLineWidth(e.target.value)} value={lineWidth} />
-                </div>
+            <Button isIcon variant='text' onClick={() => setIsPressureSensitive(!isPressureSensitive)}>
+                <PenIcon />
+            </Button>
 
-                <div className="flex items-center space-x-2">
-                    <Label htmlFor="pressureMagnitude">
-                        {t('Canvas .pressureMagnitude')}
-                    </Label>
-                    <Input type='text' id='pressureMagnitude' onChange={(e) => setPressureMagnitude(e.target.value)} value={pressureMagnitude} />
-                </div>
+            <Stack stackProps={{ className: "items-center" }}>
+                <Label htmlFor="lineWidth">
+                    {t('Canvas .lineWidth')}
+                </Label>
+                <Input className="w-[2cm]" type='text' id='lineWidth' onChange={(e) => setLineWidth(e.target.value)} value={lineWidth} />
+            </Stack>
 
-                <Button
-                    style={{ backgroundColor: color }}
-                    isIcon
-                    onClick={() => {
-                        setColor(canvasBackground === themeOptions.colors.white ? themeOptions.colors.black : themeOptions.colors.white)
-                        setLineWidth('1.2')
-                        setIsPressureSensitive(true)
-                        setPressureMagnitude('9')
-                    }}
-                >
-                    <RotateCcwIcon stroke={themeOptions.colors.foreground} />
-                </Button>
-            </div>
-        </>
+            <Stack stackProps={{ className: "items-center" }}>
+                <Label htmlFor="pressureMagnitude">
+                    {t('Canvas .pressureMagnitude')}
+                </Label>
+                <Input className="w-[2cm]" type='text' id='pressureMagnitude' onChange={(e) => setPressureMagnitude(e.target.value)} value={pressureMagnitude} />
+            </Stack>
+
+            <Button
+                isIcon
+                variant='text'
+                color="error"
+                onClick={() => {
+                    setColor(getDefaultColor())
+                    setLineWidth('1.2')
+                    setIsPressureSensitive(true)
+                    setPressureMagnitude('9')
+                }}
+            >
+                <RotateCcwIcon />
+            </Button>
+        </Stack>
     )
 }

@@ -12,7 +12,6 @@ export function AnimatedList({ collection, withDelay = false, presenceMode = 'sy
     slideMotionProps.disappear = slideMotionProps.disappear ?? true
     slideMotionProps.inSource = slideMotionProps.inSource ?? 'left'
     slideMotionProps.outSource = slideMotionProps.outSource ?? 'right'
-    slideMotionProps.fullWidth = slideMotionProps.fullWidth ?? true
 
     console.log('AnimatedList', { collection, withDelay, ...slideMotionProps })
 
@@ -23,12 +22,10 @@ export function AnimatedList({ collection, withDelay = false, presenceMode = 'sy
                     <SlideMotion
                         key={c.key}
                         motionKey={c.key}
-                        fullHeight={false}
                         delay={withDelay ? (slideMotionProps.delay ?? 0) + (0.1 * i) : 0}
                         disappear={slideMotionProps.disappear}
                         inSource={slideMotionProps.inSource}
                         outSource={slideMotionProps.outSource}
-                        fullWidth={slideMotionProps.fullWidth}
                         layout='position'
                     >
                         {c.elm}
