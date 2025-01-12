@@ -74,6 +74,7 @@ export type DataGridProps = {
     headerNodesContainerProps?: ComponentProps<typeof Stack>
     footerNodesContainerProps?: ComponentProps<typeof Stack>
     containerProps?: ComponentProps<'div'>
+    tableContainerProps?: ComponentProps<'div'>
 }
 
 export function DataGrid({
@@ -106,6 +107,7 @@ export function DataGrid({
     headerNodesContainerProps,
     footerNodesContainerProps,
     containerProps,
+    tableContainerProps,
 }: DataGridProps) {
     const configuration = useContext(ConfigurationContext)!
     const themeOptions = configuration.themeOptions
@@ -162,37 +164,17 @@ export function DataGrid({
             else
                 cp = updaterOrValue(columnPinning)
 
-            if (!cp.left) cp.left = []
-            if (!cp.right) cp.right = []
-
-            const newCp: ColumnPinningState = { left: [...columnPinning.left ?? []], right: [...columnPinning.right ?? []] }
-
-            cp.left.forEach(l => {
-                if (columnPinning.left?.find(f => f === l) === undefined)
-                    newCp.left!.push(l)
-                else
-                    newCp.left! = newCp.left!.filter(f => f !== l)
-            })
-
-            cp.right.forEach(l => {
-                if (columnPinning.right?.find(f => f === l) === undefined)
-                    newCp.right!.push(l)
-                else
-                    newCp.right! = newCp.right!.filter(f => f !== l)
-            })
-
             if (configName) {
                 const c = (await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig())!
-                console.log({ ...c });
 
                 if (!c.columnPinningModels)
                     c.columnPinningModels = {}
 
-                c.columnPinningModels[configName] = newCp;
+                c.columnPinningModels[configName] = cp;
                 (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
             }
 
-            setColumnPinning(newCp);
+            setColumnPinning(cp);
         },
         onColumnOrderChange: async (updaterOrValue) => {
             if (!hasInit)
@@ -371,7 +353,7 @@ export function DataGrid({
                     >
                         <Stack direction='vertical' stackProps={{ className: 'h-full overflow-hidden text-nowrap px-0' }}>
                             {headerNodes.length > 0 &&
-                                <Stack {...headerNodesContainerProps} stackProps={{ className: cn('bg-surface-container-low p-2 rounded-md', headerNodesContainerProps?.stackProps?.className), ...headerNodesContainerProps?.stackProps }}>
+                                <Stack {...headerNodesContainerProps} stackProps={{ className: cn('bg-surface-container p-2 rounded-md', headerNodesContainerProps?.stackProps?.className), ...headerNodesContainerProps?.stackProps }}>
                                     {...headerNodes.map((n, i) =>
                                         <Fragment key={i}>
                                             {n}
@@ -385,16 +367,13 @@ export function DataGrid({
                                     data.length === 0
                                         ? <p style={{ textAlign: 'center' }}>{t('DataGrid.noData')}</p>
                                         :
-                                        <div className='overflow-auto flex-grow border rounded-md'>
+                                        <div {...tableContainerProps} className={cn('overflow-auto flex-grow border rounded-md', tableContainerProps?.className)}>
                                             {/* <AnimatePresence mode='sync'> */}
                                             <table {...tableProps} className={cn('min-w-full border-collapse', tableProps?.className)}>
                                                 {showColumnHeaders &&
                                                     <thead {...tHeadProps} className={cn('sticky select-none z-[1] top-0', tableProps?.className)}>
                                                         {table.getHeaderGroups().map(headerGroup => (
-                                                            <tr
-                                                                key={headerGroup.id}
-                                                                // className='border-b *:border-l first:[&_th]:border-l-0'
-                                                            >
+                                                            <tr key={headerGroup.id}>
                                                                 <SortableContext
                                                                     items={columnOrder}
                                                                     strategy={horizontalListSortingStrategy}
@@ -426,7 +405,7 @@ export function DataGrid({
                                 )
                             }
                             {footerNodes.length > 0 &&
-                                <Stack {...footerNodesContainerProps} stackProps={{ className: cn('bg-surface-container-low p-2 rounded-md', footerNodesContainerProps?.stackProps?.className), ...footerNodesContainerProps?.stackProps }}>
+                                <Stack {...footerNodesContainerProps} stackProps={{ className: cn('bg-surface-container p-2 rounded-md', footerNodesContainerProps?.stackProps?.className), ...footerNodesContainerProps?.stackProps }}>
                                     {...footerNodes.map((n, i) =>
                                         <Fragment key={i}>
                                             {n}
