@@ -1,5 +1,3 @@
-import { Lock, LockOpen, TextFields } from "@mui/icons-material";
-import { Box, Stack } from "@mui/material";
 import type { EditorOptions } from "@tiptap/core";
 import { useCallback, useRef, useState } from "react";
 import {
@@ -14,6 +12,10 @@ import EditorMenuControls from "./EditorMenuControls";
 import { useExtensions } from "./useExtensions";
 
 import './styles.css'
+import { Stack } from "../Stack";
+import { CheckIcon, EyeClosedIcon, EyeIcon, LockIcon, LockOpenIcon } from "lucide-react";
+import { Button } from "../Button";
+import { Tooltip } from "../Tooltip";
 
 function fileListToImageFiles(fileList: FileList): File[] {
     // You may want to use a package like attr-accept
@@ -122,16 +124,7 @@ export function TextEditor({ text, onChange, placeholder = "Add your own content
 
     return (
         <>
-            <Box
-                sx={{
-                    height: '100%',
-                    "& .ProseMirror": {
-                        "& h1, & h2, & h3, & h4, & h5, & h6": {
-                            scrollMarginTop: showMenuBar ? 50 : 0,
-                        },
-                    },
-                }}
-            >
+            <div className="h-full [&_.ProseMirror]:[&_h1]:scroll-mt-[50px] [&_.ProseMirror]:[&_h2]:scroll-mt-[50px] [&_.ProseMirror]:[&_h3]:scroll-mt-[50px] [&_.ProseMirror]:[&_h4]:scroll-mt-[50px] [&_.ProseMirror]:[&_h5]:scroll-mt-[50px] [&_.ProseMirror]:[&_h6]:scroll-mt-[50px]">
                 <RichTextEditor
                     ref={rteRef}
                     className="editor"
@@ -152,46 +145,27 @@ export function TextEditor({ text, onChange, placeholder = "Add your own content
                         MenuBarProps: {
                             hide: !showMenuBar,
                         },
-                        // Below is an example of adding a toggle within the outlined field
-                        // for showing/hiding the editor menu bar, and a "submit" button for
-                        // saving/viewing the HTML content
                         footer: (
-                            <Stack
-                                direction="row"
-                                spacing={2}
-                                sx={{
-                                    borderTopStyle: "solid",
-                                    borderTopWidth: 1,
-                                    borderTopColor: (theme) => theme.palette.divider,
-                                    py: 1,
-                                    px: 1.5
-                                }}
-                            >
-                                <MenuButton
-                                    value="formatting"
-                                    tooltipLabel={
-                                        showMenuBar ? "Hide formatting" : "Show formatting"
-                                    }
-                                    size="small"
-                                    onClick={() =>
-                                        setShowMenuBar((currentState) => !currentState)
-                                    }
-                                    selected={showMenuBar}
-                                    IconComponent={TextFields}
-                                />
+                            <Stack stackProps={{ className: 'border-t py-1' }}>
+                                <Tooltip tooltipContent={showMenuBar ? "Formatting visible" : "Formatting visible"}>
+                                    <Button
+                                        isIcon
+                                        variant="text"
+                                        onClick={() => setShowMenuBar((currentState) => !currentState)}
+                                    >
+                                        {showMenuBar ? <EyeIcon /> : <EyeClosedIcon />}
+                                    </Button>
+                                </Tooltip>
 
-                                <MenuButton
-                                    value="formatting"
-                                    tooltipLabel={
-                                        isEditable
-                                            ? "Prevent edits (use read-only mode)"
-                                            : "Allow edits"
-                                    }
-                                    size="small"
-                                    onClick={() => setIsEditable((currentState) => !currentState)}
-                                    selected={!isEditable}
-                                    IconComponent={isEditable ? LockOpen : Lock}
-                                />
+                                <Tooltip tooltipContent={isEditable ? "Prevent edits (use read-only mode)" : "Allow edits"}>
+                                    <Button
+                                        isIcon
+                                        variant="text"
+                                        onClick={() => setIsEditable((currentState) => !currentState)}
+                                    >
+                                        {isEditable ? <LockOpenIcon /> : <LockIcon />}
+                                    </Button>
+                                </Tooltip>
                             </Stack>
                         ),
                     }}
@@ -203,7 +177,7 @@ export function TextEditor({ text, onChange, placeholder = "Add your own content
                         </>
                     )}
                 </RichTextEditor>
-            </Box>
+            </div>
         </>
     );
 }
