@@ -2,6 +2,8 @@ import { useState } from "react";
 import { t } from "i18next";
 import { Editor, EditorProps } from "./Editor";
 import { Modal } from "../Modal";
+import { Stack } from "../Stack";
+import { Button } from "../Button";
 
 export type TextEditorModalProps = EditorProps & {
     open: boolean;
@@ -58,13 +60,30 @@ export function EditorModal({ hideCanvas = false, hideTextEditor = false, open, 
 
             <Modal
                 open={dialog.open}
-                onClose={() => {
-                    if (onClose)
-                        onClose(dialog.e, dialog.r)
-                    closeDialog()
-                }}
             >
-                {dialog.content}
+                <Stack direction="vertical">
+                    {dialog.content}
+
+                    <Stack>
+                        <Button
+                            onClick={() => {
+                                if (onClose)
+                                    onClose(dialog.e, dialog.r)
+                                closeDialog()
+                            }}
+                        >
+                            {t('EditorModal.Yes')}
+                        </Button>
+
+                        <Button
+                            onClick={() => {
+                                closeDialog()
+                            }}
+                        >
+                            {t('EditorModal.No')}
+                        </Button>
+                    </Stack>
+                </Stack>
             </Modal>
         </>
     )
