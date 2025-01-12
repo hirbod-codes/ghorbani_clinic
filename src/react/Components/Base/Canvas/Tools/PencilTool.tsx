@@ -32,9 +32,9 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
     const themeOptions = useContext(ConfigurationContext)!.themeOptions
 
     const getDefaultColor = () =>
-        ColorStatic.parse(canvasBackground).toHex() === ColorStatic.parse(themeOptions.colors.surface.light["container-lowest"]).toHex()
-            ? themeOptions.colors.surface.dark["container-lowest"]
-            : themeOptions.colors.surface.light["container-lowest"]
+        ColorStatic.parse(canvasBackground).toHex() === ColorStatic.parse(themeOptions.colors.surface.light["container-high"]).toHex()
+            ? themeOptions.colors.surface.light.foreground
+            : themeOptions.colors.surface.dark.foreground
 
     const [color, setColor] = useState<string>(getDefaultColor())
     const [lineWidth, setLineWidth] = useState<string>('1.2')
@@ -91,7 +91,7 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
                 <ColorPicker />
             </DropdownMenu>
 
-            <Button isIcon variant='text' onClick={() => setIsPressureSensitive(!isPressureSensitive)}>
+            <Button isIcon variant='text' rawFgColor={isPressureSensitive ? themeOptions.colors.success[themeOptions.mode].main : themeOptions.colors.primary[themeOptions.mode].main} onClick={() => setIsPressureSensitive(!isPressureSensitive)}>
                 <PenIcon />
             </Button>
 
