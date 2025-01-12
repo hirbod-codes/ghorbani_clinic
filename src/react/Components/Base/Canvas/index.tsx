@@ -128,22 +128,13 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                 if (!canvasRef?.current?.style)
                                     return
 
-                                console.log(canvasRef.current.style?.backgroundColor, 'll', themeOptions.mode, themeOptions.colors.surface, themeOptions.colors.surface[themeOptions.mode]["container-high"]);
-
                                 if (!canvasRef.current.style.backgroundColor) {
                                     canvasRef.current.style.backgroundColor = themeOptions.colors.surface[themeOptions.mode]["container-high"]
                                     canvasRef.current.style.borderColor = themeOptions.colors.surface[themeOptions.mode]["container-high"]
-                                    rerender()
-                                    return
-                                }
-
-                                console.log(canvasRef.current.style?.backgroundColor);
-
-                                if (ColorStatic.parse(canvasRef.current.style.backgroundColor).toHex() === ColorStatic.parse(themeOptions.colors.surface.light["container-high"]).toHex()) {
+                                } else if (ColorStatic.parse(canvasRef.current.style.backgroundColor).toHex() === ColorStatic.parse(themeOptions.colors.surface.light["container-high"]).toHex()) {
                                     canvasRef.current.style.backgroundColor = themeOptions.colors.surface.dark["container-high"]
                                     canvasRef.current.style.borderColor = themeOptions.colors.surface.dark["container-high"]
-                                }
-                                else {
+                                } else {
                                     canvasRef.current.style.backgroundColor = themeOptions.colors.surface.light["container-high"]
                                     canvasRef.current.style.borderColor = themeOptions.colors.surface.light["container-high"]
                                 }
@@ -264,7 +255,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                     {...canvasProps}
                     ref={canvasRef}
                     className={cn("flex-grow w-full m-0 rounded-md select-none touch-none", canvasProps?.className)}
-                    style={{ backgroundColor: canvasBackgroundInit, boxShadow: '0 0 10px -1px black', ...canvasProps?.style }}
+                    style={{ backgroundColor: canvasBackgroundInit ?? themeOptions.colors.surface[themeOptions.mode]["container-high"], boxShadow: '0 0 10px -1px black', ...canvasProps?.style }}
                     onPointerDown={onDown}
                     onPointerUp={onUp}
                     onPointerMove={onMove}
