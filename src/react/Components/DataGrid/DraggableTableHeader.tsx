@@ -6,7 +6,7 @@ import { DataGridContext } from "./Context";
 import { t } from "i18next";
 import { getCommonPinningStyles } from "./helpers";
 import { Button } from "../../Components/Base/Button";
-import { PinIcon } from "lucide-react";
+import { ArrowLeftToLineIcon, ArrowRightToLineIcon, PinIcon } from "lucide-react";
 import { Stack } from "../Base/Stack";
 
 export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>; }) => {
@@ -72,6 +72,24 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
                 {...attributes}
             >
                 <Stack stackProps={{ className: 'items-center justify-center' }}>
+                    <Button
+                        className="ml-1"
+                        isIcon
+                        variant="text"
+                        size="xs"
+                        onClick={(e) => {
+                            if (!header.column.getCanPin())
+                                return
+
+                            if (header.column.getIsPinned())
+                                header.column.pin(false)
+                            else
+                                header.column.pin('left')
+                        }}
+                    >
+                        <ArrowLeftToLineIcon fontSize="inherit" />
+                    </Button>
+
                     <p {...listeners} className={`flex-grow text-center cursor-${isDragging ? 'grabbing' : 'grab'}`}>
                         {t('Columns.' + header.column.columnDef.id)}
                     </p>
@@ -82,11 +100,16 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
                         variant="text"
                         size="xs"
                         onClick={(e) => {
-                            if (header.column.getCanPin())
-                                header.column.pin('left')
+                            if (!header.column.getCanPin())
+                                return
+
+                            if (header.column.getIsPinned())
+                                header.column.pin(false)
+                            else
+                                header.column.pin('right')
                         }}
                     >
-                        <PinIcon fontSize="inherit" />
+                        <ArrowRightToLineIcon fontSize="inherit" />
                     </Button>
                 </Stack>
 
