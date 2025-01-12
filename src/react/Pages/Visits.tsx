@@ -152,7 +152,7 @@ export const Visits = memo(function Visits() {
                 <Button
                     isIcon
                     variant='text'
-                    color='error'
+                    fgColor='error'
                     onClick={async () => {
                         try {
                             console.group('Visits', 'deletesVisit', 'onClick')

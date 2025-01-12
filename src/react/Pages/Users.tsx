@@ -190,7 +190,7 @@ export const Users = memo(function Users() {
                         <Button
                             isIcon
                             variant='text'
-                            color='error'
+                            fgColor='error'
                             onClick={async () => {
                                 await deleteUser(row.original._id);
                                 await updateRows(role)
@@ -244,7 +244,7 @@ export const Users = memo(function Users() {
                                         }}
                                         onMouseLeave={() => { if (timeout.current.r) clearTimeout(timeout.current.r) }}
                                     >
-                                        <Button variant="outline" disabled={role === r} color={role === r ? 'primary' : 'surface'} onClick={async () => { await updateRows(r, false) }}>
+                                        <Button variant="outline" disabled={role === r} fgColor={role === r ? 'primary' : 'surface'} onClick={async () => { await updateRows(r, false) }}>
                                             <p>
                                                 {t(`Roles.${r}`)}
                                             </p>
@@ -271,7 +271,7 @@ export const Users = memo(function Users() {
                                                 } */}
                                                         {
                                                             deletesRole &&
-                                                            <Button color='error' variant='outline' onClick={async () => { await deleteRole(r); await refresh() }} className="pl-4">
+                                                            <Button fgColor='error' variant='outline' onClick={async () => { await deleteRole(r); await refresh() }} className="pl-4">
                                                                 {deletingRole ? <CircularLoadingIcon /> : <Trash2Icon />}
                                                                 <p>{t("Users.delete")}</p>
                                                             </Button>

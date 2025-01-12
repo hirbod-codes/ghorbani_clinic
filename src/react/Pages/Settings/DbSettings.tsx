@@ -43,11 +43,11 @@ export const DbSettings = memo(function DbSettings() {
                                 {t("DbSettings.Seed")}
                             </Button>
 
-                            <Button color='success' onClick={() => setOpenTruncateDbQuestion(true)}>
+                            <Button fgColor='success' onClick={() => setOpenTruncateDbQuestion(true)}>
                                 {t("DbSettings.Truncate")}
                             </Button>
 
-                            <Button color={connectionHealth ? 'success' : 'error'} onClick={async () => { setCheckingConnectionHealth(true); await checkConnectionHealth(); setCheckingConnectionHealth(false) }}>
+                            <Button fgColor={connectionHealth ? 'success' : 'error'} onClick={async () => { setCheckingConnectionHealth(true); await checkConnectionHealth(); setCheckingConnectionHealth(false) }}>
                                 {t("DbSettings.CheckConnection")}{checkingConnectionHealth && <CircularLoadingIcon />}
                             </Button>
                         </Stack>
@@ -104,7 +104,7 @@ export const DbSettings = memo(function DbSettings() {
             </Modal>
 
             <Modal open={openTruncateDbQuestion} onClose={() => setOpenTruncateDbQuestion(false)}>
-                <Button color='error' onClick={async () => {
+                <Button fgColor='error' onClick={async () => {
                     try {
                         setTruncating(true);
                         const result = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.truncate();

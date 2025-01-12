@@ -342,7 +342,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                         <Separator />
 
                         {onSave &&
-                            <Button isIcon variant='text' onClick={saveContent} color={contentHasUnsavedChanges ? 'warning' : 'primary'} >
+                            <Button isIcon variant='text' onClick={saveContent} fgColor={contentHasUnsavedChanges ? 'warning' : 'primary'} >
                                 {contentHasUnsavedChanges ? <SaveIcon color='inherit' /> : <SaveIcon color='inherit' />}
                             </Button>
                         }
@@ -368,7 +368,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                         <Separator />
 
                         {onSave &&
-                            <Button isIcon variant='text' onClick={saveCanvas} color={canvasHasUnsavedChanges ? 'warning' : 'primary'}>
+                            <Button isIcon variant='text' onClick={saveCanvas} fgColor={canvasHasUnsavedChanges ? 'warning' : 'primary'}>
                                 {canvasHasUnsavedChanges ? <CloudUploadIcon color={themeOptions.colors.warning[themeOptions.mode].main} /> : <FolderCheckIcon color={themeOptions.colors.primary[themeOptions.mode].main} />}
                             </Button>
                         }

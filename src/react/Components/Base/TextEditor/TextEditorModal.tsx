@@ -60,7 +60,7 @@ export function TextEditorModal({ open, onClose, onSave: onChange, onSave, place
                                     await onSave(text)
                                 setHasUnsavedChanges(false)
                             }}
-                            color={hasUnsavedChanges ? themeOptions.colors.accent : themeOptions.colors.primary}
+                            fgColor={hasUnsavedChanges ? themeOptions.colors.accent : themeOptions.colors.primary}
                         >
                             <SaveIcon />
                         </Button>

@@ -171,7 +171,7 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
                 </div>
 
                 {createsMedicalHistory && creatable &&
-                    <Button onClick={() => setCreatingMedicalHistory(true)} color="success">
+                    <Button onClick={() => setCreatingMedicalHistory(true)} fgColor="success">
                         <PlusIcon />
                     </Button>
                 }

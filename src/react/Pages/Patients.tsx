@@ -224,7 +224,7 @@ export const Patients = memo(function Patients() {
                             ? <Button
                                 isIcon
                                 variant='text'
-                                color='error'
+                                fgColor='error'
                                 onClick={async () => {
                                     setDialog({
                                         open: true,

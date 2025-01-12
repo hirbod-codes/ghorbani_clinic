@@ -1,4 +1,4 @@
-import { Fragment, MutableRefObject, ReactNode, useContext, useEffect, useReducer, useRef, useState } from "react";
+import { ComponentProps, Fragment, MutableRefObject, ReactNode, useContext, useEffect, useReducer, useRef, useState } from "react";
 import { Draw } from "./types";
 import { useDraw } from "./useDraw";
 import { useReactToPrint } from "react-to-print";
@@ -17,6 +17,8 @@ import { EraserIcon, MoonIcon, MousePointer2Icon, PencilLineIcon, PenIcon, Print
 import { AnimatedList } from "../../Animations/AnimatedList";
 import { Button } from "../Button";
 import { Stack } from "../Stack";
+import { ColorStatic } from "@/src/react/Lib/Colors/ColorStatic";
+import { cn } from "@/src/react/shadcn/lib/utils";
 
 const xOffset = 100;
 const variants = {
@@ -40,12 +42,13 @@ const variants = {
 export type Tool = 'pencil' | 'eraser' | 'rectangle' | 'circle' | 'select'
 
 export type CanvasProps = {
-    canvasRef?: MutableRefObject<HTMLCanvasElement | null>,
+    canvasRef?: MutableRefObject<HTMLCanvasElement | null>
     onChange?: (empty?: boolean) => void | Promise<void>
     canvasBackground?: string
+    canvasProps?: ComponentProps<'canvas'>
 }
 
-export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onChange }: CanvasProps) {
+export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onChange, canvasProps }: CanvasProps) {
     if (!canvasRef)
         canvasRef = useRef<HTMLCanvasElement | null>(null)
 
@@ -89,13 +92,6 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
             resizeCanvas(canvasRef)
     }, [canvasRef.current])
 
-    useEffect(() => {
-        if (canvasRef.current && canvasRef.current.style && canvasBackgroundInit) {
-            canvasRef.current.style.backgroundColor = canvasBackgroundInit
-            rerender()
-        }
-    }, [canvasRef.current, canvasBackgroundInit])
-
     return (
         <>
             <AnimatedSlide open={loading}>
@@ -132,17 +128,32 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                 if (!canvasRef?.current?.style)
                                     return
 
-                                if (canvasRef?.current?.style.backgroundColor === themeOptions.colors.surface.light["container-lowest"])
-                                    canvasRef.current.style.backgroundColor = themeOptions.colors.surface.dark["container-lowest"]
-                                else
-                                    canvasRef.current.style.backgroundColor = themeOptions.colors.surface.light["container-lowest"]
+                                console.log(canvasRef.current.style?.backgroundColor, 'll', themeOptions.mode, themeOptions.colors.surface, themeOptions.colors.surface[themeOptions.mode]["container-high"]);
+
+                                if (!canvasRef.current.style.backgroundColor) {
+                                    canvasRef.current.style.backgroundColor = themeOptions.colors.surface[themeOptions.mode]["container-high"]
+                                    canvasRef.current.style.borderColor = themeOptions.colors.surface[themeOptions.mode]["container-high"]
+                                    rerender()
+                                    return
+                                }
+
+                                console.log(canvasRef.current.style?.backgroundColor);
+
+                                if (ColorStatic.parse(canvasRef.current.style.backgroundColor).toHex() === ColorStatic.parse(themeOptions.colors.surface.light["container-high"]).toHex()) {
+                                    canvasRef.current.style.backgroundColor = themeOptions.colors.surface.dark["container-high"]
+                                    canvasRef.current.style.borderColor = themeOptions.colors.surface.dark["container-high"]
+                                }
+                                else {
+                                    canvasRef.current.style.backgroundColor = themeOptions.colors.surface.light["container-high"]
+                                    canvasRef.current.style.borderColor = themeOptions.colors.surface.light["container-high"]
+                                }
 
                                 rerender()
 
                                 if (onChange && shapes.shapes.length > 0)
                                     onChange(false)
                             }}>
-                            {canvasRef.current?.style.backgroundColor === themeOptions.colors.surface.light["container-lowest"] ? <SunIcon fontSize='inherit' /> : <MoonIcon fontSize='inherit' />}
+                            {canvasRef.current?.style.backgroundColor === themeOptions.colors.surface.light["container-high"] ? <SunIcon fontSize='inherit' /> : <MoonIcon fontSize='inherit' />}
                         </Button>
                     </Tooltip>
 
@@ -150,7 +161,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                         <Button
                             isIcon
                             variant='text'
-                            color='error'
+                            fgColor='error'
                             onClick={() => {
                                 clear()
                                 setShapes(new Shapes([]))
@@ -167,7 +178,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                         <Button
                             isIcon
                             variant={tool === 'select' ? 'outline' : 'text'}
-                            color={tool === 'select' ? 'success' : undefined}
+                            fgColor={tool === 'select' ? 'success' : undefined}
                             onClick={() => {
                                 setTool('select')
                                 setToolNode([{
@@ -186,7 +197,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                         <Button
                             isIcon
                             variant={tool === 'pencil' ? 'outline' : 'text'}
-                            color={tool === 'pencil' ? 'success' : undefined}
+                            fgColor={tool === 'pencil' ? 'success' : undefined}
                             onClick={() => {
                                 setTool('pencil')
                                 setToolNode([{
@@ -205,7 +216,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                         <Button
                             isIcon
                             variant={tool === 'eraser' ? 'outline' : 'text'}
-                            color={tool === 'eraser' ? 'success' : undefined}
+                            fgColor={tool === 'eraser' ? 'success' : undefined}
                             onClick={() => {
                                 setTool('eraser')
                                 setToolNode([{
@@ -224,7 +235,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                         <Button
                             isIcon
                             variant={tool === 'rectangle' ? 'outline' : 'text'}
-                            color={tool === 'rectangle' ? 'success' : undefined}
+                            fgColor={tool === 'rectangle' ? 'success' : undefined}
                             onClick={() => {
                                 setTool('rectangle')
                                 setToolNode([{
@@ -242,28 +253,28 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
 
                 <Separator />
 
-                <div className="w-full h-20 overflow-x-auto pt-1 relative shadow-inner shadow-black">
+                <div className="w-full pt-1 relative shadow-inner shadow-black">
                     {toolNode.map(n => <Fragment key={n.key}>{n.elm}</Fragment>)}
                     {/* <AnimatedList collection={toolNode} /> */}
                 </div>
 
                 <Separator />
 
-                <div className="flex-grow w-full p-1 m-0 shadow-xl border rounded-md" style={{ boxShadow: '0 0 10px -1px black' }}>
-                    <canvas
-                        ref={canvasRef}
-                        style={{ width: '100%', height: '100%', touchAction: 'none', userSelect: 'none' }}
-                        onPointerDown={onDown}
-                        onPointerUp={onUp}
-                        onPointerMove={onMove}
-                        onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                        onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                        onMouseUp={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                        onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                        onMouseMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                        onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
-                    />
-                </div>
+                <canvas
+                    {...canvasProps}
+                    ref={canvasRef}
+                    className={cn("flex-grow w-full m-0 rounded-md select-none touch-none", canvasProps?.className)}
+                    style={{ backgroundColor: canvasBackgroundInit, boxShadow: '0 0 10px -1px black', ...canvasProps?.style }}
+                    onPointerDown={onDown}
+                    onPointerUp={onUp}
+                    onPointerMove={onMove}
+                    onMouseDown={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    onTouchStart={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    onMouseUp={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    onTouchEnd={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    onMouseMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                    onTouchMove={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                />
             </Stack>
         </>
     )

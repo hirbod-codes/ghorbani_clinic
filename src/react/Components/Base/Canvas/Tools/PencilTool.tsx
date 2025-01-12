@@ -13,6 +13,7 @@ import { Label } from "@/src/react/shadcn/components/ui/label";
 import { DropdownMenu } from "../../DropdownMenu";
 import { ColorPicker } from "../../../ColorPicker";
 import { Stack } from "../../Stack";
+import { ColorStatic } from "@/src/react/Lib/Colors/ColorStatic";
 
 export type PencilToolProps = {
     shapes: Shapes,
@@ -30,7 +31,11 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
 
     const themeOptions = useContext(ConfigurationContext)!.themeOptions
 
-    const getDefaultColor = () => canvasBackground === themeOptions.colors.surface.light["container-lowest"] ? themeOptions.colors.surface.dark["container-lowest"] : themeOptions.colors.surface.light["container-lowest"]
+    const getDefaultColor = () =>
+        ColorStatic.parse(canvasBackground).toHex() === ColorStatic.parse(themeOptions.colors.surface.light["container-lowest"]).toHex()
+            ? themeOptions.colors.surface.dark["container-lowest"]
+            : themeOptions.colors.surface.light["container-lowest"]
+
     const [color, setColor] = useState<string>(getDefaultColor())
     const [lineWidth, setLineWidth] = useState<string>('1.2')
 
@@ -107,7 +112,7 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
             <Button
                 isIcon
                 variant='text'
-                color="error"
+                fgColor="error"
                 onClick={() => {
                     setColor(getDefaultColor())
                     setLineWidth('1.2')

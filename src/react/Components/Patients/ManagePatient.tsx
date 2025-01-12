@@ -288,7 +288,7 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
                                             {/* Submit */}
                                             <Button
                                                 className='w-full'
-                                                color='success'
+                                                fgColor='success'
                                                 onClick={() => {
                                                     setDialogTitle(`About to ${inputPatient ? 'update' : 'register'}...`)
                                                     setDialogContent('Are you sure?')

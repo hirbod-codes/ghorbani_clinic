@@ -130,7 +130,7 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                         visits.length !== 0 &&
                         <>
                             <Button
-                                color="error"
+                                fgColor="error"
                                 onClick={() => {
                                     visits.pop();
                                     if (onChange)
@@ -144,7 +144,7 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                         </>
                     }
                     <Button
-                        color="success"
+                        fgColor="success"
                         onClick={() => {
                             visits.push(getDefaultVisit());
                             if (onChange)

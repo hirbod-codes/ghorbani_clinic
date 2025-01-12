@@ -1,37 +1,44 @@
 import { cn } from "@/src/react/shadcn/lib/utils";
-import { ComponentProps, CSSProperties, HTMLAttributes, memo, MouseEvent, ReactNode, RefObject } from "react";
+import { ComponentProps, CSSProperties, HTMLAttributes, memo, MouseEvent, ReactNode, RefObject, useContext } from "react";
 import { ripple } from "../helpers";
+import { ConfigurationContext } from "@/src/react/Contexts/Configuration/ConfigurationContext";
+import { ColorStatic } from "@/src/react/Lib/Colors/ColorStatic";
 
 export type ButtonProps = {
     children?: ReactNode
     rippleEffect?: boolean
     variant?: 'outline' | 'contained' | 'text'
-    color?: 'primary' | 'secondary' | 'tertiary' | 'surface' | 'outline' | 'info' | 'success' | 'warning' | 'error' | string
+    rawFgColor?: string
+    rawBgColor?: string
+    fgColor?: 'primary' | 'secondary' | 'tertiary' | 'surface' | 'outline' | 'info' | 'success' | 'warning' | 'error' | string
+    bgColor?: 'primary' | 'secondary' | 'tertiary' | 'surface' | 'outline' | 'info' | 'success' | 'warning' | 'error' | string
     size?: 'xl' | 'lg' | 'md' | 'sm' | 'xs'
     isIcon?: boolean
     buttonRef?: RefObject<HTMLButtonElement>
 } & ComponentProps<'button'>
 
-export const Button = memo(function Button({ children, rippleEffect = true, variant = 'contained', color = 'primary', size = 'md', isIcon = false, buttonRef, ...buttonProps }: ButtonProps) {
+export const Button = memo(function Button({ children, rippleEffect = true, variant = 'contained', rawBgColor, rawFgColor, bgColor = 'primary-foreground', fgColor = 'primary', size = 'md', isIcon = false, buttonRef, ...buttonProps }: ButtonProps) {
+    const themeOptions = useContext(ConfigurationContext)!.themeOptions
+
     let style: CSSProperties = {}
     let className: HTMLAttributes<HTMLButtonElement>['className'] = 'select-none overflow-hidden relative inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0'
     switch (variant) {
         case 'contained':
-            className += ` border-0 bg-${color} text-${color}-foreground`
-            style.color = `hsl(var(--${color}-foreground))`
-            style.backgroundColor = `hsl(var(--${color}))`
+            className += ` border-0`
+            style.color = rawFgColor ?? `hsl(var(--${fgColor}))`
+            style.backgroundColor = rawBgColor ?? `hsl(var(--${bgColor}))`
             break;
 
         case 'outline':
             className += ` border bg-transparent`
-            style.color = `hsl(var(--${color !== 'surface' ? color : color + '-foreground'}))`
-            style.borderColor = `hsl(var(--${color !== 'surface' ? color : color + '-foreground'}))`
+            style.color = rawFgColor ?? `hsl(var(--${fgColor}))`
+            style.borderColor = rawFgColor ?? `hsl(var(--${fgColor}))`
             break;
 
         case 'text':
             className += ` border-0 bg-transparent`
-            style.color = `hsl(var(--${color !== 'surface' ? color : color + '-foreground'}))`
-            style.borderColor = `hsl(var(--${color !== 'surface' ? color : color + '-foreground'}))`
+            style.color = rawFgColor ?? `hsl(var(--${fgColor}))`
+            style.borderColor = rawFgColor ?? `hsl(var(--${fgColor}))`
             break;
 
         default:
@@ -70,7 +77,7 @@ export const Button = memo(function Button({ children, rippleEffect = true, vari
             style={style}
             onClick={(e: MouseEvent<HTMLButtonElement>) => {
                 if (rippleEffect)
-                    ripple(e)
+                    ripple(e, ColorStatic.parse(themeOptions.colors.surface[themeOptions.mode].foreground).toHex())
                 if (buttonProps?.onClick)
                     buttonProps.onClick(e)
             }}

@@ -127,7 +127,7 @@ export function MedicalHistoryDataGrid() {
             cell: ({ row }) => <Button
                 isIcon
                 variant='text'
-                color='error'
+                fgColor='error'
                 onClick={async () => {
                     setDialog({
                         open: true,

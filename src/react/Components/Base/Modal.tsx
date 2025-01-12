@@ -45,7 +45,7 @@ export function Modal({ children, open = false, onClose, modalContainerProps, ch
                     </div>
 
                     {closeButton &&
-                        <Button isIcon variant='text' color='error' className="absolute right-0 top-0 m-2" onClick={() => { if (onClose) onClose() }}>
+                        <Button isIcon variant='text' fgColor='error' className="absolute right-0 top-0 m-2" onClick={() => { if (onClose) onClose() }}>
                             {closeIcon}
                         </Button>
                     }
