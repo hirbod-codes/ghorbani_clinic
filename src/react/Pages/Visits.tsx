@@ -15,7 +15,6 @@ import { useNavigate } from "react-router-dom";
 import { ColumnDef } from "@tanstack/react-table";
 import { Button } from "../Components/Base/Button";
 import { CircularLoadingIcon } from "../Components/Base/CircularLoadingIcon";
-import { TrashIcon } from "../Components/Icons/TrashIcon";
 import { RefreshCwIcon, Trash2Icon } from "lucide-react";
 import { CircularLoadingScreen } from "../Components/Base/CircularLoadingScreen";
 
@@ -235,6 +234,7 @@ export const Visits = memo(function Visits() {
                     }
                 }}
             />
+
             <EditorModal
                 open={showTreatments !== undefined}
                 onClose={() => {
