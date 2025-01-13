@@ -10,6 +10,7 @@ import { Separator } from "../../shadcn/components/ui/separator";
 import { Button } from "../../Components/Base/Button";
 import { Tooltip } from "../Base/Tooltip";
 import { EditIcon } from "lucide-react";
+import { Stack } from "../Base/Stack";
 
 export type MedicalHistoryProps = {
     open: boolean;
@@ -58,17 +59,18 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                         onClose()
                 }}
                 open={open}
+                modalContainerProps={{ style: { minWidth: '80%' } }}
             >
-                <div className="size-full flex flex-col justify-end space-x-3 space-y-3">
+                <Stack direction="vertical" stackProps={{ className: "size-full justify-end" }}>
                     <div className="w-full flex-grow p-2">
-                        <div className="flex flex-row size-full justify-between space-x-2 space-y-2">
+                        <Stack stackProps={{ className: "size-full justify-between" }}>
                             <div className="flex-grow shadow-md max-w-[48%] h-full p-3">
-                                <div className="flex flex-col size-full space-x-2 space-y-2">
+                                <Stack direction='vertical' stackProps={{ className: "size-full" }}>
                                     {updateMedicalHistory &&
                                         // using div component because alignItems='start' will make dividers invisible!!
                                         <div className="flex flex-row justify-start">
                                             <Tooltip tooltipContent={t('MedicalHistories.Edit')}>
-                                                <Button size="icon" onClick={() => setIsEditingHistories(true)}>
+                                                <Button isIcon variant="text" onClick={() => setIsEditingHistories(true)}>
                                                     <EditIcon />
                                                 </Button>
                                             </Tooltip>
@@ -85,14 +87,14 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
 
                                     <Separator />
 
-                                    <div className="flex flex-col overflow-auto flex-grow">
+                                    <Stack stackProps={{ className: "overflow-auto flex-grow" }}>
                                         {medicalHistory?.histories?.map((h, i) =>
                                             <p key={i}>
                                                 {h}
                                             </p>
                                         )}
-                                    </div>
-                                </div>
+                                    </Stack>
+                                </Stack>
                             </div>
 
                             <Separator orientation="vertical" />
@@ -116,7 +118,7 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                                     setHasUnsavedChanges={setHasUnsavedChanges}
                                 />
                             </div>
-                        </div>
+                        </Stack>
                     </div>
 
                     <Separator />
@@ -128,10 +130,14 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                     }}>
                         {t('MedicalHistories.save')}
                     </Button>
-                </div>
+                </Stack>
             </Modal >
 
-            <Modal open={isEditingHistories} onClose={() => { setIsEditingHistories(false) }}>
+            <Modal
+                open={isEditingHistories}
+                onClose={() => { setIsEditingHistories(false) }}
+                childrenContainerProps={{}}
+            >
                 <MedicalHistorySearch
                     deletable
                     creatable
@@ -147,8 +153,10 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
             <Modal
                 open={dialog.open}
                 onClose={closeDialog}
-                title={dialog.title}
-                footer={<>
+            >
+                {dialog.content}
+
+                <Stack>
                     <Button onClick={closeDialog}>{t('MedicalHistories.No')}</Button>
                     <Button onClick={() => {
                         if (onClose)
@@ -156,9 +164,7 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
 
                         closeDialog()
                     }}>{t('MedicalHistories.Yes')}</Button>
-                </>}
-            >
-                {dialog.content}
+                </Stack>
             </Modal>
         </>
     )

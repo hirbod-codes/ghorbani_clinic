@@ -284,7 +284,9 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
             <Stack direction='vertical' stackProps={{ className: "mx-0 items-stretch size-full min-h-96", id: 'editor-container' }}>
                 <Stack stackProps={{ className: "justify-between items-center overflow-auto" }}>
                     <div className="overflow-auto text-nowrap">
-                        <h6>{title}</h6>
+                        <Tooltip tooltipContent={title}>
+                            <h6>{title}</h6>
+                        </Tooltip>
                     </div>
                     <Stack stackProps={{ className: "content-center items-center" }}>
                         <Tooltip tooltipContent={t('Editor.View')}>

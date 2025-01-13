@@ -15,8 +15,7 @@ import { DateTime } from "luxon";
 import { appAPI } from "../../../Electron/appRendererEvents";
 import { Button } from "../../Components/Base/Button";
 import { CircularLoadingIcon } from "../Base/CircularLoadingIcon";
-import { TrashIcon } from "../Icons/TrashIcon";
-import { ExternalLinkIcon, FileDownIcon, FileUpIcon } from "lucide-react";
+import { ExternalLinkIcon, FileDownIcon, FileUpIcon, Trash2Icon } from "lucide-react";
 import { Modal } from "../Base/Modal";
 import { Input } from "../Base/Input";
 import { Stack } from "../Base/Stack";
@@ -102,11 +101,13 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
             id: 'actions',
             accessorKey: 'actions',
             cell: ({ row }) =>
-                <div className="flex flex-row items-center">
+                <Stack stackProps={{ className: "justify-evenly items-center" }}>
                     {
                         deletesFile
                             ? <Button
                                 isIcon
+                                variant='text'
+                                fgColor='error'
                                 onClick={async () => {
                                     try {
                                         console.group('DocumentManagement', 'deletesFile', 'onClick')
@@ -132,13 +133,15 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                                     finally { console.groupEnd() }
                                 }}
                             >
-                                {deletingFileId === row.original._id ? <CircularLoadingIcon /> : <TrashIcon />}
+                                {deletingFileId === row.original._id ? <CircularLoadingIcon /> : <Trash2Icon />}
                             </Button>
                             : null
                     }
                     {
                         readsFile
                             ? <Button
+                                isIcon
+                                variant='text'
                                 onClick={async () => {
                                     try {
                                         console.group('DocumentManagement', 'opensFile', 'onClick')
@@ -164,6 +167,8 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                     {
                         readsFile
                             ? <Button
+                                isIcon
+                                variant='text'
                                 onClick={async () => {
                                     try {
                                         console.group('DocumentManagement', 'downloadingFile', 'onClick')
@@ -195,7 +200,7 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
                             </Button>
                             : null
                     }
-                </div >
+                </Stack>
 
         },
     ]
@@ -206,7 +211,7 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
 
     return (
         <>
-            <div className="w-max h-full">
+            <div className="w-full h-full">
                 <DataGrid
                     configName="Documents"
                     data={files}

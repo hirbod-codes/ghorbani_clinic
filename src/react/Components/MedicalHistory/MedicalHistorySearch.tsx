@@ -2,7 +2,6 @@ import { t } from "i18next";
 import { useContext, useEffect, useMemo, useState } from "react";
 import { MedicalHistory } from "../../../Electron/Database/Models/MedicalHistory";
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
-import { TrashIcon } from "../Icons/TrashIcon";
 import { AuthContext } from "../../Contexts/AuthContext";
 import { resources } from "../../../Electron/Database/Repositories/Auth/resources";
 import { publish } from "../../Lib/Events";
@@ -12,11 +11,12 @@ import { AnimatedList } from "../Animations/AnimatedList";
 import { Input } from "../Base/Input";
 import { CircularLoadingIcon } from "../Base/CircularLoadingIcon";
 import { Button } from "../../Components/Base/Button";
-import { CheckIcon, PlusIcon, SearchIcon } from "lucide-react";
+import { CheckIcon, PlusIcon, SearchIcon, Trash2Icon } from "lucide-react";
 import { Switch } from "../Base/Switch";
 import { Separator } from "../../shadcn/components/ui/separator";
 import { Modal } from "../Base/Modal";
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
+import { Stack } from "../Base/Stack";
 
 export function MedicalHistorySearch({ creatable = false, deletable = false, defaultSelection, selectable = false, onSelectionChange }: { creatable?: boolean, deletable?: boolean, defaultSelection?: string[], selectable?: boolean, onSelectionChange?: (selection: string[]) => (void | Promise<void>) }) {
     const themeOptions = useContext(ConfigurationContext)!.themeOptions
@@ -97,8 +97,8 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
 
     return (
         <>
-            <div className='flex flex-col justify-start items-center w-full h-full space-x-2 space-y-2'>
-                <div className='flex flex-row items-center'>
+            <Stack direction='vertical' stackProps={{ className: 'justify-start items-center size-full' }}>
+                <Stack stackProps={{ className: 'items-center' }}>
                     <Input
                         value={searchStr}
                         onChange={(e) => setSearchStr(e.target.value)}
@@ -109,20 +109,20 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
 
                     {isSearching
                         ? <CircularLoadingIcon />
-                        : <Button onClick={search}>
+                        : <Button isIcon variant='text' onClick={search}>
                             <CheckIcon />
                         </Button>
                     }
-                </div>
+                </Stack>
 
                 <div className='flex-grow overflow-hidden w-full'>
-                    <div className="flex flex-col justify-between h-full w-full">
+                    <Stack direction='vertical' stackProps={{ className: 'justify-between size-full' }}>
                         <div className='h-full w-full p-2 overflow-auto shadow-md'>
                             <AnimatedList
                                 collection={medicalHistories.map((md, i) => ({
                                     key: md.name,
                                     elm:
-                                        <div className='flex flex-row items-center justify-between space-x-2 space-y-2 w-full'>
+                                        <Stack stackProps={{ className: 'items-center justify-between w-full' }}>
                                             {selectable === true &&
                                                 <Switch checked={selection?.find(f => f === md.name) !== undefined} onCheckedChange={(v) => setSelection((old) => {
                                                     if (old.find(f => f === md.name) !== undefined)
@@ -135,11 +135,11 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
                                                 {md.name}
                                             </p>
                                             {deletesMedicalHistory && deletable &&
-                                                <Button onClick={() => deleteMedicalHistory(md._id as string)}>
-                                                    <TrashIcon color={themeOptions.colors.destructive} />
+                                                <Button isIcon variant="text" fgColor="error" onClick={() => deleteMedicalHistory(md._id as string)}>
+                                                    <Trash2Icon />
                                                 </Button>
                                             }
-                                        </div>
+                                        </Stack>
                                 }))}
                                 withDelay={true}
                             />
@@ -153,35 +153,34 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
                                     collection={selection.map((name, i) => ({
                                         key: name,
                                         elm:
-                                            <div className="flex flex-row items-center justify-between space-x-2 space-y-2 w-full">
+                                            <Stack stackProps={{ className: 'items-center justify-between w-full' }}>
                                                 <p className="overflow-auto">
                                                     {name}
                                                 </p>
 
-                                                <Button onClick={() => setSelection(selection.filter(f => f !== name))}>
-                                                    <TrashIcon color={themeOptions.colors.destructive} />
+                                                <Button isIcon variant='text' fgColor='error' onClick={() => setSelection(selection.filter(f => f !== name))}>
+                                                    <Trash2Icon />
                                                 </Button>
-                                            </div>
+                                            </Stack>
                                     }))}
                                     withDelay={true}
                                 />
                             </div>
                         }
-                    </div>
+                    </Stack>
                 </div>
 
                 {createsMedicalHistory && creatable &&
-                    <Button onClick={() => setCreatingMedicalHistory(true)} fgColor="success">
+                    <Button isIcon variant='text' onClick={() => setCreatingMedicalHistory(true)} fgColor="success">
                         <PlusIcon />
                     </Button>
                 }
-            </div >
+            </Stack>
 
             {/* Medical history creation, Name field */}
             < EditorModal
                 open={creatingMedicalHistory}
-                onClose={() => setCreatingMedicalHistory(false)
-                }
+                onClose={() => setCreatingMedicalHistory(false)}
                 hideCanvas={true}
                 title={t('MedicalHistories.creationModalTitle')}
                 onSave={async (mh, canvasId) => {
@@ -217,8 +216,10 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
             <Modal
                 open={dialog.open}
                 onClose={closeDialog}
-                title={dialog.title}
-                footer={<>
+            >
+                {dialog.content}
+
+                <Stack>
                     <Button onClick={closeDialog}>{t('MedicalHistories.No')}</Button>
                     <Button onClick={async () => {
                         if (dialog.action)
@@ -227,9 +228,7 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
                     }}>
                         {t('MedicalHistories.Yes')}
                     </Button>
-                </>}
-            >
-                {dialog.content}
+                </Stack>
             </Modal>
         </>
     )

@@ -307,7 +307,8 @@ export const Patients = memo(function Patients() {
             <Modal
                 open={showingDocuments}
                 onClose={() => setShowingDocuments(false)}
-                modalContainerProps={{ style: { width: 'auto' } }}
+                modalContainerProps={{ style: { width: '90%' } }}
+                childrenContainerProps={{ style: { overflowY:'auto' } }}
             >
                 <DocumentManagement patientId={activePatientId!} />
             </Modal>
