@@ -23,29 +23,6 @@ export type ModalProps = {
 export function Modal({ children, open = false, onClose, modalContainerProps, childrenContainerProps, childrenContainerRef, animatedSlideProps, closeButton = true, closeIcon }: ModalProps) {
     const containerRef = useRef<HTMLDivElement>(null)
 
-    // useEffect(() => {
-    //     function handleClickOutside(e) {
-    //         e.preventDefault()
-    //         e.stopPropagation()
-
-    //         if (!containerRef || !containerRef?.current || !onClose)
-    //             return
-
-    //         const d = containerRef.current.getBoundingClientRect()
-
-    //         console.log(containerRef.current, e.target, e.currentTarget, d, e.clientX, e.clientY, e.clientX < d.left || e.clientX > d.right || e.clientY < d.top || e.clientY > d.bottom)
-
-    //         if (e.clientX < d.left || e.clientX > d.right || e.clientY < d.top || e.clientY > d.bottom)
-    //             onClose()
-    //     }
-
-    //     document.body.addEventListener("pointerdown", handleClickOutside);
-
-    //     return () => {
-    //         document.body.removeEventListener("pointerdown", handleClickOutside);
-    //     };
-    // }, [containerRef, containerRef?.current]);
-
     let i = 0
     for (const child of document.body.children) {
         if (child.id !== 'modal')
@@ -69,7 +46,7 @@ export function Modal({ children, open = false, onClose, modalContainerProps, ch
                     motionDivProps: {
                         ...animatedSlideProps?.motionDivProps,
                         id: 'modal',
-                        className: cn("size-50 absolute top-0 left-0 h-screen w-screen", animatedSlideProps?.motionDivProps?.className),
+                        className: cn("absolute top-0 left-0 h-screen w-screen flex flex-col justify-center items-center", animatedSlideProps?.motionDivProps?.className),
                         style: { ...animatedSlideProps?.motionDivProps?.style, zIndex: 20 + i },
                     }
                 }}
@@ -85,10 +62,10 @@ export function Modal({ children, open = false, onClose, modalContainerProps, ch
                 <Container
                     {...modalContainerProps}
                     containerRef={containerRef}
-                    className={cn("absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 max-h-[80%] overflow-auto", modalContainerProps?.className)}
+                    className={cn("relative max-h-[80%] overflow-auto", modalContainerProps?.className)}
                     style={{ zIndex: 22 + i, ...modalContainerProps?.style }}
                 >
-                    <div ref={childrenContainerRef} {...childrenContainerProps} className={cn("bg-surface-container rounded py-4 px-10", childrenContainerProps?.className)}>
+                    <div ref={childrenContainerRef} {...childrenContainerProps} className={cn("bg-surface-container rounded py-4 px-10 size-full", childrenContainerProps?.className)}>
                         {children}
                     </div>
 
