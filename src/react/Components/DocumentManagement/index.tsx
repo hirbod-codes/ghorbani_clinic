@@ -16,9 +16,10 @@ import { appAPI } from "../../../Electron/appRendererEvents";
 import { Button } from "../../Components/Base/Button";
 import { CircularLoadingIcon } from "../Base/CircularLoadingIcon";
 import { TrashIcon } from "../Icons/TrashIcon";
-import { ExternalLinkIcon, FileDownIcon, FileUpIcon, PlusIcon } from "lucide-react";
+import { ExternalLinkIcon, FileDownIcon, FileUpIcon } from "lucide-react";
 import { Modal } from "../Base/Modal";
 import { Input } from "../Base/Input";
+import { Stack } from "../Base/Stack";
 
 export function DocumentManagement({ patientId }: { patientId: string }) {
     const configuration = useContext(ConfigurationContext)!
@@ -205,7 +206,7 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
 
     return (
         <>
-            <div className="w-full h-full">
+            <div className="w-max h-full">
                 <DataGrid
                     configName="Documents"
                     data={files}
@@ -243,21 +244,22 @@ export function DocumentManagement({ patientId }: { patientId: string }) {
             <Modal
                 open={dialog.open}
                 onClose={closeDialog}
-                title={dialog.title}
-                footer={<>
+            >
+                {dialog.content}
+
+                <Stack>
                     <Button onClick={async () => {
                         if (dialog.noAction && typeof dialog.noAction === 'function')
                             await dialog.noAction()
                         closeDialog()
                     }}>{t('Patients.No')}</Button>
+
                     <Button onClick={async () => {
                         if (dialog.yesAction && typeof dialog.yesAction === 'function')
                             await dialog.yesAction()
                         closeDialog()
                     }}>{t('Patients.Yes')}</Button>
-                </>}
-            >
-                {dialog.content}
+                </Stack>
             </Modal>
         </>
     )
