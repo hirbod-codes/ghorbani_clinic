@@ -79,7 +79,7 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
 
     return (
         <Stack stackProps={{ className: 'items-center w-max' }}>
-            <Button buttonRef={ref} isIcon variant='text' onClick={() => setOpen(true)}>
+            <Button buttonRef={ref} isIcon variant='text' rawFgColor={color} onClick={() => setOpen(true)}>
                 <PaletteIcon />
             </Button>
 
@@ -87,8 +87,14 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
                 anchorRef={ref}
                 open={open}
                 onOpenChange={(b) => { if (!b) setOpen(false) }}
+                containerProps={{ className: 'z-50 p-2 border rounded-md' }}
             >
-                <ColorPicker />
+                <ColorPicker
+                    controlledColor={ColorStatic.parse(color).toHsv()}
+                    onColorChanged={(c) => {
+                        setColor(c.toHex())
+                    }}
+                />
             </DropdownMenu>
 
             <Button isIcon variant='text' rawFgColor={isPressureSensitive ? themeOptions.colors.success[themeOptions.mode].main : themeOptions.colors.primary[themeOptions.mode].main} onClick={() => setIsPressureSensitive(!isPressureSensitive)}>

@@ -36,10 +36,11 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, op
         positionElement(containerRef.current, verticalPosition, horizontalPosition, aRect, cRect, window.innerHeight, window.innerWidth)
     }
 
-    usePointerOutside(containerRef, (isOutside) => {
-        if (isOutside && onOpenChange)
-            onOpenChange(false)
-    })
+    // usePointerOutside(containerRef, (isOutside) => {
+    //     console.log(isOutside)
+    //     if (isOutside && onOpenChange)
+    //         onOpenChange(false)
+    // })
 
     useEffect(() => {
         updatePosition()
@@ -66,12 +67,37 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, op
         return () => window.removeEventListener('resize', updatePosition)
     }, [])
 
+    useEffect(() => {
+        function handleClickOutside(e) {
+            e.preventDefault()
+            e.stopPropagation()
+
+            if (!containerRef || !containerRef?.current || !onOpenChange)
+                return
+
+            const d = containerRef.current.getBoundingClientRect()
+
+            console.log(containerRef.current, e.target, e.currentTarget, d, e.clientX, e.clientY, e.clientX < d.left || e.clientX > d.right || e.clientY < d.top || e.clientY > d.bottom)
+
+            if (e.clientX < d.left || e.clientX > d.right || e.clientY < d.top || e.clientY > d.bottom)
+                onOpenChange(false)
+        }
+
+        document.body.addEventListener("pointerdown", handleClickOutside);
+
+        return () => {
+            document.body.removeEventListener("pointerdown", handleClickOutside);
+        };
+    }, [containerRef, containerRef?.current]);
+
+    console.log('DropdownMenu', { display, opacity, containerRef: containerRef.current, anchorRef, open, onOpenChange, containerProps, verticalPosition, horizontalPosition })
+
     return createPortal(
         <div
+            {...containerProps}
             id="dropdown-container"
             ref={containerRef}
-            {...containerProps}
-            className={cn(['bg-surface-container absolute z-10 transition-opacity duration-500'], containerProps?.className)}
+            className={cn(['bg-surface-container absolute z-20 transition-opacity duration-500'], containerProps?.className)}
             style={{ display, opacity }}
             onTransitionEnd={() => {
                 if (opacity === 0)

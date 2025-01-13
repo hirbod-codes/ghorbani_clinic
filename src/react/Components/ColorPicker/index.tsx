@@ -32,7 +32,7 @@ export const ColorPicker = memo(function ColorPicker({ hasAlpha = true, controll
     console.log('ColorPicker', { controlledColor, onColorChanged, color, hasAlpha })
 
     return (
-        <div id='color-picker-container' {...containerProps} className={cn([`flex flex-col items-center space-y-2 w-72 h-96 p-2 border rounded-lg`], containerProps?.className)}>
+        <div id='color-picker-container' {...containerProps} className={cn([`flex flex-col items-center space-y-2 w-72 h-96 z-50`], containerProps?.className)}>
             <div className="w-full h-10" ref={colorHolder} style={{ backgroundColor: color.toHex() }} />
 
             <div className={`w-72 h-72`}>

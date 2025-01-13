@@ -1,4 +1,4 @@
-import { ComponentProps, ReactNode, RefObject, useRef } from "react"
+import { ComponentProps, ReactNode, RefObject, useEffect, useRef } from "react"
 import { AnimatedSlide } from "../Animations/AnimatedSlide"
 import { usePointerOutside } from "./usePointerOutside"
 import { Button } from "./Button"
@@ -29,6 +29,29 @@ export function Modal({ children, open = false, onClose, modalContainerProps, ch
             onClose()
     }, [open])
 
+    useEffect(() => {
+        function handleClickOutside(e) {
+            e.preventDefault()
+            e.stopPropagation()
+
+            if (!containerRef || !containerRef?.current || !onClose)
+                return
+
+            const d = containerRef.current.getBoundingClientRect()
+
+            console.log(containerRef.current, e.target, e.currentTarget, d, e.clientX, e.clientY, e.clientX < d.left || e.clientX > d.right || e.clientY < d.top || e.clientY > d.bottom)
+
+            if (e.clientX < d.left || e.clientX > d.right || e.clientY < d.top || e.clientY > d.bottom)
+                onClose()
+        }
+
+        document.body.addEventListener("pointerdown", handleClickOutside);
+
+        return () => {
+            document.body.removeEventListener("pointerdown", handleClickOutside);
+        };
+    }, [containerRef, containerRef?.current]);
+
     return createPortal(
         <>
             {open && <div className="h-screen w-screen overflow-hidden absolute top-0 left-0 bg-[black] opacity-70 my-12" />}
@@ -37,7 +60,7 @@ export function Modal({ children, open = false, onClose, modalContainerProps, ch
                 motionKey={open.toString()}
                 open={open}
                 layout={true}
-                {...{ ...animatedSlideProps, motionDivProps: { ...animatedSlideProps?.motionDivProps, className: cn("absolute top-0 left-0 h-screen w-screen z-50", animatedSlideProps?.motionDivProps?.className) } }}
+                {...{ ...animatedSlideProps, motionDivProps: { ...animatedSlideProps?.motionDivProps, className: cn("absolute top-0 left-0 h-screen w-screen z-20", animatedSlideProps?.motionDivProps?.className) } }}
             >
                 <Container containerRef={containerRef} {...modalContainerProps} className={cn("absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2", modalContainerProps?.className)}>
                     <div ref={childrenContainerRef} {...childrenContainerProps} className={cn("bg-surface-container rounded py-4 px-10 size-full absolute top-0 left-0", childrenContainerProps?.className)}>
