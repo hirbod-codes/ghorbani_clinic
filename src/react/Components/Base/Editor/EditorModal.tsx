@@ -44,7 +44,7 @@ export function EditorModal({ hideCanvas = false, hideTextEditor = false, open, 
                         onClose(dialog.e, dialog.r)
                 }}
                 open={open}
-                modalContainerProps={{ className: 'min-h-[66%]', id: 'editorModal' }}
+                modalContainerProps={{ className: 'h-[66%]', id: 'editorModal' }} 
             >
                 <Editor
                     hideCanvas={hideCanvas}
@@ -61,8 +61,6 @@ export function EditorModal({ hideCanvas = false, hideTextEditor = false, open, 
             <Modal
                 open={dialog.open}
                 onClose={() => setDialog({ ...dialog, open: false })}
-                // modalContainerProps={{ className: 'z-30' }}
-                // childrenContainerProps={{ className: 'z-30' }}
             >
                 <Stack direction="vertical">
                     {dialog.content}

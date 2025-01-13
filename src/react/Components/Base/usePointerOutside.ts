@@ -11,8 +11,6 @@ export function usePointerOutside(ref?: RefObject<HTMLElement>, onClick?: (isOut
 
             const d = ref.current.getBoundingClientRect()
 
-            console.log(ref.current, e.target, e.currentTarget, d, e.clientX, e.clientY, e.clientX < d.left || e.clientX > d.right || e.clientY < d.top || e.clientY > d.bottom)
-
             onClick(e.clientX < d.left || e.clientX > d.right || e.clientY < d.top || e.clientY > d.bottom)
         }
 

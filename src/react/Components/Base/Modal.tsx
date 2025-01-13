@@ -22,13 +22,6 @@ export type ModalProps = {
 export function Modal({ children, open = false, onClose, modalContainerProps, childrenContainerProps, childrenContainerRef, animatedSlideProps, closeButton = true, closeIcon }: ModalProps) {
     const containerRef = useRef<HTMLDivElement>(null)
 
-    closeIcon = closeIcon ?? <XIcon className="text-destructive" />
-
-    usePointerOutside(containerRef, (outside) => {
-        if (outside && onClose)
-            onClose()
-    }, [open])
-
     useEffect(() => {
         function handleClickOutside(e) {
             e.preventDefault()
@@ -52,18 +45,30 @@ export function Modal({ children, open = false, onClose, modalContainerProps, ch
         };
     }, [containerRef, containerRef?.current]);
 
+    let i = 0
+    for (const child of document.body.children) {
+        if (child.id !== 'modal')
+            continue
+        else
+            i++
+    }
+
+    console.log({ i })
+
+    closeIcon = closeIcon ?? <XIcon className="text-error" />
+
     return createPortal(
         <>
-            {open && <div className="h-screen w-screen overflow-hidden absolute top-0 left-0 bg-[black] opacity-70 my-12" />}
+            {open && <div id='modalScreen' className="h-screen w-screen overflow-hidden absolute top-0 left-0 bg-[black] opacity-70 my-12" style={{ zIndex: 20 + i }} />}
 
             <AnimatedSlide
                 motionKey={open.toString()}
                 open={open}
                 layout={true}
-                {...{ ...animatedSlideProps, motionDivProps: { ...animatedSlideProps?.motionDivProps, className: cn("absolute top-0 left-0 h-screen w-screen z-20", animatedSlideProps?.motionDivProps?.className) } }}
+                {...{ ...animatedSlideProps, motionDivProps: { id: 'modal', style: { ...animatedSlideProps?.motionDivProps?.style, zIndex: 20 + i }, ...animatedSlideProps?.motionDivProps, className: cn("absolute top-0 left-0 h-screen w-screen ", animatedSlideProps?.motionDivProps?.className) } }}
             >
                 <Container containerRef={containerRef} {...modalContainerProps} className={cn("absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2", modalContainerProps?.className)}>
-                    <div ref={childrenContainerRef} {...childrenContainerProps} className={cn("bg-surface-container rounded py-4 px-10 size-full absolute top-0 left-0", childrenContainerProps?.className)}>
+                    <div ref={childrenContainerRef} {...childrenContainerProps} className={cn("bg-surface-container rounded py-4 px-10 size-full", childrenContainerProps?.className)}>
                         {children}
                     </div>
 

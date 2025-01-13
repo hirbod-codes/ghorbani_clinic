@@ -36,12 +36,6 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, op
         positionElement(containerRef.current, verticalPosition, horizontalPosition, aRect, cRect, window.innerHeight, window.innerWidth)
     }
 
-    // usePointerOutside(containerRef, (isOutside) => {
-    //     console.log(isOutside)
-    //     if (isOutside && onOpenChange)
-    //         onOpenChange(false)
-    // })
-
     useEffect(() => {
         updatePosition()
 
