@@ -107,7 +107,8 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
                 buttonRef={fillColorButtonRef}
                 variant='outline'
                 onClick={() => { setColor(fill as string); setFillOpen(true) }}
-                style={{ backgroundColor: color }}
+                fgColor='surface-foreground'
+                style={{ borderColor: fill as string }}
             >
                 <PaletteIcon />
                 {t('RectangleTool.FillColor')}
@@ -128,7 +129,8 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
                 buttonRef={strokeColorButtonRef}
                 variant='outline'
                 onClick={() => { setColor(stroke as string); setStrokeOpen(true) }}
-                style={{ backgroundColor: color }}
+                fgColor='surface-foreground'
+                style={{ borderColor: stroke as string }}
             >
                 <PaletteIcon />
                 {t('RectangleTool.StrokeColor')}
@@ -157,8 +159,8 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
                 variant='text'
                 fgColor='error'
                 onClick={() => {
-                    setStroke('#ff0000')
-                    setFill('#00ff00')
+                    setStroke('#000000')
+                    setFill('#00000000')
                     setLineWidth('1.2')
                 }}
             >
