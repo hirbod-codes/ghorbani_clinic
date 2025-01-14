@@ -1,12 +1,10 @@
 import { ComponentProps, ReactNode, RefObject, useEffect, useRef } from "react"
 import { AnimatedSlide } from "../Animations/AnimatedSlide"
-import { usePointerOutside } from "./usePointerOutside"
 import { Button } from "./Button"
 import { XIcon } from "lucide-react"
 import { cn } from "../../shadcn/lib/utils"
 import { Container } from "./Container"
 import { createPortal } from "react-dom"
-import { variants } from "../Animations/AnimatedSlide/variants"
 
 export type ModalProps = {
     children?: ReactNode
@@ -30,8 +28,6 @@ export function Modal({ children, open = false, onClose, modalContainerProps, ch
         else
             i++
     }
-
-    console.log({ i })
 
     closeIcon = closeIcon ?? <XIcon className="text-error" />
 

@@ -3,16 +3,17 @@ import { memo, useEffect, useState } from "react";
 import { subscribe } from "../Lib/Events";
 import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import { CircularLoadingIcon } from "../Components/Base/CircularLoadingIcon";
+import { CircularLoadingScreen } from "../Components/Base/CircularLoadingScreen";
 
 export const MedicalHistories = memo(function MedicalHistories() {
-    const [showGrid, setShowGrid] = useState(false)
+    const [showGrid, setShowGrid] = useState(true)
 
-    useEffect(() => {
-        subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
-            if (e?.detail === '/MedicalHistories')
-                setShowGrid(true)
-        })
-    }, [])
+    // useEffect(() => {
+    //     subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
+    //         if (e?.detail === '/MedicalHistories')
+                // setShowGrid(true)
+    //     })
+    // }, [])
 
     return (
         <>
@@ -21,7 +22,7 @@ export const MedicalHistories = memo(function MedicalHistories() {
                     <div className="p-[1rem] h-full shadow-lg">
                         {showGrid
                             ? < MedicalHistoryDataGrid />
-                            : <CircularLoadingIcon />
+                            : <CircularLoadingScreen />
                         }
                     </div>
                 </div>

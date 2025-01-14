@@ -3,9 +3,6 @@ import { DependencyList, RefObject, useEffect } from "react";
 export function usePointerOutside(ref?: RefObject<HTMLElement>, onClick?: (isOutside: boolean) => void, deps?: DependencyList) {
     useEffect(() => {
         function handleClickOutside(e) {
-            e.preventDefault()
-            e.stopPropagation()
-
             if (!ref || !ref?.current || !onClick)
                 return
 

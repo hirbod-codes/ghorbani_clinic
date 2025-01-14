@@ -2,7 +2,6 @@ import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { CheckIcon } from "lucide-react";
 import { Button } from "@/src/react/Components/Base/Button";
 import { Input } from "@/src/react/Components/Base/Input";
-import { usePointerOutside } from "@/src/react/Components/Base/usePointerOutside";
 
 export type ColorShadeProps = {
     shade: number
@@ -27,13 +26,28 @@ export const ColorShade = memo(function ColorShade({ shade, bg, fg, onChange }: 
             return memoizedShade ?? shade.toString()
     }, [editingShade])
 
-    usePointerOutside(shadeContainerRef, (isOutside) => {
-        if (editingShade && isOutside) {
-            if (onChange)
-                onChange(Number(memoizedShade))
-            setEditingShade(false)
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (!shadeContainerRef || !shadeContainerRef?.current || !onChange)
+                return
+
+            const d = shadeContainerRef.current.getBoundingClientRect()
+
+            if (e.clientX < d.left || e.clientX > d.right || e.clientY < d.top || e.clientY > d.bottom) {
+                if (editingShade) {
+                    if (onChange)
+                        onChange(Number(memoizedShade))
+                    setEditingShade(false)
+                }
+            }
         }
-    }, [shadeContainerRef])
+
+        document.body.addEventListener("pointerdown", handleClickOutside);
+
+        return () => {
+            document.body.removeEventListener("pointerdown", handleClickOutside);
+        };
+    }, [shadeContainerRef, shadeContainerRef?.current]);
 
     useEffect(() => {
         setEditingShade(false)

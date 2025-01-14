@@ -1,7 +1,7 @@
 import { ComponentProps, memo, ReactNode, RefObject, useEffect, useReducer, useRef, useState } from "react";
-import { usePointerOutside } from "../usePointerOutside";
 import { cn } from "@/src/react/shadcn/lib/utils";
 import { createPortal } from "react-dom";
+import { usePointerOutside } from "../usePointerOutside";
 
 export type DropdownMenuProps = {
     children: ReactNode
@@ -63,15 +63,10 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, op
 
     useEffect(() => {
         function handleClickOutside(e) {
-            e.preventDefault()
-            e.stopPropagation()
-
             if (!containerRef || !containerRef?.current || !onOpenChange)
                 return
 
             const d = containerRef.current.getBoundingClientRect()
-
-            console.log(containerRef.current, e.target, e.currentTarget, d, e.clientX, e.clientY, e.clientX < d.left || e.clientX > d.right || e.clientY < d.top || e.clientY > d.bottom)
 
             if (e.clientX < d.left || e.clientX > d.right || e.clientY < d.top || e.clientY > d.bottom)
                 onOpenChange(false)

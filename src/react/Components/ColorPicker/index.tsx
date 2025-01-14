@@ -1,5 +1,4 @@
 import { ComponentProps, memo, useEffect, useReducer, useRef, useState } from 'react'
-import { ColorModes } from '../../Lib/Colors/index.d'
 import { AlphaSlider } from './Sliders/AlphaSlider'
 import { HueSlider } from './Sliders/HueSlider'
 import { HSV } from '../../Lib/Colors/HSV'

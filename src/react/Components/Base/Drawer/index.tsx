@@ -1,6 +1,5 @@
-import { ComponentProps, ReactNode, RefObject, useRef } from "react"
+import { ComponentProps, ReactNode, RefObject, useEffect, useRef } from "react"
 import { AnimatedSlide } from "../../Animations/AnimatedSlide"
-import { usePointerOutside } from "../usePointerOutside"
 
 export type DrawerProps = {
     children?: ReactNode
@@ -10,10 +9,23 @@ export type DrawerProps = {
 }
 
 export function Drawer({ containerRef, children, animatedSlideProps, onClose }: DrawerProps) {
-    usePointerOutside(containerRef, async (isOutside) => {
-        if (isOutside && onClose)
-            await onClose()
-    }, [animatedSlideProps?.open])
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (!containerRef || !containerRef?.current || !onClose)
+                return
+
+            const d = containerRef.current.getBoundingClientRect()
+
+            if (e.clientX < d.left || e.clientX > d.right || e.clientY < d.top || e.clientY > d.bottom)
+                onClose()
+        }
+
+        document.body.addEventListener("pointerdown", handleClickOutside);
+
+        return () => {
+            document.body.removeEventListener("pointerdown", handleClickOutside);
+        };
+    }, [containerRef, containerRef?.current]);
 
     return (
         <AnimatedSlide

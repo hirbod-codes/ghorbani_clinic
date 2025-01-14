@@ -1,7 +1,7 @@
 import { SearchPatientField } from "../../Components/Search/SearchPatientField";
 import { Analytics } from "./Analytics";
 import { Clock } from "../../Components/Clock";
-import { memo } from "react";
+import { memo, useState } from "react";
 import { Calendar } from "./Calendar";
 
 export const Home = memo(function Home() {

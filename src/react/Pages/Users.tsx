@@ -244,7 +244,7 @@ export const Users = memo(function Users() {
                                         }}
                                         onMouseLeave={() => { if (timeout.current.r) clearTimeout(timeout.current.r) }}
                                     >
-                                        <Button variant="outline" disabled={role === r} fgColor={role === r ? 'primary' : 'surface'} onClick={async () => { await updateRows(r, false) }}>
+                                        <Button variant="outline" disabled={role === r} fgColor={role === r ? 'primary' : 'surface-foreground'} onClick={async () => { await updateRows(r, false) }}>
                                             <p>
                                                 {t(`Roles.${r}`)}
                                             </p>
