@@ -6,6 +6,8 @@ import { Calendar, configAPI, LanguageCodes, TimeZone } from "src/Electron/Confi
 import { Button } from "../../Components/Base/Button";
 import { Input } from "../../Components/Base/Input";
 import { Select } from "../../Components/Base/Select";
+import { Stack } from "../../Components/Base/Stack";
+import { Container } from "../../Components/Base/Container";
 
 export const General = memo(function General() {
     const configuration = useContext(ConfigurationContext)!
@@ -29,64 +31,88 @@ export const General = memo(function General() {
     }, [])
 
     return (
-        <div className="flex flex-row space-x-1 space-y-1 m-1 p-2">
-            <Button onClick={async () => {
-                // const r = await (window as typeof window & { appAPI: appAPI }).appAPI.appAPIAppIcon()
-                // console.log({ r })
-                // if (r)
-                //     publish(RESULT_EVENT_NAME, {
-                //         severity: 'success',
-                //         message: t('General.successfullyChangedIcon')
-                //     })
-                // else
-                //     publish(RESULT_EVENT_NAME, {
-                //         severity: 'error',
-                //         message: t('General.failedToChangeIcon')
-                //     })
-            }}>
-                {t('General.changeIcon')}
-            </Button>
-            <div className="flex flex-row items-center w-full">
-                <Input
-                    className="flex-grow"
-                    value={Math.round(Number(limit ?? '0') / 1000_000_000).toFixed(2)}
-                    onChange={async (e) => {
-                        if (e.target.value === '') {
-                            setLimit('')
-                            return
-                        }
+        <Container className="absolute top-0 left-1/2 -translate-x-1/2 mt-2">
+            <Stack direction='vertical'>
+                <Button onClick={async () => {
+                    // const r = await (window as typeof window & { appAPI: appAPI }).appAPI.appAPIAppIcon()
+                    // console.log({ r })
+                    // if (r)
+                    //     publish(RESULT_EVENT_NAME, {
+                    //         severity: 'success',
+                    //         message: t('General.successfullyChangedIcon')
+                    //     })
+                    // else
+                    //     publish(RESULT_EVENT_NAME, {
+                    //         severity: 'error',
+                    //         message: t('General.failedToChangeIcon')
+                    //     })
+                }}>
+                    {t('General.changeIcon')}
+                </Button>
+                <Stack stackProps={{ className: "items-center w-full" }}>
+                    <Input
+                        className="flex-grow"
+                        value={Math.round(Number(limit ?? '0') / 1000_000_000).toFixed(2)}
+                        onChange={async (e) => {
+                            if (e.target.value === '') {
+                                setLimit('')
+                                return
+                            }
 
-                        let l = Number.parseInt(e.target.value)
-                        if (!l)
-                            return
-                        else
-                            setLimit((l * 1000_000_000).toString())
+                            let l = Number.parseInt(e.target.value)
+                            if (!l)
+                                return
+                            else
+                                setLimit((l * 1000_000_000).toString())
 
-                        await setConfigDownloadsDirectorySize(l)
-                    }}
-                    label={t('General.TemporaryStorageLimit')}
-                    labelId={t('General.TemporaryStorageLimit')}
-                />
-                <p>GB</p>
-            </div>
+                            await setConfigDownloadsDirectorySize(l)
+                        }}
+                        label={t('General.TemporaryStorageLimit')}
+                        labelId={t('General.TemporaryStorageLimit')}
+                    />
+                    <p>GB</p>
+                </Stack>
 
-            <Select
-                selectOptions={{ type: 'items', items: [{ value: 'Persian', displayValue: t('persianCalendarName') }, { value: 'Gregorian', displayValue: t('gregorianCalendarName') }] }}
-                value={configuration.local.calendar}
-                onValueChange={(e) => configuration.updateLocal(configuration.local.language, e as Calendar, configuration.local.direction, configuration.local.zone)}
-            />
+                <Select
+                    label="Calendar"
+                    defaultDisplayValue={configuration.local.calendar === 'Persian' ? t('persianCalendarName') : t('gregorianCalendarName')}
+                    defaultValue={configuration.local.calendar}
+                    onValueChange={(e) => configuration.updateLocal(configuration.local.language, e as Calendar, configuration.local.direction, configuration.local.zone)}
+                >
+                    <Select.Item value='Persian' displayValue={t('persianCalendarName')}>
+                        {t('persianCalendarName')}
+                    </Select.Item>
+                    <Select.Item value='Gregorian' displayValue={t('gregorianCalendarName')}>
+                        {t('gregorianCalendarName')}
+                    </Select.Item>
+                </Select>
 
-            <Select
-                selectOptions={{ type: 'items', items: languages.map(e => ({ value: e.code, displayValue: e.name })) }}// [{ value: 'Persian', displayValue: t('persianCalendarName') }, { value: 'Gregorian', displayValue: t('gregorianCalendarName') }] }}
-                value={languages.find(v => v.code === configuration.local.language)!.code}
-                onValueChange={(e) => configuration.updateLocal(e as LanguageCodes, configuration.local.calendar, languages.find(v => v.code === e)!.direction, configuration.local.zone)}
-            />
+                <Select
+                    label={t('language')}
+                    defaultDisplayValue={languages.find(v => v.code === configuration.local.language)!.name}
+                    defaultValue={languages.find(v => v.code === configuration.local.language)!.code}
+                    onValueChange={(e) => configuration.updateLocal(configuration.local.language, e as Calendar, configuration.local.direction, configuration.local.zone)}
+                >
+                    {languages.map(e =>
+                        <Select.Item value={e.code} displayValue={e.name}>
+                            {e.name}
+                        </Select.Item>
+                    )}
+                </Select>
 
-            <Select
-                selectOptions={{ type: 'items', items: languages.map(e => ({ value: e.code, displayValue: e.name })) }}// [{ value: 'Persian', displayValue: t('persianCalendarName') }, { value: 'Gregorian', displayValue: t('gregorianCalendarName') }] }}
-                value={configuration.local.zone}
-                onValueChange={(e) => configuration.updateLocal(configuration.local.language, configuration.local.calendar, languages.find(v => v.code === e)!.direction, e as TimeZone)}
-            />
-        </div>
+                <Select
+                    label={t('timezone')}
+                    defaultDisplayValue={configuration.local.zone}
+                    defaultValue={configuration.local.zone}
+                    onValueChange={(e) => configuration.updateLocal(configuration.local.language, e as Calendar, configuration.local.direction, configuration.local.zone)}
+                >
+                    {['UTC', "Asia/Tehran"].map(e =>
+                        <Select.Item value={e} displayValue={e}>
+                            {e}
+                        </Select.Item>
+                    )}
+                </Select>
+            </Stack>
+        </Container>
     )
 })

@@ -1,53 +1,54 @@
-import {
-    Select as ShadcnSelect,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-    SelectGroup,
-    SelectLabel,
-} from "@/src/react/shadcn/components/ui/select"
-import { ComponentProps } from "react"
+import { ComponentProps, createContext, ReactElement, ReactNode, useContext, useRef, useState } from "react"
+import { Stack } from "../Stack"
+import { DropdownMenu } from "../DropdownMenu"
+import { Button } from "../Button"
+import { ChevronDown, ChevronUp } from "lucide-react"
+import { cn } from "@/src/react/shadcn/lib/utils"
+import { Input } from "../Input"
 
-export type SelectProps = {
-    selectOptions: {
-        type: 'items'
-        items: { value: string, displayValue: string }[]
-    } | {
-        type: 'group'
-        groups: {
-            label: string
-            items: { value: string, displayValue: string }[]
-        }[]
-    }
-    value?: string
-    onValueChange?: (value: string) => void
-    placeholder?: string
-    triggerProps?: ComponentProps<typeof SelectTrigger>
-}
+const SelectContext = createContext<{ updateSelection: ({ value, displayValue }: { value: string, displayValue: string }) => void } | undefined>(undefined)
 
-export function Select({ value, onValueChange, selectOptions, placeholder, triggerProps }: SelectProps) {
+export function Select({ defaultValue, defaultDisplayValue, label, onValueChange, children }: { defaultValue?: string, defaultDisplayValue?: string, label?: string, onValueChange: (v) => void | Promise<void>, children: ReactElement[] }) {
+    const [value, setValue] = useState(defaultValue)
+    const [displayValue, setDisplayValue] = useState(defaultDisplayValue)
+    const [open, setOpen] = useState(false)
+
+    const ref = useRef<HTMLInputElement>(null)
+
     return (
-        <ShadcnSelect onValueChange={onValueChange} value={value}>
-            <SelectTrigger {...triggerProps}>
-                <SelectValue placeholder={placeholder} />
-            </SelectTrigger>
-            <SelectContent>
-                {selectOptions.type === 'group'
-                    ? selectOptions.groups.map((g, i) =>
-                        <SelectGroup key={i}>
-                            {g.label && <SelectLabel>{g.label}</SelectLabel>}
-                            {g.items.map((item, i) =>
-                                <SelectItem value={item.value}>{item.displayValue}</SelectItem>
-                            )}
-                        </SelectGroup>
-                    )
-                    : selectOptions.items.map((item, i) =>
-                        <SelectItem key={i} value={item.value}>{item.displayValue}</SelectItem>
-                    )
-                }
-            </SelectContent>
-        </ShadcnSelect>
+        <>
+            {/* <Button variant='outline' buttonRef={ref} onClick={() => setOpen(true)}> */}
+            <Input value={displayValue} ref={ref} onClick={() => setOpen(true)} label={label} labelId={label} endIcon={open ? <ChevronUp /> : <ChevronDown />} />
+            {/* </Button> */}
+
+            <DropdownMenu
+                anchorRef={ref}
+                open={open}
+                onOpenChange={(b) => { if (!b) setOpen(false) }}
+            >
+                <SelectContext.Provider value={{
+                    updateSelection: ({ value, displayValue }) => {
+                        setValue(value)
+                        setDisplayValue(displayValue)
+                        if (onValueChange)
+                            onValueChange(value)
+                    }
+                }}>
+                    <Stack direction="vertical">
+                        {children}
+                    </Stack>
+                </SelectContext.Provider>
+            </DropdownMenu>
+        </>
     )
 }
 
+Select.Item = ({ children, value, displayValue, containerProps }: { children: ReactNode, value: string, displayValue: string, containerProps?: ComponentProps<typeof Button> }) => {
+    const c = useContext(SelectContext)
+
+    return (
+        <Button variant='text' fgColor='surface-foreground' {...containerProps} onClick={() => c?.updateSelection({ value, displayValue })}>
+            {children}
+        </Button>
+    )
+}
