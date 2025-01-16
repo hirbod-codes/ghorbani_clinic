@@ -45,7 +45,7 @@ export function toDateTime(dateTime: number | DateTime | DateTimeView, toLocal: 
     if (typeof dateTime === 'number' || typeof dateTime === 'bigint')
         return toDateTime(DateTime.fromSeconds(dateTime, { zone: 'UTC' }), toLocal, { zone: 'UTC', calendar: 'Gregorian', direction: 'ltr', language: 'en' })
     else if (dateTime instanceof DateTime)
-        return dateTime.reconfigure({ outputCalendar: toLocal.calendar }).setLocale(getLuxonLocale(toLocal.language)).setZone(toLocal.zone)
+        return dateTime.reconfigure({ outputCalendar: toLocal.calendar === 'Gregorian' ? undefined : toLocal.calendar }).setLocale(getLuxonLocale(toLocal.language)).setZone(toLocal.zone)
 
     let convertedDateTimeView: DateTimeView
     if (fromLocal!.calendar === 'Persian')
