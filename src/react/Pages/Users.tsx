@@ -337,14 +337,12 @@ export const Users = memo(function Users() {
                 onClose={() => { setOpenManageRoleModal(false); setEditingRole(undefined) }}
                 open={openManageRoleModal}
             >
-                <div className="w-[60%] h-[80%] px-2 py-8 overflow-auto">
-                    <ManageRole defaultRole={editingRole ?? readingRole} onFinish={async () => {
-                        setOpenManageRoleModal(false)
-                        setEditingRole(undefined)
-                        setReadingRole(undefined)
-                        await refresh()
-                    }} />
-                </div>
+                <ManageRole defaultRole={editingRole ?? readingRole} onFinish={async () => {
+                    setOpenManageRoleModal(false)
+                    setEditingRole(undefined)
+                    setReadingRole(undefined)
+                    await refresh()
+                }} />
             </Modal>
         </>
     )
