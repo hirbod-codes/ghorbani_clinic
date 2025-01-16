@@ -50,7 +50,7 @@ export const ColorDropdown = memo(function ColorDropdown({ children, anchorChild
             <div
                 ref={ref}
                 style={{ backgroundColor: color.toHex() }}
-                onClick={() => { setOpen(true); }}
+                onClick={() => { setOpen(!open); }}
                 {...containerProps}
                 className={cn(['cursor-pointer'], containerProps?.className)}
             >
@@ -62,7 +62,7 @@ export const ColorDropdown = memo(function ColorDropdown({ children, anchorChild
                 open={open}
                 containerProps={{ className: 'rounded-md border p-2 space-y-2' }}
                 onOpenChange={(b) => {
-                    if (!b && open) {
+                    if (!b) {
                         if (cancel.current === true)
                             colorUpdate(ColorStatic.parse(memoizedColor!).toHsv());
                         else
