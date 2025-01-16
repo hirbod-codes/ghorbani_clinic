@@ -126,14 +126,14 @@ export const Navigation = memo(function Navigation() {
 
                         <div className='mb-8' />
 
-                        <Button variant='text' disabled={window.location.pathname === '/General'} fgColor={window.location.pathname !== '/General' ? 'surface-foreground' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/General')} >
-                            <SettingsIcon />
-                            {t("Navigation.general")}
-                        </Button>
-
                         <Button variant='text' disabled={window.location.pathname === '/ThemeSettings'} fgColor={window.location.pathname !== '/ThemeSettings' ? 'surface-foreground' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/ThemeSettings')} >
                             <PaintRollerIcon />
                             {t("Navigation.Theme")}
+                        </Button>
+
+                        <Button variant='text' disabled={window.location.pathname === '/General'} fgColor={window.location.pathname !== '/General' ? 'surface-foreground' : activeColor} className='pr-8 rounded-none' onClick={() => moveTo('/General')} >
+                            <SettingsIcon />
+                            {t("Navigation.general")}
                         </Button>
 
                         <div className='mb-8' />
