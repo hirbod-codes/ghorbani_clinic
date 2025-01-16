@@ -299,23 +299,21 @@ export const Users = memo(function Users() {
                 {
                     readsUser &&
                     <div className={`${readsRole ? 'max-sm:col-span-full sm:col-span-full md:col-span-10' : 'col-span-full'}`}>
-                        <div className="px-1 h-full shadow-lg">
-                            {!showGrid
-                                ? <CircularLoadingScreen />
-                                : <DataGrid
-                                    configName='users'
-                                    data={rows}
-                                    overWriteColumns={columns}
-                                    loading={loading}
-                                    defaultColumnOrderModel={['actions']}
-                                    additionalColumns={additionalColumns}
-                                    appendHeaderNodes={[
-                                        <Button variant='outline' onClick={async () => await fetchUsers()}><RefreshCwIcon />{t('Users.Refresh')}</Button>,
-                                        createsUser && <Button variant='outline' onClick={() => setOpenManageUserModal(true)}><PlusIcon />{t('Users.Create')}</Button>,
-                                    ]}
-                                />
-                            }
-                        </div>
+                        {!showGrid
+                            ? <CircularLoadingScreen />
+                            : <DataGrid
+                                configName='users'
+                                data={rows}
+                                overWriteColumns={columns}
+                                loading={loading}
+                                defaultColumnOrderModel={['actions']}
+                                additionalColumns={additionalColumns}
+                                appendHeaderNodes={[
+                                    <Button variant='outline' onClick={async () => await fetchUsers()}><RefreshCwIcon />{t('Users.Refresh')}</Button>,
+                                    createsUser && <Button variant='outline' onClick={() => setOpenManageUserModal(true)}><PlusIcon />{t('Users.Create')}</Button>,
+                                ]}
+                            />
+                        }
                     </div>
                 }
             </div>
