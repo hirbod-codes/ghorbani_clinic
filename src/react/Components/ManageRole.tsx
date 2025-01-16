@@ -13,6 +13,7 @@ import { CircularLoadingIcon } from "./Base/CircularLoadingIcon";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../shadcn/components/ui/accordion";
 import { Switch } from "./Base/Switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../shadcn/components/ui/collapsible";
+import { Stack } from "./Base/Stack";
 
 type Resource = { name: string, index: number, create?: boolean, read?: string[] | undefined, update?: string[] | undefined, delete?: boolean }
 
@@ -112,7 +113,6 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
 
         try {
             if (defaultRole) {
-                return
                 // Not recommended for small projects(needs transaction support.)
 
                 // const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.updateRole(privileges)
@@ -128,8 +128,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                 //     severity: 'success',
                 //     message: t('ManageRole.roleUpdateSuccessful')
                 // })
-            }
-            else {
+            } else {
                 const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createRole(privileges)
                 if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.insertedCount <= 0) {
                     publish(RESULT_EVENT_NAME, {
@@ -163,14 +162,16 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
             </>
         )
 
-    console.log('ManageRole', { roleName, resources })
+    console.log('ManageRole', { roleName, defaultRole, resources })
 
     return (
-        <>
+        <Stack direction='vertical'>
             <h5 className="text-center">{defaultRole ? t('ManageRole.ManageRole') : t('ManageRole.createRole')}</h5>
             <Separator />
+
             {/* Role name */}
-            <Input value={roleName ?? ''} label={t('ManageRole.roleName')} onChange={(e) => setRoleName(e.target.value)} />
+            <Input value={roleName ?? ''} label={t('ManageRole.roleName')} labelId={t('ManageRole.roleName')} onChange={(e) => setRoleName(e.target.value)} />
+
             {resources.map((r, i) =>
                 <Accordion key={i} type="single" collapsible>
                     <AccordionItem value="item-1">
@@ -183,7 +184,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                                     label={t('ManageRole.create')}
                                     labelId={t('ManageRole.create')}
                                     checked={r.create ?? false}
-                                    onChange={() => {
+                                    onCheckedChange={() => {
                                         resources[i].create = !(r.create ?? false)
                                         setResources([...resources])
                                     }}
@@ -193,7 +194,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                                     label={t('ManageRole.read')}
                                     labelId={t('ManageRole.read')}
                                     checked={r?.read !== undefined}
-                                    onChange={() => {
+                                    onCheckedChange={() => {
                                         if (r.read !== undefined)
                                             resources[i].read = undefined
                                         else
@@ -206,7 +207,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
 
                                 <Collapsible>
                                     <CollapsibleTrigger>
-                                        p
+                                        {t('ManageRole.attributes')}
                                     </CollapsibleTrigger>
                                     <CollapsibleContent>
                                         <div className="flex flex-col justify-center">
@@ -222,7 +223,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                                                                 />
                                                                 : <Switch
                                                                     disabled={a === '_id'}
-                                                                    onChange={() => {
+                                                                    onCheckedChange={() => {
                                                                         if (!resources[i].read)
                                                                             resources[i].read = []
 
@@ -246,7 +247,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                                     label={t('ManageRole.update')}
                                     labelId={t('ManageRole.update')}
                                     checked={r?.update !== undefined}
-                                    onChange={() => {
+                                    onCheckedChange={() => {
                                         if (r.update !== undefined)
                                             resources[i].update = undefined
                                         else
@@ -257,19 +258,9 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                                     }}
                                 />
 
-                                <Switch
-                                    label={t('ManageRole.delete')}
-                                    labelId={t('ManageRole.delete')}
-                                    checked={r.delete ?? false}
-                                    onChange={() => {
-                                        resources[i].delete = !(r.delete ?? false)
-                                        setResources([...resources])
-                                    }}
-                                />
-
                                 <Collapsible>
                                     <CollapsibleTrigger>
-                                        p
+                                        {t('ManageRole.attributes')}
                                     </CollapsibleTrigger>
                                     <CollapsibleContent>
                                         <div className="flex flex-col justify-center">
@@ -279,7 +270,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                                                         <p>{a}</p>
                                                         <Switch
                                                             checked={r.update?.includes(a) ?? false}
-                                                            onChange={() => {
+                                                            onCheckedChange={() => {
                                                                 if (!resources[i].update)
                                                                     resources[i].update = []
 
@@ -296,14 +287,24 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                                         </div>
                                     </CollapsibleContent>
                                 </Collapsible>
+
+                                <Switch
+                                    label={t('ManageRole.delete')}
+                                    labelId={t('ManageRole.delete')}
+                                    checked={r.delete ?? false}
+                                    onCheckedChange={() => {
+                                        resources[i].delete = !(r.delete ?? false)
+                                        setResources([...resources])
+                                    }}
+                                />
                             </div>
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
             )}
-            <Separator />
+
             <Button disabled={finishing || !roleName || roleName.trim() === ''} onClick={done}>{finishing ? <CircularLoadingIcon /> : t('ManageRole.done')}</Button>
-        </>
+        </Stack>
     )
 }
 
