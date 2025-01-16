@@ -33,45 +33,27 @@ export const General = memo(function General() {
     return (
         <Container className="absolute top-0 left-1/2 -translate-x-1/2 mt-2">
             <Stack direction='vertical'>
-                <Button onClick={async () => {
-                    // const r = await (window as typeof window & { appAPI: appAPI }).appAPI.appAPIAppIcon()
-                    // console.log({ r })
-                    // if (r)
-                    //     publish(RESULT_EVENT_NAME, {
-                    //         severity: 'success',
-                    //         message: t('General.successfullyChangedIcon')
-                    //     })
-                    // else
-                    //     publish(RESULT_EVENT_NAME, {
-                    //         severity: 'error',
-                    //         message: t('General.failedToChangeIcon')
-                    //     })
-                }}>
-                    {t('General.changeIcon')}
-                </Button>
-                <Stack stackProps={{ className: "items-center w-full" }}>
-                    <Input
-                        className="flex-grow"
-                        value={Math.round(Number(limit ?? '0') / 1000_000_000).toFixed(2)}
-                        onChange={async (e) => {
-                            if (e.target.value === '') {
-                                setLimit('')
-                                return
-                            }
+                <Input
+                    containerProps={{ className: "flex-grow" }}
+                    value={Math.round(Number(limit ?? '0') / 1000_000_000).toFixed(2)}
+                    onChange={async (e) => {
+                        if (e.target.value === '') {
+                            setLimit('')
+                            return
+                        }
 
-                            let l = Number.parseInt(e.target.value)
-                            if (!l)
-                                return
-                            else
-                                setLimit((l * 1000_000_000).toString())
+                        let l = Number.parseInt(e.target.value)
+                        if (!l)
+                            return
+                        else
+                            setLimit((l * 1000_000_000).toString())
 
-                            await setConfigDownloadsDirectorySize(l)
-                        }}
-                        label={t('General.TemporaryStorageLimit')}
-                        labelId={t('General.TemporaryStorageLimit')}
-                    />
-                    <p>GB</p>
-                </Stack>
+                        await setConfigDownloadsDirectorySize(l)
+                    }}
+                    label={t('General.TemporaryStorageLimit')}
+                    labelId={t('General.TemporaryStorageLimit')}
+                    endIcon={<p>GB</p>}
+                />
 
                 <Select
                     label="Calendar"

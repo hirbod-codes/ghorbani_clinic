@@ -11,6 +11,7 @@ import { Button } from '../../Components/Base/Button'
 import { CircularLoadingIcon } from '../../Components/Base/CircularLoadingIcon'
 import { Separator } from '../../shadcn/components/ui/separator'
 import { Stack } from '../../Components/Base/Stack'
+import { Container } from '../../Components/Base/Container'
 
 export const DbSettings = memo(function DbSettings() {
     const auth = useContext(AuthContext)
@@ -34,31 +35,27 @@ export const DbSettings = memo(function DbSettings() {
 
     return (
         <>
-            <div className='grid-cols-12'>
-                <div className='sm:col-span-3' />
-                <div className='sm:col-span-12 md:col-span-6'>
-                    <Stack direction='vertical'>
-                        <Stack>
-                            <Button onClick={() => setOpenSeedQuestion(true)}>
-                                {t("DbSettings.Seed")}
-                            </Button>
+            <Container className='absolute top-0 left-1/2 -translate-x-1/2'>
+                <Stack direction='vertical'>
+                    <Stack>
+                        <Button onClick={() => setOpenSeedQuestion(true)}>
+                            {t("DbSettings.Seed")}
+                        </Button>
 
-                            <Button fgColor='success' onClick={() => setOpenTruncateDbQuestion(true)}>
-                                {t("DbSettings.Truncate")}
-                            </Button>
+                        <Button fgColor='success' onClick={() => setOpenTruncateDbQuestion(true)}>
+                            {t("DbSettings.Truncate")}
+                        </Button>
 
-                            <Button fgColor={connectionHealth ? 'success' : 'error'} onClick={async () => { setCheckingConnectionHealth(true); await checkConnectionHealth(); setCheckingConnectionHealth(false) }}>
-                                {t("DbSettings.CheckConnection")}{checkingConnectionHealth && <CircularLoadingIcon />}
-                            </Button>
-                        </Stack>
-
-                        <Separator />
-
-                        <DbSettingsForm noTitle />
+                        <Button fgColor={connectionHealth ? 'success' : 'error'} onClick={async () => { setCheckingConnectionHealth(true); await checkConnectionHealth(); setCheckingConnectionHealth(false) }}>
+                            {t("DbSettings.CheckConnection")}{checkingConnectionHealth && <CircularLoadingIcon />}
+                        </Button>
                     </Stack>
-                </div>
-                <div className='sm:col-span-3' />
-            </div >
+
+                    <Separator />
+
+                    <DbSettingsForm noTitle />
+                </Stack>
+            </Container>
 
             <Modal open={openSeedQuestion} onClose={() => setOpenSeedQuestion(false)}>
                 <Button

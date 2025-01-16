@@ -17,8 +17,16 @@ const inputVariants = {
     },
 }
 
-export const Input = memo(function Input({ label, labelId, errorText, helperText, containerProps, ref, ...inputProps }: { label?: string, labelId?: string, errorText?: string, helperText?: string, containerProps?: MotionProps & ComponentProps<'div'> } & ComponentProps<typeof ReferenceInput>) {
-    const input = <ReferenceInput id={labelId} ref={ref} {...inputProps} className={cn("bg-surface-container-highest text-surface-foreground", inputProps?.className)} />
+export type InputProps = {
+    label?: string
+    labelId?: string
+    errorText?: string
+    helperText?: string
+    containerProps?: MotionProps & ComponentProps<'div'>
+} & ComponentProps<typeof ReferenceInput>
+
+export const Input = memo(function Input({ label, labelId, errorText, helperText, containerProps, inputRef, ...inputProps }: InputProps) {
+    const input = <ReferenceInput inputRef={inputRef} id={labelId} {...inputProps} className={cn("bg-surface-container-highest text-surface-foreground", inputProps?.className)} />
 
     useEffect(() => { setTimeout(() => { errorText = undefined }, 3000) }, [])
 

@@ -63,12 +63,16 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, op
 
     useEffect(() => {
         function handleClickOutside(e) {
-            if (!containerRef || !containerRef?.current || !onOpenChange)
+            if (!containerRef || !containerRef?.current || !onOpenChange || !anchorRef || !anchorRef?.current)
                 return
 
-            const d = containerRef.current.getBoundingClientRect()
+            const c = containerRef.current.getBoundingClientRect()
+            const a = anchorRef.current.getBoundingClientRect()
 
-            if (e.clientX < d.left || e.clientX > d.right || e.clientY < d.top || e.clientY > d.bottom)
+            const outOfContainer = e.clientX < c.left || e.clientX > c.right || e.clientY < c.top || e.clientY > c.bottom
+            const outOfAnchor = e.clientX < a.left || e.clientX > a.right || e.clientY < a.top || e.clientY > a.bottom
+
+            if (outOfAnchor && outOfContainer)
                 onOpenChange(false)
         }
 
@@ -87,7 +91,7 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, op
             id="dropdown-container"
             ref={containerRef}
             className={cn(['bg-surface-container absolute z-20 transition-opacity duration-500'], containerProps?.className)}
-            style={{ display, opacity }}
+            style={{ display, opacity, ...containerProps?.style }}
             onTransitionEnd={() => {
                 if (opacity === 0)
                     setDisplay('none')

@@ -1,10 +1,10 @@
-import { ComponentProps, createContext, ReactElement, ReactNode, useContext, useRef, useState } from "react"
+import { ComponentProps, createContext, ReactElement, ReactNode, useContext, useEffect, useRef, useState } from "react"
 import { Stack } from "../Stack"
 import { DropdownMenu } from "../DropdownMenu"
 import { Button } from "../Button"
 import { ChevronDown, ChevronUp } from "lucide-react"
-import { cn } from "@/src/react/shadcn/lib/utils"
 import { Input } from "../Input"
+import { Label } from "@/src/react/shadcn/components/ui/label"
 
 const SelectContext = createContext<{ updateSelection: ({ value, displayValue }: { value: string, displayValue: string }) => void } | undefined>(undefined)
 
@@ -13,18 +13,32 @@ export function Select({ defaultValue, defaultDisplayValue, label, onValueChange
     const [displayValue, setDisplayValue] = useState(defaultDisplayValue)
     const [open, setOpen] = useState(false)
 
-    const ref = useRef<HTMLInputElement>(null)
+    const [width, setWidth] = useState('auto')
+
+    const inputRef = useRef<HTMLInputElement>(null)
+
+    useEffect(() => {
+        if (inputRef?.current)
+            setWidth(inputRef.current.getBoundingClientRect().width.toFixed(0) + 'px')
+        console.log('ll', inputRef?.current)
+    }, [inputRef, inputRef?.current])
 
     return (
         <>
-            {/* <Button variant='outline' buttonRef={ref} onClick={() => setOpen(true)}> */}
-            <Input value={displayValue} ref={ref} onClick={() => setOpen(true)} label={label} labelId={label} endIcon={open ? <ChevronUp /> : <ChevronDown />} />
-            {/* </Button> */}
+            <Stack stackProps={{ className: "items-center size-full" }}>
+                {label &&
+                    <Label htmlFor={label}>
+                        {label}
+                    </Label>
+                }
+                <Input inputRef={inputRef} className="cursor-pointer" containerProps={{className: 'flex-grow'}} value={displayValue} readOnly onClick={(e) => { setOpen(!open) }} endIcon={open ? <ChevronUp /> : <ChevronDown />} />
+            </Stack>
 
             <DropdownMenu
-                anchorRef={ref}
+                anchorRef={inputRef}
                 open={open}
                 onOpenChange={(b) => { if (!b) setOpen(false) }}
+                containerProps={{ className: 'rounded-md bg-surface-container-high', style: { width } }}
             >
                 <SelectContext.Provider value={{
                     updateSelection: ({ value, displayValue }) => {
@@ -32,6 +46,7 @@ export function Select({ defaultValue, defaultDisplayValue, label, onValueChange
                         setDisplayValue(displayValue)
                         if (onValueChange)
                             onValueChange(value)
+                        setOpen(false)
                     }
                 }}>
                     <Stack direction="vertical">

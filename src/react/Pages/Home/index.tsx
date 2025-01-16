@@ -16,9 +16,9 @@ export const Home = memo(function Home() {
                 </div>
                 <div className="sm:col-span-0 md:col-span-3" />
 
-                <div className="sm:col-span-12 md:col-span-3 col-span-12">
+                {/* <div className="sm:col-span-12 md:col-span-3 col-span-12">
                     <Clock />
-                </div>
+                </div> */}
 
                 <div className="sm:col-span-12 md:col-span-4 col-span-12">
                     <Calendar />
