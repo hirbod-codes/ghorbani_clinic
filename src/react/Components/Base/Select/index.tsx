@@ -20,25 +20,24 @@ export function Select({ defaultValue, defaultDisplayValue, label, onValueChange
     useEffect(() => {
         if (inputRef?.current)
             setWidth(inputRef.current.getBoundingClientRect().width.toFixed(0) + 'px')
-        console.log('ll', inputRef?.current)
     }, [inputRef, inputRef?.current])
 
     return (
         <>
-            <Stack stackProps={{ className: "items-center size-full" }}>
+            <Stack stackProps={{ className: "items-center size-full last:mr-0" }}>
                 {label &&
                     <Label htmlFor={label}>
                         {label}
                     </Label>
                 }
-                <Input inputRef={inputRef} className="cursor-pointer" containerProps={{className: 'flex-grow'}} value={displayValue} readOnly onClick={(e) => { setOpen(!open) }} endIcon={open ? <ChevronUp /> : <ChevronDown />} />
+                <Input inputRef={inputRef} id={label} className="cursor-pointer" containerProps={{ className: 'flex-grow' }} value={displayValue} readOnly onClick={(e) => { setOpen(!open) }} endIcon={open ? <ChevronUp /> : <ChevronDown />} />
             </Stack>
 
             <DropdownMenu
                 anchorRef={inputRef}
                 open={open}
                 onOpenChange={(b) => { if (!b) setOpen(false) }}
-                containerProps={{ className: 'rounded-md bg-surface-container-high', style: { width } }}
+                containerProps={{ className: 'rounded-md bg-surface-container-high mt-1 shadow-md', style: { width } }}
             >
                 <SelectContext.Provider value={{
                     updateSelection: ({ value, displayValue }) => {

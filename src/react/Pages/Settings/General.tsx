@@ -1,4 +1,4 @@
-import { memo, useContext, useEffect, useState } from "react";
+import { Fragment, memo, useContext, useEffect, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 import { languages } from "../../i18next";
 import { t } from "i18next";
@@ -8,6 +8,7 @@ import { Input } from "../../Components/Base/Input";
 import { Select } from "../../Components/Base/Select";
 import { Stack } from "../../Components/Base/Stack";
 import { Container } from "../../Components/Base/Container";
+import { Separator } from "../../shadcn/components/ui/separator";
 
 export const General = memo(function General() {
     const configuration = useContext(ConfigurationContext)!
@@ -34,7 +35,6 @@ export const General = memo(function General() {
         <Container className="absolute top-0 left-1/2 -translate-x-1/2 mt-2">
             <Stack direction='vertical'>
                 <Input
-                    containerProps={{ className: "flex-grow" }}
                     value={Math.round(Number(limit ?? '0') / 1000_000_000).toFixed(2)}
                     onChange={async (e) => {
                         if (e.target.value === '') {
@@ -64,6 +64,7 @@ export const General = memo(function General() {
                     <Select.Item value='Persian' displayValue={t('persianCalendarName')}>
                         {t('persianCalendarName')}
                     </Select.Item>
+                    <Separator />
                     <Select.Item value='Gregorian' displayValue={t('gregorianCalendarName')}>
                         {t('gregorianCalendarName')}
                     </Select.Item>
@@ -75,10 +76,15 @@ export const General = memo(function General() {
                     defaultValue={languages.find(v => v.code === configuration.local.language)!.code}
                     onValueChange={(e) => configuration.updateLocal(configuration.local.language, e as Calendar, configuration.local.direction, configuration.local.zone)}
                 >
-                    {languages.map(e =>
-                        <Select.Item value={e.code} displayValue={e.name}>
-                            {e.name}
-                        </Select.Item>
+                    {languages.map((e, i) =>
+                        <Fragment key={i}>
+                            <Select.Item value={e.code} displayValue={e.name}>
+                                {e.name}
+                            </Select.Item>
+                            {i !== languages.length - 1 &&
+                                <Separator />
+                            }
+                        </Fragment>
                     )}
                 </Select>
 
@@ -88,10 +94,15 @@ export const General = memo(function General() {
                     defaultValue={configuration.local.zone}
                     onValueChange={(e) => configuration.updateLocal(configuration.local.language, e as Calendar, configuration.local.direction, configuration.local.zone)}
                 >
-                    {['UTC', "Asia/Tehran"].map(e =>
-                        <Select.Item value={e} displayValue={e}>
-                            {e}
-                        </Select.Item>
+                    {['UTC', "Asia/Tehran"].map((e, i) =>
+                        <Fragment key={i}>
+                            <Select.Item value={e} displayValue={e}>
+                                {e}
+                            </Select.Item>
+                            {i !== languages.length - 1 &&
+                                <Separator />
+                            }
+                        </Fragment>
                     )}
                 </Select>
             </Stack>

@@ -32,14 +32,15 @@ export const Input = memo(function Input({ label, labelId, errorText, helperText
 
     return (
         <motion.div layout {...containerProps} className={cn("flex flex-col relative", containerProps?.className)}>
-            <Stack stackProps={{ className: "items-center h-full" }}>
-                {label && labelId &&
+            {label && labelId
+                ? <Stack stackProps={{ className: "items-center size-full last:m-0 m-0" }}>
                     <Label htmlFor={labelId}>
                         {label}
                     </Label>
-                }
-                {input}
-            </Stack>
+                    {input}
+                </Stack>
+                : input
+            }
 
             <AnimatePresence mode='sync'>
                 {!errorText && helperText !== undefined &&
