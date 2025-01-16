@@ -58,10 +58,10 @@ export function Modal({ children, open = false, onClose, modalContainerProps, ch
                 <Container
                     {...modalContainerProps}
                     containerRef={containerRef}
-                    className={cn("relative max-h-[80%] overflow-auto", modalContainerProps?.className)}
+                    className={cn("relative max-h-[80%]", modalContainerProps?.className)}
                     style={{ zIndex: 22 + i, ...modalContainerProps?.style }}
                 >
-                    <div ref={childrenContainerRef} {...childrenContainerProps} className={cn("bg-surface-container rounded py-4 px-10 size-full", childrenContainerProps?.className)}>
+                    <div ref={childrenContainerRef} {...childrenContainerProps} className={cn("bg-surface-container overflow-auto rounded py-4 px-10 size-full", childrenContainerProps?.className)}>
                         {children}
                     </div>
 
