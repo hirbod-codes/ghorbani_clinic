@@ -166,7 +166,7 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
     console.log('ManageRole', { roleName, defaultRole, resources })
 
     return (
-        <Stack direction='vertical'>
+        <Stack direction='vertical' size={1}>
             <h5 className="text-center">{defaultRole ? t('ManageRole.ManageRole') : t('ManageRole.createRole')}</h5>
             <Separator />
 

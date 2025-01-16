@@ -287,7 +287,7 @@ export const Users = memo(function Users() {
                                     <>
                                         <Separator />
                                         <div className="flex flex-row justify-center" onClick={() => setOpenManageRoleModal(true)}>
-                                            <Button isIcon><PlusIcon /></Button>
+                                            <Button isIcon bgColor="success" fgColor="surface-dim" size="sm"><PlusIcon /></Button>
                                         </div>
                                     </>
                                 }
