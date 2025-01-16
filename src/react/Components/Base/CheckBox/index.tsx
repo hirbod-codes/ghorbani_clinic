@@ -8,6 +8,7 @@ import { ConfigurationContext } from "@/src/react/Contexts/Configuration/Configu
 export type CheckBoxProps = {
     size?: 'xl' | 'lg' | 'md' | 'sm' | 'xs'
     label?: string | ReactNode,
+    labelFirst?: boolean,
     inputId?: string,
     rippleEffect?: boolean,
     color?: string | IColor,
@@ -20,7 +21,8 @@ export type CheckBoxProps = {
 export const CheckBox = memo(function CheckBox({
     size = 'md',
     label,
-    inputId = 'checkboxId',
+    labelFirst = true,
+    inputId,
     rippleEffect = true,
     color,
     colorForeground,
@@ -66,11 +68,13 @@ export const CheckBox = memo(function CheckBox({
     }
 
     return (
-        <label htmlFor={inputId} {...containerProps} className={cn(["select-none cursor-pointer flex flex-row items-center"], containerProps?.className)}>
-            <div>{label}</div>
+        <label htmlFor={inputId ?? (typeof (label) === 'string' ? label : 'checkboxId')} {...containerProps} className={cn(["select-none cursor-pointer flex flex-row items-center"], containerProps?.className)}>
+            {labelFirst &&
+                <div>{label}</div>
+            }
 
             <div className={`overflow-hidden relative rounded-full block ${sizeClass[1]} m-1`} onClick={(e) => { if (rippleEffect) ripple(e, color, true) }}>
-                <input type="checkbox" id={inputId} {...inputProps} className={cn(["hidden invisible peer"], inputProps?.className)} />
+                <input type="checkbox" id={inputId ?? (typeof (label) === 'string' ? label : 'checkboxId')} {...inputProps} className={cn(["hidden invisible peer"], inputProps?.className)} />
 
                 <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 border rounded-sm ${sizeClass[0]} peer-checked:*:block`}>
                     <svg
@@ -90,6 +94,10 @@ export const CheckBox = memo(function CheckBox({
                     style={{ borderRadius: 'inherit', backgroundColor: effectColor }}
                 />
             </div>
+
+            {!labelFirst &&
+                <div>{label}</div>
+            }
         </label>
     )
 })

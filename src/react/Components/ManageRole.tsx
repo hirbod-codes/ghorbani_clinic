@@ -14,6 +14,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "..
 import { Switch } from "./Base/Switch";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "../shadcn/components/ui/collapsible";
 import { Stack } from "./Base/Stack";
+import { CheckBox } from "./Base/CheckBox";
 
 type Resource = { name: string, index: number, create?: boolean, read?: string[] | undefined, update?: string[] | undefined, delete?: boolean }
 
@@ -179,125 +180,149 @@ export function ManageRole({ defaultRole, onFinish }: { defaultRole?: string, on
                             {r.name}
                         </AccordionTrigger>
                         <AccordionContent>
-                            <div className="flex flex-col">
-                                <Switch
+                            <Stack direction="vertical">
+                                <CheckBox
                                     label={t('ManageRole.create')}
-                                    labelId={t('ManageRole.create')}
-                                    checked={r.create ?? false}
-                                    onCheckedChange={() => {
-                                        resources[i].create = !(r.create ?? false)
-                                        setResources([...resources])
+                                    labelFirst={false}
+                                    inputProps={{
+                                        checked: r.create ?? false,
+                                        onChange: () => {
+                                            resources[i].create = !(r.create ?? false)
+                                            setResources([...resources])
+                                        }
                                     }}
                                 />
 
-                                <Switch
+                                <CheckBox
                                     label={t('ManageRole.read')}
-                                    labelId={t('ManageRole.read')}
-                                    checked={r?.read !== undefined}
-                                    onCheckedChange={() => {
-                                        if (r.read !== undefined)
-                                            resources[i].read = undefined
-                                        else
-                                            resources[i].read = getAttributes(r.name, 'read')
-                                        setResources([...resources])
-                                        console.log(resources)
-                                        console.log(r?.read !== undefined)
+                                    labelFirst={false}
+                                    inputProps={{
+                                        checked: r?.read !== undefined,
+                                        onChange: () => {
+                                            if (r.read !== undefined)
+                                                resources[i].read = undefined
+                                            else
+                                                resources[i].read = getAttributes(r.name, 'read')
+                                            setResources([...resources])
+                                            console.log(resources)
+                                            console.log(r?.read !== undefined)
+                                        }
                                     }}
                                 />
 
-                                <Collapsible>
-                                    <CollapsibleTrigger>
-                                        {t('ManageRole.attributes')}
-                                    </CollapsibleTrigger>
-                                    <CollapsibleContent>
-                                        <div className="flex flex-col justify-center">
-                                            {
-                                                getAttributes(r.name, 'read').map((a, ai) =>
-                                                    <div key={ai} className="px-5">
-                                                        <p>{a}</p>
-                                                        {
-                                                            a === '_id'
-                                                                ? <Switch
-                                                                    disabled
-                                                                    checked
-                                                                />
-                                                                : <Switch
-                                                                    disabled={a === '_id'}
-                                                                    onCheckedChange={() => {
-                                                                        if (!resources[i].read)
-                                                                            resources[i].read = []
+                                <Accordion type="single" collapsible className="bg-surface-container-high shadow-md rounded-md p-1">
+                                    <AccordionItem value="item-1">
+                                        <AccordionTrigger>
+                                            {t('ManageRole.readAttributes')}
+                                        </AccordionTrigger>
 
-                                                                        if (r.read?.includes(a))
-                                                                            resources[i].read = resources[i].read?.filter(elm => elm !== a) ?? undefined
-                                                                        else
-                                                                            resources[i].read.push(a)
-                                                                        setResources([...resources])
-                                                                    }}
-                                                                    checked={r.read?.includes(a) ?? false}
-                                                                />
-                                                        }
-                                                    </div>
-                                                )
-                                            }
-                                        </div>
-                                    </CollapsibleContent>
-                                </Collapsible>
+                                        <AccordionContent>
+                                            <Stack direction='vertical' stackProps={{ className: "justify-center" }}>
+                                                {
+                                                    getAttributes(r.name, 'read').map((a, ai) =>
+                                                        <div key={ai} className="px-5">
+                                                            {
+                                                                a === '_id'
+                                                                    ? <CheckBox
+                                                                        labelFirst={false}
+                                                                        label={a}
+                                                                        inputProps={{
+                                                                            disabled: true,
+                                                                            checked: true,
+                                                                        }}
+                                                                    />
+                                                                    : <CheckBox
+                                                                        labelFirst={false}
+                                                                        label={a}
+                                                                        inputProps={{
+                                                                            disabled: a === '_id',
+                                                                            checked: r.read?.includes(a) ?? false,
+                                                                            onChange: () => {
+                                                                                if (!resources[i].read)
+                                                                                    resources[i].read = []
 
-                                <Switch
+                                                                                if (r.read?.includes(a))
+                                                                                    resources[i].read = resources[i].read?.filter(elm => elm !== a) ?? undefined
+                                                                                else
+                                                                                    resources[i].read.push(a)
+                                                                                setResources([...resources])
+                                                                            }
+                                                                        }}
+                                                                    />
+                                                            }
+                                                        </div>
+                                                    )
+                                                }
+                                            </Stack>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                </Accordion>
+
+                                <CheckBox
                                     label={t('ManageRole.update')}
-                                    labelId={t('ManageRole.update')}
-                                    checked={r?.update !== undefined}
-                                    onCheckedChange={() => {
-                                        if (r.update !== undefined)
-                                            resources[i].update = undefined
-                                        else
-                                            resources[i].update = getAttributes(r.name, 'update')
-                                        setResources([...resources])
-                                        console.log(resources)
-                                        console.log(r?.update !== undefined)
+                                    labelFirst={false}
+                                    inputProps={{
+                                        checked: r?.update !== undefined,
+                                        onChange: () => {
+                                            if (r.update !== undefined)
+                                                resources[i].update = undefined
+                                            else
+                                                resources[i].update = getAttributes(r.name, 'update')
+                                            setResources([...resources])
+                                            console.log(resources)
+                                            console.log(r?.update !== undefined)
+                                        }
                                     }}
                                 />
 
-                                <Collapsible>
-                                    <CollapsibleTrigger>
-                                        {t('ManageRole.attributes')}
-                                    </CollapsibleTrigger>
-                                    <CollapsibleContent>
-                                        <div className="flex flex-col justify-center">
-                                            {
-                                                getAttributes(r.name, 'update').map((a, ai) =>
-                                                    <div key={ai} className="px-5">
-                                                        <p>{a}</p>
-                                                        <Switch
-                                                            checked={r.update?.includes(a) ?? false}
-                                                            onCheckedChange={() => {
-                                                                if (!resources[i].update)
-                                                                    resources[i].update = []
+                                <Accordion type="single" collapsible className="bg-surface-container-high shadow-md rounded-md p-1">
+                                    <AccordionItem value="item-1">
+                                        <AccordionTrigger>
+                                            {t('ManageRole.updateAttributes')}
+                                        </AccordionTrigger>
 
-                                                                if (r.update?.includes(a))
-                                                                    resources[i].update = resources[i].update?.filter(elm => elm !== a) ?? undefined
-                                                                else
-                                                                    resources[i].update.push(a)
-                                                                setResources([...resources])
-                                                            }}
-                                                        />
-                                                    </div>
-                                                )
-                                            }
-                                        </div>
-                                    </CollapsibleContent>
-                                </Collapsible>
+                                        <AccordionContent>
+                                            <Stack direction='vertical' stackProps={{ className: "justify-center" }}>
+                                                {
+                                                    getAttributes(r.name, 'update').map((a, ai) =>
+                                                        <div key={ai} className="px-5">
+                                                            <CheckBox
+                                                                labelFirst={false}
+                                                                label={a}
+                                                                inputProps={{
+                                                                    checked: r.update?.includes(a) ?? false,
+                                                                    onChange: () => {
+                                                                        if (!resources[i].update)
+                                                                            resources[i].update = []
 
-                                <Switch
+                                                                        if (r.update?.includes(a))
+                                                                            resources[i].update = resources[i].update?.filter(elm => elm !== a) ?? undefined
+                                                                        else
+                                                                            resources[i].update.push(a)
+                                                                        setResources([...resources])
+                                                                    }
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    )
+                                                }
+                                            </Stack>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                </Accordion>
+
+                                <CheckBox
                                     label={t('ManageRole.delete')}
-                                    labelId={t('ManageRole.delete')}
-                                    checked={r.delete ?? false}
-                                    onCheckedChange={() => {
-                                        resources[i].delete = !(r.delete ?? false)
-                                        setResources([...resources])
+                                    labelFirst={false}
+                                    inputProps={{
+                                        checked: r.delete ?? false,
+                                        onChange: () => {
+                                            resources[i].delete = !(r.delete ?? false)
+                                            setResources([...resources])
+                                        }
                                     }}
                                 />
-                            </div>
+                            </Stack>
                         </AccordionContent>
                     </AccordionItem>
                 </Accordion>
