@@ -1,5 +1,5 @@
 import { t } from 'i18next';
-import { memo, useContext, useEffect, useRef, useState } from 'react';
+import { memo, useContext, useRef, useState } from 'react';
 import { AuthContext } from '../Contexts/AuthContext';
 import { ConfigurationContext } from '../Contexts/Configuration/ConfigurationContext';
 import { resources } from '../../Electron/Database/Repositories/Auth/resources';
@@ -26,16 +26,11 @@ export const Navigation = memo(function Navigation() {
 
     console.log('Navigation', { auth, configuration, openDrawer })
 
-    const drawerGradientColor = configuration.themeOptions.colors[`${configuration.themeOptions.mode}Foreground`]
-
-
     const moveTo = (destination: string) => {
         setTimeout(() => {
             navigate(destination)
         }, 50)
     }
-
-    const activeColor = 'primary'
 
     return (
         <>
@@ -70,7 +65,7 @@ export const Navigation = memo(function Navigation() {
 
                     <Button
                         variant='text'
-                        fgColor={window.location.pathname !== '/' ? 'surface-foreground' : activeColor}
+                        fgColor={window.location.pathname !== '/' ? 'surface-foreground' : 'primary'}
                         className='w-full justify-start rounded-none'
                         onClick={() => { if (window.location.pathname !== '/') { setOpenDrawer(false); setDestination('/') } }}
                     >
@@ -89,7 +84,7 @@ export const Navigation = memo(function Navigation() {
                     {readsUsers &&
                         <Button
                             variant='text'
-                            fgColor={window.location.pathname !== '/Users' ? 'surface-foreground' : activeColor}
+                            fgColor={window.location.pathname !== '/Users' ? 'surface-foreground' : 'primary'}
                             className='w-full justify-start rounded-none'
                             onClick={() => { if (window.location.pathname !== '/Users') { setOpenDrawer(false); setDestination('/Users') } }}
                         >
@@ -108,7 +103,7 @@ export const Navigation = memo(function Navigation() {
                     {readsPatients &&
                         <Button
                             variant='text'
-                            fgColor={window.location.pathname !== '/Patients' ? 'surface-foreground' : activeColor}
+                            fgColor={window.location.pathname !== '/Patients' ? 'surface-foreground' : 'primary'}
                             className='w-full justify-start rounded-none'
                             onClick={() => { if (window.location.pathname !== '/Patients') { setOpenDrawer(false); setDestination('/Patients') } }}
                         >
@@ -127,7 +122,7 @@ export const Navigation = memo(function Navigation() {
                     {readsVisits &&
                         <Button
                             variant='text'
-                            fgColor={window.location.pathname !== '/Visits' ? 'surface-foreground' : activeColor}
+                            fgColor={window.location.pathname !== '/Visits' ? 'surface-foreground' : 'primary'}
                             className='w-full justify-start rounded-none'
                             onClick={() => { if (window.location.pathname !== '/Visits') { setOpenDrawer(false); setDestination('/Visits') } }}
                         >
@@ -146,7 +141,7 @@ export const Navigation = memo(function Navigation() {
                     {readsMedicalHistories &&
                         <Button
                             variant='text'
-                            fgColor={window.location.pathname !== '/MedicalHistories' ? 'surface-foreground' : activeColor}
+                            fgColor={window.location.pathname !== '/MedicalHistories' ? 'surface-foreground' : 'primary'}
                             className='w-full justify-start rounded-none'
                             onClick={() => { if (window.location.pathname !== '/MedicalHistories') { setOpenDrawer(false); setDestination('/MedicalHistories') } }}
                         >
@@ -164,7 +159,7 @@ export const Navigation = memo(function Navigation() {
 
                     <Button
                         variant='text'
-                        fgColor={window.location.pathname !== '/ThemeSettings' ? 'surface-foreground' : activeColor}
+                        fgColor={window.location.pathname !== '/ThemeSettings' ? 'surface-foreground' : 'primary'}
                         className='w-full justify-start rounded-none'
                         onClick={() => { if (window.location.pathname !== '/ThemeSettings') { setOpenDrawer(false); setDestination('/ThemeSettings') } }}
                     >
@@ -180,7 +175,7 @@ export const Navigation = memo(function Navigation() {
 
                     <Button
                         variant='text'
-                        fgColor={window.location.pathname !== '/General' ? 'surface-foreground' : activeColor}
+                        fgColor={window.location.pathname !== '/General' ? 'surface-foreground' : 'primary'}
                         className='w-full justify-start rounded-none'
                         onClick={() => { if (window.location.pathname !== '/General') { setOpenDrawer(false); setDestination('/General') } }}
                     >
@@ -198,7 +193,7 @@ export const Navigation = memo(function Navigation() {
 
                     <Button
                         variant='text'
-                        fgColor={window.location.pathname !== '/DbSettings' ? 'surface-foreground' : activeColor}
+                        fgColor={window.location.pathname !== '/DbSettings' ? 'surface-foreground' : 'primary'}
                         className='w-full justify-start rounded-none'
                         onClick={() => { if (window.location.pathname !== '/DbSettings') { setOpenDrawer(false); setDestination('/DbSettings') } }}
                     >
