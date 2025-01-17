@@ -24,7 +24,7 @@ export const General = memo(function General() {
 
     useEffect(() => {
         getConfig().then((n) => {
-            setLimit(((n ?? 2_000_000_000) / 1_000_000_000).toFixed(1));
+            setLimit((n ?? 2_000_000_000).toString())
         })
     }, [])
 
