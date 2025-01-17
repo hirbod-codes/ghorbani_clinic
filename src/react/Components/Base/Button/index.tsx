@@ -3,6 +3,7 @@ import { ComponentProps, CSSProperties, HTMLAttributes, memo, MouseEvent, ReactN
 import { ripple } from "../helpers";
 import { ConfigurationContext } from "@/src/react/Contexts/Configuration/ConfigurationContext";
 import { ColorStatic } from "@/src/react/Lib/Colors/ColorStatic";
+import { motion, MotionProps } from 'framer-motion'
 
 export type ButtonProps = {
     children?: ReactNode
@@ -15,7 +16,7 @@ export type ButtonProps = {
     size?: 'xl' | 'lg' | 'md' | 'sm' | 'xs'
     isIcon?: boolean
     buttonRef?: RefObject<HTMLButtonElement>
-} & ComponentProps<'button'>
+} & (MotionProps & ComponentProps<'button'>)
 
 export const Button = memo(function Button({ children, rippleEffect = true, variant = 'contained', rawBgColor, rawFgColor, bgColor = 'primary-foreground', fgColor = 'primary', size = 'md', isIcon = false, buttonRef, ...buttonProps }: ButtonProps) {
     const themeOptions = useContext(ConfigurationContext)!.themeOptions
@@ -70,7 +71,8 @@ export const Button = memo(function Button({ children, rippleEffect = true, vari
     style = { ...style, ...buttonProps?.style }
 
     return (
-        <button
+        <motion.button
+            layout
             {...buttonProps}
             ref={buttonRef}
             className={className}
@@ -84,7 +86,7 @@ export const Button = memo(function Button({ children, rippleEffect = true, vari
         >
             <div className="absolute size-full top-0 left-0 bg-white opacity-0 transition-opacity duration-50 hover:opacity-10" style={{ borderRadius: 'inherit' }} />
             {children}
-        </button>
+        </motion.button>
     )
 })
 

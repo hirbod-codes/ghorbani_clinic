@@ -1,12 +1,12 @@
 import { t } from 'i18next';
-import { memo, useContext, useRef, useState } from 'react';
+import { memo, useContext, useEffect, useRef, useState } from 'react';
 import { AuthContext } from '../Contexts/AuthContext';
 import { ConfigurationContext } from '../Contexts/Configuration/ConfigurationContext';
 import { resources } from '../../Electron/Database/Repositories/Auth/resources';
 import { useNavigate } from 'react-router-dom';
 import { DatabaseIcon, HistoryIcon, HomeIcon, PaintRollerIcon, SettingsIcon, ShieldAlertIcon, TimerIcon, UsersIcon } from 'lucide-react';
-import { Drawer } from './Base/Drawer';
 import { Button } from './Base/Button';
+import { motion } from 'framer-motion'
 
 export const Navigation = memo(function Navigation() {
     const navigate = useNavigate();
@@ -15,8 +15,9 @@ export const Navigation = memo(function Navigation() {
     const configuration = useContext(ConfigurationContext)!
 
     // Navigation
-    const containerRef = useRef<HTMLDivElement>(null)
     const [openDrawer, setOpenDrawer] = useState(false)
+    const [destination, setDestination] = useState<string | undefined>(undefined)
+    const timer = useRef<any | undefined>()
 
     const readsUsers = auth?.accessControl && auth?.user && auth?.accessControl.can(auth?.user?.roleName ?? '').read(resources.USER).granted
     const readsPatients = auth?.accessControl && auth?.user && auth?.accessControl.can(auth?.user?.roleName ?? '').read(resources.PATIENT).granted
@@ -25,14 +26,10 @@ export const Navigation = memo(function Navigation() {
 
     console.log('Navigation', { auth, configuration, openDrawer })
 
-    const appBarBorderColor = configuration.themeOptions.colors[`${configuration.themeOptions.mode}Foreground`]
     const drawerGradientColor = configuration.themeOptions.colors[`${configuration.themeOptions.mode}Foreground`]
 
-    const drawerGradient = `linear-gradient(90deg, ${drawerGradientColor}, 50%, transparent)`
 
     const moveTo = (destination: string) => {
-        setOpenDrawer(false)
-
         setTimeout(() => {
             navigate(destination)
         }, 50)
@@ -41,69 +38,181 @@ export const Navigation = memo(function Navigation() {
     const activeColor = 'primary'
 
     return (
-        // <Drawer animatedSlideProps={{ open: openDrawer, motionKey: openDrawer.toString(), motionDivProps: { className: 'w-5 h-screen z-10', layout: true } }} containerRef={containerRef} onClose={() => setOpenDrawer(false)}>
-        <div ref={containerRef} className={`flex flex-row items-center h-full w-fit bg-surface-container border rounded-lg shadow-lg`} style={{ background: drawerGradient }}>
-            <div className='flex flex-col overflow-auto h-full items-start justify-stretch'>
-                <div className='mb-8' />
+        <>
+            <div className="relative w-16 z-50 h-full">
+                <motion.div
+                    onClick={() => {
+                        if (destination) {
+                            moveTo(destination)
+                            setDestination(undefined)
+                        }
+                    }}
+                    onAnimationEnd={() => {
+                        if (destination) {
+                            moveTo(destination)
+                            setDestination(undefined)
+                        }
+                    }}
+                    layout
+                    className='absolute flex flex-col overflow-auto h-full items-start justify-stretch w-fit bg-surface-container border rounded-lg shadow-lg'
+                    onPointerEnter={() => {
+                        timer.current = setTimeout(() => {
+                            setOpenDrawer(true)
+                        }, 1500)
+                    }}
+                    onPointerLeave={() => {
+                        if (timer?.current)
+                            clearTimeout(timer?.current)
+                        setOpenDrawer(false)
+                    }}
+                >
+                    <div className='mb-8' />
 
-                <Button variant='text' disabled={window.location.pathname === '/'} fgColor={window.location.pathname !== '/' ? 'surface-foreground' : activeColor} className='pr-8 w-full justify-start rounded-none' onClick={() => moveTo('/')}>
-                    <HomeIcon />
-                    {t('Navigation.home')}
-                </Button>
+                    <Button
+                        variant='text'
+                        fgColor={window.location.pathname !== '/' ? 'surface-foreground' : activeColor}
+                        className='w-full justify-start rounded-none'
+                        onClick={() => { if (window.location.pathname !== '/') { setOpenDrawer(false); setDestination('/') } }}
+                    >
+                        <motion.div layout>
+                            <HomeIcon />
+                        </motion.div>
+                        {openDrawer &&
+                            <motion.div layout>
+                                {t('Navigation.home')}
+                            </motion.div>
+                        }
+                    </Button>
 
-                <div className='mb-8' />
+                    <div className='mb-8' />
 
-                {readsUsers &&
-                    <Button variant='text' disabled={window.location.pathname === '/Users'} fgColor={window.location.pathname !== '/Users' ? 'surface-foreground' : activeColor} className='pr-8 w-full justify-start rounded-none' onClick={() => moveTo('/Users')} >
-                        <UsersIcon />
-                        {t('Navigation.users')}
-                    </Button>}
+                    {readsUsers &&
+                        <Button
+                            variant='text'
+                            fgColor={window.location.pathname !== '/Users' ? 'surface-foreground' : activeColor}
+                            className='w-full justify-start rounded-none'
+                            onClick={() => { if (window.location.pathname !== '/Users') { setOpenDrawer(false); setDestination('/Users') } }}
+                        >
+                            <motion.div layout>
+                                <UsersIcon />
+                            </motion.div>
+                            {openDrawer &&
+                                <motion.div layout>
+                                    {t('Navigation.users')}
+                                </motion.div>
+                            }
+                        </Button>}
 
-                <div className='mb-2' />
+                    <div className='mb-2' />
 
-                {readsPatients &&
-                    <Button variant='text' disabled={window.location.pathname === '/Patients'} fgColor={window.location.pathname !== '/Patients' ? 'surface-foreground' : activeColor} className='pr-8 w-full justify-start rounded-none' onClick={() => moveTo('/Patients')} >
-                        <ShieldAlertIcon />
-                        {t('Navigation.patients')}
-                    </Button>}
+                    {readsPatients &&
+                        <Button
+                            variant='text'
+                            fgColor={window.location.pathname !== '/Patients' ? 'surface-foreground' : activeColor}
+                            className='w-full justify-start rounded-none'
+                            onClick={() => { if (window.location.pathname !== '/Patients') { setOpenDrawer(false); setDestination('/Patients') } }}
+                        >
+                            <motion.div layout>
+                                <ShieldAlertIcon />
+                            </motion.div>
+                            {openDrawer &&
+                                <motion.div layout>
+                                    {t('Navigation.patients')}
+                                </motion.div>
+                            }
+                        </Button>}
 
-                <div className='mb-2' />
+                    <div className='mb-2' />
 
-                {readsVisits &&
-                    <Button variant='text' disabled={window.location.pathname === '/Visits'} fgColor={window.location.pathname !== '/Visits' ? 'surface-foreground' : activeColor} className='pr-8 w-full justify-start rounded-none' onClick={() => moveTo('/Visits')} >
-                        <TimerIcon />
-                        {t('Navigation.visits')}
-                    </Button>}
+                    {readsVisits &&
+                        <Button
+                            variant='text'
+                            fgColor={window.location.pathname !== '/Visits' ? 'surface-foreground' : activeColor}
+                            className='w-full justify-start rounded-none'
+                            onClick={() => { if (window.location.pathname !== '/Visits') { setOpenDrawer(false); setDestination('/Visits') } }}
+                        >
+                            <motion.div layout>
+                                <TimerIcon />
+                            </motion.div>
+                            {openDrawer &&
+                                <motion.div layout>
+                                    {t('Navigation.visits')}
+                                </motion.div>
+                            }
+                        </Button>}
 
-                <div className='mb-2' />
+                    <div className='mb-2' />
 
-                {readsMedicalHistories &&
-                    <Button variant='text' disabled={window.location.pathname === '/MedicalHistories'} fgColor={window.location.pathname !== '/MedicalHistories' ? 'surface-foreground' : activeColor} className='pr-8 w-full justify-start rounded-none' onClick={() => moveTo('/MedicalHistories')} >
-                        <HistoryIcon />
-                        {t('Navigation.MedicalHistories')}
-                    </Button>}
+                    {readsMedicalHistories &&
+                        <Button
+                            variant='text'
+                            fgColor={window.location.pathname !== '/MedicalHistories' ? 'surface-foreground' : activeColor}
+                            className='w-full justify-start rounded-none'
+                            onClick={() => { if (window.location.pathname !== '/MedicalHistories') { setOpenDrawer(false); setDestination('/MedicalHistories') } }}
+                        >
+                            <motion.div layout>
+                                <HistoryIcon />
+                            </motion.div>
+                            {openDrawer &&
+                                <motion.div layout>
+                                    {t('Navigation.MedicalHistories')}
+                                </motion.div>
+                            }
+                        </Button>}
 
-                <div className='mb-8' />
+                    <div className='mb-8' />
 
-                <Button variant='text' disabled={window.location.pathname === '/ThemeSettings'} fgColor={window.location.pathname !== '/ThemeSettings' ? 'surface-foreground' : activeColor} className='pr-8 w-full justify-start rounded-none' onClick={() => moveTo('/ThemeSettings')} >
-                    <PaintRollerIcon />
-                    {t("Navigation.Theme")}
-                </Button>
+                    <Button
+                        variant='text'
+                        fgColor={window.location.pathname !== '/ThemeSettings' ? 'surface-foreground' : activeColor}
+                        className='w-full justify-start rounded-none'
+                        onClick={() => { if (window.location.pathname !== '/ThemeSettings') { setOpenDrawer(false); setDestination('/ThemeSettings') } }}
+                    >
+                        <motion.div layout>
+                            <PaintRollerIcon />
+                        </motion.div>
+                        {openDrawer &&
+                            <motion.div layout>
+                                {t("Navigation.Theme")}
+                            </motion.div>
+                        }
+                    </Button>
 
-                <Button variant='text' disabled={window.location.pathname === '/General'} fgColor={window.location.pathname !== '/General' ? 'surface-foreground' : activeColor} className='pr-8 w-full justify-start rounded-none' onClick={() => moveTo('/General')} >
-                    <SettingsIcon />
-                    {t("Navigation.general")}
-                </Button>
+                    <Button
+                        variant='text'
+                        fgColor={window.location.pathname !== '/General' ? 'surface-foreground' : activeColor}
+                        className='w-full justify-start rounded-none'
+                        onClick={() => { if (window.location.pathname !== '/General') { setOpenDrawer(false); setDestination('/General') } }}
+                    >
+                        <motion.div layout>
+                            <SettingsIcon />
+                        </motion.div>
+                        {openDrawer &&
+                            <motion.div layout>
+                                {t("Navigation.general")}
+                            </motion.div>
+                        }
+                    </Button>
 
-                <div className='mb-8' />
+                    <div className='mb-8' />
 
-                <Button variant='text' disabled={window.location.pathname === '/DbSettings'} fgColor={window.location.pathname !== '/DbSettings' ? 'surface-foreground' : activeColor} className='pr-8 w-full justify-start rounded-none' onClick={() => moveTo('/DbSettings')} >
-                    <DatabaseIcon />
-                    {t("Navigation.Db")}
-                </Button>
+                    <Button
+                        variant='text'
+                        fgColor={window.location.pathname !== '/DbSettings' ? 'surface-foreground' : activeColor}
+                        className='w-full justify-start rounded-none'
+                        onClick={() => { if (window.location.pathname !== '/DbSettings') { setOpenDrawer(false); setDestination('/DbSettings') } }}
+                    >
+                        <motion.div layout>
+                            <DatabaseIcon />
+                        </motion.div>
+                        {openDrawer &&
+                            <motion.div layout>
+                                {t("Navigation.Db")}
+                            </motion.div>
+                        }
+                    </Button>
+                </motion.div>
             </div>
-            <div className={`h-full w-[2px]`} style={{ background: `radial-gradient(ellipse farthest-side at center, ${appBarBorderColor}, transparent)` }} />
-        </div>
-        // </Drawer>
+        </>
     )
 })
