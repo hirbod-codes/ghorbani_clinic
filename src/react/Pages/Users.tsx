@@ -23,9 +23,11 @@ import { Separator } from "../shadcn/components/ui/separator";
 import { Modal } from "../Components/Base/Modal";
 import { CircularLoadingScreen } from "../Components/Base/CircularLoadingScreen";
 import { Stack } from "../Components/Base/Stack";
+import { ColorStatic } from "../Lib/Colors/ColorStatic";
 
 export const Users = memo(function Users() {
     const configuration = useContext(ConfigurationContext)!
+    const themeOptions = configuration.themeOptions
     const auth = useContext(AuthContext)
     const navigate = useNavigate()
 
@@ -222,6 +224,9 @@ export const Users = memo(function Users() {
         // })
     }, [])
 
+    let dataGridGradientColor = ColorStatic.parse(themeOptions.colors.primary[themeOptions.mode].main).toRgb()
+    dataGridGradientColor.setAlpha(0.1)
+
     return (
         <>
             <div className="grid grid-cols-12 p-2 h-full">
@@ -303,6 +308,7 @@ export const Users = memo(function Users() {
                             ? <CircularLoadingScreen />
                             : <DataGrid
                                 configName='users'
+                                containerProps={{ stackProps: { style: { backgroundImage: `linear-gradient(to bottom right, ${dataGridGradientColor.toHex()} , transparent)` } } }}
                                 data={rows}
                                 overWriteColumns={columns}
                                 loading={loading}
@@ -316,7 +322,7 @@ export const Users = memo(function Users() {
                         }
                     </div>
                 }
-            </div>
+            </div >
 
             <Modal
                 onClose={() => { setOpenManageUserModal(false); setEditingUser(undefined) }}

@@ -36,7 +36,7 @@ export const DbSettings = memo(function DbSettings() {
 
     return (
         <>
-            <Container className='absolute top-0 left-1/2 -translate-x-1/2'>
+            <Container className='absolute top-1/4 left-1/2 -translate-x-1/2'>
                 <Stack direction='vertical'>
                     <Stack>
                         <Button onClick={() => setOpenSeedQuestion(true)}>

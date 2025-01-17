@@ -37,7 +37,6 @@ import { DensityButton } from './DensityButton'
 import { ExportButton } from './ExportButton'
 import { Pagination } from './Pagination'
 import { getColumns } from './helpers'
-import { AnimatePresence } from 'framer-motion'
 import { getLuxonLocale } from '../../Lib/localization'
 import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext'
 import { CircularLoadingIcon } from '../Base/CircularLoadingIcon'
@@ -68,12 +67,13 @@ export type DataGridProps = {
     defaultColumnVisibilityModel?: VisibilityState
     defaultColumnOrderModel?: string[]
     defaultTableDensity?: Density
+    dataGridContainerProps?: ComponentProps<typeof Stack>
     tHeadProps?: ComponentProps<'thead'>
     tBodyProps?: ComponentProps<'tbody'>
     tableProps?: ComponentProps<'table'>
     headerNodesContainerProps?: ComponentProps<typeof Stack>
     footerNodesContainerProps?: ComponentProps<typeof Stack>
-    containerProps?: ComponentProps<'div'>
+    containerProps?: ComponentProps<typeof Stack>
     tableContainerProps?: ComponentProps<'div'>
 }
 
@@ -101,6 +101,7 @@ export function DataGrid({
     defaultColumnVisibilityModel = {},
     defaultColumnOrderModel = ['counter'],
     defaultTableDensity = 'compact',
+    dataGridContainerProps,
     tHeadProps,
     tBodyProps,
     tableProps,
@@ -314,26 +315,27 @@ export function DataGrid({
 
     return (
         <>
-            <DataGridContext.Provider value={{
-                table, density: {
-                    value: density,
-                    set: async (d) => {
-                        const c = (await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig())!
-                        if (!c?.tableDensity)
-                            c.tableDensity = {}
+            <DataGridContext.Provider
+                value={{
+                    table, density: {
+                        value: density,
+                        set: async (d) => {
+                            const c = (await (window as typeof window & { configAPI: configAPI; }).configAPI.readConfig())!
+                            if (!c?.tableDensity)
+                                c.tableDensity = {}
 
-                        if (configName) {
-                            c.tableDensity[configName] = d
-                            await (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
+                            if (configName) {
+                                c.tableDensity[configName] = d
+                                await (window as typeof window & { configAPI: configAPI; }).configAPI.writeConfig(c)
+                            }
+
+                            setDensity(d)
                         }
-
-                        setDensity(d)
                     }
-                }
-            }
-            } >
-                {/* NOTE: This provider creates div elements, so don't nest inside of <table> elements */}
-                <div {...containerProps} className={cn('p-2 border rounded-md h-full', containerProps?.className)}>
+                }}
+            >
+                <Stack {...containerProps} direction='vertical' stackProps={{ id: 'dataGridContainer', className: cn('p-2 border rounded-md h-full overflow-hidden text-nowrap', containerProps?.stackProps?.className), ...containerProps?.stackProps }}>
+                    {/* NOTE: This provider creates div elements, so don't nest inside of <table> elements */}
                     <DndContext
                         collisionDetection={closestCenter}
                         modifiers={[restrictToHorizontalAxis]}
@@ -351,71 +353,67 @@ export function DataGrid({
                         }}
                         sensors={sensors}
                     >
-                        <Stack direction='vertical' stackProps={{ className: 'h-full overflow-hidden text-nowrap px-0' }}>
-                            {headerNodes.length > 0 &&
-                                <Stack {...headerNodesContainerProps} stackProps={{ className: cn('bg-surface-container p-2 rounded-md', headerNodesContainerProps?.stackProps?.className), ...headerNodesContainerProps?.stackProps }}>
-                                    {...headerNodes.map((n, i) =>
-                                        <Fragment key={i}>
-                                            {n}
-                                        </Fragment>
-                                    )}
-                                </Stack>
-                            }
-                            {loading
-                                ? <CircularLoadingIcon />
-                                : (
-                                    data.length === 0
-                                        ? <p style={{ textAlign: 'center' }}>{t('DataGrid.noData')}</p>
-                                        :
-                                        <div {...tableContainerProps} className={cn('overflow-auto flex-grow border rounded-md', tableContainerProps?.className)}>
-                                            {/* <AnimatePresence mode='sync'> */}
-                                            <table {...tableProps} className={cn('min-w-full border-separate', tableProps?.className)}>
-                                                {showColumnHeaders &&
-                                                    <thead {...tHeadProps} className={cn('sticky select-none z-[1] top-0', tableProps?.className)}>
-                                                        {table.getHeaderGroups().map(headerGroup => (
-                                                            <tr key={headerGroup.id} className='bg-surface'>
-                                                                <SortableContext
-                                                                    items={columnOrder}
-                                                                    strategy={horizontalListSortingStrategy}
-                                                                >
-                                                                    {headerGroup.headers.map(header => (<DraggableTableHeader key={header.id} header={header} />))}
-                                                                </SortableContext>
-                                                            </tr>
-                                                        ))}
-                                                    </thead>
-                                                }
-                                                <tbody {...tBodyProps} className={cn('even:[&_tr]:bg-surface-container', tBodyProps?.className)}>
-                                                    {table.getRowModel().rows.map((row, i, arr) => (
-                                                        <tr key={row.id} className={`text-nowrap ${i === (arr.length - 1) ? '' : 'border-b'}`}>
-                                                            {row.getVisibleCells().map(cell => (
-                                                                <SortableContext
-                                                                    key={cell.id}
-                                                                    items={columnOrder}
-                                                                    strategy={horizontalListSortingStrategy}
-                                                                >
-                                                                    <DragAlongCell key={cell.id} cell={cell} />
-                                                                </SortableContext>
-                                                            ))}
+                        {headerNodes.length > 0 &&
+                            <Stack  {...headerNodesContainerProps} stackProps={{ id: 'headerNodesContainer', className: cn('bg-surface-container p-2 rounded-md', headerNodesContainerProps?.stackProps?.className), ...headerNodesContainerProps?.stackProps }}>
+                                {...headerNodes.map((n, i) =>
+                                    <Fragment key={i}>
+                                        {n}
+                                    </Fragment>
+                                )}
+                            </Stack>
+                        }
+                        {loading
+                            ? <CircularLoadingIcon />
+                            : (
+                                data.length === 0
+                                    ? <p style={{ textAlign: 'center' }}>{t('DataGrid.noData')}</p>
+                                    :
+                                    <div id='tableContainer' {...tableContainerProps} className={cn('overflow-auto flex-grow border rounded-md', tableContainerProps?.className)}>
+                                        <table {...tableProps} className={cn('min-w-full border-separate', tableProps?.className)}>
+                                            {showColumnHeaders &&
+                                                <thead {...tHeadProps} className={cn('sticky select-none z-[1] top-0', tableProps?.className)}>
+                                                    {table.getHeaderGroups().map(headerGroup => (
+                                                        <tr key={headerGroup.id} className='bg-surface'>
+                                                            <SortableContext
+                                                                items={columnOrder}
+                                                                strategy={horizontalListSortingStrategy}
+                                                            >
+                                                                {headerGroup.headers.map(header => (<DraggableTableHeader key={header.id} header={header} />))}
+                                                            </SortableContext>
                                                         </tr>
                                                     ))}
-                                                </tbody>
-                                            </table>
-                                            {/*     </AnimatePresence> */}
-                                        </div>
-                                )
-                            }
-                            {footerNodes.length > 0 &&
-                                <Stack {...footerNodesContainerProps} stackProps={{ className: cn('bg-surface-container p-2 rounded-md justify-end', footerNodesContainerProps?.stackProps?.className), ...footerNodesContainerProps?.stackProps }}>
-                                    {...footerNodes.map((n, i) =>
-                                        <Fragment key={i}>
-                                            {n}
-                                        </Fragment>
-                                    )}
-                                </Stack>
-                            }
-                        </Stack>
+                                                </thead>
+                                            }
+                                            <tbody {...tBodyProps} className={cn('even:[&_tr]:bg-surface-container', tBodyProps?.className)}>
+                                                {table.getRowModel().rows.map((row, i, arr) => (
+                                                    <tr key={row.id} className={`text-nowrap ${i === (arr.length - 1) ? '' : 'border-b'}`}>
+                                                        {row.getVisibleCells().map(cell => (
+                                                            <SortableContext
+                                                                key={cell.id}
+                                                                items={columnOrder}
+                                                                strategy={horizontalListSortingStrategy}
+                                                            >
+                                                                <DragAlongCell key={cell.id} cell={cell} />
+                                                            </SortableContext>
+                                                        ))}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                            )
+                        }
+                        {footerNodes.length > 0 &&
+                            <Stack {...footerNodesContainerProps} stackProps={{ id: 'footerNodesContainer', className: cn('bg-surface-container p-2 rounded-md justify-end', footerNodesContainerProps?.stackProps?.className), ...footerNodesContainerProps?.stackProps }}>
+                                {...footerNodes.map((n, i) =>
+                                    <Fragment key={i}>
+                                        {n}
+                                    </Fragment>
+                                )}
+                            </Stack>
+                        }
                     </DndContext>
-                </div >
+                </Stack >
             </DataGridContext.Provider >
         </>
     )

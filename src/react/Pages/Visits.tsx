@@ -17,10 +17,12 @@ import { Button } from "../Components/Base/Button";
 import { CircularLoadingIcon } from "../Components/Base/CircularLoadingIcon";
 import { RefreshCwIcon, Trash2Icon } from "lucide-react";
 import { CircularLoadingScreen } from "../Components/Base/CircularLoadingScreen";
+import { ColorStatic } from "../Lib/Colors/ColorStatic";
 
 export const Visits = memo(function Visits() {
     const auth = useContext(AuthContext)
     const configuration = useContext(ConfigurationContext)!
+    const themeOptions = configuration.themeOptions
     const navigate = useNavigate()
 
     if (!auth!.accessControl?.can(auth!.user?.roleName ?? '').read(resources.VISIT).granted)
@@ -186,12 +188,16 @@ export const Visits = memo(function Visits() {
         },
     ]
 
+    let dataGridGradientColor = ColorStatic.parse(themeOptions.colors.primary[themeOptions.mode].main).toRgb()
+    dataGridGradientColor.setAlpha(0.1)
+
     return (
         <>
             <div className="size-full p-2">
                 {!visits || visits.length === 0 || !showGrid
                     ? <CircularLoadingScreen />
                     : <DataGrid
+                        containerProps={{ stackProps: { style: { backgroundImage: `linear-gradient(to bottom right, ${dataGridGradientColor.toHex()} , transparent)` } } }}
                         configName='visits'
                         data={visits}
                         overWriteColumns={overWriteColumns}

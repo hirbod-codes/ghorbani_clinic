@@ -1,9 +1,8 @@
-import { useContext, useState } from "react";
+import { Fragment, useContext, useState } from "react";
 import { DataGridContext } from "./Context";
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 import { Button } from "../../Components/Base/Button";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
-import { AnimatedSlide } from "../Animations/AnimatedSlide";
 import { CircularLoadingIcon } from "../Base/CircularLoadingIcon";
 import { FinitePagination } from "./FinitePagination";
 import { Select } from "../Base/Select";
@@ -46,14 +45,14 @@ export function Pagination({ paginationLimitOptions = [10, 25, 50, 100], onPagin
                 }}
             >
                 {paginationLimitOptions.map((l, i) =>
-                    <>
-                        <Select.Item key={i} value={l.toString()} displayValue={l.toString()}>
+                    <Fragment key={i}>
+                        <Select.Item value={l.toString()} displayValue={l.toString()}>
                             {l.toString()}
                         </Select.Item>
                         {i !== paginationLimitOptions.length - 1 &&
                             <Separator />
                         }
-                    </>
+                    </Fragment>
                 )}
             </Select>
 

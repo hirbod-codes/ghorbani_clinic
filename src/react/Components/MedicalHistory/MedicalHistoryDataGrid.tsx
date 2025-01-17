@@ -18,10 +18,12 @@ import { Button } from "../../Components/Base/Button"
 import { PlusIcon, RefreshCwIcon, SearchIcon, TrashIcon } from "lucide-react"
 import { CircularLoadingIcon } from "../Base/CircularLoadingIcon"
 import { Stack } from "../Base/Stack"
+import { ColorStatic } from "../../Lib/Colors/ColorStatic"
 
 export function MedicalHistoryDataGrid() {
     const auth = useContext(AuthContext)
     const configuration = useContext(ConfigurationContext)!
+    const themeOptions = configuration.themeOptions
     const navigate = useNavigate()
 
     if (!auth?.accessControl?.can(auth?.user?.roleName ?? '').read(resources.MEDICAL_HISTORY).granted)
@@ -163,10 +165,14 @@ export function MedicalHistoryDataGrid() {
         },
     ]
 
+    let dataGridGradientColor = ColorStatic.parse(themeOptions.colors.primary[themeOptions.mode].main).toRgb()
+    dataGridGradientColor.setAlpha(0.1)
+
     return (
         <>
             {!loading &&
                 <DataGrid
+                    containerProps={{ stackProps: { style: { backgroundImage: `linear-gradient(to bottom right, ${dataGridGradientColor.toHex()} , transparent)` } } }}
                     configName='medicalHistories'
                     data={medicalHistories ?? []}
                     defaultColumnOrderModel={['actions', 'name']}

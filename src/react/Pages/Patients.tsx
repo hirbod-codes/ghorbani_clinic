@@ -23,10 +23,12 @@ import { CircularLoadingIcon } from "../Components/Base/CircularLoadingIcon";
 import { EditIcon, PlusIcon, RefreshCwIcon, Trash2Icon } from "lucide-react";
 import { Stack } from "../Components/Base/Stack";
 import { CircularLoadingScreen } from "../Components/Base/CircularLoadingScreen";
+import { ColorStatic } from "../Lib/Colors/ColorStatic";
 
 export const Patients = memo(function Patients() {
     const auth = useContext(AuthContext)
     const configuration = useContext(ConfigurationContext)!
+    const themeOptions = configuration.themeOptions
     const navigate = useNavigate()
 
     if (!auth?.accessControl?.can(auth?.user?.roleName ?? '').read(resources.PATIENT).granted)
@@ -276,6 +278,9 @@ export const Patients = memo(function Patients() {
         }
     ]
 
+    let dataGridGradientColor = ColorStatic.parse(themeOptions.colors.primary[themeOptions.mode].main).toRgb()
+    dataGridGradientColor.setAlpha(0.1)
+
     return (
         <>
             <div className="p-2 size-full shadow-lg">
@@ -283,6 +288,7 @@ export const Patients = memo(function Patients() {
                     ? <CircularLoadingScreen />
                     : <DataGrid
                         configName='patients'
+                        containerProps={{ stackProps: { style: { backgroundImage: `linear-gradient(to bottom right, ${dataGridGradientColor.toHex()} , transparent)` } } }}
                         data={patients ?? []}
                         defaultColumnOrderModel={['counter', 'actions', 'socialId', 'firstName', 'lastName', 'age', 'documents', 'medicalHistory', 'phoneNumber', 'gender', 'address', 'birthDate']}
                         overWriteColumns={overWriteColumns}
@@ -308,7 +314,7 @@ export const Patients = memo(function Patients() {
                 open={showingDocuments}
                 onClose={() => setShowingDocuments(false)}
                 modalContainerProps={{ style: { width: '90%' } }}
-                childrenContainerProps={{ style: { overflowY:'auto' } }}
+                childrenContainerProps={{ style: { overflowY: 'auto' } }}
             >
                 <DocumentManagement patientId={activePatientId!} />
             </Modal>

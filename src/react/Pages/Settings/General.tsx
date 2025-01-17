@@ -2,8 +2,7 @@ import { Fragment, memo, useContext, useEffect, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 import { languages } from "../../i18next";
 import { t } from "i18next";
-import { Calendar, configAPI, LanguageCodes, TimeZone } from "src/Electron/Configuration/renderer.d";
-import { Button } from "../../Components/Base/Button";
+import { Calendar, configAPI } from "src/Electron/Configuration/renderer.d";
 import { Input } from "../../Components/Base/Input";
 import { Select } from "../../Components/Base/Select";
 import { Stack } from "../../Components/Base/Stack";
@@ -32,7 +31,7 @@ export const General = memo(function General() {
     }, [])
 
     return (
-        <Container className="absolute top-0 left-1/2 -translate-x-1/2 mt-2">
+        <Container className="absolute top-1/4 left-1/2 -translate-x-1/2 mt-2">
             <Stack direction='vertical'>
                 <Input
                     value={Math.round(Number(limit ?? '0') / 1000_000_000).toFixed(2)}
