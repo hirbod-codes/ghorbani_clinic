@@ -188,33 +188,29 @@ export const Visits = memo(function Visits() {
 
     return (
         <>
-            <div className="grid grid-cols-12 space-x-1 space-y-1 p-2 h-full">
-                <div className="sm:col-span-12 h-full">
-                    <div className="p-1 h-full overflow-auto shadow-lg">
-                        {!visits || visits.length === 0 || !showGrid
-                            ? <CircularLoadingScreen />
-                            : <DataGrid
-                                configName='visits'
-                                data={visits}
-                                overWriteColumns={overWriteColumns}
-                                defaultColumnOrderModel={['actions', 'patientId', 'due']}
-                                additionalColumns={additionalColumns}
-                                loading={loading}
-                                hasPagination
-                                pagination={{ pageSize: page.limit, pageIndex: page.offset }}
-                                onPagination={async (p) => {
-                                    const result = await init(p.pageIndex, p.pageSize)
-                                    if (result)
-                                        setPage({ limit: p.pageSize, offset: p.pageIndex })
-                                    return result
-                                }}
-                                appendHeaderNodes={[
-                                    <Button variant='outline' onClick={async () => await init(page.offset, page.limit)}><RefreshCwIcon />{t('Visits.Refresh')}</Button>,
-                                ]}
-                            />
-                        }
-                    </div>
-                </div>
+            <div className="size-full p-2">
+                {!visits || visits.length === 0 || !showGrid
+                    ? <CircularLoadingScreen />
+                    : <DataGrid
+                        configName='visits'
+                        data={visits}
+                        overWriteColumns={overWriteColumns}
+                        defaultColumnOrderModel={['actions', 'patientId', 'due']}
+                        additionalColumns={additionalColumns}
+                        loading={loading}
+                        hasPagination
+                        pagination={{ pageSize: page.limit, pageIndex: page.offset }}
+                        onPagination={async (p) => {
+                            const result = await init(p.pageIndex, p.pageSize)
+                            if (result)
+                                setPage({ limit: p.pageSize, offset: p.pageIndex })
+                            return result
+                        }}
+                        appendHeaderNodes={[
+                            <Button variant='outline' onClick={async () => await init(page.offset, page.limit)}><RefreshCwIcon />{t('Visits.Refresh')}</Button>,
+                        ]}
+                    />
+                }
             </div>
 
             <EditorModal

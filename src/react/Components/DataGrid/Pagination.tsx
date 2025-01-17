@@ -8,6 +8,7 @@ import { CircularLoadingIcon } from "../Base/CircularLoadingIcon";
 import { FinitePagination } from "./FinitePagination";
 import { Select } from "../Base/Select";
 import { Stack } from "../Base/Stack";
+import { Separator } from "../../shadcn/components/ui/separator";
 
 export type PaginationProps = {
     paginationLimitOptions?: number[],
@@ -25,22 +26,36 @@ export function Pagination({ paginationLimitOptions = [10, 25, 50, 100], onPagin
     const [page, setPage] = useState<number>(0)
 
     const [isLoading, setIsLoading] = useState<boolean>(false)
+    const [isChangingLimit, setIsChangingLimit] = useState<boolean>(false)
 
     console.log('Pagination', { page, paginationLimit })
 
     return (
-        <Stack stackProps={{ className: 'flex-grow justify-end items-center' }}>
+        <Stack stackProps={{ className: 'justify-end items-center' }}>
             <Select
-                triggerProps={{ className: 'w-fit' }}
-                value={paginationLimit.toString()}
-                onValueChange={(value) => {
-                    setPaginationLimit(Number(value));
+                loading={isChangingLimit}
+                defaultValue={paginationLimit.toString()}
+                defaultDisplayValue={paginationLimit.toString()}
+                onValueChange={async (value) => {
+                    setIsChangingLimit(true)
+                    setPaginationLimit(Math.floor(Number(value)))
                     if (setPaginationLimitChange)
-                        setPaginationLimitChange(Number(value))
+                        await setPaginationLimitChange(Math.floor(Number(value)))
                     setPage(0)
+                    setIsChangingLimit(false)
                 }}
-                selectOptions={{ type: 'items', items: paginationLimitOptions.map((o, i) => ({ value: o.toString(), displayValue: o.toString() })) }}
-            />
+            >
+                {paginationLimitOptions.map((l, i) =>
+                    <>
+                        <Select.Item key={i} value={l.toString()} displayValue={l.toString()}>
+                            {l.toString()}
+                        </Select.Item>
+                        {i !== paginationLimitOptions.length - 1 &&
+                            <Separator />
+                        }
+                    </>
+                )}
+            </Select>
 
             {
                 !onPagination

@@ -12,6 +12,7 @@ import { CircularLoadingIcon } from '../../Components/Base/CircularLoadingIcon'
 import { Separator } from '../../shadcn/components/ui/separator'
 import { Stack } from '../../Components/Base/Stack'
 import { Container } from '../../Components/Base/Container'
+import { BanIcon, CheckIcon } from 'lucide-react'
 
 export const DbSettings = memo(function DbSettings() {
     const auth = useContext(AuthContext)
@@ -24,7 +25,7 @@ export const DbSettings = memo(function DbSettings() {
     const [truncating, setTruncating] = useState<boolean>(false)
 
     const [checkingConnectionHealth, setCheckingConnectionHealth] = useState<boolean>(false)
-    const [connectionHealth, setConnectionHealth] = useState<boolean>(false)
+    const [connectionHealth, setConnectionHealth] = useState<boolean | undefined>(undefined)
     const checkConnectionHealth = async () => {
         const result = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.checkConnectionHealth()
         console.log('checkConnectionHealth', { result: Boolean(result) })
@@ -46,8 +47,15 @@ export const DbSettings = memo(function DbSettings() {
                             {t("DbSettings.Truncate")}
                         </Button>
 
-                        <Button fgColor={connectionHealth ? 'success' : 'error'} onClick={async () => { setCheckingConnectionHealth(true); await checkConnectionHealth(); setCheckingConnectionHealth(false) }}>
-                            {t("DbSettings.CheckConnection")}{checkingConnectionHealth && <CircularLoadingIcon />}
+                        <Button
+                            className='[&_svg]:size-5'
+                            fgColor={connectionHealth === undefined ? 'primary' : (connectionHealth === true ? 'success' : 'error')}
+                            onClick={async () => { setCheckingConnectionHealth(true); await checkConnectionHealth(); setCheckingConnectionHealth(false) }}
+                        >
+                            {t("DbSettings.CheckConnection")}
+                            {checkingConnectionHealth && <CircularLoadingIcon />}
+                            {!checkingConnectionHealth && connectionHealth === true && <CheckIcon />}
+                            {!checkingConnectionHealth && connectionHealth === false && <BanIcon />}
                         </Button>
                     </Stack>
 

@@ -246,9 +246,9 @@ export function DataGrid({
                         return await onPagination({ pageIndex: o, pageSize: l })
                     return true
                 }}
-                setPaginationLimitChange={(size) => {
+                setPaginationLimitChange={async (size) => {
                     if (onPagination)
-                        onPagination({ pageIndex: 0, pageSize: size })
+                        await onPagination({ pageIndex: 0, pageSize: size })
                 }}
             />
         ]
@@ -369,11 +369,11 @@ export function DataGrid({
                                         :
                                         <div {...tableContainerProps} className={cn('overflow-auto flex-grow border rounded-md', tableContainerProps?.className)}>
                                             {/* <AnimatePresence mode='sync'> */}
-                                            <table {...tableProps} className={cn('min-w-full border-collapse', tableProps?.className)}>
+                                            <table {...tableProps} className={cn('min-w-full border-separate', tableProps?.className)}>
                                                 {showColumnHeaders &&
                                                     <thead {...tHeadProps} className={cn('sticky select-none z-[1] top-0', tableProps?.className)}>
                                                         {table.getHeaderGroups().map(headerGroup => (
-                                                            <tr key={headerGroup.id}>
+                                                            <tr key={headerGroup.id} className='bg-surface'>
                                                                 <SortableContext
                                                                     items={columnOrder}
                                                                     strategy={horizontalListSortingStrategy}
@@ -405,7 +405,7 @@ export function DataGrid({
                                 )
                             }
                             {footerNodes.length > 0 &&
-                                <Stack {...footerNodesContainerProps} stackProps={{ className: cn('bg-surface-container p-2 rounded-md', footerNodesContainerProps?.stackProps?.className), ...footerNodesContainerProps?.stackProps }}>
+                                <Stack {...footerNodesContainerProps} stackProps={{ className: cn('bg-surface-container p-2 rounded-md justify-end', footerNodesContainerProps?.stackProps?.className), ...footerNodesContainerProps?.stackProps }}>
                                     {...footerNodes.map((n, i) =>
                                         <Fragment key={i}>
                                             {n}
