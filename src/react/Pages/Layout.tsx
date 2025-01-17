@@ -1,13 +1,13 @@
 import { ConfigurationContextWrapper } from '../Contexts/Configuration/ConfigurationContextWrapper';
 import { AuthContextWrapper } from '../Contexts/AuthContextWrapper';
 import { ResultWrapper } from '../Contexts/ResultWrapper';
-import { Navigation } from '../Components/Navigation';
+import { AppBar } from '../Components/AppBar';
 import { AnimatedOutlet } from './AnimatedOutlet';
 import { MenuBar } from '../Components/MenuBar/MenuBar';
 import { GradientBackground } from '../Components/GradientBackground';
 import { memo, useMemo } from 'react';
 import { Stack } from '../Components/Base/Stack';
-
+import { Navigation } from '../Components/Navigation';
 
 export const Layout = memo(function Layout() {
     console.log('Layout');
@@ -16,13 +16,16 @@ export const Layout = memo(function Layout() {
         <>
             <GradientBackground />
 
-            <Stack direction='vertical' stackProps={{ className: 'h-screen w-screen overflow-hidden m-0 *:m-0' }}>
-                <MenuBar />
+            <Stack direction='vertical' size={3} stackProps={{ className: 'h-screen w-screen overflow-hidden mx-0' }}>
+                <div className="w-full">
+                    <MenuBar />
+                    <AppBar />
+                </div>
 
-                <Stack direction='vertical' stackProps={{ className: 'flex-grow overflow-hidden m-0 *:m-0' }}>
+                <Stack size={3} stackProps={{ className: 'flex-grow size-full overflow-hidden my-0' }}>
                     <Navigation />
 
-                    <div className='flex-grow w-full relative mt-1 overflow-hidden'>
+                    <div className='flex-grow w-full relative overflow-hidden'>
                         <AnimatedOutlet />
                     </div>
                 </Stack>

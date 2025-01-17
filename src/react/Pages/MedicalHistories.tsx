@@ -16,7 +16,7 @@ export const MedicalHistories = memo(function MedicalHistories() {
     // }, [])
 
     return (
-        <div className="p-2 size-full shadow-lg">
+        <div className="size-full shadow-lg">
             {showGrid
                 ? <MedicalHistoryDataGrid />
                 : <CircularLoadingScreen />

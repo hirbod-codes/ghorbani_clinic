@@ -1,7 +1,6 @@
 import { SearchPatientField } from "../../Components/Search/SearchPatientField";
 import { Analytics } from "./Analytics";
-import { Clock } from "../../Components/Clock";
-import { memo, useState } from "react";
+import { memo } from "react";
 import { Calendar } from "./Calendar";
 
 export const Home = memo(function Home() {
@@ -9,7 +8,7 @@ export const Home = memo(function Home() {
 
     return (
         <div className="size-full overflow-y-auto overflow-x-hidden">
-            <div className="grid grid-cols-12 justify-center w-full p-1 *:p-1">
+            <div className="grid grid-cols-12 justify-center w-full *:p-1">
                 <div className="sm:col-span-0 md:col-span-3" />
                 <div className="sm:col-span-12 md:col-span-6 col-span-12">
                     <SearchPatientField />

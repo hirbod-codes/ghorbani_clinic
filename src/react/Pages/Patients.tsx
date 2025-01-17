@@ -283,7 +283,7 @@ export const Patients = memo(function Patients() {
 
     return (
         <>
-            <div className="p-2 size-full shadow-lg">
+            <div className="size-full shadow-lg">
                 {!patients || patients?.length === 0 || !showGrid
                     ? <CircularLoadingScreen />
                     : <DataGrid

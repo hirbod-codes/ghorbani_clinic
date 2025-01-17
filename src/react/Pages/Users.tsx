@@ -229,7 +229,7 @@ export const Users = memo(function Users() {
 
     return (
         <>
-            <div className="grid grid-cols-12 p-2 h-full">
+            <div className="grid grid-cols-12 h-full">
                 {/* Roles */}
                 {
                     readsRole &&

@@ -193,7 +193,7 @@ export const Visits = memo(function Visits() {
 
     return (
         <>
-            <div className="size-full p-2">
+            <div className="size-full">
                 {!visits || visits.length === 0 || !showGrid
                     ? <CircularLoadingScreen />
                     : <DataGrid
