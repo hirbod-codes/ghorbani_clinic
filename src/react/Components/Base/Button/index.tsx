@@ -73,6 +73,7 @@ export const Button = memo(function Button({ children, rippleEffect = true, vari
     return (
         <motion.button
             layout
+            initial={false}
             {...buttonProps}
             ref={buttonRef}
             className={className}

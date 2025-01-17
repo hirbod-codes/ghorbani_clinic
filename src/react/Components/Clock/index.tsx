@@ -31,11 +31,9 @@ export const Clock = memo(function Clock() {
     }, []);
 
     return (
-        <div className="p-2">
-            <div className="flex flex-col items-center border">
-                <p>{date}</p>
-                <p>{time}</p>
-            </div>
+        <div className="p-2 flex flex-col items-center border rounded-md">
+            <p>{date}</p>
+            <p>{time}</p>
         </div>
     )
 })

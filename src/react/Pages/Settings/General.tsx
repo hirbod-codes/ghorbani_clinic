@@ -15,18 +15,16 @@ export const General = memo(function General() {
     const [limit, setLimit] = useState<string>()
 
     const setConfigDownloadsDirectorySize = async (l: number) => {
-        const c = (await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig())!
-        c.downloadsDirectorySize = l
-        return (window as typeof window & { configAPI: configAPI }).configAPI.writeConfig(c)
+        await (window as typeof window & { configAPI: configAPI }).configAPI.setDownloadsDirectorySize(l)
     }
 
     const getConfig = async () => {
-        return await (window as typeof window & { configAPI: configAPI }).configAPI.readConfig()
+        return await (window as typeof window & { configAPI: configAPI }).configAPI.getDownloadsDirectorySize()
     }
 
     useEffect(() => {
-        getConfig().then((c) => {
-            setLimit(((c?.downloadsDirectorySize ?? 2_000_000_000) / 1_000_000_000).toFixed(1).toString());
+        getConfig().then((n) => {
+            setLimit(((n ?? 2_000_000_000) / 1_000_000_000).toFixed(1));
         })
     }, [])
 

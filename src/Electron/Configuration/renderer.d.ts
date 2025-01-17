@@ -3,9 +3,11 @@ import { Density } from '../../react/Components/DataGrid/Context'
 import { MongodbConfig } from './main.d'
 
 export type configAPI = {
-    readDbConfig: () => Promise<MongodbConfig | undefined>,
-    readConfig: () => Promise<Config | undefined>,
+    readDbConfig: () => Promise<MongodbConfig | undefined>
+    readConfig: () => Promise<Config | undefined>
     writeConfig: (config: Config) => void
+    getDownloadsDirectorySize: () => Promise<number>
+    setDownloadsDirectorySize: (downloadsDirectorySize: number) => Promise<void>
 }
 
 export type TimeZone = 'UTC' | 'Asia/Tehran'
@@ -26,7 +28,6 @@ export type Local = {
 export type Config = {
     local: Local,
     themeOptions: ThemeOptions,
-    downloadsDirectorySize?: number,
     canvas?: {
         backgroundColor: string
     },

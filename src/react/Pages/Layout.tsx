@@ -25,7 +25,7 @@ export const Layout = memo(function Layout() {
                 <Stack size={3} stackProps={{ className: 'flex-grow size-full overflow-hidden my-0' }}>
                     <Navigation />
 
-                    <div className='flex-grow w-full relative overflow-hidden'>
+                    <div className='flex-grow w-full relative overflow-hidden bg-surface'>
                         <AnimatedOutlet />
                     </div>
                 </Stack>

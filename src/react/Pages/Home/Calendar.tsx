@@ -7,6 +7,7 @@ import { ConfigurationContext } from "../../Contexts/Configuration/Configuration
 import { DataGrid } from "../../Components/DataGrid";
 import { t } from "i18next";
 import { CircularLoadingIcon } from "../../Components/Base/CircularLoadingIcon";
+import { Stack } from "../../Components/Base/Stack";
 
 export function Calendar() {
     const locale = useContext(ConfigurationContext)!.local
@@ -47,32 +48,30 @@ export function Calendar() {
     }, [])
 
     return (
-        <div className="z-[1]" style={{ position: 'relative' }}>
-            <div className="overflow-auto shadow-lg z-[2]">
-                <div style={{ minWidth: '25rem', padding: 0.5 }}>
-                    <CalendarComponent onDayPointerOver={onOver} onDayPointerOut={onOut} />
-                </div>
+        <div className="relative z-[1]">
+            <div className="overflow-auto shadow-md z-[2] bg-surface-container-low p-1 rounded-md" style={{ minWidth: '25rem' }}>
+                <CalendarComponent onDayPointerOver={onOver} onDayPointerOut={onOut} />
             </div>
 
             <div className="absolute top-0 -z-[1] w-full">
                 <AnimatedCard
                     animationKey={cardKey ?? 0}
                     open={showVisitsStats}
-                    props={{ sx: { minWidth: '10rem', maxWidth: '20rem', minHeight: '10rem' } }}
+                    props={{ className: 'bg-surface-container', style: { minWidth: '10rem', maxWidth: '20rem', minHeight: '10rem' } }}
                 >
                     {fetchingVisits && <CircularLoadingIcon />}
                     {!fetchingVisits &&
                         <>
-                            <div className="flex flex-col space-x-1 space-y-1 p-1">
-                                <div className="flex flex-row items-center justify-between">
+                            <Stack direction='vertical'>
+                                <Stack stackProps={{ className: "items-center justify-between" }}>
                                     <p>{t('Calendar.patientsCount')}:</p>
                                     <p>{patientsCount}</p>
-                                </div>
-                                <div className="flex flex-row items-center justify-between">
+                                </Stack>
+                                <Stack stackProps={{ className: "items-center justify-between" }}>
                                     <p>{t('Calendar.visitsCount')}:</p>
                                     <p>{visits.length}</p>
-                                </div>
-                            </div>
+                                </Stack>
+                            </Stack>
                             <DataGrid data={visits} headerNodes={[]} footerNodes={[]} defaultTableDensity="compact" />
                         </>
                     }
