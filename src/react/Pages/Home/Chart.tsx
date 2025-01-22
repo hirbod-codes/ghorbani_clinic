@@ -33,8 +33,14 @@ export type ChartProps = {
     hoverRadius?: number
     styleOptions?: StyleOptions
     animationEase?: EasingName
-    animateGraphFill?: (ctx: CanvasRenderingContext2D, points: Point[], styleOptions: StyleOptions, fraction: number) => void
-    animateGraph?: (ctx: CanvasRenderingContext2D, points: Point[], styleOptions: StyleOptions, fraction: number) => void
+    animateGraphFill?: (ctx: CanvasRenderingContext2D, points: Point[], styleOptions: StyleOptions, fraction: number) => StyleOptions
+    animateGraph?: (ctx: CanvasRenderingContext2D, points: Point[], styleOptions: StyleOptions, fraction: number) => StyleOptions
+    animateGridHorizontalLines?: (ctx: CanvasRenderingContext2D, points: Point[], styleOptions: StyleOptions, fraction: number) => StyleOptions
+    animateGridVerticalLines?: (ctx: CanvasRenderingContext2D, points: Point[], styleOptions: StyleOptions, fraction: number) => StyleOptions
+    graphFillStyleOptions: StyleOptions
+    graphStyleOptions: StyleOptions
+    gridHorizontalLinesStyleOptions: StyleOptions
+    gridVerticalLinesStyleOptions: StyleOptions
 }
 
 export function Chart({
@@ -62,7 +68,13 @@ export function Chart({
     },
     animationEase = 'easeInSine',
     animateGraphFill,
-    animateGraph
+    animateGraph,
+    animateGridHorizontalLines,
+    animateGridVerticalLines,
+    graphFillStyleOptions,
+    graphStyleOptions,
+    gridHorizontalLinesStyleOptions,
+    gridVerticalLinesStyleOptions,
 }: ChartProps) {
     const isDrawn = useRef<boolean>(false)
     const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -81,23 +93,19 @@ export function Chart({
     const animate = (ctx: CanvasRenderingContext2D, points: Point[], t: DOMHighResTimeStamp) => {
         ctx.clearRect(0, 0, canvasWidth, canvasHeight)
 
-        if (animateGraphFill)
-            animateGraphFill(ctx, points, styleOptions, getEasingFunction(animationEase)(t))
-        drawGraphFill(ctx, points, canvasHeight, chartOffset, styleOptions)
+        drawGraphFill(ctx, points, canvasHeight, chartOffset, animateGraphFill ? animateGraphFill(ctx, points, { ...graphFillStyleOptions }, getEasingFunction(animationEase)(t)) : graphFillStyleOptions)
 
-        if (animateGraph)
-            animateGraph(ctx, points, styleOptions, getEasingFunction(animationEase)(t))
-        drawGraph(ctx, points, chartBgColor, styleOptions)
+        drawGraph(ctx, points, chartBgColor, animateGraph ? animateGraph(ctx, points, { ...graphStyleOptions }, getEasingFunction(animationEase)(t)) : graphStyleOptions)
 
         hoverHelpers.current = createCircles(ctx, points, hoverRadius, 0, 'transparent', 'transparent')
 
-        // drawGridHorizontalLines()
+        drawGridHorizontalLines(ctx, canvasWidth, canvasHeight, chartOffset, animateGridHorizontalLines ? animateGridHorizontalLines(ctx, points, { ...gridHorizontalLinesStyleOptions }, getEasingFunction(animationEase)(t)) : gridHorizontalLinesStyleOptions)
 
-        // drawGridVerticalLines()
+        drawGridVerticalLines(ctx, canvasWidth, canvasHeight, chartOffset, animateGridHorizontalLines ? animateGridHorizontalLines(ctx, points, { ...gridHorizontalLinesStyleOptions }, getEasingFunction(animationEase)(t)) : gridHorizontalLinesStyleOptions)
 
-        // drawXAxis()
+        drawXAxis()
 
-        // drawYAxis()
+        drawYAxis()
 
         animationId.current = requestAnimationFrame((t) => animate(ctx, points, t))
     }
@@ -262,6 +270,60 @@ function drawGraph(ctx: CanvasRenderingContext2D, points: Point[], bgColor: stri
     ctx.strokeStyle = styleOptions.strokeStyle ?? 'blue'
 
     bezierCurve(ctx, points, f, t)
+
+    ctx.stroke()
+}
+
+function drawGridHorizontalLines(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number, offset: number, styleOptions: StyleOptions) {
+    ctx.beginPath()
+    Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions[k])
+
+    ctx.moveTo(offset, canvasHeight - offset)
+    ctx.lineTo(canvasWidth - offset, canvasHeight - offset)
+
+    ctx.stroke()
+}
+
+function drawGridVerticalLines(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number, offset: number, styleOptions: StyleOptions) {
+    ctx.beginPath()
+    Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions[k])
+
+    ctx.moveTo(offset, canvasHeight - offset)
+    ctx.lineTo(offset, offset)
+
+    ctx.stroke()
+}
+
+function drawXAxis(ctx: CanvasRenderingContext2D, count: number, canvasWidth: number, canvasHeight: number, offset: number, styleOptions: StyleOptions) {
+    ctx.beginPath()
+    Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions[k])
+
+    ctx.moveTo(canvasWidth - offset, canvasHeight - offset)
+    ctx.lineTo(canvasWidth - offset, offset)
+
+    let width = canvasWidth - (2 * offset)
+    let segments = count - 2 + 1
+    for (let i = 0; i < segments; i++) {
+        ctx.moveTo(offset + ((i + 1) * width / segments), canvasHeight - offset)
+        ctx.lineTo(offset + ((i + 1) * width / segments), offset)
+    }
+
+    ctx.stroke()
+}
+
+function drawYAxis(ctx: CanvasRenderingContext2D, count: number, canvasWidth: number, canvasHeight: number, offset: number, styleOptions: StyleOptions) {
+    ctx.beginPath()
+    Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions[k])
+
+    ctx.moveTo(offset, offset)
+    ctx.lineTo(canvasWidth - offset, offset)
+
+    let height = canvasHeight - (2 * offset)
+    let segments = count - 2 + 1
+    for (let i = 0; i < segments; i++) {
+        ctx.moveTo(offset, offset + ((i + 1) * height / segments))
+        ctx.lineTo(canvasWidth - offset, offset + ((i + 1) * height / segments))
+    }
 
     ctx.stroke()
 }
