@@ -3,7 +3,7 @@ import { Draw, Boundary } from "../types";
 import { Point } from "../../../../Lib/Math";
 import { SelectionBox } from "./SelectionBox";
 
-export interface Shape {
+export interface IShape {
     getCenterPoint(): Point;
     updateWidth(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): void;
     updateHeight(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): void;

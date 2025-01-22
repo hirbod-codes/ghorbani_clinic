@@ -1,22 +1,22 @@
 import { Draw, Point } from "../types";
 import { SelectionBox } from "./SelectionBox";
-import { Shape } from "./Shape";
+import { IShape } from "./IShape";
 
 export class Shapes {
-    helper: Shape | undefined = undefined
+    helper: IShape | undefined = undefined
     selectionBox: SelectionBox | undefined = undefined
-    shapes: Shape[]
+    shapes: IShape[]
     private selectionIndex: number | undefined
 
-    constructor(shapes: Shape[] = []) {
+    constructor(shapes: IShape[] = []) {
         this.shapes = shapes
     }
 
-    at(index: number): Shape | undefined {
+    at(index: number): IShape | undefined {
         return this.shapes.at(index)
     }
 
-    push(shape: Shape): void {
+    push(shape: IShape): void {
         this.shapes.push(shape)
     }
 
@@ -56,7 +56,7 @@ export class Shapes {
         return -1
     }
 
-    getSelectedShape(): Shape | undefined {
+    getSelectedShape(): IShape | undefined {
         if (this.selectionIndex === undefined || this.selectionIndex < 0)
             return
 

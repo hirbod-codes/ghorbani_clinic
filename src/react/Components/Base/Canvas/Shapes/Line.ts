@@ -1,11 +1,11 @@
 import { applyToPoint, compose, fromObject, Matrix, translate } from "transformation-matrix";
 import { Boundary, Draw } from "../types";
-import { Shape } from "./Shape";
+import { IShape } from "./IShape";
 import { Point } from "../../../../Lib/Math";
 import { SelectionBox } from "./SelectionBox";
 import { getRadiansFromTwoPoints } from "../../../../Lib/Math/2d";
 
-export class Line implements Shape {
+export class Line implements IShape {
     private lineWidth: number
     private stroke: string
     private pressureMagnitude: number

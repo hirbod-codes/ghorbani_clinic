@@ -2,11 +2,12 @@ import os from 'os'
 import path from 'path';
 import fs from 'fs';
 import { CONFIGURATION_FILE } from './directories';
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, session } from 'electron';
 import { handleMenuEvents } from './Electron/Menu/menu';
 import { handleConfigEvents, readConfig, writeConfigSync } from './Electron/Configuration/main';
 import { db, handleDbEvents } from './Electron/Database/main';
 import { handleAppMainEvents } from './Electron/appMainEvents';
+import { installExtension, REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
 
 if (!app.isPackaged && fs.existsSync(CONFIGURATION_FILE))
     fs.rmSync(CONFIGURATION_FILE)
@@ -69,13 +70,11 @@ const createWindow = (): void => {
     else
         mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
 
-
     if (!app.isPackaged)
         mainWindow.webContents.openDevTools({ mode: 'right' });
 };
 
 app.on('ready', async () => {
-
     handleConfigEvents()
 
     handleMenuEvents()
@@ -94,6 +93,13 @@ app.on('ready', async () => {
     catch (err) { console.error(err) }
 })
 
+if (!app.isPackaged)
+    app.whenReady().then(() => {
+        installExtension(REACT_DEVELOPER_TOOLS)
+            .then((ext) => console.log(`Added Extension:  ${ext.name}`))
+            .catch((err) => console.log('An error occurred: ', err));
+    })
+
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin')
         app.quit();
@@ -103,3 +109,12 @@ app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0)
         createWindow()
 });
+
+session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+        responseHeaders: {
+            ...details.responseHeaders,
+            'Content-Security-Policy': ['default-src \'none\'', 'script-src \'self\'']
+        }
+    })
+})

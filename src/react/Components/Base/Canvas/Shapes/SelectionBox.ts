@@ -1,5 +1,5 @@
 import { Boundaries, Boundary, Draw, Point, Position } from "../types";
-import { Shape } from "./Shape";
+import { IShape } from "./IShape";
 
 export class SelectionBox {
     paths: { [key in Position]: Path2D | undefined } & { move: Path2D | undefined, rotate: Path2D | undefined } = {
@@ -15,7 +15,7 @@ export class SelectionBox {
         rotate: undefined,
     }
 
-    private shape: Shape
+    private shape: IShape
     private rectanglesWidth: number
     offset: number = 25
     private fillStyle: string | CanvasGradient | CanvasPattern
@@ -23,7 +23,7 @@ export class SelectionBox {
 
     private boundaries: Boundaries | undefined = undefined
 
-    constructor(shape: Shape, rectanglesWidth = 15, offset = 30, fillStyle: string | CanvasGradient | CanvasPattern = 'cyan', strokeStyle: string | CanvasGradient | CanvasPattern = 'cyan') {
+    constructor(shape: IShape, rectanglesWidth = 15, offset = 30, fillStyle: string | CanvasGradient | CanvasPattern = 'cyan', strokeStyle: string | CanvasGradient | CanvasPattern = 'cyan') {
         this.shape = shape
         this.rectanglesWidth = rectanglesWidth
         this.offset = offset
@@ -31,7 +31,7 @@ export class SelectionBox {
         this.strokeStyle = strokeStyle
     }
 
-    getShape(): Shape {
+    getShape(): IShape {
         return this.shape
     }
 

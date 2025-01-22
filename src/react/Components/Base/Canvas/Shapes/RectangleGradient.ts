@@ -1,6 +1,6 @@
 import { translate, compose, applyToPoint, Matrix, fromObject, decomposeTSR, scale } from 'transformation-matrix';
 import { Boundary, Draw, Point } from "../types";
-import { Shape } from "./Shape";
+import { IShape } from "./IShape";
 import { SelectionBox } from './SelectionBox';
 import { getRadiansFromTwoPoints, lineFunction, pointFromLineDistance } from '../../../../Lib/Math/2d';
 
@@ -12,7 +12,7 @@ export type RadialGradient = { steps: { offset: number, color: { r: number; g: n
 
 export type Gradients = ConicGradient | LinearGradient | RadialGradient
 
-export class RectangleGradient implements Shape {
+export class RectangleGradient implements IShape {
     private path: Path2D
     x: number
     y: number

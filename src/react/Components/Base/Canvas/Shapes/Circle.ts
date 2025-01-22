@@ -1,10 +1,10 @@
 import { Point } from "@/src/react/Lib/Math";
 import { Boundary, Draw } from "../types";
 import { SelectionBox } from "./SelectionBox";
-import { Shape } from "./Shape";
+import { IShape } from "./IShape";
 import { translate, compose, fromObject, Matrix } from 'transformation-matrix';
 
-export class Circle implements Shape {
+export class Circle implements IShape {
     private path: Path2D
     x: number
     y: number

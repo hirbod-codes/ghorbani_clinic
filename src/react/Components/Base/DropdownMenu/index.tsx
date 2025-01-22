@@ -1,11 +1,11 @@
 import { ComponentProps, memo, ReactNode, RefObject, useEffect, useReducer, useRef, useState } from "react";
 import { cn } from "@/src/react/shadcn/lib/utils";
 import { createPortal } from "react-dom";
-import { usePointerOutside } from "../usePointerOutside";
 
 export type DropdownMenuProps = {
     children: ReactNode
-    anchorRef: RefObject<HTMLElement>
+    anchorRef?: RefObject<HTMLElement>
+    anchorDomRect?: { left?: number, top?: number, width?: number, height?: number }
     open?: boolean
     onOpenChange?: (open: boolean) => void
     containerProps?: ComponentProps<'div'>
@@ -13,16 +13,22 @@ export type DropdownMenuProps = {
     horizontalPosition?: 'left' | 'center' | 'right'
 }
 
-export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, open = false, onOpenChange, containerProps, verticalPosition = 'bottom', horizontalPosition = 'center' }: DropdownMenuProps) {
+export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, anchorDomRect, open = false, onOpenChange, containerProps, verticalPosition = 'bottom', horizontalPosition = 'center' }: DropdownMenuProps) {
     const [display, setDisplay] = useState<string>('none')
     const [opacity, setOpacity] = useState<number>(0)
     const containerRef = useRef<HTMLDivElement>(null)
 
     const updatePosition = () => {
-        if (!containerRef?.current || !anchorRef?.current)
+        if (!containerRef?.current)
             return
 
-        const aRect = anchorRef.current.getBoundingClientRect()
+        if (!anchorDomRect && !anchorRef?.current)
+            return
+
+        if (anchorDomRect && (!anchorDomRect.left || !anchorDomRect.top || !anchorDomRect.width || !anchorDomRect.height))
+            return
+
+        const aRect = anchorDomRect ?? anchorRef?.current!.getBoundingClientRect()
         const cRect = containerRef.current.getBoundingClientRect()
 
         // console.log('updatePosition', verticalPosition, horizontalPosition, { visualViewport: window.visualViewport, 'ref': anchorRef.current, 'scrollTop': anchorRef.current.scrollTop, 'offsetTop': anchorRef.current.offsetTop, 'offsetLeft': anchorRef.current.offsetLeft, 'offsetHeight': anchorRef.current.offsetHeight, 'offsetWidth': anchorRef.current.offsetWidth, 'aRect.top': aRect.top, 'aRect.bottom': aRect.bottom, 'aRect.left': aRect.left, 'aRect.right': aRect.right, 'aRect.width': aRect.width, 'aRect.height': aRect.height })
@@ -33,7 +39,7 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, op
         containerRef.current.style.right = ''
         containerRef.current.style.left = ''
 
-        positionElement(containerRef.current, verticalPosition, horizontalPosition, aRect, cRect, window.innerHeight, window.innerWidth)
+        positionElement(containerRef.current, verticalPosition, horizontalPosition, aRect! as DOMRect, cRect, window.innerHeight, window.innerWidth)
     }
 
     useEffect(() => {
@@ -48,7 +54,7 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, op
 
         if (onOpenChange)
             onOpenChange(open)
-    }, [open, display, anchorRef?.current, containerRef?.current])
+    }, [open, display, anchorRef?.current, containerRef?.current, anchorDomRect])
 
     useEffect(() => {
         if (display === 'block')

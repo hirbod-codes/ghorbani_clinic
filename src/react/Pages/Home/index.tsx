@@ -1,14 +1,18 @@
 import { SearchPatientField } from "../../Components/Search/SearchPatientField";
 import { Analytics } from "./Analytics";
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useContext, useEffect, useRef, useState } from "react";
 import { Calendar } from "./Calendar";
 import { Clock } from "../../Components/Clock";
 import { ChartArea, Chart as ChartJs } from 'chart.js/auto'
 import { ColorStatic } from "../../Lib/Colors/ColorStatic";
 import { Button } from "../../Components/Base/Button";
+import { Chart } from "./Chart";
+import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 
 export const Home = memo(function Home() {
     console.log('Home')
+
+    const themeOptions = useContext(ConfigurationContext)!.themeOptions
 
     return (
         <div className="size-full overflow-y-auto overflow-x-hidden">
@@ -28,7 +32,18 @@ export const Home = memo(function Home() {
                 </div>
 
                 <div className="sm:col-span-12 md:col-span-4 col-span-12">
-                    <Chart />
+                    <Chart2 />
+                    {/* <Chart x={[85, 85, 80, 85, 56, 55, 40, 50]} y={[85, 85, 80, 85, 56, 55, 40, 50]} /> */}
+                    <div className="absolute top-0 left-0 bg-surface-bright z-50">
+                        <Chart
+                            x={[0, 1, 2, 3, 4, 5, 6, 7]}
+                            y={[85, 85, 80, 85, 56, 55, 40, 50]}
+                            // chartBgColor={'white'}
+                            chartBgColor={themeOptions.colors.surface[themeOptions.mode].main}
+                            canvasHeight={500}
+                            canvasWidth={1000}
+                        />
+                    </div>
                 </div>
                 <div className="sm:col-span-0" />
 
@@ -40,7 +55,7 @@ export const Home = memo(function Home() {
     )
 })
 
-export function Chart() {
+export function Chart2() {
     const containerRef = useRef<HTMLCanvasElement>(null)
     const pRef = useRef<HTMLParagraphElement>(null)
 
@@ -51,6 +66,8 @@ export function Chart() {
         borderGradient: CanvasGradient | undefined
 
         canvas: HTMLCanvasElement | undefined
+        chart: ChartJs | undefined
+        chartBgColor: string
 
         patternCanvas: HTMLCanvasElement | undefined
         patternContext: CanvasRenderingContext2D | undefined
@@ -74,6 +91,8 @@ export function Chart() {
         width: undefined,
         height: undefined,
         borderGradient: undefined,
+        chart: undefined,
+        chartBgColor: '#ffffff',
         canvas: undefined,
         patternCanvas: undefined,
         patternContext: undefined,
@@ -94,140 +113,154 @@ export function Chart() {
         pulseColor: '#00ff0080',
     })
 
-    const getGradient = (r2: number) => chartPropsRef.current.ctx!.createRadialGradient(chartPropsRef.current.chartArea!.right + 10, chartPropsRef.current.chartArea!.bottom + 10, 0, chartPropsRef.current.chartArea!.right + 10, chartPropsRef.current.chartArea!.bottom + 10, r2)
+    const fgColor = 'black'
+    const displayXAxis = true
+    const displayYAxis = true
 
     const init = (): void => {
-        let data = [85, 85, 80, 85, 56, 55, 40]
-        setChart(new ChartJs(
+        if (ChartJs.getChart(containerRef.current!) !== undefined)
+            return
+
+        let data = [85, 85, 80, 85, 56, 55, 40, 50]
+        let datasetCommonOptions: any = {
+            borderJoinStyle: 'round',
+            borderCapStyle: 'round',
+            pointBackgroundColor: 'red',
+            pointBorderWidth: 0,
+            pointRadius: 0,
+            tension: 0.1,
+            type: 'line',
+            label: 'My First Dataset',
+            data: data,
+            borderWidth: 8,
+        }
+
+        let c = new ChartJs(
             containerRef.current!,
             {
-                // plugins: [{
-                // }],
+                options: {
+                    locale: 'en',
+                    scales: {
+                        x: {
+                            bounds: 'ticks',
+                            ticks: {
+                                maxTicksLimit: 3,
+                                color: fgColor,
+                                display: displayXAxis,
+                            },
+                            grid: {
+                                display: true
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                count: 3,
+                                color: fgColor,
+                                display: displayYAxis
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                },
                 data: {
                     labels: data,
                     datasets: [
+                        // pulse
+                        // {
+                        //     type: 'scatter',
+                        //     data: [{ x: data[data.length - 1], y: data[data.length - 1] }] as any,
+                        //     label: 'pulse',
+                        //     pointRadius: 0,
+                        //     backgroundColor: 'transparent',
+                        //     borderColor: chartPropsRef.current.pulseColor,
+                        //     animations: {
+                        //         radius: {
+                        //             type: "number",
+                        //             delay: 500,
+                        //             duration: 2500,
+                        //             easing: 'easeOutExpo',
+                        //             loop: true,
+                        //             to: 24,
+                        //             fn: (from, to, fraction) => {
+                        //                 if (fraction > 0.95 && chartPropsRef.current.pulseRadiusDir)
+                        //                     chartPropsRef.current.pulseRadiusDir = false
+                        //                 if (fraction < 0.05 && !chartPropsRef.current.pulseRadiusDir)
+                        //                     chartPropsRef.current.pulseRadiusDir = true
+
+                        //                 return (chartPropsRef.current.pulseRadiusDir ? fraction * (to as number) : 0) as any
+                        //             }
+                        //         },
+                        //         borderColor: {
+                        //             type: "number",
+                        //             delay: 500,
+                        //             duration: 2500,
+                        //             easing: 'easeOutExpo',
+                        //             from: 0,
+                        //             loop: true,
+                        //             fn: (from, to, fraction) => {
+                        //                 if (fraction > 0.95 && chartPropsRef.current.pulseBackgroundDir) {
+                        //                     chartPropsRef.current.pulseBackgroundDir = false;
+                        //                 }
+                        //                 if (fraction < 0.05 && !chartPropsRef.current.pulseBackgroundDir) {
+                        //                     chartPropsRef.current.pulseBackgroundDir = true;
+                        //                 }
+
+                        //                 let c = ColorStatic.parse(chartPropsRef.current.pulseColor).toRgb()
+                        //                 c.setAlpha((1 - fraction) * c.getAlpha()!)
+                        //                 return c.toHex() as any
+                        //             }
+                        //         }
+                        //     }
+                        // },
+                        // border
                         {
-                            type: 'line',
-                            label: 'My First Dataset',
-                            data: data,
-                            fill: true,
-                            borderColor: 'transparent',
-                            // borderColor: function (context) {
-                            //     const chart = context.chart;
-                            //     chartPropsRef.current.ctx = chart.ctx
-                            //     chartPropsRef.current.chartArea = chart.chartArea
+                            ...datasetCommonOptions,
+                            borderColor: () => {
+                                if (!chartPropsRef.current.chart)
+                                    return
 
-                            //     if (!chartPropsRef.current.chartArea) {
-                            //         // This case happens on initial chart load
-                            //         return;
-                            //     }
+                                let points = chartPropsRef.current.chart.getDatasetMeta(0).data
+                                let lastDataPoint = points[points.length - 1]
 
-                            //     const chartWidth = chartPropsRef.current.chartArea.width;
-                            //     const chartHeight = chartPropsRef.current.chartArea.height;
-                            //     if (!chartPropsRef.current.borderGradient || chartPropsRef.current.width !== chartWidth || chartPropsRef.current.height !== chartHeight) {
-                            //         // Create the chartPropsRef.current.borderGradient because this is either the first render
-                            //         // or the size of the chart has changed
+                                if (!lastDataPoint || !lastDataPoint.x || !lastDataPoint.y)
+                                    return
 
-                            //         chartPropsRef.current.width = chartWidth;
-                            //         chartPropsRef.current.height = chartHeight;
-                            //         let w = Math.sqrt(Math.pow(chartPropsRef.current.chartArea.width, 2) + Math.pow(chartPropsRef.current.chartArea.height, 2)) + 10
-                            //         chartPropsRef.current.borderGradient = chartPropsRef.current.ctx.createRadialGradient(chartPropsRef.current.chartArea.right, chartPropsRef.current.chartArea.bottom, 0, chartPropsRef.current.chartArea.right, chartPropsRef.current.chartArea.bottom, w);
-                            //         chartPropsRef.current.borderGradient.addColorStop(0, chartPropsRef.current.color);
-                            //         chartPropsRef.current.borderGradient.addColorStop(1, 'transparent');
-                            //     }
+                                if (!chartPropsRef.current.chartArea || !chartPropsRef.current.ctx)
+                                    return
 
-                            //     return chartPropsRef.current.borderGradient;
-                            // },
-                            backgroundColor: function (context) {
-                                const chart = context.chart;
-                                chartPropsRef.current.canvas = chart.canvas
-                                chartPropsRef.current.ctx = chart.ctx
-                                chartPropsRef.current.chartArea = chart.chartArea
+                                let w = Math.sqrt(Math.pow(chartPropsRef.current.chartArea.width, 2) + Math.pow(chartPropsRef.current.chartArea.height, 2))
+                                chartPropsRef.current.backgroundGradient = chartPropsRef.current.ctx.createRadialGradient(lastDataPoint.x, lastDataPoint.y, 0, lastDataPoint.x, lastDataPoint.y, w);
 
-                                if (!chartPropsRef.current.chartArea) {
-                                    // This case happens on initial chart load
-                                    return;
-                                }
+                                chartPropsRef.current.backgroundGradient.addColorStop(0, chartPropsRef.current.color);
+                                chartPropsRef.current.backgroundGradient.addColorStop(1, 'transparent');
 
-                                const chartWidth = chartPropsRef.current.chartArea.width;
-                                const chartHeight = chartPropsRef.current.chartArea.height;
-
-                                if (!chartPropsRef.current.backgroundGradient || chartPropsRef.current.width !== chartWidth || chartPropsRef.current.height !== chartHeight) {
-                                    // Create the chartPropsRef.current.backgroundGradient because this is either the first render
-                                    // or the size of the chart has changed
-
-                                    chartPropsRef.current.width = chartWidth;
-                                    chartPropsRef.current.height = chartHeight;
-                                    // let w = Math.sqrt(Math.pow(chartPropsRef.current.chartArea.width, 2) + Math.pow(chartPropsRef.current.chartArea.height, 2)) + 10
-                                    // chartPropsRef.current.backgroundGradient = chartPropsRef.current.ctx.createRadialGradient(chartPropsRef.current.chartArea.right, chartPropsRef.current.chartArea.bottom, 0, chartPropsRef.current.chartArea.right, chartPropsRef.current.chartArea.bottom, w);
-                                    chartPropsRef.current.backgroundGradient = chartPropsRef.current.ctx.createLinearGradient(chartPropsRef.current.chartArea.left, chartPropsRef.current.chartArea.top, chartPropsRef.current.chartArea.left, chartPropsRef.current.chartArea.bottom);
-                                    chartPropsRef.current.backgroundGradient.addColorStop(0, chartPropsRef.current.color);
-                                    chartPropsRef.current.backgroundGradient.addColorStop(1, 'transparent');
-
-                                    chartPropsRef.current.patternCanvas = document.createElement("canvas");
-                                    chartPropsRef.current.patternCanvas.width = chart.canvas.width;
-                                    chartPropsRef.current.patternCanvas.height = chart.canvas.height;
-
-                                    chartPropsRef.current.patternContext = chartPropsRef.current.patternCanvas.getContext("2d")!
-                                }
-
-                                return chartPropsRef.current.backgroundGradient;
+                                return chartPropsRef.current.backgroundGradient as any
                             },
-                            tension: 0.1,
-                            borderWidth: 8,
                         },
+                        // border background
                         {
-                            type: 'line',
-                            label: 'My First Dataset',
-                            data: data,
+                            ...datasetCommonOptions,
                             fill: true,
-                            tension: 0.1,
-                            borderWidth: 1,
-                            borderColor: 'transparent',
+                            borderColor: chartPropsRef.current.chartBgColor
+                        },
+                        // background animation
+                        {
+                            ...datasetCommonOptions,
+                            fill: true,
+                            borderWidth: 0,
                             animations: {
-                                // borderColor: {
-                                //     type: 'number',
-                                //     easing: 'easeOutExpo',
-                                //     delay: 500,
-                                //     duration: 1500,
-                                //     from: 0,
-                                //     loop: true,
-                                //     fn: (from, to, fraction) => {
-                                //         fraction = Math.min(1, Math.max(0, fraction))
-
-                                //         if (previousBorderFraction > fraction)
-                                //             dir = false;
-                                //         else
-                                //             dir = true;
-                                //         previousBorderFraction = fraction
-
-                                //         if (dir) {
-                                //             let w = Math.sqrt(Math.pow(chartArea.width, 2) + Math.pow(chartArea.height, 2)) + 30
-                                //             w *= fraction
-                                //             borderGradient = ctx.createRadialGradient(chartArea.right + 10, chartArea.bottom + 10, 0, chartArea.right + 10, chartArea.bottom + 10, w);
-                                //             borderGradient.addColorStop(0, rippleColor);
-                                //             borderGradient.addColorStop(1, 'transparent');
-                                //         } else {
-                                //             let w = Math.sqrt(Math.pow(chartArea.width, 2) + Math.pow(chartArea.height, 2)) + 10
-                                //             borderGradient = ctx.createRadialGradient(chartArea.right, chartArea.bottom, 0, chartArea.right, chartArea.bottom, w);
-                                //             let c = ColorStatic.parse(rippleColor).toRgb()
-                                //             c.setAlpha(fraction)
-                                //             borderGradient.addColorStop(0, rippleColor);
-                                //             borderGradient.addColorStop(0, c.toHex());
-                                //             borderGradient.addColorStop(1, 'transparent');
-                                //         }
-
-                                //         return borderGradient
-                                //     },
-                                // },
                                 backgroundColor: {
                                     type: 'number',
-                                    // easing: (ctx, options) => {
-
-                                    // },
-                                    delay: 500,
-                                    duration: 2500,
-                                    easing: 'easeOutExpo',
+                                    // delay: 500,
+                                    duration: 3000,
+                                    easing: 'linear',
                                     from: 0,
                                     loop: true,
                                     fn: (from, to, fraction) => {
@@ -239,7 +272,7 @@ export function Chart() {
                                         }
 
                                         if (pRef?.current) {
-                                            pRef.current.innerText = `dir: ${chartPropsRef.current.backgroundDir ? '+' : '-'}, fraction: ${fraction}, r: ${chartPropsRef.current.previousBackgroundFraction > fraction ? '+' : '-'}`
+                                            pRef.current.innerText = `dir: ${chartPropsRef.current.backgroundDir ? '+' : '-'}, fraction: ${fraction.toFixed(2)}, ${(1 - fraction).toFixed(2)}, r: ${chartPropsRef.current.previousBackgroundFraction > fraction ? '+' : '-'}`
                                             pRef.current.style.width = `${(fraction * 100)}px`
                                         }
 
@@ -249,44 +282,36 @@ export function Chart() {
                                         if (fraction < 0)
                                             fraction = 0
 
+                                        if (!chartPropsRef.current.chart)
+                                            return
+
+                                        let points = chartPropsRef.current.chart.getDatasetMeta(0).data
+                                        let lastDataPoint = points[points.length - 1]
+
+                                        if (!lastDataPoint || !lastDataPoint.x || !lastDataPoint.y)
+                                            return
+
                                         if (!chartPropsRef.current.chartArea || !chartPropsRef.current.ctx)
                                             return '#00000000' as any
-                                        // return getGradient(0)
-
-                                        // if (chartPropsRef.current.backgroundDir === true) {
-                                        //     if (!chartPropsRef.current.backgroundGradientWidth)
-                                        //         chartPropsRef.current.backgroundGradientWidth = Math.sqrt(Math.pow(chartPropsRef.current.chartArea.width, 2) + Math.pow(chartPropsRef.current.chartArea.height, 2)) * 1.3
-                                        //     let w = chartPropsRef.current.backgroundGradientWidth
-                                        //     w *= fraction
-                                        //     chartPropsRef.current.backgroundGradient = chartPropsRef.current.ctx.createRadialGradient(chartPropsRef.current.chartArea.right + 10, chartPropsRef.current.chartArea.bottom + 10, 0, chartPropsRef.current.chartArea.right + 10, chartPropsRef.current.chartArea.bottom + 10, w);
-                                        //     chartPropsRef.current.backgroundGradient.addColorStop(0.85, 'transparent');
-                                        //     chartPropsRef.current.backgroundGradient.addColorStop(0.9, chartPropsRef.current.rippleColor);
-                                        //     chartPropsRef.current.backgroundGradient.addColorStop(0.95, 'transparent');
-                                        // }
-
-                                        // return chartPropsRef.current.backgroundGradient! as any
 
                                         if (chartPropsRef.current.backgroundDir === true) {
                                             if (!chartPropsRef.current.backgroundGradientWidth)
-                                                chartPropsRef.current.backgroundGradientWidth = Math.sqrt(Math.pow(chartPropsRef.current.canvas!.width, 2) + Math.pow(chartPropsRef.current.canvas!.height, 2)) + 10
+                                                chartPropsRef.current.backgroundGradientWidth = chartPropsRef.current.canvas!.width
                                             let w = chartPropsRef.current.backgroundGradientWidth
                                             w *= fraction
-                                            // w *= 3/4
                                             chartPropsRef.current.patternContext!.beginPath()
                                             chartPropsRef.current.patternContext!.clearRect(0, 0, chartPropsRef.current.patternCanvas!.width, chartPropsRef.current.patternCanvas!.height)
 
-                                            let c = ColorStatic.parse(chartPropsRef.current.pulseColor).toRgb()
-                                            // let c = ColorStatic.parse('#00ff0080').toRgb()
-                                            c.setAlpha((1 - fraction) * c.getAlpha()!)
-                                            chartPropsRef.current.patternContext!.strokeStyle = c.toHex()
+                                            // let c = ColorStatic.parse(chartPropsRef.current.pulseColor).toRgb()
+                                            // c.setAlpha((1 - fraction) * c.getAlpha()!)
+                                            // chartPropsRef.current.patternContext!.strokeStyle = c.toHex()
+                                            let g = chartPropsRef.current.patternContext!.createLinearGradient(chartPropsRef.current.patternCanvas!.width, 0, 0, 0)
+                                            g.addColorStop(0, '#00ff00')
+                                            g.addColorStop(1, chartPropsRef.current.chartBgColor)
+                                            chartPropsRef.current.patternContext!.strokeStyle = g
 
-                                            chartPropsRef.current.patternContext!.lineWidth = 4
-                                            // chartPropsRef.current.patternContext!.shadowBlur = 4
-                                            // chartPropsRef.current.patternContext!.shadowColor = 'black'
-                                            // chartPropsRef.current.patternContext!.shadowOffsetX = 0
-                                            // chartPropsRef.current.patternContext!.shadowOffsetY = 0
-                                            chartPropsRef.current.patternContext!.ellipse(chartPropsRef.current.patternCanvas!.width, chartPropsRef.current.patternCanvas!.height, w, w, 0, 0, 2 * Math.PI)
-                                            chartPropsRef.current.patternContext!.rect(0, 0, chartPropsRef.current.patternCanvas!.width, chartPropsRef.current.patternCanvas!.height)
+                                            chartPropsRef.current.patternContext!.lineWidth = 8
+                                            chartPropsRef.current.patternContext!.ellipse(lastDataPoint.x, lastDataPoint.y, w, w, 0, 0, 2 * Math.PI)
                                             chartPropsRef.current.patternContext!.stroke()
                                         }
 
@@ -295,79 +320,76 @@ export function Chart() {
                                 },
                             },
                         },
+                        // background color
                         {
-                            type: 'scatter',
-                            data: [{ x: 40, y: 40 }],
-                            label: 'pulse',
-                            pointRadius: 0,
-                            backgroundColor: 'transparent',
-                            borderColor: chartPropsRef.current.pulseColor,
+                            ...datasetCommonOptions,
+                            borderWidth: 0,
+                            fill: true,
                             animations: {
-                                radius: {
-                                    type: "number",
-                                    delay: 500,
-                                    duration: 2500,
-                                    easing: 'easeOutExpo',
-                                    loop: true,
-                                    to: 24,
-                                    fn: (from, to, fraction) => {
-                                        if (fraction > 0.95 && chartPropsRef.current.pulseRadiusDir) {
-                                            chartPropsRef.current.pulseRadiusDir = false;
-                                        }
-                                        if (fraction < 0.05 && !chartPropsRef.current.pulseRadiusDir) {
-                                            chartPropsRef.current.pulseRadiusDir = true;
-                                        }
-
-                                        return (chartPropsRef.current.pulseRadiusDir ? fraction * (to as number) : 0) as any
-                                    }
-                                },
-                                borderColor: {
-                                    type: "number",
+                                backgroundColor: {
+                                    type: 'number',
                                     delay: 500,
                                     duration: 2500,
                                     easing: 'easeOutExpo',
                                     from: 0,
                                     loop: true,
                                     fn: (from, to, fraction) => {
-                                        if (fraction > 0.95 && chartPropsRef.current.pulseBackgroundDir) {
-                                            chartPropsRef.current.pulseBackgroundDir = false;
-                                        }
-                                        if (fraction < 0.05 && !chartPropsRef.current.pulseBackgroundDir) {
-                                            chartPropsRef.current.pulseBackgroundDir = true;
-                                        }
+                                        if (!chartPropsRef.current.chart)
+                                            return
 
-                                        let c = ColorStatic.parse(chartPropsRef.current.pulseColor).toRgb()
-                                        c.setAlpha((1 - fraction) * c.getAlpha()!)
-                                        return c.toHex() as any
+                                        let points = chartPropsRef.current.chart.getDatasetMeta(0).data
+                                        let lastDataPoint = points[points.length - 1]
+
+                                        if (!lastDataPoint || !lastDataPoint.x || !lastDataPoint.y)
+                                            return
+
+                                        if (!chartPropsRef.current.chartArea || !chartPropsRef.current.ctx)
+                                            return
+
+                                        let w = chartPropsRef.current.chartArea.width
+                                        chartPropsRef.current.backgroundGradient = chartPropsRef.current.ctx.createRadialGradient(lastDataPoint.x, lastDataPoint.y, 0, lastDataPoint.x, lastDataPoint.y, w);
+
+                                        chartPropsRef.current.backgroundGradient.addColorStop(0, chartPropsRef.current.color);
+                                        chartPropsRef.current.backgroundGradient.addColorStop(1, chartPropsRef.current.chartBgColor);
+
+                                        return chartPropsRef.current.backgroundGradient as any
                                     }
                                 }
-                            }
+                            },
                         },
                     ]
                 },
             }
-        ))
+        )
+
+        console.log('instances', ChartJs.getChart(containerRef.current!))
+
+        setChart(c)
+
+        chartPropsRef.current.chart = c
+        chartPropsRef.current.canvas = c.canvas
+        chartPropsRef.current.ctx = c.ctx
+        chartPropsRef.current.chartArea = c.chartArea
+
+        chartPropsRef.current.patternCanvas = document.createElement("canvas");
+        chartPropsRef.current.patternCanvas.width = c.canvas.width;
+        chartPropsRef.current.patternCanvas.height = c.canvas.height;
+
+        chartPropsRef.current.patternContext = chartPropsRef.current.patternCanvas.getContext("2d")!
     }
 
     useEffect(() => {
         if (containerRef?.current) {
             init()
 
-            // if (chart) {
-            //     chart.ctx.beginPath()
-            //     chart.ctx.strokeStyle = 'green';
-            //     chart.ctx.rect(0, 0, chart.chartArea.width, chart.chartArea.height)
-            //     chart.draw()
-            // }
-
             return () => chart?.destroy()
         }
-    }, [])
+    }, [containerRef, containerRef?.current])
 
     return (
         <>
             <div className="h-[10cm] w-[20cm] border">
-                <canvas ref={containerRef} style={{ overflow: 'hidden', width: '800px', height: '400px' }} />
+                <canvas id='chartJs' ref={containerRef} style={{ overflow: 'hidden', width: '800px', height: '400px' }} />
             </div>
             <p ref={pRef} className="w-24 h-[80px] border overflow-visible text-nowrap" />
             <Button onClick={() => chartPropsRef.current.animateBackground = !chartPropsRef.current.animateBackground}>animate</Button>

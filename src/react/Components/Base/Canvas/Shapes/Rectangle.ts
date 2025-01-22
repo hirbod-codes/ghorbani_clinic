@@ -1,10 +1,10 @@
 import { translate, compose, applyToPoint, Matrix, fromObject, decomposeTSR, scale } from 'transformation-matrix';
 import { Boundary, Draw, Point } from "../types";
-import { Shape } from "./Shape";
+import { IShape } from "./IShape";
 import { SelectionBox } from './SelectionBox';
 import { getRadiansFromTwoPoints, lineFunction, pointFromLineDistance } from '../../../../Lib/Math/2d';
 
-export class Rectangle implements Shape {
+export class Rectangle implements IShape {
     private path: Path2D
     x: number
     y: number

@@ -2,7 +2,7 @@ import { memo, PointerEvent, useEffect, useReducer, useRef, useState } from "rea
 import { Point } from "../../Lib/Math";
 import { Shapes } from "../Base/Canvas/Shapes/Shapes";
 import { Circle } from "../Base/Canvas/Shapes/Circle";
-import { Shape } from "../Base/Canvas/Shapes/Shape";
+import { IShape } from "../Base/Canvas/Shapes/IShape";
 import { HSV } from "../../Lib/Colors/HSV";
 
 export type CanvasProps = {
@@ -23,9 +23,9 @@ export const Canvas = memo(function Canvas({ controlledColor, onColorChanged, on
     const previousPoint = useRef<Point>()
 
     const [shapes,] = useState(new Shapes([]))
-    const [validatorCircle, setValidatorCircle] = useState<Shape>()
-    const [innerCircle, setInnerCircle] = useState<Shape>()
-    const [outerCircle, setOuterCircle] = useState<Shape>()
+    const [validatorCircle, setValidatorCircle] = useState<IShape>()
+    const [innerCircle, setInnerCircle] = useState<IShape>()
+    const [outerCircle, setOuterCircle] = useState<IShape>()
 
     const onPointerDown = (e: PointerEvent<HTMLCanvasElement>) => {
         e.preventDefault()
