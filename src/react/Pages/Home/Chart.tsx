@@ -2,7 +2,6 @@ import { ReactNode, useEffect, useRef, useState } from "react"
 import { Point } from "../../Lib/Math"
 import { Circle } from "../../Components/Base/Canvas/Shapes/Circle"
 import { DropdownMenu } from "../../Components/Base/DropdownMenu"
-import { easeIn } from "framer-motion"
 import { EasingName, getEasingFunction } from "../../Components/Animations/easings"
 
 export type DistributionMode = 'absolute' | 'even'
@@ -13,68 +12,70 @@ export type StyleOptions = {
     lineWidth?: number
     lineJoin?: CanvasLineJoin
     lineCap?: CanvasLineCap
+    lineDashOffset?: number
+    miterLimit?: number
+    shadowBlur?: number
+    shadowColor?: string
+    shadowOffsetX?: number
+    shadowOffsetY?: number
+    textAlign?: CanvasTextAlign
+    textBaseline?: CanvasTextBaseline
+    textRendering?: CanvasTextRendering
+    wordSpacing?: string
+}
+
+export type ShapeProps = {
+    ease?: EasingName
+    styles?: StyleOptions
+    animateStyles?: (ctx: CanvasRenderingContext2D, points: Point[], styleOptions: StyleOptions, fraction: number) => StyleOptions
 }
 
 export type ChartProps = {
     chartBgColor: string
-    x: number[]
-    y: number[]
-    xLabels?: ReactNode[]
-    yLabels?: ReactNode[]
-    points?: Point[]
     canvasWidth?: number
     canvasHeight?: number
     chartOffset?: number
     xAxisOffset?: number
     yAxisOffset?: number
-    xDistributionMode?: DistributionMode
-    yDistributionMode?: DistributionMode
     hoverNode?: ReactNode
     hoverRadius?: number
-    styleOptions?: StyleOptions
-    animationEase?: EasingName
-    animateGraphFill?: (ctx: CanvasRenderingContext2D, points: Point[], styleOptions: StyleOptions, fraction: number) => StyleOptions
-    animateGraph?: (ctx: CanvasRenderingContext2D, points: Point[], styleOptions: StyleOptions, fraction: number) => StyleOptions
-    animateGridHorizontalLines?: (ctx: CanvasRenderingContext2D, points: Point[], styleOptions: StyleOptions, fraction: number) => StyleOptions
-    animateGridVerticalLines?: (ctx: CanvasRenderingContext2D, points: Point[], styleOptions: StyleOptions, fraction: number) => StyleOptions
-    graphFillStyleOptions: StyleOptions
-    graphStyleOptions: StyleOptions
-    gridHorizontalLinesStyleOptions: StyleOptions
-    gridVerticalLinesStyleOptions: StyleOptions
+    x: number[]
+    y: number[]
+    xLabels?: ReactNode[]
+    yLabels?: ReactNode[]
+    xDistributionMode?: DistributionMode
+    yDistributionMode?: DistributionMode
+    points?: Point[]
+    graphFill?: ShapeProps
+    graph?: ShapeProps & { f?: number, tension?: number }
+    gridHorizontalLines?: ShapeProps
+    gridVerticalLines?: ShapeProps
+    xAxis?: ShapeProps & { count?: number }
+    yAxis?: ShapeProps & { count?: number }
 }
 
 export function Chart({
+    chartBgColor,
+    canvasWidth = 800,
+    canvasHeight = 400,
+    chartOffset = 30,
+    xAxisOffset = 15,
+    yAxisOffset = 15,
+    hoverNode,
+    hoverRadius = 20,
     x,
     y,
     xLabels,
     yLabels,
     points: inputPoints,
-    canvasWidth = 800,
-    canvasHeight = 400,
     xDistributionMode = 'absolute',
     yDistributionMode = 'absolute',
-    chartOffset = 30,
-    xAxisOffset = 15,
-    yAxisOffset = 15,
-    chartBgColor,
-    hoverNode,
-    hoverRadius = 20,
-    styleOptions = {
-        strokeStyle: '#00ff0080',
-        fillStyle: '#00ff0030',
-        lineWidth: 4,
-        lineJoin: 'round',
-        lineCap: 'round'
-    },
-    animationEase = 'easeInSine',
-    animateGraphFill,
-    animateGraph,
-    animateGridHorizontalLines,
-    animateGridVerticalLines,
-    graphFillStyleOptions,
-    graphStyleOptions,
-    gridHorizontalLinesStyleOptions,
-    gridVerticalLinesStyleOptions,
+    graphFill,
+    graph,
+    gridHorizontalLines,
+    gridVerticalLines,
+    xAxis,
+    yAxis,
 }: ChartProps) {
     const isDrawn = useRef<boolean>(false)
     const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -93,19 +94,60 @@ export function Chart({
     const animate = (ctx: CanvasRenderingContext2D, points: Point[], t: DOMHighResTimeStamp) => {
         ctx.clearRect(0, 0, canvasWidth, canvasHeight)
 
-        drawGraphFill(ctx, points, canvasHeight, chartOffset, animateGraphFill ? animateGraphFill(ctx, points, { ...graphFillStyleOptions }, getEasingFunction(animationEase)(t)) : graphFillStyleOptions)
+        drawGraphFill(
+            ctx,
+            points,
+            canvasHeight,
+            chartOffset,
+            graphFill?.animateStyles ? graphFill.animateStyles(ctx, points, { ...graphFill.styles }, getEasingFunction(graphFill.ease ?? 'easeInSine')(t)) : graphFill?.styles ?? {},
+            graph?.f,
+            graph?.tension
+        )
 
-        drawGraph(ctx, points, chartBgColor, animateGraph ? animateGraph(ctx, points, { ...graphStyleOptions }, getEasingFunction(animationEase)(t)) : graphStyleOptions)
+        drawGraph(
+            ctx,
+            points,
+            chartBgColor,
+            graph?.animateStyles ? graph.animateStyles(ctx, points, { ...graph.styles }, getEasingFunction(graph.ease ?? 'easeInSine')(t)) : graph?.styles ?? {},
+            graph?.f,
+            graph?.tension
+        )
 
         hoverHelpers.current = createCircles(ctx, points, hoverRadius, 0, 'transparent', 'transparent')
 
-        drawGridHorizontalLines(ctx, canvasWidth, canvasHeight, chartOffset, animateGridHorizontalLines ? animateGridHorizontalLines(ctx, points, { ...gridHorizontalLinesStyleOptions }, getEasingFunction(animationEase)(t)) : gridHorizontalLinesStyleOptions)
+        drawGridHorizontalLines(
+            ctx,
+            canvasWidth,
+            canvasHeight,
+            chartOffset,
+            gridHorizontalLines?.animateStyles ? gridHorizontalLines.animateStyles(ctx, points, { ...gridHorizontalLines.styles }, getEasingFunction(gridHorizontalLines.ease ?? 'easeInSine')(t)) : gridHorizontalLines?.styles ?? {},
+        )
 
-        drawGridVerticalLines(ctx, canvasWidth, canvasHeight, chartOffset, animateGridHorizontalLines ? animateGridHorizontalLines(ctx, points, { ...gridHorizontalLinesStyleOptions }, getEasingFunction(animationEase)(t)) : gridHorizontalLinesStyleOptions)
+        drawGridVerticalLines(
+            ctx,
+            canvasWidth,
+            canvasHeight,
+            chartOffset,
+            gridVerticalLines?.animateStyles ? gridVerticalLines.animateStyles(ctx, points, { ...gridVerticalLines.styles }, getEasingFunction(gridVerticalLines.ease ?? 'easeInSine')(t)) : gridVerticalLines?.styles ?? {},
+        )
 
-        drawXAxis()
+        drawXAxis(
+            ctx,
+            xAxis?.count ?? x.length,
+            canvasWidth,
+            canvasHeight,
+            chartOffset,
+            xAxis?.animateStyles ? xAxis.animateStyles(ctx, points, { ...xAxis.styles }, getEasingFunction(xAxis.ease ?? 'easeInSine')(t)) : xAxis?.styles ?? {},
+        )
 
-        drawYAxis()
+        drawYAxis(
+            ctx,
+            yAxis?.count ?? x.length,
+            canvasWidth,
+            canvasHeight,
+            chartOffset,
+            yAxis?.animateStyles ? yAxis.animateStyles(ctx, points, { ...yAxis.styles }, getEasingFunction(yAxis.ease ?? 'easeInSine')(t)) : yAxis?.styles ?? {},
+        )
 
         animationId.current = requestAnimationFrame((t) => animate(ctx, points, t))
     }
@@ -114,16 +156,14 @@ export function Chart({
         if (canvasRef.current && !isDrawn.current) {
             isDrawn.current = true
 
-            styleOptions.lineWidth = 40
-
             let xAxis = distribute(x, canvasWidth - (chartOffset * 2), xDistributionMode).map(v => v + chartOffset)
-            let yAxis = distribute(y, canvasHeight - (chartOffset * 2) - styleOptions.lineWidth, yDistributionMode).map(v => canvasHeight - (chartOffset * 2) - (styleOptions.lineWidth ?? 0) - v).map(v => v + chartOffset + ((styleOptions.lineWidth ?? 0) / 2))
+            let yAxis = distribute(y, canvasHeight - (chartOffset * 2) - (graph?.styles?.lineWidth ?? 0), yDistributionMode).map(v => canvasHeight - (chartOffset * 2) - (graph?.styles?.lineWidth ?? 0) - v).map(v => v + chartOffset + ((graph?.styles?.lineWidth ?? 0) / 2))
 
             xLabelPositions.current = xAxis.map(v => ({ x: v, y: canvasHeight - chartOffset + xAxisOffset }))
             yLabelPositions.current = yAxis.map(v => ({ y: v, x: chartOffset - yAxisOffset }))
 
             points.current = inputPoints
-                ? inputPoints.map(v => ({ x: v.x + chartOffset, y: v.y + chartOffset + ((styleOptions?.lineWidth ?? 0) / 2) }))
+                ? inputPoints.map(v => ({ x: v.x + chartOffset, y: v.y + chartOffset + ((graph?.styles?.lineWidth ?? 0) / 2) }))
                 : xAxis.map((_, i) => ({ x: xAxis[i], y: yAxis[i] }))
 
             ctx.current = canvasRef.current.getContext('2d')!
