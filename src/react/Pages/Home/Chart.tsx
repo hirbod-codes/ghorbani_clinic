@@ -1,8 +1,9 @@
-import { ReactNode, useEffect, useRef, useState } from "react"
+import { ReactNode, useContext, useEffect, useRef, useState } from "react"
 import { Point } from "../../Lib/Math"
 import { Circle } from "../../Components/Base/Canvas/Shapes/Circle"
 import { DropdownMenu } from "../../Components/Base/DropdownMenu"
 import { EasingName, getEasingFunction } from "../../Components/Animations/easings"
+import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext"
 
 export type DistributionMode = 'absolute' | 'even'
 
@@ -48,10 +49,10 @@ export type ChartProps = {
     points?: Point[]
     graphFill?: ShapeProps
     graph?: ShapeProps & { f?: number, tension?: number }
-    gridHorizontalLines?: ShapeProps
-    gridVerticalLines?: ShapeProps
-    xAxis?: ShapeProps & { count?: number }
-    yAxis?: ShapeProps & { count?: number }
+    gridHorizontalLines?: ShapeProps & { count?: number }
+    gridVerticalLines?: ShapeProps & { count?: number }
+    xAxis?: ShapeProps
+    yAxis?: ShapeProps
 }
 
 export function Chart({
@@ -77,6 +78,8 @@ export function Chart({
     xAxis,
     yAxis,
 }: ChartProps) {
+    const themeOptions = useContext(ConfigurationContext)!.themeOptions
+
     const isDrawn = useRef<boolean>(false)
     const canvasRef = useRef<HTMLCanvasElement>(null)
 
@@ -91,15 +94,80 @@ export function Chart({
 
     const animationId = useRef<number>()
 
+    if (!graph)
+        graph = {}
+    graph.animateStyles = (ctx, points, styles, f) => {
+        let g = ctx.createLinearGradient(0, 0, canvasWidth * f, 0)
+        g.addColorStop(0, 'black')
+        g.addColorStop(1, 'red')
+
+        return {
+            strokeStyle: g
+        }
+    }
+
     const animate = (ctx: CanvasRenderingContext2D, points: Point[], t: DOMHighResTimeStamp) => {
         ctx.clearRect(0, 0, canvasWidth, canvasHeight)
+
+        drawXAxis(
+            ctx,
+            canvasWidth,
+            canvasHeight,
+            chartOffset,
+            {
+                strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
+                lineWidth: 2,
+                ...xAxis?.animateStyles ? xAxis.animateStyles(ctx, points, { ...xAxis.styles }, getEasingFunction(xAxis.ease ?? 'easeInSine')(t)) : xAxis?.styles
+            },
+        )
+
+        drawYAxis(
+            ctx,
+            canvasWidth,
+            canvasHeight,
+            chartOffset,
+            {
+                strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
+                lineWidth: 2,
+                ...yAxis?.animateStyles ? yAxis.animateStyles(ctx, points, { ...yAxis.styles }, getEasingFunction(yAxis.ease ?? 'easeInSine')(t)) : yAxis?.styles
+            },
+        )
+
+        drawGridHorizontalLines(
+            ctx,
+            gridHorizontalLines?.count ?? x.length,
+            canvasWidth,
+            canvasHeight,
+            chartOffset,
+            {
+                strokeStyle: themeOptions.colors.outline[themeOptions.mode].main,
+                lineWidth: 0.5,
+                ...gridHorizontalLines?.animateStyles ? gridHorizontalLines.animateStyles(ctx, points, { ...gridHorizontalLines.styles }, getEasingFunction(gridHorizontalLines.ease ?? 'easeInSine')(t)) : gridHorizontalLines?.styles
+            },
+        )
+
+        drawGridVerticalLines(
+            ctx,
+            gridVerticalLines?.count ?? x.length,
+            canvasWidth,
+            canvasHeight,
+            chartOffset,
+            {
+                strokeStyle: themeOptions.colors.outline[themeOptions.mode].main,
+                lineWidth: 0.5,
+                ...gridVerticalLines?.animateStyles ? gridVerticalLines.animateStyles(ctx, points, { ...gridVerticalLines.styles }, getEasingFunction(gridVerticalLines.ease ?? 'easeInSine')(t)) : gridVerticalLines?.styles
+            },
+        )
 
         drawGraphFill(
             ctx,
             points,
             canvasHeight,
             chartOffset,
-            graphFill?.animateStyles ? graphFill.animateStyles(ctx, points, { ...graphFill.styles }, getEasingFunction(graphFill.ease ?? 'easeInSine')(t)) : graphFill?.styles ?? {},
+            {
+                fillStyle: 'transparent',
+                ...graphFill?.animateStyles ? graphFill.animateStyles(ctx, points, { ...graphFill.styles }, getEasingFunction(graphFill.ease ?? 'easeInSine')(t)) : graphFill?.styles
+            },
             graph?.f,
             graph?.tension
         )
@@ -108,46 +176,17 @@ export function Chart({
             ctx,
             points,
             chartBgColor,
-            graph?.animateStyles ? graph.animateStyles(ctx, points, { ...graph.styles }, getEasingFunction(graph.ease ?? 'easeInSine')(t)) : graph?.styles ?? {},
+            {
+                strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
+                lineWidth: 4,
+                lineCap: 'round',
+                ...graph?.animateStyles ? graph.animateStyles(ctx, points, { ...graph.styles }, getEasingFunction(graph.ease ?? 'easeInSine')(t)) : graph?.styles
+            },
             graph?.f,
             graph?.tension
         )
 
         hoverHelpers.current = createCircles(ctx, points, hoverRadius, 0, 'transparent', 'transparent')
-
-        drawGridHorizontalLines(
-            ctx,
-            canvasWidth,
-            canvasHeight,
-            chartOffset,
-            gridHorizontalLines?.animateStyles ? gridHorizontalLines.animateStyles(ctx, points, { ...gridHorizontalLines.styles }, getEasingFunction(gridHorizontalLines.ease ?? 'easeInSine')(t)) : gridHorizontalLines?.styles ?? {},
-        )
-
-        drawGridVerticalLines(
-            ctx,
-            canvasWidth,
-            canvasHeight,
-            chartOffset,
-            gridVerticalLines?.animateStyles ? gridVerticalLines.animateStyles(ctx, points, { ...gridVerticalLines.styles }, getEasingFunction(gridVerticalLines.ease ?? 'easeInSine')(t)) : gridVerticalLines?.styles ?? {},
-        )
-
-        drawXAxis(
-            ctx,
-            xAxis?.count ?? x.length,
-            canvasWidth,
-            canvasHeight,
-            chartOffset,
-            xAxis?.animateStyles ? xAxis.animateStyles(ctx, points, { ...xAxis.styles }, getEasingFunction(xAxis.ease ?? 'easeInSine')(t)) : xAxis?.styles ?? {},
-        )
-
-        drawYAxis(
-            ctx,
-            yAxis?.count ?? x.length,
-            canvasWidth,
-            canvasHeight,
-            chartOffset,
-            yAxis?.animateStyles ? yAxis.animateStyles(ctx, points, { ...yAxis.styles }, getEasingFunction(yAxis.ease ?? 'easeInSine')(t)) : yAxis?.styles ?? {},
-        )
 
         animationId.current = requestAnimationFrame((t) => animate(ctx, points, t))
     }
@@ -314,7 +353,7 @@ function drawGraph(ctx: CanvasRenderingContext2D, points: Point[], bgColor: stri
     ctx.stroke()
 }
 
-function drawGridHorizontalLines(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number, offset: number, styleOptions: StyleOptions) {
+function drawXAxis(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number, offset: number, styleOptions: StyleOptions) {
     ctx.beginPath()
     Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions[k])
 
@@ -324,7 +363,7 @@ function drawGridHorizontalLines(ctx: CanvasRenderingContext2D, canvasWidth: num
     ctx.stroke()
 }
 
-function drawGridVerticalLines(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number, offset: number, styleOptions: StyleOptions) {
+function drawYAxis(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number, offset: number, styleOptions: StyleOptions) {
     ctx.beginPath()
     Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions[k])
 
@@ -334,12 +373,9 @@ function drawGridVerticalLines(ctx: CanvasRenderingContext2D, canvasWidth: numbe
     ctx.stroke()
 }
 
-function drawXAxis(ctx: CanvasRenderingContext2D, count: number, canvasWidth: number, canvasHeight: number, offset: number, styleOptions: StyleOptions) {
+function drawGridHorizontalLines(ctx: CanvasRenderingContext2D, count: number, canvasWidth: number, canvasHeight: number, offset: number, styleOptions: StyleOptions) {
     ctx.beginPath()
     Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions[k])
-
-    ctx.moveTo(canvasWidth - offset, canvasHeight - offset)
-    ctx.lineTo(canvasWidth - offset, offset)
 
     let width = canvasWidth - (2 * offset)
     let segments = count - 2 + 1
@@ -351,7 +387,7 @@ function drawXAxis(ctx: CanvasRenderingContext2D, count: number, canvasWidth: nu
     ctx.stroke()
 }
 
-function drawYAxis(ctx: CanvasRenderingContext2D, count: number, canvasWidth: number, canvasHeight: number, offset: number, styleOptions: StyleOptions) {
+function drawGridVerticalLines(ctx: CanvasRenderingContext2D, count: number, canvasWidth: number, canvasHeight: number, offset: number, styleOptions: StyleOptions) {
     ctx.beginPath()
     Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions[k])
 
@@ -360,7 +396,7 @@ function drawYAxis(ctx: CanvasRenderingContext2D, count: number, canvasWidth: nu
 
     let height = canvasHeight - (2 * offset)
     let segments = count - 2 + 1
-    for (let i = 0; i < segments; i++) {
+    for (let i = 0; i < segments - 1; i++) {
         ctx.moveTo(offset, offset + ((i + 1) * height / segments))
         ctx.lineTo(canvasWidth - offset, offset + ((i + 1) * height / segments))
     }
