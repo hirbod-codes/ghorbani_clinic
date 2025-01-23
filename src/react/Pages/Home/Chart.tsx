@@ -29,6 +29,7 @@ export type ShapeProps = {
     ease?: EasingName
     styles?: StyleOptions
     animateStyles?: (ctx: CanvasRenderingContext2D, points: Point[], styleOptions: StyleOptions, fraction: number) => StyleOptions
+    draw?: (ctx: CanvasRenderingContext2D, points: Point[], styleOptions: StyleOptions, fraction: number) => void
 }
 
 export type ChartProps = {
@@ -96,19 +97,55 @@ export function Chart({
 
     if (!graph)
         graph = {}
-    graph.animateStyles = (ctx, points, styles, f) => {
-        let g = ctx.createLinearGradient(0, 0, canvasWidth * f, 0)
-        g.addColorStop(0, 'black')
-        g.addColorStop(1, 'red')
+    graph.draw = (ctx, points, styles, f) => {
+        let drawPoints = bezierCurve(ctx, points)
 
-        return {
-            strokeStyle: g
-        }
+        ctx.beginPath()
+        Object.keys(styles).forEach(k => ctx[k] = styles[k])
+        ctx.strokeStyle = chartBgColor
+
+        ctx.moveTo(drawPoints[0].x, drawPoints[0].y)
+        for (let i = 0; i < drawPoints.length * f; i++)
+            ctx.lineTo(drawPoints[i].x, drawPoints[i].y)
+
+        ctx.stroke()
+
+        ctx.beginPath()
+        ctx.strokeStyle = styles.strokeStyle ?? 'blue'
+
+        ctx.moveTo(drawPoints[0].x, drawPoints[0].y)
+        for (let i = 0; i < drawPoints.length * f; i++)
+            ctx.lineTo(drawPoints[i].x, drawPoints[i].y)
+
+
+        ctx.stroke()
     }
 
+    let oldT = 0
+    let passed = 0
+
+    let duration = 5000
+
     const animate = (ctx: CanvasRenderingContext2D, points: Point[], t: DOMHighResTimeStamp) => {
+        if (oldT === 0)
+            oldT = t
+        passed = t - oldT
+        let dx = (passed % duration) / duration
+
         ctx.clearRect(0, 0, canvasWidth, canvasHeight)
 
+        // xAxis?.draw
+        //     ? xAxis.draw(
+        //         ctx,
+        //         points,
+        //         {
+        //             strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
+        //             lineWidth: 2,
+        //             ...xAxis?.animateStyles ? xAxis.animateStyles(ctx, points, { ...xAxis.styles }, getEasingFunction(xAxis.ease ?? 'easeInSine')(dx)) : xAxis?.styles
+        //         },
+        //         getEasingFunction(xAxis.ease ?? 'easeInSine')(dx)
+        //     )
+        //     : 
         drawXAxis(
             ctx,
             canvasWidth,
@@ -117,7 +154,7 @@ export function Chart({
             {
                 strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
                 lineWidth: 2,
-                ...xAxis?.animateStyles ? xAxis.animateStyles(ctx, points, { ...xAxis.styles }, getEasingFunction(xAxis.ease ?? 'easeInSine')(t)) : xAxis?.styles
+                ...xAxis?.animateStyles ? xAxis.animateStyles(ctx, points, { ...xAxis.styles }, getEasingFunction(xAxis.ease ?? 'easeInSine')(dx)) : xAxis?.styles
             },
         )
 
@@ -129,7 +166,7 @@ export function Chart({
             {
                 strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
                 lineWidth: 2,
-                ...yAxis?.animateStyles ? yAxis.animateStyles(ctx, points, { ...yAxis.styles }, getEasingFunction(yAxis.ease ?? 'easeInSine')(t)) : yAxis?.styles
+                ...yAxis?.animateStyles ? yAxis.animateStyles(ctx, points, { ...yAxis.styles }, getEasingFunction(yAxis.ease ?? 'easeInSine')(dx)) : yAxis?.styles
             },
         )
 
@@ -142,7 +179,7 @@ export function Chart({
             {
                 strokeStyle: themeOptions.colors.outline[themeOptions.mode].main,
                 lineWidth: 0.5,
-                ...gridHorizontalLines?.animateStyles ? gridHorizontalLines.animateStyles(ctx, points, { ...gridHorizontalLines.styles }, getEasingFunction(gridHorizontalLines.ease ?? 'easeInSine')(t)) : gridHorizontalLines?.styles
+                ...gridHorizontalLines?.animateStyles ? gridHorizontalLines.animateStyles(ctx, points, { ...gridHorizontalLines.styles }, getEasingFunction(gridHorizontalLines.ease ?? 'easeInSine')(dx)) : gridHorizontalLines?.styles
             },
         )
 
@@ -155,7 +192,7 @@ export function Chart({
             {
                 strokeStyle: themeOptions.colors.outline[themeOptions.mode].main,
                 lineWidth: 0.5,
-                ...gridVerticalLines?.animateStyles ? gridVerticalLines.animateStyles(ctx, points, { ...gridVerticalLines.styles }, getEasingFunction(gridVerticalLines.ease ?? 'easeInSine')(t)) : gridVerticalLines?.styles
+                ...gridVerticalLines?.animateStyles ? gridVerticalLines.animateStyles(ctx, points, { ...gridVerticalLines.styles }, getEasingFunction(gridVerticalLines.ease ?? 'easeInSine')(dx)) : gridVerticalLines?.styles
             },
         )
 
@@ -166,25 +203,37 @@ export function Chart({
             chartOffset,
             {
                 fillStyle: 'transparent',
-                ...graphFill?.animateStyles ? graphFill.animateStyles(ctx, points, { ...graphFill.styles }, getEasingFunction(graphFill.ease ?? 'easeInSine')(t)) : graphFill?.styles
+                ...graphFill?.animateStyles ? graphFill.animateStyles(ctx, points, { ...graphFill.styles }, getEasingFunction(graphFill.ease ?? 'easeInSine')(dx)) : graphFill?.styles
             },
             graph?.f,
             graph?.tension
         )
 
-        drawGraph(
-            ctx,
-            points,
-            chartBgColor,
-            {
-                strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
-                lineWidth: 4,
-                lineCap: 'round',
-                ...graph?.animateStyles ? graph.animateStyles(ctx, points, { ...graph.styles }, getEasingFunction(graph.ease ?? 'easeInSine')(t)) : graph?.styles
-            },
-            graph?.f,
-            graph?.tension
-        )
+        graph?.draw
+            ? graph.draw(
+                ctx,
+                points,
+                {
+                    strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
+                    lineWidth: 4,
+                    lineCap: 'round',
+                    ...graph?.animateStyles ? graph.animateStyles(ctx, points, { ...graph.styles }, getEasingFunction(graph.ease ?? 'easeOutExpo')(dx)) : graph?.styles
+                },
+                getEasingFunction(graph.ease ?? 'easeOutExpo')(dx)
+            )
+            : drawGraph(
+                ctx,
+                points,
+                chartBgColor,
+                {
+                    strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
+                    lineWidth: 4,
+                    lineCap: 'round',
+                    ...graph?.animateStyles ? graph.animateStyles(ctx, points, { ...graph.styles }, getEasingFunction(graph.ease ?? 'easeOutExpo')(dx)) : graph?.styles
+                },
+                graph?.f,
+                graph?.tension
+            )
 
         hoverHelpers.current = createCircles(ctx, points, hoverRadius, 0, 'transparent', 'transparent')
 
@@ -296,10 +345,12 @@ function distribute(values: number[], range: number, mode: DistributionMode) {
     throw new Error('Invalid mode provided for distribute function in Chart component.')
 }
 
-function bezierCurve(ctx: CanvasRenderingContext2D, points: Point[], f = 0.3, t = 0.6) {
-    ctx.moveTo(points[0].x, points[0].y);
+function bezierCurve(ctx: CanvasRenderingContext2D, points: Point[], drawLine?: (from: Point, to: Point) => void, f = 0.3, t = 0.6): Point[] {
+    // ctx.moveTo(points[0].x, points[0].y);
 
     let m = 0, dx1 = 0, dy1 = 0, dx2 = 0, dy2 = 0, preP = points[0]
+
+    let drawnPoints = [points[0]]
 
     for (let i = 1; i < points.length; i++) {
         let curP = points[i], nexP = points[i + 1];
@@ -312,23 +363,62 @@ function bezierCurve(ctx: CanvasRenderingContext2D, points: Point[], f = 0.3, t 
             dy2 = 0;
         }
 
-        ctx.bezierCurveTo(
-            preP.x - dx1, preP.y - dy1,
-            curP.x + dx2, curP.y + dy2,
-            curP.x, curP.y
-        );
+        let ttt = drawCurve([
+            preP,
+            { x: preP.x - dx1, y: preP.y - dy1 },
+            { x: curP.x + dx2, y: curP.y + dy2 },
+            { x: curP.x, y: curP.y }
+        ], drawLine)
+
+        drawnPoints = drawnPoints.concat(ttt)
+
+        // ctx.bezierCurveTo(
+        //     preP.x - dx1, preP.y - dy1,
+        //     curP.x + dx2, curP.y + dy2,
+        //     curP.x, curP.y
+        // )
 
         dx1 = dx2;
         dy1 = dy2;
         preP = curP;
     }
+
+    return drawnPoints
+}
+
+function drawCurve(curve: [Point, Point, Point, Point], drawLine?: (from: Point, to: Point) => void): Point[] {
+    let prev = calcBezierAtT(curve, 0)
+    let points = [prev]
+    for (let t = 0; t <= 1.0; t += 0.01) {
+        const curr = calcBezierAtT(curve, t)
+
+        if (drawLine)
+            drawLine(prev, curr)
+
+        prev = curr
+        points.push(curr)
+    }
+
+    return points
+}
+
+function calcBezierAtT(p, t) {
+    const x = (1 - t) * (1 - t) * (1 - t) * p[0].x
+        + 3 * (1 - t) * (1 - t) * t * p[1].x
+        + 3 * (1 - t) * t * t * p[2].x
+        + t * t * t * p[3].x;
+    const y = (1 - t) * (1 - t) * (1 - t) * p[0].y
+        + 3 * (1 - t) * (1 - t) * t * p[1].y
+        + 3 * (1 - t) * t * t * p[2].y
+        + t * t * t * p[3].y;
+    return { x, y }
 }
 
 function drawGraphFill(ctx: CanvasRenderingContext2D, points: Point[], canvasHeight: number, offset: number, styleOptions: StyleOptions, f = 0.5, t = 0.1) {
     ctx.beginPath()
     Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions[k])
 
-    bezierCurve(ctx, points, f, t)
+    bezierCurve(ctx, points, undefined, f, t)
     ctx.lineTo(points[points.length - 1].x, canvasHeight - offset)
     ctx.lineTo(points[0].x, canvasHeight - offset)
     ctx.lineTo(points[0].x, points[0].y)
@@ -341,14 +431,14 @@ function drawGraph(ctx: CanvasRenderingContext2D, points: Point[], bgColor: stri
     Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions[k])
     ctx.strokeStyle = bgColor
 
-    bezierCurve(ctx, points, f, t)
+    bezierCurve(ctx, points, undefined, f, t)
 
     ctx.stroke()
 
     ctx.beginPath()
     ctx.strokeStyle = styleOptions.strokeStyle ?? 'blue'
 
-    bezierCurve(ctx, points, f, t)
+    bezierCurve(ctx, points, undefined, f, t)
 
     ctx.stroke()
 }
