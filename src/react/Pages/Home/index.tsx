@@ -6,8 +6,9 @@ import { Clock } from "../../Components/Clock";
 import { ChartArea, Chart as ChartJs } from 'chart.js/auto'
 import { ColorStatic } from "../../Lib/Colors/ColorStatic";
 import { Button } from "../../Components/Base/Button";
-import { Chart } from "./Chart";
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
+import { Chart } from "../../Components/Chart";
+import { LineChart } from "../../Components/Chart/LineChart";
 
 export const Home = memo(function Home() {
     console.log('Home')
@@ -34,14 +35,36 @@ export const Home = memo(function Home() {
                 <div className="sm:col-span-12 md:col-span-4 col-span-12">
                     <Chart2 />
                     {/* <Chart x={[85, 85, 80, 85, 56, 55, 40, 50]} y={[85, 85, 80, 85, 56, 55, 40, 50]} /> */}
-                    <div className="absolute top-0 left-0 bg-surface-bright z-50">
+                    <div className="absolute top-0 left-0 bg-surface-bright z-50 size-[800px]">
                         <Chart
-                            x={[0, 1, 2, 3, 4, 5, 6, 7]}
-                            y={[85, 85, 80, 85, 56, 55, 40, 50]}
-                            // chartBgColor={'white'}
-                            chartBgColor={themeOptions.colors.surface[themeOptions.mode].main}
-                            canvasHeight={500}
-                            canvasWidth={1000}
+                            shapes={[
+                                new LineChart({
+                                    x: [0, 1, 2, 3, 4, 5, 6, 7],
+                                    y: [85, 85, 80, 85, 56, 55, 40, 50],
+                                    chartOptions: {
+                                        hoverNode: 'aaaaaaaaaa',
+                                        hoverHeight: 100,
+                                        hoverWidth: 200,
+                                        hoverRadius: 20
+                                    },
+                                    fillOptions: {
+                                        styles: {
+                                            fillStyle: 'transparent',
+                                            lineWidth: 4,
+                                            strokeStyle: 'red'
+                                        }
+                                    },
+                                    strokeOptions: {
+                                        styles: {
+                                            strokeStyle: '#00ff0080',
+                                            lineWidth: 4,
+                                            lineCap: 'round'
+                                        },
+                                        ease: 'easeOutExpo'
+                                    },
+                                    animationDuration: 5000
+                                })
+                            ]}
                         />
                     </div>
                 </div>

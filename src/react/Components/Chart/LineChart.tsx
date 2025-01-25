@@ -45,7 +45,7 @@ export class LineChart {
 
         this.rawX = [...options.x]
         this.rawY = [...options.y]
-        this.setDistributedPoints(options.x, options.y, options.chartOptions.width, options.chartOptions.height, options.chartOptions.offset)
+        this.setDistributedPoints(options.x, options.y, options.chartOptions.width!, options.chartOptions.height!, options.chartOptions.offset!)
         this.xLabels = options.xLabels
         this.yLabels = options.yLabels
         this.chartOptions = options.chartOptions
@@ -56,7 +56,7 @@ export class LineChart {
 
     setChartOptions(chartOptions: ChartOptions) {
         this.chartOptions = chartOptions
-        this.setDistributedPoints(this.rawX, this.rawY, chartOptions.width, chartOptions.height, chartOptions.offset)
+        this.setDistributedPoints(this.rawX, this.rawY, chartOptions.width!, chartOptions.height!, chartOptions.offset!)
     }
 
     getChartOptions() {
@@ -118,8 +118,8 @@ export class LineChart {
 
         ctx.stroke()
 
-        ctx.lineTo(this.points[this.points.length - 1].x, this.chartOptions.height - this.chartOptions.offset)
-        ctx.lineTo(this.points[0].x, this.chartOptions.height - this.chartOptions.offset)
+        ctx.lineTo(this.points[this.points.length - 1].x, this.chartOptions.height! - this.chartOptions.offset!)
+        ctx.lineTo(this.points[0].x, this.chartOptions.height! - this.chartOptions.offset!)
         ctx.lineTo(this.points[0].x, this.points[0].y)
 
         ctx.fill()

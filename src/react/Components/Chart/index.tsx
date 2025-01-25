@@ -124,7 +124,7 @@ export function Chart({
                 gridHorizontalLines?.count ?? 5,
                 canvasWidth,
                 canvasHeight,
-                chartOptions.offset,
+                chartOptions.offset ?? 30,
                 gridHorizontalLines.styles,
                 gridHorizontalLinesFraction,
                 animationDuration
@@ -149,7 +149,7 @@ export function Chart({
                 gridVerticalLines?.count ?? 5,
                 canvasWidth,
                 canvasHeight,
-                chartOptions.offset,
+                chartOptions.offset ?? 30,
                 gridVerticalLines.styles,
                 gridVerticalLinesFraction,
                 animationDuration
@@ -175,7 +175,7 @@ export function Chart({
                 ctx,
                 canvasWidth,
                 canvasHeight,
-                chartOptions.offset,
+                chartOptions.offset ?? 30,
                 xAxis.styles,
                 xAxisFraction,
                 animationDuration
@@ -201,7 +201,7 @@ export function Chart({
                 ctx,
                 canvasWidth,
                 canvasHeight,
-                chartOptions.offset,
+                chartOptions.offset ?? 30,
                 yAxis.styles,
                 yAxisFraction,
                 animationDuration
@@ -218,7 +218,7 @@ export function Chart({
     const containerRef = useRef<HTMLDivElement>(null)
     const canvasWidth = useRef<number>()
     const canvasHeight = useRef<number>()
-    const hover = useRef<{ open: boolean, top?: number, left?: number }>({ open: false })
+    const hover = useRef<{ i?: number, open: boolean, top?: number, left?: number }>({ open: false })
 
     useEffect(() => {
         if (canvasRef.current && containerRef.current && !isDrawn.current) {
@@ -249,16 +249,19 @@ export function Chart({
             let p = shapes[i].isPointHovering({ x: e.clientX, y: e.clientY })
             if (p !== undefined) {
                 hover.current = {
+                    i,
                     open: true,
                     top: p.y,
                     left: p.x,
                 }
-            } else
+            } else if (hover.current.i === i)
                 hover.current = {
+                    i: undefined,
                     open: true,
                     top: undefined,
                     left: undefined,
                 }
+            console.log(hover.current, { x: e.clientX, y: e.clientY })
         }
     }
 
@@ -268,7 +271,7 @@ export function Chart({
                 ref={canvasRef}
                 className="border-4 border-blue-500 size-full"
                 style={{ backgroundColor: chartOptions.bgColor }}
-                onPointerOver={onPointerOver}
+                onPointerMove={onPointerOver}
             />
 
             {shapes.map((s, i) =>

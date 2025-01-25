@@ -4,11 +4,11 @@ import { Point } from "../../Lib/Math"
 
 export type ChartOptions = {
     bgColor?: string
-    width: number
-    height: number
-    offset: number
-    xAxisOffset: number
-    yAxisOffset: number
+    width?: number
+    height?: number
+    offset?: number
+    xAxisOffset?: number
+    yAxisOffset?: number
     hoverNode?: ReactNode
     hoverRadius?: number
     hoverWidth?: number
