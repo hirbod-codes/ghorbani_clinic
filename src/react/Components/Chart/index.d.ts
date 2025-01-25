@@ -1,0 +1,39 @@
+import { ReactNode } from "react"
+import { EasingName } from "../Animations/easings"
+import { Point } from "../../Lib/Math"
+
+export type ChartOptions = {
+    bgColor?: string
+    width: number
+    height: number
+    offset: number
+    xAxisOffset: number
+    yAxisOffset: number
+    hoverNode?: ReactNode
+    hoverRadius?: number
+}
+
+export type CanvasStyleOptions = {
+    strokeStyle?: string | CanvasGradient | CanvasPattern
+    fillStyle?: string | CanvasGradient | CanvasPattern
+    lineWidth?: number
+    lineJoin?: CanvasLineJoin
+    lineCap?: CanvasLineCap
+    lineDashOffset?: number
+    miterLimit?: number
+    shadowBlur?: number
+    shadowColor?: string
+    shadowOffsetX?: number
+    shadowOffsetY?: number
+    textAlign?: CanvasTextAlign
+    textBaseline?: CanvasTextBaseline
+    textRendering?: CanvasTextRendering
+    wordSpacing?: string
+}
+
+export type DrawOptions = {
+    ease?: EasingName
+    animateStyles?: (ctx: CanvasRenderingContext2D, points: Point[], styleOptions?: CanvasStyleOptions, chartOptions?: ChartOptions, fraction?: number) => CanvasStyleOptions
+    styles?: CanvasStyleOptions
+    animateDraw?: (ctx: CanvasRenderingContext2D, points: Point[], styleOptions?: CanvasStyleOptions, chartOptions?: ChartOptions, fraction?: number) => void
+}
