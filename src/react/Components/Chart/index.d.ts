@@ -11,6 +11,8 @@ export type ChartOptions = {
     yAxisOffset: number
     hoverNode?: ReactNode
     hoverRadius?: number
+    hoverWidth?: number
+    hoverHeight?: number
 }
 
 export type CanvasStyleOptions = {

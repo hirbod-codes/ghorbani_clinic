@@ -1,9 +1,10 @@
-import { useContext, useEffect, useRef } from "react"
+import { PointerEvent, useContext, useEffect, useRef } from "react"
 import { Point } from "../../Lib/Math"
 import { getEasingFunction } from "../../Components/Animations/easings"
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext"
 import { DrawOptions, ChartOptions, CanvasStyleOptions } from "./index.d"
 import { LineChart } from "../../Components/Chart/LineChart"
+import { DropdownMenu } from "../Base/DropdownMenu"
 
 function drawXAxis(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number, offset: number, styleOptions: CanvasStyleOptions, fraction: number, animationDuration: number) {
     ctx.beginPath()
@@ -217,6 +218,7 @@ export function Chart({
     const containerRef = useRef<HTMLDivElement>(null)
     const canvasWidth = useRef<number>()
     const canvasHeight = useRef<number>()
+    const hover = useRef<{ open: boolean, top?: number, left?: number }>({ open: false })
 
     useEffect(() => {
         if (canvasRef.current && containerRef.current && !isDrawn.current) {
@@ -236,22 +238,28 @@ export function Chart({
             canvasRef.current.height = rect.height * scale
             ctx.current.scale(scale, scale)
 
-            shapes.forEach(s => s.setChartOptions({ ...chartOptions, width: rect.width, height: rect.height }))
+            shapes.forEach(s => s.setChartOptions({ ...chartOptions, ...s.getChartOptions(), width: rect.width, height: rect.height }))
 
             animationId.current = requestAnimationFrame((t) => animate(ctx.current!, points.current!, canvasWidth.current!, canvasHeight.current!, t))
         }
     }, [])
 
-    function onPointerOver(e) {
-        // if (!hoverNode || !points.current || !hoverHelpers.current || !ctx.current)
-        //     return
-
-        // for (let i = 0; i < points.current.length; i++)
-        //     if (hoverHelpers.current[i].isInside(ctx.current, points.current[i])) {
-        //         hoveringPoint.current = points.current[i]
-        //         break;
-        //     } else
-        //         hoveringPoint.current = undefined
+    function onPointerOver(e: PointerEvent) {
+        for (let i = 0; i < shapes.length; i++) {
+            let p = shapes[i].isPointHovering({ x: e.clientX, y: e.clientY })
+            if (p !== undefined) {
+                hover.current = {
+                    open: true,
+                    top: p.y,
+                    left: p.x,
+                }
+            } else
+                hover.current = {
+                    open: true,
+                    top: undefined,
+                    left: undefined,
+                }
+        }
     }
 
     return (
@@ -262,6 +270,21 @@ export function Chart({
                 style={{ backgroundColor: chartOptions.bgColor }}
                 onPointerOver={onPointerOver}
             />
+
+            {shapes.map((s, i) =>
+                <DropdownMenu
+                    key={i}
+                    open={hover.current.open}
+                    anchorDomRect={{
+                        width: s.getChartOptions().hoverWidth,
+                        height: s.getChartOptions().hoverHeight,
+                        top: hover.current.top ?? 0,
+                        left: hover.current.left ?? 0,
+                    }}
+                >
+                    {s.getChartOptions().hoverNode}
+                </DropdownMenu>
+            )}
         </div>
     )
 }

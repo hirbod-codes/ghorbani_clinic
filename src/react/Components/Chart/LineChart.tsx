@@ -9,8 +9,10 @@ function createCircles(ctx: CanvasRenderingContext2D, points: Point[], radius: n
 }
 
 export class LineChart {
-    private x: number[]
-    private y: number[]
+    rawX: number[]
+    rawY: number[]
+    x: number[]
+    y: number[]
     private points: Point[]
     private xLabels?: ReactNode[]
     private yLabels?: ReactNode[]
@@ -41,9 +43,9 @@ export class LineChart {
                 hoverRadius: 20,
             }
 
-        this.x = options.x
-        this.y = options.y
-        this.points = this.getDistributedPoints(options.x, options.y, options.chartOptions.width, options.chartOptions.height, options.chartOptions.offset)
+        this.rawX = [...options.x]
+        this.rawY = [...options.y]
+        this.setDistributedPoints(options.x, options.y, options.chartOptions.width, options.chartOptions.height, options.chartOptions.offset)
         this.xLabels = options.xLabels
         this.yLabels = options.yLabels
         this.chartOptions = options.chartOptions
@@ -54,7 +56,11 @@ export class LineChart {
 
     setChartOptions(chartOptions: ChartOptions) {
         this.chartOptions = chartOptions
-        this.points = this.getDistributedPoints(this.x, this.y, chartOptions.width, chartOptions.height, chartOptions.offset)
+        this.setDistributedPoints(this.x, this.y, chartOptions.width, chartOptions.height, chartOptions.offset)
+    }
+
+    getChartOptions() {
+        return this.chartOptions
     }
 
     stroke(ctx: CanvasRenderingContext2D, t = 1) {
@@ -119,13 +125,31 @@ export class LineChart {
         ctx.fill()
     }
 
-    private getDistributedPoints(x: number[], y: number[], width: number, height: number, offset: number) {
-        let xs = this.distribute(x, width - 2 * offset).map(v => v + offset).map(v => ({ x: v }))
-        let ys = this.distribute(y, width - 2 * offset)
-            .map(v => height - (offset * 2) - v)
-            .map(v => v + offset).map(v => ({ y: v }))
+    isPointHovering(p: Point, callback?: (p: Point) => void): Point | undefined {
+        if (!this.chartOptions.hoverNode || !this.chartOptions.hoverRadius)
+            return undefined
 
-        return xs.map((v, i) => ({ x: v.x, y: ys[i].y }))
+        let r = this.chartOptions.hoverRadius!
+
+        for (let i = 0; i < this.x.length; i++)
+            if (
+                p.x <= this.x[i] + r &&
+                p.x >= this.x[i] - r &&
+                p.y <= this.y[i] + r &&
+                p.y >= this.y[i] - r
+            )
+                return p
+
+        return undefined
+    }
+
+    private setDistributedPoints(x: number[], y: number[], width: number, height: number, offset: number) {
+        this.x = this.distribute(x, width - 2 * offset).map(v => v + offset)
+        this.y = this.distribute(y, height - 2 * offset)
+            .map(v => height - (offset * 2) - v)
+            .map(v => v + offset)
+
+        this.points = this.x.map((v, i) => ({ x: v, y: this.y[i] }))
     }
 
     private distribute(values: number[], range: number) {
