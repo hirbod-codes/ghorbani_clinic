@@ -44,7 +44,9 @@ export type DrawOptions = {
     animateDraw?: (ctx: CanvasRenderingContext2D, points: Point[], styleOptions?: CanvasStyleOptions, chartOptions?: ChartOptions, fraction?: number) => void
 }
 
-class Shape {
+export class Line {
+    private x: number[]
+    private y: number[]
     private points: Point[]
     private xLabels?: ReactNode[]
     private yLabels?: ReactNode[]
@@ -52,7 +54,6 @@ class Shape {
     private animationDuration?: number
     private fillOptions: DrawOptions
     private strokeOptions: DrawOptions
-    private animationHandleId: number
     private stop = false
 
     constructor(
@@ -75,12 +76,9 @@ class Shape {
                 hoverRadius: 20,
             }
 
-        let xs = this.distribute(x, chartOptions.width - 2 * chartOptions.offset).map(v => v + chartOptions.offset).map(v => ({ x: v }))
-        let ys = this.distribute(y, chartOptions.width - 2 * chartOptions.offset)
-            .map(v => chartOptions.height - (chartOptions.offset * 2) - v)
-            .map(v => v + chartOptions.offset).map(v => ({ y: v }))
-
-        this.points = xs.map((v, i) => ({ x: v.x, y: ys[i].y }))
+        this.x = x
+        this.y = y
+        this.points = this.getDistributedPoints(x, y, chartOptions.width, chartOptions.height, chartOptions.offset)
         this.xLabels = xLabels
         this.yLabels = yLabels
         this.chartOptions = chartOptions
@@ -91,32 +89,10 @@ class Shape {
 
     setChartOptions(chartOptions: ChartOptions) {
         this.chartOptions = chartOptions
+        this.points = this.getDistributedPoints(this.x, this.y, chartOptions.width, chartOptions.height, chartOptions.offset)
     }
 
-    play(ctx: CanvasRenderingContext2D) {
-        this.stop = false
-        this.animationHandleId = requestAnimationFrame(t => this.animate(ctx, t))
-    }
-
-    pause() {
-        this.stop = true
-    }
-
-    animate(ctx: CanvasRenderingContext2D, t: DOMHighResTimeStamp) {
-        this.animateStroke(ctx, t)
-        this.animateFill(ctx, t)
-
-        if (this.stop && this.animationHandleId)
-            cancelAnimationFrame(this.animationHandleId)
-        else
-            requestAnimationFrame(t => this.animate(ctx, t))
-    }
-
-    stroke(ctx: CanvasRenderingContext2D) {
-        return this.animateStroke(ctx, 1)
-    }
-
-    animateStroke(ctx: CanvasRenderingContext2D, t: DOMHighResTimeStamp) {
+    stroke(ctx: CanvasRenderingContext2D, t = 1) {
         if (this.strokeOptions.animateStyles)
             this.strokeOptions.animateStyles(ctx, this.points, this.strokeOptions.styles, this.chartOptions, t)
 
@@ -137,17 +113,15 @@ class Shape {
         ctx.strokeStyle = this.strokeOptions.styles.strokeStyle ?? 'blue'
 
         ctx.moveTo(drawPoints[0].x, drawPoints[0].y)
-        for (let i = 1; i < drawPoints.length * t; i++)
-            ctx.lineTo(drawPoints[i].x, drawPoints[i].y)
+        let count = drawPoints.length * t
+        for (let i = 1; i < count; i++)
+            if (drawPoints[i] || drawPoints[i]?.x || drawPoints[i]?.y)
+                ctx.lineTo(drawPoints[i].x, drawPoints[i].y)
 
         ctx.stroke()
     }
 
-    fill(ctx: CanvasRenderingContext2D) {
-        return this.animateFill(ctx, 1)
-    }
-
-    animateFill(ctx: CanvasRenderingContext2D, t: DOMHighResTimeStamp) {
+    fill(ctx: CanvasRenderingContext2D, t = 1) {
         if (this.fillOptions.animateStyles)
             this.fillOptions.animateStyles(ctx, this.points, this.fillOptions.styles, this.chartOptions, t)
 
@@ -180,7 +154,16 @@ class Shape {
         ctx.fill()
     }
 
-    distribute(values: number[], range: number) {
+    private getDistributedPoints(x: number[], y: number[], width: number, height: number, offset: number) {
+        let xs = this.distribute(x, width - 2 * offset).map(v => v + offset).map(v => ({ x: v }))
+        let ys = this.distribute(y, width - 2 * offset)
+            .map(v => height - (offset * 2) - v)
+            .map(v => v + offset).map(v => ({ y: v }))
+
+        return xs.map((v, i) => ({ x: v.x, y: ys[i].y }))
+    }
+
+    private distribute(values: number[], range: number) {
         const valuesMax = values.reduce((p, c, i) => c > p ? c : p, values[0])
         const valuesMin = values.reduce((p, c, i) => c < p ? c : p, values[0])
 
@@ -231,7 +214,7 @@ class Shape {
 
 export type ChartProps = {
     chartOptions?: ChartOptions
-    shapes?: Shape[]
+    shapes?: Line[]
     // chartBgColor: string
     // canvasWidth?: number
     // canvasHeight?: number
@@ -291,11 +274,11 @@ export function Chart({
     const ctx = useRef<CanvasRenderingContext2D>()
 
     const points = useRef<Point[]>()
-    const xLabelPositions = useRef<Point[]>()
-    const yLabelPositions = useRef<Point[]>()
+    // const xLabelPositions = useRef<Point[]>()
+    // const yLabelPositions = useRef<Point[]>()
 
-    const hoverHelpers = useRef<Circle[]>()
-    const hoveringPoint = useRef<Point>()
+    // const hoverHelpers = useRef<Circle[]>()
+    // const hoveringPoint = useRef<Point>()
 
     const animationId = useRef<number>()
 
@@ -469,7 +452,12 @@ export function Chart({
                 animationDuration
             )
 
-        hoverHelpers.current = createCircles(ctx, points, chartOptions.hoverRadius ?? 5, 0, 'transparent', 'transparent')
+        shapes.forEach(s => {
+            s.stroke(ctx, t)
+            s.fill(ctx, t)
+        })
+
+        // hoverHelpers.current = createCircles(ctx, points, chartOptions.hoverRadius ?? 5, 0, 'transparent', 'transparent')
 
         animationId.current = requestAnimationFrame((t) => animate(ctx, points, canvasWidth, canvasHeight, t))
     }
@@ -488,20 +476,17 @@ export function Chart({
 
             ctx.current = canvasRef.current.getContext('2d')!
 
-            canvasRef.current.style.width = rect.width + "px";
-            canvasRef.current.style.height = rect.height + "px";
+            canvasRef.current.style.width = rect.width + "px"
+            canvasRef.current.style.height = rect.height + "px"
 
             let scale = window.devicePixelRatio
             canvasRef.current.width = rect.width * scale
             canvasRef.current.height = rect.height * scale
-            ctx.current.scale(scale, scale);
+            ctx.current.scale(scale, scale)
+
+            shapes.forEach(s => s.setChartOptions({ ...chartOptions, width: rect.width, height: rect.height }))
 
             animationId.current = requestAnimationFrame((t) => animate(ctx.current!, points.current!, canvasWidth.current!, canvasHeight.current!, t))
-
-            shapes.forEach(s => {
-                s.setChartOptions({ ...chartOptions, width: rect.width, height: rect.height })
-                s.play(ctx.current!)
-            })
         }
     }, [])
 
