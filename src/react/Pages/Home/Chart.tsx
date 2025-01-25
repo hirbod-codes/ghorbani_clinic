@@ -75,12 +75,12 @@ export function Chart({
     xDistributionMode = 'absolute',
     yDistributionMode = 'absolute',
     animationDuration = 5000,
-    graphFill,
-    graph,
-    gridHorizontalLines,
-    gridVerticalLines,
-    xAxis,
-    yAxis,
+    graphFill = {},
+    graph = {},
+    gridHorizontalLines = {},
+    gridVerticalLines = {},
+    xAxis = {},
+    yAxis = {},
 }: ChartProps) {
     const themeOptions = useContext(ConfigurationContext)!.themeOptions
 
@@ -109,146 +109,151 @@ export function Chart({
 
         ctx.clearRect(0, 0, canvasWidth, canvasHeight)
 
-        // xAxis?.draw
-        //     ? xAxis.draw(
-        //         ctx,
-        //         points,
-        //         {
-        //             strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
-        //             lineWidth: 2,
-        //             ...xAxis?.animateStyles ? xAxis.animateStyles(ctx, points, { ...xAxis.styles }, getEasingFunction(xAxis.ease ?? 'easeInSine')(dx)) : xAxis?.styles
-        //         },
-        //         getEasingFunction(xAxis.ease ?? 'easeInSine')(dx)
-        //     )
-        //     : drawXAxis(
-        //         ctx,
-        //         canvasWidth,
-        //         canvasHeight,
-        //         chartOffset,
-        //         {
-        //             strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
-        //             lineWidth: 2,
-        //             ...xAxis?.animateStyles ? xAxis.animateStyles(ctx, points, { ...xAxis.styles }, getEasingFunction(xAxis.ease ?? 'easeInSine')(dx)) : xAxis?.styles
-        //         },
-        //     )
+        let xAxisFraction = getEasingFunction(xAxis.ease ?? 'easeInSine')(dx)
+        xAxis.styles =
+        {
+            strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
+            lineWidth: 2,
+            ...xAxis?.animateStyles ? xAxis.animateStyles(ctx, points, { ...xAxis.styles }, xAxisFraction) : xAxis?.styles
+        }
+        xAxis?.draw
+            ? xAxis.draw(
+                ctx,
+                points,
+                xAxis.styles,
+                xAxisFraction
+            )
+            : drawXAxis(
+                ctx,
+                canvasWidth,
+                canvasHeight,
+                chartOffset,
+                xAxis.styles,
+                xAxisFraction,
+                animationDuration
+            )
 
-        // yAxis?.draw
-        //     ? yAxis.draw(
-        //         ctx,
-        //         points,
-        //         {
-        //             fillStyle: 'transparent',
-        //             ...yAxis?.animateStyles ? yAxis.animateStyles(ctx, points, { ...yAxis.styles }, getEasingFunction(yAxis.ease ?? 'easeInSine')(dx)) : yAxis?.styles
-        //         },
-        //         getEasingFunction(yAxis.ease ?? 'easeInSine')(dx)
-        //     )
-        //     : drawYAxis(
-        //         ctx,
-        //         canvasWidth,
-        //         canvasHeight,
-        //         chartOffset,
-        //         {
-        //             strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
-        //             lineWidth: 2,
-        //             ...yAxis?.animateStyles ? yAxis.animateStyles(ctx, points, { ...yAxis.styles }, getEasingFunction(yAxis.ease ?? 'easeInSine')(dx)) : yAxis?.styles
-        //         },
-        //     )
+        let yAxisFraction = getEasingFunction(yAxis.ease ?? 'easeInSine')(dx)
+        yAxis.styles =
+        {
+            strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
+            lineWidth: 2,
+            ...yAxis?.animateStyles ? yAxis.animateStyles(ctx, points, { ...yAxis.styles }, yAxisFraction) : yAxis?.styles
+        }
+        yAxis?.draw
+            ? yAxis.draw(
+                ctx,
+                points,
+                yAxis.styles,
+                yAxisFraction
+            )
+            : drawYAxis(
+                ctx,
+                canvasWidth,
+                canvasHeight,
+                chartOffset,
+                yAxis.styles,
+                yAxisFraction,
+                animationDuration
+            )
 
-        // gridHorizontalLines?.draw
-        //     ? gridHorizontalLines.draw(
-        //         ctx,
-        //         points,
-        //         {
-        //             fillStyle: 'transparent',
-        //             ...gridHorizontalLines?.animateStyles ? gridHorizontalLines.animateStyles(ctx, points, { ...gridHorizontalLines.styles }, getEasingFunction(gridHorizontalLines.ease ?? 'easeInSine')(dx)) : gridHorizontalLines?.styles
-        //         },
-        //         getEasingFunction(gridHorizontalLines.ease ?? 'easeInSine')(dx)
-        //     )
-        //     : drawGridHorizontalLines(
-        //         ctx,
-        //         gridHorizontalLines?.count ?? x.length,
-        //         canvasWidth,
-        //         canvasHeight,
-        //         chartOffset,
-        //         {
-        //             strokeStyle: themeOptions.colors.outline[themeOptions.mode].main,
-        //             lineWidth: 0.5,
-        //             ...gridHorizontalLines?.animateStyles ? gridHorizontalLines.animateStyles(ctx, points, { ...gridHorizontalLines.styles }, getEasingFunction(gridHorizontalLines.ease ?? 'easeInSine')(dx)) : gridHorizontalLines?.styles
-        //         },
-        //     )
+        let gridHorizontalLinesFraction = getEasingFunction(gridHorizontalLines.ease ?? 'easeInSine')(dx)
+        gridHorizontalLines.styles = {
+            strokeStyle: themeOptions.colors.outline[themeOptions.mode].main,
+            lineWidth: 0.5,
+            ...gridHorizontalLines?.animateStyles ? gridHorizontalLines.animateStyles(ctx, points, { ...gridHorizontalLines.styles }, gridHorizontalLinesFraction) : gridHorizontalLines?.styles
+        }
+        gridHorizontalLines?.draw
+            ? gridHorizontalLines.draw(
+                ctx,
+                points,
+                gridHorizontalLines.styles,
+                gridHorizontalLinesFraction
+            )
+            : drawGridHorizontalLines(
+                ctx,
+                gridHorizontalLines?.count ?? x.length,
+                canvasWidth,
+                canvasHeight,
+                chartOffset,
+                gridHorizontalLines.styles,
+                gridHorizontalLinesFraction,
+                animationDuration
+            )
 
-        // gridVerticalLines?.draw
-        //     ? gridVerticalLines.draw(
-        //         ctx,
-        //         points,
-        //         {
-        //             fillStyle: 'transparent',
-        //             ...gridVerticalLines?.animateStyles ? gridVerticalLines.animateStyles(ctx, points, { ...gridVerticalLines.styles }, getEasingFunction(gridVerticalLines.ease ?? 'easeInSine')(dx)) : gridVerticalLines?.styles
-        //         },
-        //         getEasingFunction(gridVerticalLines.ease ?? 'easeInSine')(dx)
-        //     )
-        //     : drawGridVerticalLines(
-        //         ctx,
-        //         gridVerticalLines?.count ?? x.length,
-        //         canvasWidth,
-        //         canvasHeight,
-        //         chartOffset,
-        //         {
-        //             strokeStyle: themeOptions.colors.outline[themeOptions.mode].main,
-        //             lineWidth: 0.5,
-        //             ...gridVerticalLines?.animateStyles ? gridVerticalLines.animateStyles(ctx, points, { ...gridVerticalLines.styles }, getEasingFunction(gridVerticalLines.ease ?? 'easeInSine')(dx)) : gridVerticalLines?.styles
-        //         },
-        //     )
+        let gridVerticalLinesFraction = getEasingFunction(gridVerticalLines.ease ?? 'easeInSine')(dx)
+        gridVerticalLines.styles = {
+            strokeStyle: themeOptions.colors.outline[themeOptions.mode].main,
+            lineWidth: 0.5,
+            ...gridVerticalLines?.animateStyles ? gridVerticalLines.animateStyles(ctx, points, { ...gridVerticalLines.styles }, gridVerticalLinesFraction) : gridVerticalLines?.styles
+        }
+        gridVerticalLines?.draw
+            ? gridVerticalLines.draw(
+                ctx,
+                points,
+                gridVerticalLines.styles,
+                gridVerticalLinesFraction
+            )
+            : drawGridVerticalLines(
+                ctx,
+                gridVerticalLines?.count ?? x.length,
+                canvasWidth,
+                canvasHeight,
+                chartOffset,
+                gridVerticalLines.styles,
+                gridVerticalLinesFraction,
+                animationDuration
+            )
 
-        // graphFill?.draw
-        //     ? graphFill.draw(
-        //         ctx,
-        //         points,
-        //         {
-        //             fillStyle: 'transparent',
-        //             ...graphFill?.animateStyles ? graphFill.animateStyles(ctx, points, { ...graphFill.styles }, getEasingFunction(graphFill.ease ?? 'easeInSine')(dx)) : graphFill?.styles
-        //         },
-        //         getEasingFunction(graphFill.ease ?? 'easeInSine')(dx)
-        //     )
-        //     : drawGraphFill(
-        //         ctx,
-        //         points,
-        //         canvasHeight,
-        //         chartOffset,
-        //         {
-        //             fillStyle: 'transparent',
-        //             ...graphFill?.animateStyles ? graphFill.animateStyles(ctx, points, { ...graphFill.styles }, getEasingFunction(graphFill.ease ?? 'easeInSine')(dx)) : graphFill?.styles
-        //         },
-        //     )
+        let graphFillFraction = getEasingFunction(graphFill.ease ?? 'easeInSine')(dx)
+        getEasingFunction(graphFill.ease ?? 'easeInSine')(dx)
+        graphFill.styles = {
+            fillStyle: 'transparent',
+            ...graphFill?.animateStyles ? graphFill.animateStyles(ctx, points, { ...graphFill.styles }, graphFillFraction) : graphFill?.styles
+        }
+        graphFill?.draw
+            ? graphFill.draw(
+                ctx,
+                points,
+                graphFill.styles,
+                graphFillFraction
+            )
+            : drawGraphFill(
+                ctx,
+                points,
+                canvasHeight,
+                chartOffset,
+                graphFill.styles,
+                graphFillFraction,
+                animationDuration
+            )
 
+        let graphFraction = getEasingFunction(graph?.ease ?? 'easeOutExpo')(dx)
+        if (!graph)
+            graph = {}
+        graph.styles = {
+            strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
+            lineWidth: 4,
+            lineCap: 'round',
+            ...graph?.animateStyles ? graph.animateStyles(ctx, points, { ...graph.styles }, graphFraction) : graph?.styles
+        }
         graph?.draw
             ? graph.draw(
                 ctx,
                 points,
-                {
-                    strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
-                    lineWidth: 4,
-                    lineCap: 'round',
-                    ...graph?.animateStyles ? graph.animateStyles(ctx, points, { ...graph.styles }, getEasingFunction(graph?.ease ?? 'easeOutExpo')(dx)) : graph?.styles
-                },
-                getEasingFunction(graph?.ease ?? 'easeOutExpo')(dx)
+                graph.styles,
+                graphFraction
             )
             : drawGraph(
                 ctx,
                 points,
-                animationDuration,
                 chartBgColor,
-                {
-                    strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
-                    lineWidth: 4,
-                    lineCap: 'round',
-                    ...graph?.animateStyles ? graph.animateStyles(ctx, points, { ...graph.styles }, getEasingFunction(graph?.ease ?? 'easeOutExpo')(dx)) : graph?.styles
-                },
-                getEasingFunction(graph?.ease ?? 'easeOutExpo')(dx),
+                graph.styles,
+                graphFraction,
                 animationDuration
             )
 
-        // hoverHelpers.current = createCircles(ctx, points, hoverRadius, 0, 'transparent', 'transparent')
+        hoverHelpers.current = createCircles(ctx, points, hoverRadius, 0, 'transparent', 'transparent')
 
         animationId.current = requestAnimationFrame((t) => animate(ctx, points, t))
     }
@@ -358,25 +363,27 @@ function distribute(values: number[], range: number, mode: DistributionMode) {
     throw new Error('Invalid mode provided for distribute function in Chart component.')
 }
 
-function bezierCurve(ctx: CanvasRenderingContext2D, points: Point[], animationDuration: undefined, drawLine?: (from: Point, to: Point) => void): Bezier[]
-function bezierCurve(ctx: CanvasRenderingContext2D, points: Point[], animationDuration: number, drawLine?: (from: Point, to: Point) => void): Point[]
-// TO DO: deal with drawLine argument
-function bezierCurve(ctx: CanvasRenderingContext2D, points: Point[], animationDuration?: number, drawLine?: (from: Point, to: Point) => void): Point[] | Bezier[] {
+function bezierCurve(ctx: CanvasRenderingContext2D, dataPoints: Point[], animationDuration: undefined, drawLine?: (curve: Bezier) => void): Bezier[]
+function bezierCurve(ctx: CanvasRenderingContext2D, dataPoints: Point[], animationDuration: number, drawLine?: (curve: Bezier) => void): Point[]
+function bezierCurve(ctx: CanvasRenderingContext2D, dataPoints: Point[], animationDuration?: number, drawLine?: (curve: Bezier, pointIndex: number) => void): Point[] | Bezier[] {
     let length: number = 0
     let curves: Bezier[] = []
-    for (let i = 0; i <= points.length - 2; i++) {
-        let p = points[i]
-        let np = points[i + 1]
+    for (let i = 0; i <= dataPoints.length - 2; i++) {
+        let p = dataPoints[i]
+        let np = dataPoints[i + 1]
         let cp1 = { x: p.x + ((np.x - p.x) / 2), y: p.y }
         let cp2 = { x: np.x - ((np.x - p.x) / 2), y: np.y }
 
         let curve = new Bezier(p, cp1, cp2, np)
         length += curve.length()
         curves.push(curve)
+
+        if (drawLine)
+            drawLine(curve, i)
     }
 
     if (animationDuration !== undefined) {
-        let pointCount = animationDuration * 60
+        let pointCount = animationDuration * 0.06 // FPS
         return curves.reduce<Point[]>((p, c) => p.concat(c.getLUT((c.length() / length) * pointCount)), [])
     } else
         return curves
@@ -394,15 +401,15 @@ function drawGraphFill(ctx: CanvasRenderingContext2D, points: Point[], canvasHei
     ctx.fill()
 }
 
-function drawGraph(ctx: CanvasRenderingContext2D, points: Point[], duration: number, bgColor: string, styleOptions: StyleOptions, fraction: number, animationDuration: number) {
-    let drawPoints = bezierCurve(ctx, points, duration)
+function drawGraph(ctx: CanvasRenderingContext2D, points: Point[], bgColor: string, styleOptions: StyleOptions, fraction: number, animationDuration: number) {
+    let drawPoints = bezierCurve(ctx, points, animationDuration)
 
     ctx.beginPath()
     Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions[k])
     ctx.strokeStyle = bgColor
 
     ctx.moveTo(drawPoints[0].x, drawPoints[0].y)
-    for (let i = 0; i < drawPoints.length * fraction; i++)
+    for (let i = 1; i < drawPoints.length * fraction; i++)
         ctx.lineTo(drawPoints[i].x, drawPoints[i].y)
 
     ctx.stroke()
@@ -411,7 +418,7 @@ function drawGraph(ctx: CanvasRenderingContext2D, points: Point[], duration: num
     ctx.strokeStyle = styleOptions.strokeStyle ?? 'blue'
 
     ctx.moveTo(drawPoints[0].x, drawPoints[0].y)
-    for (let i = 0; i < drawPoints.length * fraction; i++)
+    for (let i = 1; i < drawPoints.length * fraction; i++)
         ctx.lineTo(drawPoints[i].x, drawPoints[i].y)
 
     ctx.stroke()
