@@ -56,7 +56,7 @@ export class LineChart {
 
     setChartOptions(chartOptions: ChartOptions) {
         this.chartOptions = chartOptions
-        this.setDistributedPoints(this.x, this.y, chartOptions.width, chartOptions.height, chartOptions.offset)
+        this.setDistributedPoints(this.rawX, this.rawY, chartOptions.width, chartOptions.height, chartOptions.offset)
     }
 
     getChartOptions() {
