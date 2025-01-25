@@ -209,6 +209,9 @@ export function Chart({
         getEasingFunction(graphFill.ease ?? 'easeInSine')(dx)
         graphFill.styles = {
             fillStyle: 'transparent',
+            strokeStyle: 'transparent',
+            lineWidth: 20,
+            lineCap: 'butt',
             ...graphFill?.animateStyles ? graphFill.animateStyles(ctx, points, { ...graphFill.styles }, graphFillFraction) : graphFill?.styles
         }
         graphFill?.draw
@@ -233,7 +236,7 @@ export function Chart({
             graph = {}
         graph.styles = {
             strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
-            lineWidth: 4,
+            lineWidth: 20,
             lineCap: 'round',
             ...graph?.animateStyles ? graph.animateStyles(ctx, points, { ...graph.styles }, graphFraction) : graph?.styles
         }
@@ -247,7 +250,6 @@ export function Chart({
             : drawGraph(
                 ctx,
                 points,
-                chartBgColor,
                 graph.styles,
                 graphFraction,
                 animationDuration
@@ -363,24 +365,38 @@ function distribute(values: number[], range: number, mode: DistributionMode) {
     throw new Error('Invalid mode provided for distribute function in Chart component.')
 }
 
-function bezierCurve(ctx: CanvasRenderingContext2D, dataPoints: Point[], animationDuration: undefined, drawLine?: (curve: Bezier) => void): Bezier[]
-function bezierCurve(ctx: CanvasRenderingContext2D, dataPoints: Point[], animationDuration: number, drawLine?: (curve: Bezier) => void): Point[]
-function bezierCurve(ctx: CanvasRenderingContext2D, dataPoints: Point[], animationDuration?: number, drawLine?: (curve: Bezier, pointIndex: number) => void): Point[] | Bezier[] {
-    let length: number = 0
-    let curves: Bezier[] = []
+function calculateControlPoints(dataPoints: Point[], loopCallback?: (controls: [Point, Point, Point, Point], index: number) => any): [Point, Point, Point, Point][] {
+    let points: [Point, Point, Point, Point][] = []
     for (let i = 0; i <= dataPoints.length - 2; i++) {
         let p = dataPoints[i]
         let np = dataPoints[i + 1]
         let cp1 = { x: p.x + ((np.x - p.x) / 2), y: p.y }
         let cp2 = { x: np.x - ((np.x - p.x) / 2), y: np.y }
 
-        let curve = new Bezier(p, cp1, cp2, np)
+        points.push([p, cp1, cp2, np])
+
+        if (loopCallback)
+            loopCallback([p, cp1, cp2, np], i)
+    }
+
+    return points
+
+}
+
+function bezierCurve(ctx: CanvasRenderingContext2D, dataPoints: Point[], animationDuration: undefined, drawLine?: (curve: Bezier, controlPoints: [Point, Point, Point, Point], pointIndex: number) => void): Bezier[]
+function bezierCurve(ctx: CanvasRenderingContext2D, dataPoints: Point[], animationDuration: number, drawLine?: (curve: Bezier, controlPoints: [Point, Point, Point, Point], pointIndex: number) => void): Point[]
+function bezierCurve(ctx: CanvasRenderingContext2D, dataPoints: Point[], animationDuration?: number, drawLine?: (curve: Bezier, controlPoints: [Point, Point, Point, Point], pointIndex: number) => void): Point[] | Bezier[] {
+    let length: number = 0
+    let curves: Bezier[] = []
+
+    calculateControlPoints(dataPoints, (c, i) => {
+        let curve = new Bezier(...c)
         length += curve.length()
         curves.push(curve)
 
         if (drawLine)
-            drawLine(curve, i)
-    }
+            drawLine(curve, c, i)
+    })
 
     if (animationDuration !== undefined) {
         let pointCount = animationDuration * 0.06 // FPS
@@ -393,7 +409,17 @@ function drawGraphFill(ctx: CanvasRenderingContext2D, points: Point[], canvasHei
     ctx.beginPath()
     Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions[k])
 
-    bezierCurve(ctx, points, undefined, (f, t) => { ctx.moveTo(f.x, f.y); ctx.lineTo(t.x, t.y) })
+    ctx.moveTo(points[0].x, points[0].y + (styleOptions.lineWidth ?? 0))
+
+    calculateControlPoints(points, (c, i) => {
+        (new Bezier(...c).offset(styleOptions.lineWidth ?? 0) as Bezier[])
+            .forEach(b => {
+                ctx.bezierCurveTo(b.points[1].x, b.points[1].y, b.points[2].x, b.points[2].y, b.points[3].x, b.points[3].y)
+            })
+    })
+
+    ctx.stroke()
+
     ctx.lineTo(points[points.length - 1].x, canvasHeight - offset)
     ctx.lineTo(points[0].x, canvasHeight - offset)
     ctx.lineTo(points[0].x, points[0].y)
@@ -401,18 +427,11 @@ function drawGraphFill(ctx: CanvasRenderingContext2D, points: Point[], canvasHei
     ctx.fill()
 }
 
-function drawGraph(ctx: CanvasRenderingContext2D, points: Point[], bgColor: string, styleOptions: StyleOptions, fraction: number, animationDuration: number) {
+function drawGraph(ctx: CanvasRenderingContext2D, points: Point[], styleOptions: StyleOptions, fraction: number, animationDuration: number) {
     let drawPoints = bezierCurve(ctx, points, animationDuration)
 
     ctx.beginPath()
     Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions[k])
-    ctx.strokeStyle = bgColor
-
-    ctx.moveTo(drawPoints[0].x, drawPoints[0].y)
-    for (let i = 1; i < drawPoints.length * fraction; i++)
-        ctx.lineTo(drawPoints[i].x, drawPoints[i].y)
-
-    ctx.stroke()
 
     ctx.beginPath()
     ctx.strokeStyle = styleOptions.strokeStyle ?? 'blue'
