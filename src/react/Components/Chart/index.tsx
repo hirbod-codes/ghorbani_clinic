@@ -1,6 +1,6 @@
 import { PointerEvent, useContext, useEffect, useRef } from "react"
 import { Point } from "../../Lib/Math"
-import { getEasingFunction } from "../../Components/Animations/easings"
+import { EasingName, getEasingFunction } from "../../Components/Animations/easings"
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext"
 import { DrawOptions, ChartOptions, CanvasStyleOptions } from "./index.d"
 import { LineChart } from "../../Components/Chart/LineChart"
@@ -93,6 +93,7 @@ export function Chart({
     const points = useRef<Point[]>()
 
     const animationId = useRef<number>()
+    const animationRunIndex = useRef<number>(0)
 
     let oldT = 0
     let passed = 0
@@ -208,8 +209,17 @@ export function Chart({
             )
 
         shapes.forEach(s => {
-            s.stroke(ctx, getEasingFunction(s.strokeOptions.ease ?? 'easeInSine')(dx))
-            s.fill(ctx, getEasingFunction(s.fillOptions.ease ?? 'easeInSine')(dx))
+            console.log('return return return return ', s.animationRunsController, Math.floor(passed / animationDuration), dx)
+            let strokeDx: number | undefined = shouldAnimate(s.animationRunsController, Math.floor(passed / animationDuration), dx, s.strokeOptions.ease ?? 'easeInSine')
+            let fillDx: number | undefined = shouldAnimate(s.animationRunsController, Math.floor(passed / animationDuration), dx, s.fillOptions.ease ?? 'easeInSine')
+
+            if (strokeDx === undefined || fillDx === undefined)
+                return
+
+            console.log(strokeDx)
+
+            s.stroke(ctx, strokeDx)
+            s.fill(ctx, fillDx)
         })
 
         animationId.current = requestAnimationFrame((t) => animate(ctx, points, canvasWidth, canvasHeight, t))
@@ -290,4 +300,23 @@ export function Chart({
             )}
         </div>
     )
+}
+
+function shouldAnimate(controller: number | any[], animationRunIndex: number, dx: number, ease: EasingName): number | undefined {
+    if (typeof controller === 'number')
+        if (controller === -1)
+            return
+        else if (controller === 0)
+            return 1
+        else if (animationRunIndex <= controller - 1)
+            return getEasingFunction(ease)(dx)
+        else
+            return 1
+    else if (Array.isArray(controller))
+        if (controller[animationRunIndex] === true)
+            return getEasingFunction(ease)(dx)
+        else if (controller[animationRunIndex] === false)
+            return 1
+        else
+            return 0
 }

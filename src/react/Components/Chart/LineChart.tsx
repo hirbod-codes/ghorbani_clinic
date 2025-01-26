@@ -21,6 +21,15 @@ export class LineChart {
     fillOptions: DrawOptions
     strokeOptions: DrawOptions
 
+    /**
+     * if number, if -1, shape is not drawn, otherwise it's animated as many time as it's value
+     * 
+     * if array, if the value of animation run index in this array is true it will animate and if false it will be drawn only (not animated), and for any value other than boolean it will not be drawn
+     * 
+     * @default 0
+     */
+    animationRunsController: number | any[]
+
     constructor(
         options: {
             x: number[],
@@ -30,9 +39,20 @@ export class LineChart {
             xLabels?: ReactNode[],
             yLabels?: ReactNode[],
             chartOptions?: ChartOptions,
+            /**
+             * if number, if -1, shape is not drawn, if 0, it's drawn but not animated, otherwise it's animated as many time as it's value, and will remain drawn
+             * 
+             * if array, if the value of animation run index in this array is true it will animate and if false it will be drawn only (not animated), and for any value other than boolean it will not be drawn
+             * 
+             * @default 0
+             */
+            animationRunsController?: number | any[],
             animationDuration?: number,
         }
     ) {
+        if (!options.animationRunsController)
+            options.animationRunsController = 0
+
         if (!options.chartOptions)
             options.chartOptions = {
                 width: 800,
@@ -49,9 +69,10 @@ export class LineChart {
         this.xLabels = options.xLabels
         this.yLabels = options.yLabels
         this.chartOptions = options.chartOptions
-        this.animationDuration = options.animationDuration
         this.fillOptions = options.fillOptions
         this.strokeOptions = options.strokeOptions
+        this.animationDuration = options.animationDuration
+        this.animationRunsController = options.animationRunsController
     }
 
     setChartOptions(chartOptions: ChartOptions) {

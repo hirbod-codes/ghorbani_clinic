@@ -45,8 +45,9 @@ export const Home = memo(function Home() {
                                         hoverNode: 'aaaaaaaaaa',
                                         hoverHeight: 100,
                                         hoverWidth: 200,
-                                        hoverRadius: 20
+                                        hoverRadius: 20,
                                     },
+                                    animationRunsController: 1,
                                     fillOptions: {
                                         styles: {
                                             fillStyle: 'transparent',
