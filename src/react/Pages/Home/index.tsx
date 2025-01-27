@@ -42,7 +42,7 @@ export const Home = memo(function Home() {
                                     x: [0, 1, 2, 3, 4, 5, 6, 7],
                                     y: [85, 85, 80, 85, 56, 55, 40, 50],
                                     chartOptions: {
-                                        hoverNode: 'aaaaaaaaaa',
+                                        getHoverNode: (ps, i) => 'aaaaaaaaaa',
                                         hoverHeight: 100,
                                         hoverWidth: 200,
                                         hoverRadius: 20,

@@ -5,6 +5,7 @@ import { ConfigurationContext } from "../../Contexts/Configuration/Configuration
 import { DrawOptions, ChartOptions, CanvasStyleOptions } from "./index.d"
 import { LineChart } from "../../Components/Chart/LineChart"
 import { DropdownMenu } from "../Base/DropdownMenu"
+import { useAnimate } from "../Animations/useAnimate"
 
 function drawXAxis(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number, offset: number, styleOptions: CanvasStyleOptions, fraction: number, animationDuration: number) {
     ctx.beginPath()
@@ -87,18 +88,14 @@ export function Chart({
 
     const isDrawn = useRef<boolean>(false)
     const canvasRef = useRef<HTMLCanvasElement>(null)
-
     const ctx = useRef<CanvasRenderingContext2D>()
 
-    const points = useRef<Point[]>()
-
-    const animationId = useRef<number>()
-    const animationRunIndex = useRef<number>(0)
+    const drawAnimation = useAnimate()
 
     let oldT = 0
     let passed = 0
 
-    const animate = (ctx: CanvasRenderingContext2D, points: Point[], canvasWidth: number, canvasHeight: number, t: DOMHighResTimeStamp) => {
+    function draw(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number, t: DOMHighResTimeStamp) {
         if (oldT === 0)
             oldT = t
         passed = t - oldT
@@ -110,12 +107,11 @@ export function Chart({
         gridHorizontalLines.styles = {
             strokeStyle: themeOptions.colors.outline[themeOptions.mode].main,
             lineWidth: 0.5,
-            ...gridHorizontalLines?.animateStyles ? gridHorizontalLines.animateStyles(ctx, points, { ...gridHorizontalLines.styles }, chartOptions, gridHorizontalLinesFraction) : gridHorizontalLines?.styles
+            ...gridHorizontalLines?.animateStyles ? gridHorizontalLines.animateStyles(ctx, { ...gridHorizontalLines.styles }, chartOptions, gridHorizontalLinesFraction) : gridHorizontalLines?.styles
         }
         gridHorizontalLines?.animateDraw
             ? gridHorizontalLines.animateDraw(
                 ctx,
-                points,
                 gridHorizontalLines.styles,
                 chartOptions,
                 gridHorizontalLinesFraction
@@ -135,12 +131,11 @@ export function Chart({
         gridVerticalLines.styles = {
             strokeStyle: themeOptions.colors.outline[themeOptions.mode].main,
             lineWidth: 0.5,
-            ...gridVerticalLines?.animateStyles ? gridVerticalLines.animateStyles(ctx, points, { ...gridVerticalLines.styles }, chartOptions, gridVerticalLinesFraction) : gridVerticalLines?.styles
+            ...gridVerticalLines?.animateStyles ? gridVerticalLines.animateStyles(ctx, { ...gridVerticalLines.styles }, chartOptions, gridVerticalLinesFraction) : gridVerticalLines?.styles
         }
         gridVerticalLines?.animateDraw
             ? gridVerticalLines.animateDraw(
                 ctx,
-                points,
                 gridVerticalLines.styles,
                 chartOptions,
                 gridVerticalLinesFraction
@@ -162,12 +157,11 @@ export function Chart({
             strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
             lineWidth: 2,
             lineCap: 'square',
-            ...xAxis?.animateStyles ? xAxis.animateStyles(ctx, points, { ...xAxis.styles }, chartOptions, xAxisFraction) : xAxis?.styles
+            ...xAxis?.animateStyles ? xAxis.animateStyles(ctx, { ...xAxis.styles }, chartOptions, xAxisFraction) : xAxis?.styles
         }
         xAxis?.animateDraw
             ? xAxis.animateDraw(
                 ctx,
-                points,
                 xAxis.styles,
                 chartOptions,
                 xAxisFraction
@@ -188,12 +182,11 @@ export function Chart({
             strokeStyle: themeOptions.colors.surface[themeOptions.mode].foreground,
             lineWidth: 2,
             lineCap: 'square',
-            ...yAxis?.animateStyles ? yAxis.animateStyles(ctx, points, { ...yAxis.styles }, chartOptions, yAxisFraction) : yAxis?.styles
+            ...yAxis?.animateStyles ? yAxis.animateStyles(ctx, { ...yAxis.styles }, chartOptions, yAxisFraction) : yAxis?.styles
         }
         yAxis?.animateDraw
             ? yAxis.animateDraw(
                 ctx,
-                points,
                 yAxis.styles,
                 chartOptions,
                 yAxisFraction
@@ -209,17 +202,18 @@ export function Chart({
             )
 
         shapes.forEach(s => {
-            let strokeDx: number | undefined = shouldAnimate(s.animationRunsController, Math.floor(passed / animationDuration), dx, s.strokeOptions.ease ?? 'easeInSine')
-            let fillDx: number | undefined = shouldAnimate(s.animationRunsController, Math.floor(passed / animationDuration), dx, s.fillOptions.ease ?? 'easeInSine')
+            s.animate(t, s.animationRunsController, (dx) => {
+                s.stroke(ctx, getEasingFunction(s.strokeOptions.ease ?? 'easeInSine')(dx))
+                s.fill(ctx, getEasingFunction(s.fillOptions.ease ?? 'easeInSine')(dx))
+            })
 
-            if (strokeDx === undefined || fillDx === undefined)
-                return
+            s.animate(t, 3, (dx) => {
+                if (!hoverEvent.current)
+                    return
 
-            s.stroke(ctx, strokeDx)
-            s.fill(ctx, fillDx)
+                s.onHover(ctx, hoverEvent.current!, getEasingFunction(s.strokeOptions.ease ?? 'easeInSine')(dx))
+            })
         })
-
-        animationId.current = requestAnimationFrame((t) => animate(ctx, points, canvasWidth, canvasHeight, t))
     }
 
     const containerRef = useRef<HTMLDivElement>(null)
@@ -227,6 +221,7 @@ export function Chart({
     const canvasHeight = useRef<number>()
 
     const hover = useRef<{ [k: number]: { open?: boolean, pIndex?: number, top?: number, left?: number, node?: ReactNode } }>({})
+    const hoverEvent = useRef<PointerEvent>()
 
     const [, rerender] = useReducer(x => x + 1, 0)
 
@@ -248,15 +243,16 @@ export function Chart({
             canvasRef.current.height = rect.height * scale
             ctx.current.scale(scale, scale)
 
-            console.log({ ...chartOptions, ...shapes[0].getChartOptions(), width: rect.width, height: rect.height })
             shapes.forEach(s => s.setChartOptions({ ...chartOptions, ...s.getChartOptions(), width: rect.width, height: rect.height }))
-            console.log(chartOptions, shapes[0], shapes[0].getChartOptions(), rect)
+            shapes.forEach(s => s.play())
 
-            animationId.current = requestAnimationFrame((t) => animate(ctx.current!, points.current!, canvasWidth.current!, canvasHeight.current!, t))
+            drawAnimation.play((t => draw(ctx.current!, canvasWidth.current!, canvasHeight.current!, t)))
         }
     }, [])
 
     function onPointerOver(e: PointerEvent) {
+        hoverEvent.current = e
+
         for (let i = 0; i < shapes.length; i++) {
             let shouldRerender = false
 
@@ -294,6 +290,7 @@ export function Chart({
                 className="border-4 border-blue-500 size-full"
                 style={{ backgroundColor: chartOptions.bgColor }}
                 onPointerMove={onPointerOver}
+                onPointerLeave={() => hoverEvent.current = undefined}
             />
 
             {shapes.map((s, i) =>
@@ -313,23 +310,4 @@ export function Chart({
             )}
         </div>
     )
-}
-
-function shouldAnimate(controller: number | any[], animationRunIndex: number, dx: number, ease: EasingName): number | undefined {
-    if (typeof controller === 'number')
-        if (controller === -1)
-            return
-        else if (controller === 0)
-            return 1
-        else if (animationRunIndex <= controller - 1)
-            return getEasingFunction(ease)(dx)
-        else
-            return 1
-    else if (Array.isArray(controller))
-        if (controller[animationRunIndex] === true)
-            return getEasingFunction(ease)(dx)
-        else if (controller[animationRunIndex] === false)
-            return 1
-        else
-            return 0
 }

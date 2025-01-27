@@ -33,9 +33,16 @@ export type CanvasStyleOptions = {
     wordSpacing?: string
 }
 
+export type DrawShapeOptions = {
+    ease?: EasingName
+    animateStyles?: (ctx: CanvasRenderingContext2D, dataPoints: Point[], styleOptions?: CanvasStyleOptions, chartOptions?: ChartOptions, fraction?: number) => CanvasStyleOptions
+    styles?: CanvasStyleOptions
+    animateDraw?: (ctx: CanvasRenderingContext2D, dataPoints: Point[], styleOptions?: CanvasStyleOptions, chartOptions?: ChartOptions, fraction?: number) => void
+}
+
 export type DrawOptions = {
     ease?: EasingName
-    animateStyles?: (ctx: CanvasRenderingContext2D, points: Point[], styleOptions?: CanvasStyleOptions, chartOptions?: ChartOptions, fraction?: number) => CanvasStyleOptions
+    animateStyles?: (ctx: CanvasRenderingContext2D, styleOptions?: CanvasStyleOptions, chartOptions?: ChartOptions, fraction?: number) => CanvasStyleOptions
     styles?: CanvasStyleOptions
-    animateDraw?: (ctx: CanvasRenderingContext2D, points: Point[], styleOptions?: CanvasStyleOptions, chartOptions?: ChartOptions, fraction?: number) => void
+    animateDraw?: (ctx: CanvasRenderingContext2D, styleOptions?: CanvasStyleOptions, chartOptions?: ChartOptions, fraction?: number) => void
 }

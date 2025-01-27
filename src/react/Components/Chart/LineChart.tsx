@@ -1,7 +1,7 @@
 import { Bezier } from "bezier-js"
 import { Point } from "../../Lib/Math"
-import { ReactNode } from "react"
-import { ChartOptions, DrawOptions } from "./index.d"
+import { PointerEvent, ReactNode } from "react"
+import { ChartOptions, DrawShapeOptions } from "./index.d"
 import { Circle } from "../Base/Canvas/Shapes/Circle"
 
 function createCircles(ctx: CanvasRenderingContext2D, points: Point[], radius: number, lineWidth?: number, strokeStyle?: string | CanvasGradient | CanvasPattern, fillStyle?: string | CanvasGradient | CanvasPattern, shadowBlur?: number, shadowColor?: string, shadowOffsetX?: number, shadowOffsetY?: number): Circle[] {
@@ -18,8 +18,8 @@ export class LineChart {
     private yLabels?: ReactNode[]
     private chartOptions: ChartOptions
     private animationDuration?: number
-    fillOptions: DrawOptions
-    strokeOptions: DrawOptions
+    fillOptions: DrawShapeOptions
+    strokeOptions: DrawShapeOptions
 
     /**
      * if number, if -1, shape is not drawn, otherwise it's animated as many time as it's value
@@ -30,12 +30,14 @@ export class LineChart {
      */
     animationRunsController: number | any[]
 
+    private onHoverCallback?: (ctx: CanvasRenderingContext2D, e: PointerEvent, dataPoints: Point[], chartOptions: ChartOptions, strokeOptions: DrawShapeOptions, fillOptions: DrawShapeOptions, t?: DOMHighResTimeStamp) => void
+
     constructor(
         options: {
             x: number[],
             y: number[],
-            fillOptions: DrawOptions,
-            strokeOptions: DrawOptions,
+            fillOptions: DrawShapeOptions,
+            strokeOptions: DrawShapeOptions,
             xLabels?: ReactNode[],
             yLabels?: ReactNode[],
             chartOptions?: ChartOptions,
@@ -48,6 +50,7 @@ export class LineChart {
              */
             animationRunsController?: number | any[],
             animationDuration?: number,
+            onHover?: (ctx: CanvasRenderingContext2D, e: PointerEvent, dataPoints: Point[], chartOptions: ChartOptions, strokeOptions: DrawShapeOptions, fillOptions: DrawShapeOptions, t?: DOMHighResTimeStamp) => void
         }
     ) {
         if (!options.animationRunsController)
@@ -73,6 +76,7 @@ export class LineChart {
         this.strokeOptions = options.strokeOptions
         this.animationDuration = options.animationDuration
         this.animationRunsController = options.animationRunsController
+        this.onHoverCallback = options.onHover
     }
 
     setChartOptions(chartOptions: ChartOptions) {
@@ -141,6 +145,13 @@ export class LineChart {
         ctx.lineTo(this.points[0].x, this.points[0].y)
 
         ctx.fill()
+    }
+
+    onHover(ctx: CanvasRenderingContext2D, e: PointerEvent, t = 1) {
+        if (this.onHoverCallback) {
+            this.onHoverCallback(ctx, e, this.points, this.chartOptions, this.strokeOptions, this.fillOptions, t)
+            return
+        }
     }
 
     findHoveringDataPoint(p: Point, callback?: (p: Point) => void): number | undefined {
@@ -217,4 +228,64 @@ export class LineChart {
         } else
             return curves
     }
+
+    stop: boolean = true
+    oldT: number = 0
+    passed: number = 0
+    dx: number = 0
+
+    play() {
+        this.stop = false
+    }
+
+    pause() {
+        this.stop = true
+    }
+
+    animate(t: DOMHighResTimeStamp, animationRunsController: number | any[], animationCallback?: (dx: number) => void) {
+        if (!animationCallback)
+            return
+
+        if (this.animationDuration === undefined || this.animationDuration <= 0)
+            return
+
+        if (this.oldT === 0)
+            this.oldT = t
+
+        this.passed = t - this.oldT
+
+        let i = Math.floor(this.passed / this.animationDuration)
+        if (!this.stop) {
+            this.dx = (this.passed % this.animationDuration) / this.animationDuration
+
+            let t = this.shouldAnimate(animationRunsController, i, this.dx)
+
+            if (t === undefined)
+                return
+            else
+                this.dx = t
+        }
+
+        animationCallback(this.dx)
+    }
+
+    private shouldAnimate(controller: number | any[], animationRunIndex: number, dx: number): number | undefined {
+        if (typeof controller === 'number')
+            if (controller === -1)
+                return
+            else if (controller === 0)
+                return 1
+            else if (animationRunIndex <= controller - 1)
+                return dx
+            else
+                return 1
+        else if (Array.isArray(controller))
+            if (controller[animationRunIndex] === true)
+                return dx
+            else if (controller[animationRunIndex] === false)
+                return 1
+            else
+                return 0
+    }
 }
+
