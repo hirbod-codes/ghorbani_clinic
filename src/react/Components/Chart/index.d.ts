@@ -9,7 +9,7 @@ export type ChartOptions = {
     offset?: number
     xAxisOffset?: number
     yAxisOffset?: number
-    hoverNode?: ReactNode
+    getHoverNode?: (dataPoints: Point[], hoveringPointIndex: number) => ReactNode
     hoverRadius?: number
     hoverWidth?: number
     hoverHeight?: number

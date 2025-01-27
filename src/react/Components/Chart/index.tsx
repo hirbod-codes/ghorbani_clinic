@@ -1,4 +1,4 @@
-import { PointerEvent, useContext, useEffect, useRef } from "react"
+import { PointerEvent, ReactNode, useContext, useEffect, useReducer, useRef } from "react"
 import { Point } from "../../Lib/Math"
 import { EasingName, getEasingFunction } from "../../Components/Animations/easings"
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext"
@@ -209,14 +209,11 @@ export function Chart({
             )
 
         shapes.forEach(s => {
-            console.log('return return return return ', s.animationRunsController, Math.floor(passed / animationDuration), dx)
             let strokeDx: number | undefined = shouldAnimate(s.animationRunsController, Math.floor(passed / animationDuration), dx, s.strokeOptions.ease ?? 'easeInSine')
             let fillDx: number | undefined = shouldAnimate(s.animationRunsController, Math.floor(passed / animationDuration), dx, s.fillOptions.ease ?? 'easeInSine')
 
             if (strokeDx === undefined || fillDx === undefined)
                 return
-
-            console.log(strokeDx)
 
             s.stroke(ctx, strokeDx)
             s.fill(ctx, fillDx)
@@ -228,7 +225,10 @@ export function Chart({
     const containerRef = useRef<HTMLDivElement>(null)
     const canvasWidth = useRef<number>()
     const canvasHeight = useRef<number>()
-    const hover = useRef<{ i?: number, open: boolean, top?: number, left?: number }>({ open: false })
+
+    const hover = useRef<{ [k: number]: { open?: boolean, pIndex?: number, top?: number, left?: number, node?: ReactNode } }>({})
+
+    const [, rerender] = useReducer(x => x + 1, 0)
 
     useEffect(() => {
         if (canvasRef.current && containerRef.current && !isDrawn.current) {
@@ -248,7 +248,9 @@ export function Chart({
             canvasRef.current.height = rect.height * scale
             ctx.current.scale(scale, scale)
 
+            console.log({ ...chartOptions, ...shapes[0].getChartOptions(), width: rect.width, height: rect.height })
             shapes.forEach(s => s.setChartOptions({ ...chartOptions, ...s.getChartOptions(), width: rect.width, height: rect.height }))
+            console.log(chartOptions, shapes[0], shapes[0].getChartOptions(), rect)
 
             animationId.current = requestAnimationFrame((t) => animate(ctx.current!, points.current!, canvasWidth.current!, canvasHeight.current!, t))
         }
@@ -256,22 +258,32 @@ export function Chart({
 
     function onPointerOver(e: PointerEvent) {
         for (let i = 0; i < shapes.length; i++) {
-            let p = shapes[i].isPointHovering({ x: e.clientX, y: e.clientY })
-            if (p !== undefined) {
-                hover.current = {
-                    i,
+            let shouldRerender = false
+
+            let pIndex = shapes[i].findHoveringDataPoint({ x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY })
+
+            if (
+                (hover.current[i]?.open === true && pIndex === undefined) ||
+                (hover.current[i]?.open === false && pIndex !== undefined)
+            )
+                shouldRerender = true
+
+            if (hover.current[i] === undefined)
+                hover.current[i] = {}
+
+            if (pIndex === undefined)
+                hover.current[i].open = false
+            else
+                hover.current[i] = {
                     open: true,
-                    top: p.y,
-                    left: p.x,
+                    pIndex: pIndex,
+                    top: shapes[i].points[pIndex]?.y,
+                    left: shapes[i].points[pIndex]?.x,
+                    node: shapes[i].getChartOptions().getHoverNode !== undefined && typeof shapes[i].getChartOptions().getHoverNode === 'function' ? shapes[i].getChartOptions().getHoverNode!(shapes[i].points, pIndex) : ''
                 }
-            } else if (hover.current.i === i)
-                hover.current = {
-                    i: undefined,
-                    open: true,
-                    top: undefined,
-                    left: undefined,
-                }
-            console.log(hover.current, { x: e.clientX, y: e.clientY })
+
+            if (shouldRerender)
+                rerender()
         }
     }
 
@@ -287,15 +299,16 @@ export function Chart({
             {shapes.map((s, i) =>
                 <DropdownMenu
                     key={i}
-                    open={hover.current.open}
+                    open={hover.current[i]?.open ?? false}
+                    containerProps={{ style: { zIndex: 50 } }}
                     anchorDomRect={{
                         width: s.getChartOptions().hoverWidth,
                         height: s.getChartOptions().hoverHeight,
-                        top: hover.current.top ?? 0,
-                        left: hover.current.left ?? 0,
+                        top: hover.current[i]?.top ?? 0,
+                        left: hover.current[i]?.left ?? 0,
                     }}
                 >
-                    {s.getChartOptions().hoverNode}
+                    {hover.current[i]?.node}
                 </DropdownMenu>
             )}
         </div>

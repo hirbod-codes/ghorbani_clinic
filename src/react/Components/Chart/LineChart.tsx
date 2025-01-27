@@ -13,7 +13,7 @@ export class LineChart {
     rawY: number[]
     x: number[]
     y: number[]
-    private points: Point[]
+    points: Point[]
     private xLabels?: ReactNode[]
     private yLabels?: ReactNode[]
     private chartOptions: ChartOptions
@@ -101,9 +101,6 @@ export class LineChart {
         ctx.beginPath()
         Object.keys(this.strokeOptions.styles).forEach(k => ctx[k] = this.strokeOptions.styles![k])
 
-        ctx.beginPath()
-        ctx.strokeStyle = this.strokeOptions.styles.strokeStyle ?? 'blue'
-
         ctx.moveTo(drawPoints[0].x, drawPoints[0].y)
         let count = drawPoints.length * t
         for (let i = 1; i < count; i++)
@@ -146,20 +143,20 @@ export class LineChart {
         ctx.fill()
     }
 
-    isPointHovering(p: Point, callback?: (p: Point) => void): Point | undefined {
-        if (!this.chartOptions.hoverNode || !this.chartOptions.hoverRadius)
+    findHoveringDataPoint(p: Point, callback?: (p: Point) => void): number | undefined {
+        if (this.chartOptions.hoverRadius === undefined)
             return undefined
 
         let r = this.chartOptions.hoverRadius!
 
-        for (let i = 0; i < this.x.length; i++)
+        for (let i = 0; i < this.points.length; i++)
             if (
-                p.x <= this.x[i] + r &&
-                p.x >= this.x[i] - r &&
-                p.y <= this.y[i] + r &&
-                p.y >= this.y[i] - r
+                p.x <= this.points[i].x + r &&
+                p.x >= this.points[i].x - r &&
+                p.y <= this.points[i].y + r &&
+                p.y >= this.points[i].y - r
             )
-                return p
+                return i
 
         return undefined
     }
