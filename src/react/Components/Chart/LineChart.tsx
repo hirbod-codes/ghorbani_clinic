@@ -17,18 +17,8 @@ export class LineChart {
     private xLabels?: ReactNode[]
     private yLabels?: ReactNode[]
     private chartOptions: ChartOptions
-    private animationDuration?: number
     fillOptions: DrawShapeOptions
     strokeOptions: DrawShapeOptions
-
-    /**
-     * if number, if -1, shape is not drawn, otherwise it's animated as many time as it's value
-     * 
-     * if array, if the value of animation run index in this array is true it will animate and if false it will be drawn only (not animated), and for any value other than boolean it will not be drawn
-     * 
-     * @default 0
-     */
-    animationRunsController: number | any[]
 
     private onHoverCallback?: (ctx: CanvasRenderingContext2D, e: PointerEvent, dataPoints: Point[], chartOptions: ChartOptions, strokeOptions: DrawShapeOptions, fillOptions: DrawShapeOptions, t?: DOMHighResTimeStamp) => void
 
@@ -41,21 +31,10 @@ export class LineChart {
             xLabels?: ReactNode[],
             yLabels?: ReactNode[],
             chartOptions?: ChartOptions,
-            /**
-             * if number, if -1, shape is not drawn, if 0, it's drawn but not animated, otherwise it's animated as many time as it's value, and will remain drawn
-             * 
-             * if array, if the value of animation run index in this array is true it will animate and if false it will be drawn only (not animated), and for any value other than boolean it will not be drawn
-             * 
-             * @default 0
-             */
-            animationRunsController?: number | any[],
             animationDuration?: number,
             onHover?: (ctx: CanvasRenderingContext2D, e: PointerEvent, dataPoints: Point[], chartOptions: ChartOptions, strokeOptions: DrawShapeOptions, fillOptions: DrawShapeOptions, t?: DOMHighResTimeStamp) => void
         }
     ) {
-        if (!options.animationRunsController)
-            options.animationRunsController = 0
-
         if (!options.chartOptions)
             options.chartOptions = {
                 width: 800,
@@ -74,8 +53,6 @@ export class LineChart {
         this.chartOptions = options.chartOptions
         this.fillOptions = options.fillOptions
         this.strokeOptions = options.strokeOptions
-        this.animationDuration = options.animationDuration
-        this.animationRunsController = options.animationRunsController
         this.onHoverCallback = options.onHover
     }
 
@@ -88,7 +65,7 @@ export class LineChart {
         return this.chartOptions
     }
 
-    stroke(ctx: CanvasRenderingContext2D, t = 1) {
+    stroke(ctx: CanvasRenderingContext2D, animationDuration: number, t = 1) {
         if (this.strokeOptions.animateStyles)
             this.strokeOptions.animateStyles(ctx, this.points, this.strokeOptions.styles, this.chartOptions, t)
 
@@ -97,10 +74,10 @@ export class LineChart {
             return
         }
 
-        if (!this.animationDuration || !this.strokeOptions.styles || Object.keys(this.strokeOptions.styles).length === 0)
+        if (!this.strokeOptions.styles || Object.keys(this.strokeOptions.styles).length === 0)
             return
 
-        let drawPoints = this.bezierCurve(this.points, this.animationDuration)
+        let drawPoints = this.bezierCurve(this.points, animationDuration)
 
         ctx.beginPath()
         Object.keys(this.strokeOptions.styles).forEach(k => ctx[k] = this.strokeOptions.styles![k])
@@ -123,7 +100,7 @@ export class LineChart {
             return
         }
 
-        if (!this.animationDuration || !this.fillOptions.styles || Object.keys(this.fillOptions.styles).length === 0)
+        if (!this.fillOptions.styles || Object.keys(this.fillOptions.styles).length === 0)
             return
 
         ctx.beginPath()
@@ -147,7 +124,7 @@ export class LineChart {
         ctx.fill()
     }
 
-    onHover(ctx: CanvasRenderingContext2D, e: PointerEvent, t = 1) {
+    onHover(ctx: CanvasRenderingContext2D, e: PointerEvent, dataPointIndex:number, t = 1) {
         if (this.onHoverCallback) {
             this.onHoverCallback(ctx, e, this.points, this.chartOptions, this.strokeOptions, this.fillOptions, t)
             return
@@ -229,24 +206,66 @@ export class LineChart {
             return curves
     }
 
-    stop: boolean = true
-    oldT: number = 0
-    passed: number = 0
-    dx: number = 0
+    private oldT: number = 0
+    private passed: number = 0
 
-    play() {
-        this.stop = false
+    /**
+     * for value:
+     * 
+     * if number, if -1, shape is not drawn, otherwise it's animated as many time as it's value
+     * 
+     * if array, if the value of animation run index in this array is true it will animate and if false it will be drawn only (not animated), and for any value other than boolean it will not be drawn
+     * 
+     * @default 0
+     */
+    animationsController: { [k: string | number]: number | any[] } = {}
+    animationsDuration: { [k: string | number]: number } = {}
+    animationsRunCounts: { [k: string | number]: number } = {}
+    private animationsPreviousDx: { [k: string | number]: number } = {}
+    private animationsDx: { [k: string | number]: number } = {}
+    private animationsStop: { [k: string | number]: boolean } = {}
+
+    private setDefaults(key: number | string) {
+        if (this.animationsController[key] === undefined)
+            this.animationsController[key] = 1
+
+        if (this.animationsRunCounts[key] === undefined)
+            this.animationsRunCounts[key] = 0
+
+        if (this.animationsPreviousDx[key] === undefined)
+            this.animationsPreviousDx[key] = 0
+
+        if (this.animationsDx[key] === undefined)
+            this.animationsDx[key] = 0
+
+        if (this.animationsDuration[key] === undefined)
+            this.animationsDuration[key] = 0
+
+        if (this.animationsStop[key] === undefined)
+            this.animationsStop[key] = false
     }
 
-    pause() {
-        this.stop = true
+    play(key?: number | string) {
+        if (key === undefined)
+            Object.keys(this.animationsStop).forEach(e => this.animationsStop[e] = false)
+        else
+            this.animationsStop[key] = false
     }
 
-    animate(t: DOMHighResTimeStamp, animationRunsController: number | any[], animationCallback?: (dx: number) => void) {
+    pause(key?: number | string) {
+        if (key === undefined)
+            Object.keys(this.animationsStop).forEach(e => this.animationsStop[e] = true)
+        else
+            this.animationsStop[key] = true
+    }
+
+    animate(t: DOMHighResTimeStamp, animationKey: number | string, animationCallback?: (dx: number) => void) {
         if (!animationCallback)
             return
 
-        if (this.animationDuration === undefined || this.animationDuration <= 0)
+        this.setDefaults(animationKey)
+
+        if (this.animationsDuration[animationKey] === undefined || this.animationsDuration[animationKey] <= 0)
             return
 
         if (this.oldT === 0)
@@ -254,28 +273,50 @@ export class LineChart {
 
         this.passed = t - this.oldT
 
-        let i = Math.floor(this.passed / this.animationDuration)
-        if (!this.stop) {
-            this.dx = (this.passed % this.animationDuration) / this.animationDuration
+        let i = Math.floor(this.passed / this.animationsDuration[animationKey])
+        if (!this.animationsStop[animationKey]) {
+            this.animationsDx[animationKey] = (this.passed % this.animationsDuration[animationKey]) / this.animationsDuration[animationKey]
 
-            let t = this.shouldAnimate(animationRunsController, i, this.dx)
-
-            if (t === undefined)
+            let tmp = this.shouldAnimate(this.animationsController[animationKey], this.animationsRunCounts[animationKey], i, this.animationsDx[animationKey])
+            if (tmp === undefined)
                 return
-            else
-                this.dx = t
+
+            this.animationsDx[animationKey] = tmp
         }
 
-        animationCallback(this.dx)
+        if (this.animationsPreviousDx[animationKey] < 0.5 && this.animationsDx[animationKey] >= 0.5)
+            this.animationsRunCounts[animationKey] += 1
+        this.animationsPreviousDx[animationKey] = this.animationsDx[animationKey]
+
+        animationCallback(this.animationsDx[animationKey])
     }
 
-    private shouldAnimate(controller: number | any[], animationRunIndex: number, dx: number): number | undefined {
+    private shouldAnimatee(controller: number | any[], animationRunIndex: number, dx: number): number | undefined {
         if (typeof controller === 'number')
             if (controller === -1)
                 return
             else if (controller === 0)
                 return 1
             else if (animationRunIndex <= controller - 1)
+                return dx
+            else
+                return 1
+        else if (Array.isArray(controller))
+            if (controller[animationRunIndex] === true)
+                return dx
+            else if (controller[animationRunIndex] === false)
+                return 1
+            else
+                return 0
+    }
+
+    private shouldAnimate(controller: number | any[], animationRunsCount: number, animationRunIndex: number, dx: number): number | undefined {
+        if (typeof controller === 'number')
+            if (controller === -1)
+                return
+            else if (controller === 0)
+                return 1
+            else if (animationRunsCount <= controller)
                 return dx
             else
                 return 1

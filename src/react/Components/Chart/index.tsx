@@ -201,20 +201,30 @@ export function Chart({
                 animationDuration
             )
 
-        shapes.forEach(s => {
-            s.animate(t, s.animationRunsController, (dx) => {
-                s.stroke(ctx, getEasingFunction(s.strokeOptions.ease ?? 'easeInSine')(dx))
+        shapes.forEach((s, i) => {
+            s.animate(t, 'draw', (dx) => {
+                s.stroke(ctx, s.animationsDuration.draw, getEasingFunction(s.strokeOptions.ease ?? 'easeInSine')(dx))
                 s.fill(ctx, getEasingFunction(s.fillOptions.ease ?? 'easeInSine')(dx))
             })
 
-            s.animate(t, 3, (dx) => {
+            s.animate(t, 'hover', (dx) => {
                 if (!hoverEvent.current)
                     return
 
-                s.onHover(ctx, hoverEvent.current!, getEasingFunction(s.strokeOptions.ease ?? 'easeInSine')(dx))
+                let index = s.findHoveringDataPoint({ x: hoverEvent.current.nativeEvent.offsetX, y: hoverEvent.current.nativeEvent.offsetY })
+                if (shapesHoveringIndex.current[i] !== undefined && index === undefined)
+                    s.animationsRunCounts.hover = 0
+                shapesHoveringIndex.current[i] = index
+
+                if (index === undefined)
+                    return
+
+                s.onHover(ctx, hoverEvent.current!, index, getEasingFunction(s.strokeOptions.ease ?? 'easeInSine')(dx))
             })
         })
     }
+
+    const shapesHoveringIndex = useRef<{ [k: string | number]: number | undefined }>({})
 
     const containerRef = useRef<HTMLDivElement>(null)
     const canvasWidth = useRef<number>()
@@ -244,7 +254,16 @@ export function Chart({
             ctx.current.scale(scale, scale)
 
             shapes.forEach(s => s.setChartOptions({ ...chartOptions, ...s.getChartOptions(), width: rect.width, height: rect.height }))
-            shapes.forEach(s => s.play())
+
+            shapes.forEach(s => {
+                s.animationsController.draw = Infinity
+                s.animationsDuration.draw = 5000
+
+                s.animationsController.hover = 3
+                s.animationsDuration.hover = 2000
+
+                s.play()
+            })
 
             drawAnimation.play((t => draw(ctx.current!, canvasWidth.current!, canvasHeight.current!, t)))
         }
@@ -290,7 +309,9 @@ export function Chart({
                 className="border-4 border-blue-500 size-full"
                 style={{ backgroundColor: chartOptions.bgColor }}
                 onPointerMove={onPointerOver}
-                onPointerLeave={() => hoverEvent.current = undefined}
+                onPointerLeave={() => {
+                    hoverEvent.current = undefined
+                }}
             />
 
             {shapes.map((s, i) =>
