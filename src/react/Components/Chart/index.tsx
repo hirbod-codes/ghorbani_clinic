@@ -212,8 +212,12 @@ export function Chart({
                     return
 
                 let index = s.findHoveringDataPoint({ x: hoverEvent.current.nativeEvent.offsetX, y: hoverEvent.current.nativeEvent.offsetY })
-                if (shapesHoveringIndex.current[i] !== undefined && index === undefined)
-                    s.resetAnimation(t, 'hover')
+
+                if (shapesHoveringIndex.current[i] === undefined && index !== undefined) {
+                    s.resetAnimation('hover')
+                    dx = 0
+                }
+
                 shapesHoveringIndex.current[i] = index
 
                 if (index === undefined)
@@ -297,8 +301,8 @@ export function Chart({
                     node: shapes[i].getChartOptions().getHoverNode !== undefined && typeof shapes[i].getChartOptions().getHoverNode === 'function' ? shapes[i].getChartOptions().getHoverNode!(shapes[i].points, pIndex) : ''
                 }
 
-            if (shouldRerender)
-                rerender()
+            // if (shouldRerender)
+            //     rerender()
         }
     }
 
