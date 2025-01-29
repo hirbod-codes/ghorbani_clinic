@@ -124,7 +124,7 @@ export class LineChart {
         ctx.fill()
     }
 
-    onHover(ctx: CanvasRenderingContext2D, e: PointerEvent, dataPointIndex:number, t = 1) {
+    onHover(ctx: CanvasRenderingContext2D, e: PointerEvent, dataPointIndex: number, t = 1) {
         if (this.onHoverCallback) {
             this.onHoverCallback(ctx, e, this.points, this.chartOptions, this.strokeOptions, this.fillOptions, t)
             return
@@ -206,9 +206,6 @@ export class LineChart {
             return curves
     }
 
-    private oldT: number = 0
-    private passed: number = 0
-
     /**
      * for value:
      * 
@@ -222,27 +219,47 @@ export class LineChart {
     animationsDuration: { [k: string | number]: number } = {}
     animationsRunCounts: { [k: string | number]: number } = {}
     private animationsPreviousDx: { [k: string | number]: number } = {}
-    private animationsDx: { [k: string | number]: number } = {}
     private animationsStop: { [k: string | number]: boolean } = {}
+    private animationsPassed: { [k: string | number]: number } = {}
+    private animationsFirstTimestamp: { [k: string | number]: number } = {}
 
-    private setDefaults(key: number | string) {
+    private setDefaults(t: DOMHighResTimeStamp, key: number | string) {
         if (this.animationsController[key] === undefined)
-            this.animationsController[key] = 1
+            this.animationsController[key] = 0
 
         if (this.animationsRunCounts[key] === undefined)
-            this.animationsRunCounts[key] = 0
+            this.animationsRunCounts[key] = 1
 
         if (this.animationsPreviousDx[key] === undefined)
             this.animationsPreviousDx[key] = 0
-
-        if (this.animationsDx[key] === undefined)
-            this.animationsDx[key] = 0
 
         if (this.animationsDuration[key] === undefined)
             this.animationsDuration[key] = 0
 
         if (this.animationsStop[key] === undefined)
             this.animationsStop[key] = false
+
+        if (this.animationsPassed[key] === undefined)
+            this.animationsPassed[key] = 0
+
+        if (this.animationsFirstTimestamp[key] === undefined)
+            this.animationsFirstTimestamp[key] = t
+    }
+
+
+    resetAnimation(t: DOMHighResTimeStamp, key: string | number) {
+        this.animationsRunCounts[key] = 1
+        this.animationsPreviousDx[key] = 0
+        this.animationsStop[key] = false
+        this.animationsPassed[key] = 0
+        this.animationsFirstTimestamp[key] = t
+    }
+
+    resetPassedTime(key?: string | number) {
+        if (key === undefined)
+            Object.keys(this.animationsPassed).forEach(k => this.animationsPassed[k] = 0)
+        else
+            this.animationsPassed[key] = 0
     }
 
     play(key?: number | string) {
@@ -259,60 +276,41 @@ export class LineChart {
             this.animationsStop[key] = true
     }
 
-    animate(t: DOMHighResTimeStamp, animationKey: number | string, animationCallback?: (dx: number) => void) {
-        if (!animationCallback)
-            return
-
-        this.setDefaults(animationKey)
+    animate(t: DOMHighResTimeStamp, animationKey: number | string, animationCallback: (dx: number) => void) {
+        this.setDefaults(t, animationKey)
 
         if (this.animationsDuration[animationKey] === undefined || this.animationsDuration[animationKey] <= 0)
             return
 
-        if (this.oldT === 0)
-            this.oldT = t
+        if (this.animationsFirstTimestamp[animationKey] === 0)
+            this.animationsFirstTimestamp[animationKey] = t
 
-        this.passed = t - this.oldT
+        this.animationsPassed[animationKey] = t - this.animationsFirstTimestamp[animationKey]
 
-        let i = Math.floor(this.passed / this.animationsDuration[animationKey])
+        let dx = this.animationsPreviousDx[animationKey]
+
         if (!this.animationsStop[animationKey]) {
-            this.animationsDx[animationKey] = (this.passed % this.animationsDuration[animationKey]) / this.animationsDuration[animationKey]
+            dx = (this.animationsPassed[animationKey] % this.animationsDuration[animationKey]) / this.animationsDuration[animationKey]
 
-            let tmp = this.shouldAnimate(this.animationsController[animationKey], this.animationsRunCounts[animationKey], i, this.animationsDx[animationKey])
+            if (this.animationsPreviousDx[animationKey] > dx)
+                this.animationsRunCounts[animationKey] += 1
+            this.animationsPreviousDx[animationKey] = dx
+
+            let i = Math.floor(this.animationsPassed[animationKey] / this.animationsDuration[animationKey])
+
+            let tmp = this.shouldAnimate(this.animationsController[animationKey], this.animationsRunCounts[animationKey], i, dx)
             if (tmp === undefined)
                 return
 
-            this.animationsDx[animationKey] = tmp
+            dx = tmp
         }
 
-        if (this.animationsPreviousDx[animationKey] < 0.5 && this.animationsDx[animationKey] >= 0.5)
-            this.animationsRunCounts[animationKey] += 1
-        this.animationsPreviousDx[animationKey] = this.animationsDx[animationKey]
-
-        animationCallback(this.animationsDx[animationKey])
-    }
-
-    private shouldAnimatee(controller: number | any[], animationRunIndex: number, dx: number): number | undefined {
-        if (typeof controller === 'number')
-            if (controller === -1)
-                return
-            else if (controller === 0)
-                return 1
-            else if (animationRunIndex <= controller - 1)
-                return dx
-            else
-                return 1
-        else if (Array.isArray(controller))
-            if (controller[animationRunIndex] === true)
-                return dx
-            else if (controller[animationRunIndex] === false)
-                return 1
-            else
-                return 0
+        animationCallback(dx)
     }
 
     private shouldAnimate(controller: number | any[], animationRunsCount: number, animationRunIndex: number, dx: number): number | undefined {
         if (typeof controller === 'number')
-            if (controller === -1)
+            if (controller < 0)
                 return
             else if (controller === 0)
                 return 1
@@ -326,7 +324,7 @@ export class LineChart {
             else if (controller[animationRunIndex] === false)
                 return 1
             else
-                return 0
+                return
     }
 }
 
