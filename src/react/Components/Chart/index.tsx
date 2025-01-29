@@ -202,22 +202,18 @@ export function Chart({
             )
 
         shapes.forEach((s, i) => {
-            // s.animate(t, 'draw', (dx) => {
-            //     s.stroke(ctx, s.animationsDuration.draw, getEasingFunction(s.strokeOptions.ease ?? 'easeInSine')(dx))
-            //     s.fill(ctx, getEasingFunction(s.fillOptions.ease ?? 'easeInSine')(dx))
-            // })
+            s.animate(t, 'draw', (dx) => {
+                s.stroke(ctx, s.animationsDuration.draw, getEasingFunction(s.strokeOptions.ease ?? 'easeInSine')(dx))
+                s.fill(ctx, getEasingFunction(s.fillOptions.ease ?? 'easeInSine')(dx))
+            })
 
             s.animate(t, 'hover', (dx) => {
-                s.fill(ctx, getEasingFunction(s.fillOptions.ease ?? 'easeInSine')(dx))
                 if (!hoverEvent.current)
                     return
 
                 let index = s.findHoveringDataPoint({ x: hoverEvent.current.nativeEvent.offsetX, y: hoverEvent.current.nativeEvent.offsetY })
-                if (shapesHoveringIndex.current[i] !== undefined && index === undefined) {
+                if (shapesHoveringIndex.current[i] !== undefined && index === undefined)
                     s.resetAnimation(t, 'hover')
-                    // s.animationsRunCounts.hover = 0
-                    // s.resetPassedTime('hover')
-                }
                 shapesHoveringIndex.current[i] = index
 
                 if (index === undefined)
@@ -301,8 +297,8 @@ export function Chart({
                     node: shapes[i].getChartOptions().getHoverNode !== undefined && typeof shapes[i].getChartOptions().getHoverNode === 'function' ? shapes[i].getChartOptions().getHoverNode!(shapes[i].points, pIndex) : ''
                 }
 
-            // if (shouldRerender)
-            //     rerender()
+            if (shouldRerender)
+                rerender()
         }
     }
 
