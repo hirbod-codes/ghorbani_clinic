@@ -129,6 +129,18 @@ export class LineChart {
             this.onHoverCallback(ctx, e, this.points, this.chartOptions, this.strokeOptions, this.fillOptions, t)
             return
         }
+
+        if (!this.chartOptions.hoverRadius)
+            return
+
+        ctx.strokeStyle = 'red'
+        ctx.lineWidth = 1
+
+        if (this.y[dataPointIndex] !== undefined) {
+            ctx.beginPath()
+            ctx.ellipse(this.x[dataPointIndex], this.y[dataPointIndex], this.chartOptions.hoverRadius, this.chartOptions.hoverRadius, 0, 0, 2 * Math.PI * t)
+            ctx.stroke()
+        }
     }
 
     findHoveringDataPoint(p: Point, callback?: (p: Point) => void): number | undefined {
@@ -206,6 +218,7 @@ export class LineChart {
             return curves
     }
 
+    lock: boolean = false
     /**
      * for value:
      * 
@@ -223,7 +236,11 @@ export class LineChart {
     private animationsPassed: { [k: string | number]: number } = {}
     private animationsFirstTimestamp: { [k: string | number]: number } = {}
 
-    private setDefaults(t: DOMHighResTimeStamp, key: number | string) {
+    private setDefaults(key: number | string) {
+        while (this.lock === true)
+            continue
+
+        this.lock = true
         if (this.animationsController[key] === undefined)
             this.animationsController[key] = 0
 
@@ -243,23 +260,35 @@ export class LineChart {
             this.animationsPassed[key] = 0
 
         if (this.animationsFirstTimestamp[key] === undefined)
-            this.animationsFirstTimestamp[key] = t
+            this.animationsFirstTimestamp[key] = 0
+
+        this.lock = false
     }
 
 
-    resetAnimation(t: DOMHighResTimeStamp, key: string | number) {
+    resetAnimation(key: string | number) {
+        while (this.lock === true)
+            continue
+
+        this.lock = true
+
         this.animationsRunCounts[key] = 1
         this.animationsPreviousDx[key] = 0
         this.animationsStop[key] = false
         this.animationsPassed[key] = 0
-        this.animationsFirstTimestamp[key] = t
+        this.animationsFirstTimestamp[key] = 0
+        this.lock = false
     }
 
-    resetPassedTime(key?: string | number) {
-        if (key === undefined)
+    resetPassedTime( key?: string | number) {
+        if (key === undefined) {
             Object.keys(this.animationsPassed).forEach(k => this.animationsPassed[k] = 0)
-        else
-            this.animationsPassed[key] = 0
+            return
+        }
+
+        this.animationsPassed[key] = 0
+        this.animationsFirstTimestamp[key] = 0
+        this.animationsRunCounts[key] = 1
     }
 
     play(key?: number | string) {
@@ -277,7 +306,7 @@ export class LineChart {
     }
 
     animate(t: DOMHighResTimeStamp, animationKey: number | string, animationCallback: (dx: number) => void) {
-        this.setDefaults(t, animationKey)
+        this.setDefaults(animationKey)
 
         if (this.animationsDuration[animationKey] === undefined || this.animationsDuration[animationKey] <= 0)
             return
