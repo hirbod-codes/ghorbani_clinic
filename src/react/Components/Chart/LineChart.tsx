@@ -1,8 +1,9 @@
 import { Bezier } from "bezier-js"
 import { Point } from "../../Lib/Math"
 import { PointerEvent, ReactNode } from "react"
-import { ChartOptions, DrawShapeOptions } from "./index.d"
+import { ChartOptions, DrawOnHoverOptions, DrawShapeOptions } from "./index.d"
 import { Circle } from "../Base/Canvas/Shapes/Circle"
+import { getEasingFunction } from "../Animations/easings"
 
 function createCircles(ctx: CanvasRenderingContext2D, points: Point[], radius: number, lineWidth?: number, strokeStyle?: string | CanvasGradient | CanvasPattern, fillStyle?: string | CanvasGradient | CanvasPattern, shadowBlur?: number, shadowColor?: string, shadowOffsetX?: number, shadowOffsetY?: number): Circle[] {
     return points.map(p => new Circle(p.x, p.y, radius, lineWidth, strokeStyle, fillStyle, shadowBlur, shadowColor, shadowOffsetX, shadowOffsetY))
@@ -17,10 +18,11 @@ export class LineChart {
     private xLabels?: ReactNode[]
     private yLabels?: ReactNode[]
     private chartOptions: ChartOptions
+    hoverOptions: DrawOnHoverOptions
     fillOptions: DrawShapeOptions
     strokeOptions: DrawShapeOptions
 
-    private onHoverCallback?: (ctx: CanvasRenderingContext2D, e: PointerEvent, dataPoints: Point[], chartOptions: ChartOptions, strokeOptions: DrawShapeOptions, fillOptions: DrawShapeOptions, t?: DOMHighResTimeStamp) => void
+    private onHoverCallback?: (ctx: CanvasRenderingContext2D, e: PointerEvent, dataPoints: Point[], dataPointIndex: number, chartOptions: ChartOptions, hoverOptions: DrawShapeOptions, t?: DOMHighResTimeStamp) => void
 
     constructor(
         options: {
@@ -28,11 +30,12 @@ export class LineChart {
             y: number[],
             fillOptions: DrawShapeOptions,
             strokeOptions: DrawShapeOptions,
+            hoverOptions: DrawOnHoverOptions,
             xLabels?: ReactNode[],
             yLabels?: ReactNode[],
             chartOptions?: ChartOptions,
             animationDuration?: number,
-            onHover?: (ctx: CanvasRenderingContext2D, e: PointerEvent, dataPoints: Point[], chartOptions: ChartOptions, strokeOptions: DrawShapeOptions, fillOptions: DrawShapeOptions, t?: DOMHighResTimeStamp) => void
+            onHover?: (ctx: CanvasRenderingContext2D, e: PointerEvent, dataPoints: Point[], dataPointIndex: number, chartOptions: ChartOptions, hoverOptions: DrawShapeOptions, t?: DOMHighResTimeStamp) => void
         }
     ) {
         if (!options.chartOptions)
@@ -42,7 +45,6 @@ export class LineChart {
                 offset: 30,
                 xAxisOffset: 15,
                 yAxisOffset: 15,
-                hoverRadius: 20,
             }
 
         this.rawX = [...options.x]
@@ -53,7 +55,21 @@ export class LineChart {
         this.chartOptions = options.chartOptions
         this.fillOptions = options.fillOptions
         this.strokeOptions = options.strokeOptions
+        this.hoverOptions = options.hoverOptions
         this.onHoverCallback = options.onHover
+
+        this.setDefaults('stroke')
+        this.setDefaults('fill')
+        this.setDefaults('hover')
+
+        this.animationsController.stroke = this.strokeOptions.controller ?? 0
+        this.animationsDuration.stroke = this.strokeOptions.duration ?? 0
+
+        this.animationsController.fill = this.strokeOptions.controller ?? 0
+        this.animationsDuration.fill = this.strokeOptions.duration ?? 0
+
+        this.animationsController.hover = this.strokeOptions.controller ?? 0
+        this.animationsDuration.hover = this.strokeOptions.duration ?? 0
     }
 
     setChartOptions(chartOptions: ChartOptions) {
@@ -65,25 +81,30 @@ export class LineChart {
         return this.chartOptions
     }
 
-    stroke(ctx: CanvasRenderingContext2D, animationDuration: number, t = 1) {
+    /**
+     * @param ctx 
+     * @param dx by default, 1
+     * @returns 
+     */
+    stroke(ctx: CanvasRenderingContext2D, dx: number = 1) {
         if (this.strokeOptions.animateStyles)
-            this.strokeOptions.animateStyles(ctx, this.points, this.strokeOptions.styles, this.chartOptions, t)
+            this.strokeOptions.animateStyles(ctx, this.points, this.strokeOptions.styles, this.chartOptions, dx)
 
         if (this.strokeOptions.animateDraw) {
-            this.strokeOptions.animateDraw(ctx, this.points, this.strokeOptions.styles, this.chartOptions, t)
+            this.strokeOptions.animateDraw(ctx, this.points, this.strokeOptions.styles, this.chartOptions, dx)
             return
         }
 
         if (!this.strokeOptions.styles || Object.keys(this.strokeOptions.styles).length === 0)
             return
 
-        let drawPoints = this.bezierCurve(this.points, animationDuration)
+        let drawPoints = this.bezierCurve(this.points, this.strokeOptions.duration ?? 0)
 
         ctx.beginPath()
         Object.keys(this.strokeOptions.styles).forEach(k => ctx[k] = this.strokeOptions.styles![k])
 
         ctx.moveTo(drawPoints[0].x, drawPoints[0].y)
-        let count = drawPoints.length * t
+        let count = drawPoints.length * dx
         for (let i = 1; i < count; i++)
             if (drawPoints[i] || drawPoints[i]?.x || drawPoints[i]?.y)
                 ctx.lineTo(drawPoints[i].x, drawPoints[i].y)
@@ -91,12 +112,17 @@ export class LineChart {
         ctx.stroke()
     }
 
-    fill(ctx: CanvasRenderingContext2D, t = 1) {
+    /**
+     * @param ctx 
+     * @param dx by default, 1
+     * @returns 
+     */
+    fill(ctx: CanvasRenderingContext2D, dx: number = 1) {
         if (this.fillOptions.animateStyles)
-            this.fillOptions.animateStyles(ctx, this.points, this.fillOptions.styles, this.chartOptions, t)
+            this.fillOptions.animateStyles(ctx, this.points, this.fillOptions.styles, this.chartOptions, dx)
 
         if (this.fillOptions.animateDraw) {
-            this.fillOptions.animateDraw(ctx, this.points, this.fillOptions.styles, this.chartOptions, t)
+            this.fillOptions.animateDraw(ctx, this.points, this.fillOptions.styles, this.chartOptions, dx)
             return
         }
 
@@ -124,30 +150,26 @@ export class LineChart {
         ctx.fill()
     }
 
-    onHover(ctx: CanvasRenderingContext2D, e: PointerEvent, dataPointIndex: number, t = 1) {
-        if (this.onHoverCallback) {
-            this.onHoverCallback(ctx, e, this.points, this.chartOptions, this.strokeOptions, this.fillOptions, t)
+    /**
+     * 
+     * @param ctx 
+     * @param e 
+     * @param dataPointIndex 
+     * @param dx by default, 1
+     * @returns 
+     */
+    onHover(ctx: CanvasRenderingContext2D, e: PointerEvent, dataPointIndex: number, dx: number = 1) {
+        if (this.hoverOptions.animate) {
+            this.hoverOptions.animate(ctx, e, this.points, dataPointIndex, this.chartOptions, this.hoverOptions, dx)
             return
-        }
-
-        if (!this.chartOptions.hoverRadius)
-            return
-
-        ctx.strokeStyle = 'red'
-        ctx.lineWidth = 1
-
-        if (this.y[dataPointIndex] !== undefined) {
-            ctx.beginPath()
-            ctx.ellipse(this.x[dataPointIndex], this.y[dataPointIndex], this.chartOptions.hoverRadius, this.chartOptions.hoverRadius, 0, 0, 2 * Math.PI * t)
-            ctx.stroke()
         }
     }
 
     findHoveringDataPoint(p: Point, callback?: (p: Point) => void): number | undefined {
-        if (this.chartOptions.hoverRadius === undefined)
+        if (this.hoverOptions.hoverRadius === undefined)
             return undefined
 
-        let r = this.chartOptions.hoverRadius!
+        let r = this.hoverOptions.hoverRadius!
 
         for (let i = 0; i < this.points.length; i++)
             if (
@@ -218,7 +240,31 @@ export class LineChart {
             return curves
     }
 
-    lock: boolean = false
+    private previousIndex: number | undefined = undefined
+    animate(t: DOMHighResTimeStamp, ctx: CanvasRenderingContext2D, hoverEvent?: PointerEvent) {
+        this.customAnimate(t, 'stroke', (dx) => this.stroke(ctx, getEasingFunction(this.strokeOptions.ease ?? 'easeInSine')(dx)))
+        this.customAnimate(t, 'fill', (dx) => this.fill(ctx, getEasingFunction(this.fillOptions.ease ?? 'easeInSine')(dx)))
+        this.customAnimate(t, 'hover', (dx) => {
+            if (!hoverEvent)
+                return
+
+            let index = this.findHoveringDataPoint({ x: hoverEvent.nativeEvent.offsetX, y: hoverEvent.nativeEvent.offsetY })
+
+            if (this.previousIndex === undefined && index !== undefined) {
+                this.resetAnimation('hover')
+                dx = 0
+            }
+
+            this.previousIndex = index
+
+            if (index === undefined)
+                return
+
+            this.onHover(ctx, hoverEvent!, index, getEasingFunction(this.hoverOptions.ease ?? 'easeInSine')(dx))
+        })
+    }
+
+    private lock: boolean = false
     /**
      * for value:
      * 
@@ -265,7 +311,6 @@ export class LineChart {
         this.lock = false
     }
 
-
     resetAnimation(key: string | number) {
         while (this.lock === true)
             continue
@@ -280,21 +325,8 @@ export class LineChart {
         this.lock = false
     }
 
-    resetPassedTime( key?: string | number) {
-        if (key === undefined) {
-            Object.keys(this.animationsPassed).forEach(k => this.animationsPassed[k] = 0)
-            return
-        }
-
-        this.animationsPassed[key] = 0
-        this.animationsFirstTimestamp[key] = 0
-        this.animationsRunCounts[key] = 1
-    }
-
-    play(key?: number | string) {
-        if (key === undefined)
-            Object.keys(this.animationsStop).forEach(e => this.animationsStop[e] = false)
-        else
+    play(key: number | string) {
+        if (key !== undefined)
             this.animationsStop[key] = false
     }
 
@@ -305,7 +337,7 @@ export class LineChart {
             this.animationsStop[key] = true
     }
 
-    animate(t: DOMHighResTimeStamp, animationKey: number | string, animationCallback: (dx: number) => void) {
+    customAnimate(t: DOMHighResTimeStamp, animationKey: number | string, animationCallback: (dx: number) => void) {
         this.setDefaults(animationKey)
 
         if (this.animationsDuration[animationKey] === undefined || this.animationsDuration[animationKey] <= 0)

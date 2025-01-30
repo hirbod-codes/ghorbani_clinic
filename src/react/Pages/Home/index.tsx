@@ -41,7 +41,20 @@ export const Home = memo(function Home() {
                                 new LineChart({
                                     x: [0, 1, 2, 3, 4, 5, 6, 7],
                                     y: [85, 85, 80, 85, 56, 55, 40, 50],
-                                    chartOptions: {
+                                    hoverOptions: {
+                                        animate(ctx, e, dataPoints, dataPointIndex, chartOptions, hoverOptions, dx) {
+                                            ctx.strokeStyle = 'red'
+                                            ctx.lineWidth = 1
+
+                                            if (this.y[dataPointIndex] !== undefined) {
+                                                ctx.beginPath()
+                                                ctx.ellipse(this.x[dataPointIndex], this.y[dataPointIndex], this.hoverOptions.hoverRadius, this.hoverOptions.hoverRadius, 0, 0, 2 * Math.PI * dx)
+                                                ctx.stroke()
+                                            }
+                                        },
+                                        controller: 3,
+                                        duration: 2000,
+                                        ease: 'easeOutExpo',
                                         getHoverNode: (ps, i) => 'aaaaaaaaaa',
                                         hoverHeight: 100,
                                         hoverWidth: 200,

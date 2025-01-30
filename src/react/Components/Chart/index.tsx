@@ -75,7 +75,6 @@ export function Chart({
         offset: 30,
         xAxisOffset: 15,
         yAxisOffset: 15,
-        hoverRadius: 20,
     },
     shapes = [],
     animationDuration = 5000,
@@ -201,34 +200,8 @@ export function Chart({
                 animationDuration
             )
 
-        shapes.forEach((s, i) => {
-            s.animate(t, 'draw', (dx) => {
-                s.stroke(ctx, s.animationsDuration.draw, getEasingFunction(s.strokeOptions.ease ?? 'easeInSine')(dx))
-                s.fill(ctx, getEasingFunction(s.fillOptions.ease ?? 'easeInSine')(dx))
-            })
-
-            s.animate(t, 'hover', (dx) => {
-                if (!hoverEvent.current)
-                    return
-
-                let index = s.findHoveringDataPoint({ x: hoverEvent.current.nativeEvent.offsetX, y: hoverEvent.current.nativeEvent.offsetY })
-
-                if (shapesHoveringIndex.current[i] === undefined && index !== undefined) {
-                    s.resetAnimation('hover')
-                    dx = 0
-                }
-
-                shapesHoveringIndex.current[i] = index
-
-                if (index === undefined)
-                    return
-
-                s.onHover(ctx, hoverEvent.current!, index, getEasingFunction('easeInSine')(dx))
-            })
-        })
+        shapes.forEach(s => s.animate(t, ctx, hoverEvent.current))
     }
-
-    const shapesHoveringIndex = useRef<{ [k: string | number]: number | undefined }>({})
 
     const containerRef = useRef<HTMLDivElement>(null)
     const canvasWidth = useRef<number>()
@@ -259,16 +232,6 @@ export function Chart({
 
             shapes.forEach(s => s.setChartOptions({ ...chartOptions, ...s.getChartOptions(), width: rect.width, height: rect.height }))
 
-            shapes.forEach(s => {
-                s.animationsController.draw = Infinity
-                s.animationsDuration.draw = 5000
-
-                s.animationsController.hover = 3
-                s.animationsDuration.hover = 2000
-
-                s.play()
-            })
-
             drawAnimation.play((t => draw(ctx.current!, canvasWidth.current!, canvasHeight.current!, t)))
         }
     }, [])
@@ -298,11 +261,11 @@ export function Chart({
                     pIndex: pIndex,
                     top: shapes[i].points[pIndex]?.y,
                     left: shapes[i].points[pIndex]?.x,
-                    node: shapes[i].getChartOptions().getHoverNode !== undefined && typeof shapes[i].getChartOptions().getHoverNode === 'function' ? shapes[i].getChartOptions().getHoverNode!(shapes[i].points, pIndex) : ''
+                    node: shapes[i].hoverOptions.getHoverNode !== undefined && typeof shapes[i].hoverOptions.getHoverNode === 'function' ? shapes[i].hoverOptions.getHoverNode!(shapes[i].points, pIndex) : ''
                 }
 
-            // if (shouldRerender)
-            //     rerender()
+            if (shouldRerender)
+                rerender()
         }
     }
 
@@ -324,10 +287,10 @@ export function Chart({
                     open={hover.current[i]?.open ?? false}
                     containerProps={{ style: { zIndex: 50 } }}
                     anchorDomRect={{
-                        width: s.getChartOptions().hoverWidth,
-                        height: s.getChartOptions().hoverHeight,
-                        top: hover.current[i]?.top ?? 0,
-                        left: hover.current[i]?.left ?? 0,
+                        width: s.hoverOptions.hoverWidth,
+                        height: s.hoverOptions.hoverHeight,
+                        top: hover.current[i]?.top,
+                        left: hover.current[i]?.left,
                     }}
                 >
                     {hover.current[i]?.node}
