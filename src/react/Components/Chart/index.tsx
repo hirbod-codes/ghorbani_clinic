@@ -72,7 +72,7 @@ export function Chart({
     chartOptions = {
         width: 800,
         height: 400,
-        offset: 30,
+        offset: 60,
         xAxisOffset: 15,
         yAxisOffset: 15,
     },
@@ -200,7 +200,7 @@ export function Chart({
                 animationDuration
             )
 
-        shapes.forEach(s => s.animate(t, ctx, hoverEvent.current))
+        shapes.forEach(s => s.animateDefaults(t, ctx, hoverEvent.current))
     }
 
     const containerRef = useRef<HTMLDivElement>(null)

@@ -4,12 +4,13 @@ import { PointerEvent, ReactNode } from "react"
 import { ChartOptions, DrawOnHoverOptions, DrawShapeOptions } from "./index.d"
 import { Circle } from "../Base/Canvas/Shapes/Circle"
 import { getEasingFunction } from "../Animations/easings"
+import { Shape } from "./Shape"
 
 function createCircles(ctx: CanvasRenderingContext2D, points: Point[], radius: number, lineWidth?: number, strokeStyle?: string | CanvasGradient | CanvasPattern, fillStyle?: string | CanvasGradient | CanvasPattern, shadowBlur?: number, shadowColor?: string, shadowOffsetX?: number, shadowOffsetY?: number): Circle[] {
     return points.map(p => new Circle(p.x, p.y, radius, lineWidth, strokeStyle, fillStyle, shadowBlur, shadowColor, shadowOffsetX, shadowOffsetY))
 }
 
-export class LineChart {
+export class LineChart extends Shape {
     rawX: number[]
     rawY: number[]
     x: number[]
@@ -17,12 +18,10 @@ export class LineChart {
     points: Point[]
     private xLabels?: ReactNode[]
     private yLabels?: ReactNode[]
-    private chartOptions: ChartOptions
+    private chartOptions?: ChartOptions
     hoverOptions: DrawOnHoverOptions
     fillOptions: DrawShapeOptions
     strokeOptions: DrawShapeOptions
-
-    private onHoverCallback?: (ctx: CanvasRenderingContext2D, e: PointerEvent, dataPoints: Point[], dataPointIndex: number, chartOptions: ChartOptions, hoverOptions: DrawShapeOptions, t?: DOMHighResTimeStamp) => void
 
     constructor(
         options: {
@@ -35,28 +34,22 @@ export class LineChart {
             yLabels?: ReactNode[],
             chartOptions?: ChartOptions,
             animationDuration?: number,
-            onHover?: (ctx: CanvasRenderingContext2D, e: PointerEvent, dataPoints: Point[], dataPointIndex: number, chartOptions: ChartOptions, hoverOptions: DrawShapeOptions, t?: DOMHighResTimeStamp) => void
         }
     ) {
-        if (!options.chartOptions)
-            options.chartOptions = {
-                width: 800,
-                height: 400,
-                offset: 30,
-                xAxisOffset: 15,
-                yAxisOffset: 15,
-            }
+        super()
+
+        if (options.chartOptions !== undefined) {
+            this.setDistributedPoints(options.x, options.y, options.chartOptions.width!, options.chartOptions.height!, options.chartOptions.offset!)
+            this.chartOptions = options.chartOptions
+        }
 
         this.rawX = [...options.x]
         this.rawY = [...options.y]
-        this.setDistributedPoints(options.x, options.y, options.chartOptions.width!, options.chartOptions.height!, options.chartOptions.offset!)
         this.xLabels = options.xLabels
         this.yLabels = options.yLabels
-        this.chartOptions = options.chartOptions
         this.fillOptions = options.fillOptions
         this.strokeOptions = options.strokeOptions
         this.hoverOptions = options.hoverOptions
-        this.onHoverCallback = options.onHover
 
         this.setDefaults('stroke')
         this.setDefaults('fill')
@@ -72,13 +65,30 @@ export class LineChart {
         this.animationsDuration.hover = this.strokeOptions.duration ?? 0
     }
 
+    getChartOptions() {
+        return this.chartOptions
+    }
+
     setChartOptions(chartOptions: ChartOptions) {
         this.chartOptions = chartOptions
         this.setDistributedPoints(this.rawX, this.rawY, chartOptions.width!, chartOptions.height!, chartOptions.offset!)
     }
 
-    getChartOptions() {
-        return this.chartOptions
+    private setDistributedPoints(x: number[], y: number[], width: number, height: number, offset: number) {
+        this.x = this.distribute(x, width - 2 * offset).map(v => v + offset)
+        this.y = this.distribute(y, height - 2 * offset)
+            .map(v => height - (offset * 2) - v)
+            .map(v => v + offset)
+
+        this.points = this.x.map((v, i) => ({ x: v, y: this.y[i] }))
+    }
+
+    private distribute(values: number[], range: number) {
+        const valuesMax = values.reduce((p, c, i) => c > p ? c : p, values[0])
+        const valuesMin = values.reduce((p, c, i) => c < p ? c : p, values[0])
+
+        const valuesRange = valuesMax - valuesMin
+        return values.map(v => ((v - valuesMin) / valuesRange) * range)
     }
 
     /**
@@ -118,6 +128,9 @@ export class LineChart {
      * @returns 
      */
     fill(ctx: CanvasRenderingContext2D, dx: number = 1) {
+        if (!this.chartOptions)
+            return
+
         if (this.fillOptions.animateStyles)
             this.fillOptions.animateStyles(ctx, this.points, this.fillOptions.styles, this.chartOptions, dx)
 
@@ -151,7 +164,6 @@ export class LineChart {
     }
 
     /**
-     * 
      * @param ctx 
      * @param e 
      * @param dataPointIndex 
@@ -159,13 +171,13 @@ export class LineChart {
      * @returns 
      */
     onHover(ctx: CanvasRenderingContext2D, e: PointerEvent, dataPointIndex: number, dx: number = 1) {
-        if (this.hoverOptions.animate) {
+        if (this.hoverOptions.animate && this.chartOptions) {
             this.hoverOptions.animate(ctx, e, this.points, dataPointIndex, this.chartOptions, this.hoverOptions, dx)
             return
         }
     }
 
-    findHoveringDataPoint(p: Point, callback?: (p: Point) => void): number | undefined {
+    findHoveringDataPoint(p: Point): number | undefined {
         if (this.hoverOptions.hoverRadius === undefined)
             return undefined
 
@@ -181,23 +193,6 @@ export class LineChart {
                 return i
 
         return undefined
-    }
-
-    private setDistributedPoints(x: number[], y: number[], width: number, height: number, offset: number) {
-        this.x = this.distribute(x, width - 2 * offset).map(v => v + offset)
-        this.y = this.distribute(y, height - 2 * offset)
-            .map(v => height - (offset * 2) - v)
-            .map(v => v + offset)
-
-        this.points = this.x.map((v, i) => ({ x: v, y: this.y[i] }))
-    }
-
-    private distribute(values: number[], range: number) {
-        const valuesMax = values.reduce((p, c, i) => c > p ? c : p, values[0])
-        const valuesMin = values.reduce((p, c, i) => c < p ? c : p, values[0])
-
-        const valuesRange = valuesMax - valuesMin
-        return values.map(v => ((v - valuesMin) / valuesRange) * range)
     }
 
     calculateControlPoints(dataPoints: Point[], loopCallback?: (controls: [Point, Point, Point, Point], index: number) => any): [Point, Point, Point, Point][] {
@@ -241,10 +236,10 @@ export class LineChart {
     }
 
     private previousIndex: number | undefined = undefined
-    animate(t: DOMHighResTimeStamp, ctx: CanvasRenderingContext2D, hoverEvent?: PointerEvent) {
-        this.customAnimate(t, 'stroke', (dx) => this.stroke(ctx, getEasingFunction(this.strokeOptions.ease ?? 'easeInSine')(dx)))
-        this.customAnimate(t, 'fill', (dx) => this.fill(ctx, getEasingFunction(this.fillOptions.ease ?? 'easeInSine')(dx)))
-        this.customAnimate(t, 'hover', (dx) => {
+    animateDefaults(t: DOMHighResTimeStamp, ctx: CanvasRenderingContext2D, hoverEvent?: PointerEvent) {
+        this.animate(t, 'stroke', (dx) => this.stroke(ctx, getEasingFunction(this.strokeOptions.ease ?? 'easeInSine')(dx)))
+        this.animate(t, 'fill', (dx) => this.fill(ctx, getEasingFunction(this.fillOptions.ease ?? 'easeInSine')(dx)))
+        this.animate(t, 'hover', (dx) => {
             if (!hoverEvent)
                 return
 
@@ -262,130 +257,6 @@ export class LineChart {
 
             this.onHover(ctx, hoverEvent!, index, getEasingFunction(this.hoverOptions.ease ?? 'easeInSine')(dx))
         })
-    }
-
-    private lock: boolean = false
-    /**
-     * for value:
-     * 
-     * if number, if -1, shape is not drawn, otherwise it's animated as many time as it's value
-     * 
-     * if array, if the value of animation run index in this array is true it will animate and if false it will be drawn only (not animated), and for any value other than boolean it will not be drawn
-     * 
-     * @default 0
-     */
-    animationsController: { [k: string | number]: number | any[] } = {}
-    animationsDuration: { [k: string | number]: number } = {}
-    animationsRunCounts: { [k: string | number]: number } = {}
-    private animationsPreviousDx: { [k: string | number]: number } = {}
-    private animationsStop: { [k: string | number]: boolean } = {}
-    private animationsPassed: { [k: string | number]: number } = {}
-    private animationsFirstTimestamp: { [k: string | number]: number } = {}
-
-    private setDefaults(key: number | string) {
-        while (this.lock === true)
-            continue
-
-        this.lock = true
-        if (this.animationsController[key] === undefined)
-            this.animationsController[key] = 0
-
-        if (this.animationsRunCounts[key] === undefined)
-            this.animationsRunCounts[key] = 1
-
-        if (this.animationsPreviousDx[key] === undefined)
-            this.animationsPreviousDx[key] = 0
-
-        if (this.animationsDuration[key] === undefined)
-            this.animationsDuration[key] = 0
-
-        if (this.animationsStop[key] === undefined)
-            this.animationsStop[key] = false
-
-        if (this.animationsPassed[key] === undefined)
-            this.animationsPassed[key] = 0
-
-        if (this.animationsFirstTimestamp[key] === undefined)
-            this.animationsFirstTimestamp[key] = 0
-
-        this.lock = false
-    }
-
-    resetAnimation(key: string | number) {
-        while (this.lock === true)
-            continue
-
-        this.lock = true
-
-        this.animationsRunCounts[key] = 1
-        this.animationsPreviousDx[key] = 0
-        this.animationsStop[key] = false
-        this.animationsPassed[key] = 0
-        this.animationsFirstTimestamp[key] = 0
-        this.lock = false
-    }
-
-    play(key: number | string) {
-        if (key !== undefined)
-            this.animationsStop[key] = false
-    }
-
-    pause(key?: number | string) {
-        if (key === undefined)
-            Object.keys(this.animationsStop).forEach(e => this.animationsStop[e] = true)
-        else
-            this.animationsStop[key] = true
-    }
-
-    customAnimate(t: DOMHighResTimeStamp, animationKey: number | string, animationCallback: (dx: number) => void) {
-        this.setDefaults(animationKey)
-
-        if (this.animationsDuration[animationKey] === undefined || this.animationsDuration[animationKey] <= 0)
-            return
-
-        if (this.animationsFirstTimestamp[animationKey] === 0)
-            this.animationsFirstTimestamp[animationKey] = t
-
-        this.animationsPassed[animationKey] = t - this.animationsFirstTimestamp[animationKey]
-
-        let dx = this.animationsPreviousDx[animationKey]
-
-        if (!this.animationsStop[animationKey]) {
-            dx = (this.animationsPassed[animationKey] % this.animationsDuration[animationKey]) / this.animationsDuration[animationKey]
-
-            if (this.animationsPreviousDx[animationKey] > dx)
-                this.animationsRunCounts[animationKey] += 1
-            this.animationsPreviousDx[animationKey] = dx
-
-            let i = Math.floor(this.animationsPassed[animationKey] / this.animationsDuration[animationKey])
-
-            let tmp = this.shouldAnimate(this.animationsController[animationKey], this.animationsRunCounts[animationKey], i, dx)
-            if (tmp === undefined)
-                return
-
-            dx = tmp
-        }
-
-        animationCallback(dx)
-    }
-
-    private shouldAnimate(controller: number | any[], animationRunsCount: number, animationRunIndex: number, dx: number): number | undefined {
-        if (typeof controller === 'number')
-            if (controller < 0)
-                return
-            else if (controller === 0)
-                return 1
-            else if (animationRunsCount <= controller)
-                return dx
-            else
-                return 1
-        else if (Array.isArray(controller))
-            if (controller[animationRunIndex] === true)
-                return dx
-            else if (controller[animationRunIndex] === false)
-                return 1
-            else
-                return
     }
 }
 
