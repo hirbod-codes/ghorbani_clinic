@@ -53,7 +53,7 @@ export type DrawOnHoverOptions = Omit<DrawShapeOptions, 'animateStyles' | 'anima
     hoverRadius?: number
     hoverWidth?: number
     hoverHeight?: number
-    animate?: (ctx: CanvasRenderingContext2D, e: PointerEvent, dataPoints: Point[], dataPointIndex: number, chartOptions: ChartOptions, hoverOptions: DrawShapeOptions, dx: number) => void
+    animate?: (ctx: CanvasRenderingContext2D, e: PointerEvent, dataPoints: Point[], dataPointIndex: number, chartOptions: ChartOptions, hoverOptions: DrawOnHoverOptions, dx: number) => void
 }
 
 export type DrawOptions = {

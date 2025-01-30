@@ -58,11 +58,11 @@ export class LineChart extends Shape {
         this.animationsController.stroke = this.strokeOptions.controller ?? 0
         this.animationsDuration.stroke = this.strokeOptions.duration ?? 0
 
-        this.animationsController.fill = this.strokeOptions.controller ?? 0
-        this.animationsDuration.fill = this.strokeOptions.duration ?? 0
+        this.animationsController.fill = this.fillOptions.controller ?? 0
+        this.animationsDuration.fill = this.fillOptions.duration ?? 0
 
-        this.animationsController.hover = this.strokeOptions.controller ?? 0
-        this.animationsDuration.hover = this.strokeOptions.duration ?? 0
+        this.animationsController.hover = this.hoverOptions.controller ?? 0
+        this.animationsDuration.hover = this.hoverOptions.duration ?? 0
     }
 
     getChartOptions() {
