@@ -14,11 +14,13 @@ export const SearchPatientField = memo(function SearchPatientField() {
     const [socialId, setSocialId] = useState<string | undefined>(undefined);
     const [patient, setPatient] = useState<Patient | undefined>(undefined);
 
+    let errorText = socialId !== undefined && socialId.length !== 0 && socialId.length !== 10 ? t('SearchPatientField.InvalidSocialId') : (!loading && socialId && socialId.length === 10 && !patient ? t('SearchPatientField.patientNotFound') : '')
+
     console.log('SearchPatientField', { loading, socialId, patient });
 
     const onSocialIdChange = async (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        if (e.target.value.trim().length > 10 || (e.target.value.trim().match(/\D+/)?.length ?? 1) > 0)
-            return;
+        if (e.target.value.trim().length > 10 || (e.target.value.trim().match(/\D+/)?.length ?? 0) > 0)
+            return
 
         setSocialId(e.target.value.trim());
 
@@ -43,12 +45,10 @@ export const SearchPatientField = memo(function SearchPatientField() {
     return (
         <>
             <Input
-                label={t('SearchPatientField.search')}
-                labelId={t('SearchPatientField.search')}
                 value={socialId ?? ''}
                 placeholder={t('SearchPatientField.socialId')}
                 onChange={onSocialIdChange}
-                errorText={socialId !== undefined && socialId.length !== 0 && socialId.length !== 10 ? t('SearchPatientField.InvalidSocialId') : (!loading && socialId && socialId.length === 10 && !patient ? t('SearchPatientField.patientNotFound') : '')}
+                errorText={errorText}
                 startIcon={loading ? <CircularLoadingIcon /> : <SearchIcon />}
             />
 

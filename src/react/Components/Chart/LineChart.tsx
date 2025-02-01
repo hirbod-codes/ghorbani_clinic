@@ -16,8 +16,8 @@ export class LineChart extends Shape {
     x: number[]
     y: number[]
     points: Point[]
-    private xLabels?: ReactNode[]
-    private yLabels?: ReactNode[]
+    xLabels: { value?: number, node?: ReactNode }[] = []
+    yLabels: { value?: number, node?: ReactNode }[] = []
     private chartOptions?: ChartOptions
     hoverOptions: DrawOnHoverOptions
     fillOptions: DrawShapeOptions
@@ -30,8 +30,8 @@ export class LineChart extends Shape {
             fillOptions: DrawShapeOptions,
             strokeOptions: DrawShapeOptions,
             hoverOptions: DrawOnHoverOptions,
-            xLabels?: ReactNode[],
-            yLabels?: ReactNode[],
+            xLabels?: { value?: number, node?: ReactNode }[],
+            yLabels?: { value?: number, node?: ReactNode }[],
             chartOptions?: ChartOptions,
             animationDuration?: number,
         }
@@ -45,8 +45,8 @@ export class LineChart extends Shape {
 
         this.rawX = [...options.x]
         this.rawY = [...options.y]
-        this.xLabels = options.xLabels
-        this.yLabels = options.yLabels
+        this.xLabels = options.xLabels ?? []
+        this.yLabels = options.yLabels ?? []
         this.fillOptions = options.fillOptions
         this.strokeOptions = options.strokeOptions
         this.hoverOptions = options.hoverOptions
@@ -75,12 +75,15 @@ export class LineChart extends Shape {
     }
 
     private setDistributedPoints(x: number[], y: number[], width: number, height: number, offset: number) {
-        this.x = this.distribute(x, width - 2 * offset).map(v => v + offset)
-        this.y = this.distribute(y, height - 2 * offset)
-            .map(v => height - (offset * 2) - v)
+        this.x = this.distribute(x, width).map(v => v + offset)
+        this.y = this.distribute(y, height)
+            .map(v => height - v)
             .map(v => v + offset)
 
         this.points = this.x.map((v, i) => ({ x: v, y: this.y[i] }))
+
+        this.xLabels = this.xLabels.map((l, i) => ({ ...l, value: this.points[this.rawX.findIndex(v => v === l.value)].x }))
+        this.yLabels = this.yLabels.map((l, i) => ({ ...l, value: this.points[this.rawY.findIndex(v => v === l.value)].y }))
     }
 
     private distribute(values: number[], range: number) {
@@ -98,7 +101,7 @@ export class LineChart extends Shape {
      */
     stroke(ctx: CanvasRenderingContext2D, dx: number = 1) {
         if (this.strokeOptions.animateStyles)
-            this.strokeOptions.animateStyles(ctx, this.points, this.strokeOptions.styles, this.chartOptions, dx)
+            this.strokeOptions.styles = this.strokeOptions.animateStyles(ctx, this.points, this.strokeOptions.styles, this.chartOptions, dx)
 
         if (this.strokeOptions.animateDraw) {
             this.strokeOptions.animateDraw(ctx, this.points, this.strokeOptions.styles, this.chartOptions, dx)
@@ -108,10 +111,11 @@ export class LineChart extends Shape {
         if (!this.strokeOptions.styles || Object.keys(this.strokeOptions.styles).length === 0)
             return
 
+        Object.keys(this.strokeOptions.styles).forEach(k => ctx[k] = this.strokeOptions.styles![k])
+
         let drawPoints = this.bezierCurve(this.points, this.strokeOptions.duration ?? 0)
 
         ctx.beginPath()
-        Object.keys(this.strokeOptions.styles).forEach(k => ctx[k] = this.strokeOptions.styles![k])
 
         ctx.moveTo(drawPoints[0].x, drawPoints[0].y)
         let count = drawPoints.length * dx
@@ -132,7 +136,7 @@ export class LineChart extends Shape {
             return
 
         if (this.fillOptions.animateStyles)
-            this.fillOptions.animateStyles(ctx, this.points, this.fillOptions.styles, this.chartOptions, dx)
+            this.fillOptions.styles = this.fillOptions.animateStyles(ctx, this.points, this.fillOptions.styles, this.chartOptions, dx)
 
         if (this.fillOptions.animateDraw) {
             this.fillOptions.animateDraw(ctx, this.points, this.fillOptions.styles, this.chartOptions, dx)
@@ -145,19 +149,24 @@ export class LineChart extends Shape {
         ctx.beginPath()
         Object.keys(this.fillOptions.styles).forEach(k => ctx[k] = this.fillOptions.styles![k])
 
-        ctx.moveTo(this.points[0].x, this.points[0].y + (this.fillOptions.styles.lineWidth ?? 0))
-
+        let firstPoint: Point | undefined = undefined
         this.calculateControlPoints(this.points, (c, i) => {
-            (new Bezier(...c).offset(this.fillOptions.styles!.lineWidth ?? 0) as Bezier[])
-                .forEach(b => {
-                    ctx.bezierCurveTo(b.points[1].x, b.points[1].y, b.points[2].x, b.points[2].y, b.points[3].x, b.points[3].y)
-                })
+            let curves = (new Bezier(...c).offset((this.strokeOptions.styles!.lineWidth ?? 0) / 2) as Bezier[])
+            if (firstPoint === undefined) {
+                firstPoint = curves[0].points[0]
+                ctx.moveTo(firstPoint.x, firstPoint.y)
+            }
+            curves.forEach((b, j) => {
+                // ctx.moveTo(firstPoint!.x, firstPoint!.y)
+                ctx.bezierCurveTo(b.points[1].x, b.points[1].y, b.points[2].x, b.points[2].y, b.points[3].x, b.points[3].y)
+                firstPoint = b.points[b.points.length - 1]
+            })
         })
 
         ctx.stroke()
 
-        ctx.lineTo(this.points[this.points.length - 1].x, this.chartOptions.height! - this.chartOptions.offset!)
-        ctx.lineTo(this.points[0].x, this.chartOptions.height! - this.chartOptions.offset!)
+        ctx.lineTo(this.points[this.points.length - 1].x, this.chartOptions.height! + this.chartOptions.offset!)
+        ctx.lineTo(this.points[0].x, this.chartOptions.height! + this.chartOptions.offset!)
         ctx.lineTo(this.points[0].x, this.points[0].y)
 
         ctx.fill()
@@ -213,7 +222,7 @@ export class LineChart extends Shape {
 
     }
 
-    bezierCurve(dataPoints: Point[], animationDuration: undefined, drawLine?: (curve: Bezier, controlPoints: [Point, Point, Point, Point], pointIndex: number) => void): Bezier[]
+    bezierCurve(dataPoints: Point[], animationDuration?: undefined, drawLine?: (curve: Bezier, controlPoints: [Point, Point, Point, Point], pointIndex: number) => void): Bezier[]
     bezierCurve(dataPoints: Point[], animationDuration: number, drawLine?: (curve: Bezier, controlPoints: [Point, Point, Point, Point], pointIndex: number) => void): Point[]
     bezierCurve(dataPoints: Point[], animationDuration?: number, drawLine?: (curve: Bezier, controlPoints: [Point, Point, Point, Point], pointIndex: number) => void): Point[] | Bezier[] {
         let length: number = 0
@@ -229,8 +238,12 @@ export class LineChart extends Shape {
         })
 
         if (animationDuration !== undefined) {
-            let pointCount = animationDuration * 0.06 // FPS
-            return curves.reduce<Point[]>((p, c) => p.concat(c.getLUT((c.length() / length) * pointCount)), [])
+            let pointCount = length * 10
+            return curves.reduce<Point[]>((p, c, i) => {
+                let steps = (c.length() / length) * pointCount
+                // console.log('curves length', i, { pointCount, length, curveLength: c.length(), curvePoints: c.getLUT(steps).length, steps })
+                return p.concat(c.getLUT(steps))
+            }, [])
         } else
             return curves
     }

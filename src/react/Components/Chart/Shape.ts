@@ -76,7 +76,12 @@ export class Shape {
         this.setDefaults(animationKey)
 
         if (this.animationsDuration[animationKey] === undefined || this.animationsDuration[animationKey] <= 0)
-            return
+            if (typeof this.animationsController[animationKey] === 'number' && this.animationsController[animationKey] >= 0)
+                animationCallback(1)
+            else if (Array.isArray(this.animationsController[animationKey]) && this.animationsController[animationKey].length > 0)
+                animationCallback(1)
+            else
+                return
 
         if (this.animationsFirstTimestamp[animationKey] === 0)
             this.animationsFirstTimestamp[animationKey] = t
