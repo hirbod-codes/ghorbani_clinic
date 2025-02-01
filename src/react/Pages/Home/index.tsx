@@ -15,6 +15,9 @@ export const Home = memo(function Home() {
 
     const themeOptions = useContext(ConfigurationContext)!.themeOptions
 
+    let x = [0, 1, 2, 3, 4, 5, 6, 7]
+    let y = [85, 85, 80, 85, 56, 55, 40, 50]
+
     return (
         <div className="size-full overflow-y-auto overflow-x-hidden">
             <div className="grid grid-cols-12 justify-center w-full *:p-1">
@@ -32,23 +35,34 @@ export const Home = memo(function Home() {
                     <Calendar />
                 </div>
 
-                <div className="sm:col-span-12 md:col-span-4 col-span-12">
+                <div className="sm:col-span-12 md:col-span-3 col-span-12">
+                    <Analytics />
+                </div>
+
+                {/* <div className="sm:col-span-12 md:col-span-4 col-span-12">
                     <Chart2 />
+                    <div className="absolute top-1/2 left-1/2 border border-red-500">
+                        <div className="relative -translate-y-1/2 -translate-x-1/2 border border-green-500">
+                            bbbbbbbbb
+                        </div>
+                    </div> */}
                     {/* <Chart x={[85, 85, 80, 85, 56, 55, 40, 50]} y={[85, 85, 80, 85, 56, 55, 40, 50]} /> */}
-                    <div className="absolute top-0 left-0 bg-surface-bright z-50 size-[800px]">
+                    {/* <div className="absolute top-0 left-0 bg-surface-bright z-50 size-[800px]">
                         <Chart
                             shapes={[
                                 new LineChart({
-                                    x: [0, 1, 2, 3, 4, 5, 6, 7],
-                                    y: [85, 85, 80, 85, 56, 55, 40, 50],
+                                    x,
+                                    y,
+                                    xLabels: x.map(value => ({ value, node: value })),
+                                    yLabels: y.map(value => ({ value, node: value })),
                                     hoverOptions: {
                                         animate(ctx, e, dataPoints, dataPointIndex, chartOptions, hoverOptions, dx) {
                                             ctx.strokeStyle = 'red'
                                             ctx.lineWidth = 1
 
-                                            if (this.y[dataPointIndex] !== undefined) {
+                                            if (dataPoints[dataPointIndex] !== undefined) {
                                                 ctx.beginPath()
-                                                ctx.ellipse(this.x[dataPointIndex], this.y[dataPointIndex], this.hoverOptions.hoverRadius, this.hoverOptions.hoverRadius, 0, 0, 2 * Math.PI * dx)
+                                                ctx.ellipse(dataPoints[dataPointIndex].x, dataPoints[dataPointIndex].y, hoverOptions.hoverRadius ?? 20, hoverOptions.hoverRadius ?? 20, 0, 0, 2 * Math.PI * dx)
                                                 ctx.stroke()
                                             }
                                         },
@@ -61,17 +75,28 @@ export const Home = memo(function Home() {
                                         hoverRadius: 20,
                                     },
                                     fillOptions: {
-                                        styles: {
-                                            fillStyle: 'transparent',
-                                            lineWidth: 4,
-                                            strokeStyle: 'red'
-                                        }
+                                        styles: undefined,
+                                        animateStyles(ctx, dataPoints, styleOptions, chartOptions, fraction) {
+                                            let g = ctx.createLinearGradient(0, 0, 0, chartOptions?.height ?? 10)
+                                            g.addColorStop(0, 'red')
+                                            g.addColorStop(1, 'transparent')
+                                            return {
+                                                fillStyle: g,
+                                                // fillStyle: '#0000ff00',
+                                                // strokeStyle: 'red',
+                                                strokeStyle: 'transparent',
+                                                lineCap: 'butt',
+                                                lineWidth: 20,
+                                            }
+                                        },
                                     },
                                     strokeOptions: {
+                                        controller: 3,
+                                        duration: 5000,
                                         styles: {
                                             strokeStyle: '#00ff0080',
-                                            lineWidth: 4,
-                                            lineCap: 'round'
+                                            lineWidth: 20,
+                                            lineCap: 'round',
                                         },
                                         ease: 'easeOutExpo'
                                     },
@@ -80,11 +105,6 @@ export const Home = memo(function Home() {
                             ]}
                         />
                     </div>
-                </div>
-                <div className="sm:col-span-0" />
-
-                {/* <div className="sm:col-span-12 md:col-span-4 col-span-12">
-                    <Analytics />
                 </div> */}
             </div>
         </div>
