@@ -51,7 +51,7 @@ export const Input = memo(function Input({ label, labelId, errorText, helperText
                 : input
             }
 
-            <AnimatePresence>
+            <AnimatePresence mode='sync'>
                 {errorText !== undefined
                     ?
                     <motion.div
@@ -69,24 +69,29 @@ export const Input = memo(function Input({ label, labelId, errorText, helperText
                         </p>
                     </motion.div>
                     :
-                    <motion.div
-                        key={1}
-                        layout='position'
-                        initial='exit'
-                        animate='animate'
-                        exit='exit'
-                        variants={inputVariants}
-                        transition={{ ease: [0.5, 0, 0.5, 1] }}
-                        className="relative bottom-0 inline"
-                    >
-                        <Tooltip tooltipContent={helperText}>
-                            <p className="text-left text-xs text-surface-foreground text-nowrap text-ellipsis w-full overflow-hidden">
-                                {helperText}
-                            </p>
-                        </Tooltip>
-                    </motion.div>
+                    (
+                        helperText !== undefined
+                            ?
+                            <motion.div
+                                key={1}
+                                layout='position'
+                                initial='exit'
+                                animate='animate'
+                                exit='exit'
+                                variants={inputVariants}
+                                transition={{ ease: [0.5, 0, 0.5, 1] }}
+                                className="relative bottom-0 inline"
+                            >
+                                <Tooltip tooltipContent={helperText}>
+                                    <p className="text-left text-xs text-surface-foreground text-nowrap text-ellipsis w-full overflow-hidden">
+                                        {helperText}
+                                    </p>
+                                </Tooltip>
+                            </motion.div>
+                            : undefined
+                    )
                 }
             </AnimatePresence>
-        </div>
+        </div >
     )
 })
