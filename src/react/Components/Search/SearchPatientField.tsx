@@ -14,7 +14,7 @@ export const SearchPatientField = memo(function SearchPatientField() {
     const [socialId, setSocialId] = useState<string | undefined>(undefined);
     const [patient, setPatient] = useState<Patient | undefined>(undefined);
 
-    let errorText = socialId !== undefined && socialId.length !== 0 && socialId.length !== 10 ? t('SearchPatientField.InvalidSocialId') : (!loading && socialId && socialId.length === 10 && !patient ? t('SearchPatientField.patientNotFound') : '')
+    let errorText = socialId !== undefined && socialId.length !== 0 && socialId.length !== 10 ? t('SearchPatientField.InvalidSocialId') : (!loading && socialId && socialId.length === 10 && !patient ? t('SearchPatientField.patientNotFound') : undefined)
 
     console.log('SearchPatientField', { loading, socialId, patient });
 
