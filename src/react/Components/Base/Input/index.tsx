@@ -2,7 +2,7 @@ import { InputWithIcon as ReferenceInput } from "../InputWithIcon";
 import { Label } from "@/src/react/shadcn/components/ui/label";
 import { ComponentProps, memo, useEffect } from "react";
 import { Tooltip } from "../Tooltip";
-import { AnimatePresence, motion, MotionProps } from "framer-motion";
+import { AnimatePresence, motion, MotionProps, useAnimate } from "framer-motion";
 import { cn } from "@/src/react/shadcn/lib/utils";
 import { Stack } from "../Stack";
 
@@ -28,59 +28,65 @@ export type InputProps = {
 export const Input = memo(function Input({ label, labelId, errorText, helperText, containerProps, inputRef, ...inputProps }: InputProps) {
     const input = <ReferenceInput inputRef={inputRef} id={labelId} {...inputProps} className={cn("", inputProps?.className)} />
 
-    useEffect(() => { setTimeout(() => { errorText = undefined }, 3000) }, [])
+    const [containerRef, animateContainerRef] = useAnimate()
+
+    useEffect(() => {
+        if (containerRef.current) {
+            if (errorText !== undefined || helperText !== undefined)
+                animateContainerRef(containerRef.current, { height: '1.5cm' })
+            else
+                animateContainerRef(containerRef.current, { height: '1cm' })
+        }
+    }, [errorText, helperText])
 
     return (
-        <div className="h-16 border-2">
-            <motion.div {...containerProps} className={cn("flex flex-col relative border border-red-500 ", containerProps?.className)}>
-                {label && labelId
-                    ? <Stack stackProps={{ className: "items-center size-full last:m-0 m-0" }}>
-                        <Label htmlFor={labelId}>
-                            {label}
-                        </Label>
-                        {input}
-                    </Stack>
-                    : input
-                }
+        <div ref={containerRef} {...containerProps} className={cn("flex flex-col relative", containerProps?.className)} style={{ height: '1cm' }}>
+            {label && labelId
+                ? <Stack stackProps={{ className: "items-center size-full last:m-0 m-0" }}>
+                    <Label htmlFor={labelId}>
+                        {label}
+                    </Label>
+                    {input}
+                </Stack>
+                : input
+            }
 
-                <AnimatePresence mode='wait'>
-                    {errorText === undefined && helperText !== undefined &&
-                        <motion.div
-                            key={0}
-                            layout='position'
-                            initial='exit'
-                            animate='animate'
-                            exit='exit'
-                            variants={inputVariants}
-                            transition={{ ease: [0.5, 0, 0.5, 1] }}
-                            className="relative -bottom-1 inline"
-                        >
-                            <Tooltip tooltipContent={helperText}>
-                                <p className="text-left text-xs text-surface-foreground text-nowrap text-ellipsis w-full overflow-hidden">
-                                    {helperText}
-                                </p>
-                            </Tooltip>
-                        </motion.div>
-                    }
-
-                    {errorText !== undefined &&
-                        <motion.div
-                            key={1}
-                            layout='position'
-                            initial='exit'
-                            animate='animate'
-                            exit='exit'
-                            variants={inputVariants}
-                            transition={{ ease: [0.5, 0, 0.5, 1] }}
-                            className="relative -bottom-1 inline"
-                        >
-                            <p className="text-left text-xs bg-destructive text-destructive-foreground text-nowrap text-ellipsis w-full overflow-hidden">
-                                {errorText}
+            <AnimatePresence>
+                {errorText !== undefined
+                    ?
+                    <motion.div
+                        key={0}
+                        layout='position'
+                        initial='exit'
+                        animate='animate'
+                        exit='exit'
+                        variants={inputVariants}
+                        transition={{ ease: [0.5, 0, 0.5, 1] }}
+                        className="relative bottom-0 inline"
+                    >
+                        <p className="text-left text-xs text-error text-nowrap text-ellipsis w-full overflow-hidden">
+                            {errorText}
+                        </p>
+                    </motion.div>
+                    :
+                    <motion.div
+                        key={1}
+                        layout='position'
+                        initial='exit'
+                        animate='animate'
+                        exit='exit'
+                        variants={inputVariants}
+                        transition={{ ease: [0.5, 0, 0.5, 1] }}
+                        className="relative bottom-0 inline"
+                    >
+                        <Tooltip tooltipContent={helperText}>
+                            <p className="text-left text-xs text-surface-foreground text-nowrap text-ellipsis w-full overflow-hidden">
+                                {helperText}
                             </p>
-                        </motion.div>
-                    }
-                </AnimatePresence>
-            </motion.div>
+                        </Tooltip>
+                    </motion.div>
+                }
+            </AnimatePresence>
         </div>
     )
 })
