@@ -12,13 +12,14 @@ export type ModalProps = {
     onClose?: () => void,
     animatedSlideProps?: ComponentProps<typeof AnimatedSlide>,
     modalContainerProps?: ComponentProps<'div'>
+    useResponsiveContainer?: boolean
     childrenContainerProps?: ComponentProps<'div'>
     childrenContainerRef?: RefObject<HTMLDivElement>
     closeButton?: boolean,
     closeIcon?: ReactNode
 }
 
-export function Modal({ children, open = false, onClose, modalContainerProps, childrenContainerProps, childrenContainerRef, animatedSlideProps, closeButton = true, closeIcon }: ModalProps) {
+export function Modal({ children, open = false, onClose, useResponsiveContainer = true, modalContainerProps, childrenContainerProps, childrenContainerRef, animatedSlideProps, closeButton = true, closeIcon }: ModalProps) {
     const containerRef = useRef<HTMLDivElement>(null)
 
     let i = 0
@@ -30,6 +31,28 @@ export function Modal({ children, open = false, onClose, modalContainerProps, ch
     }
 
     closeIcon = closeIcon ?? <XIcon className="text-error" />
+
+    let ModalContainer
+    if (useResponsiveContainer)
+        ModalContainer = ({ children }: { children?: ReactNode }) =>
+            <Container
+                {...modalContainerProps}
+                containerRef={containerRef}
+                className={cn("relative max-h-[80%]", modalContainerProps?.className)}
+                style={{ zIndex: 22 + i, ...modalContainerProps?.style }}
+            >
+                {children}
+            </Container>
+    else
+        ModalContainer = ({ children }: { children?: ReactNode }) =>
+            <div
+                {...modalContainerProps}
+                ref={containerRef}
+                className={cn("relative max-h-[80%]", modalContainerProps?.className)}
+                style={{ zIndex: 22 + i, ...modalContainerProps?.style }}
+            >
+                {children}
+            </div>
 
     return createPortal(
         <>
@@ -55,12 +78,7 @@ export function Modal({ children, open = false, onClose, modalContainerProps, ch
                         style={{ zIndex: 21 + i }}
                     />}
 
-                <Container
-                    {...modalContainerProps}
-                    containerRef={containerRef}
-                    className={cn("relative max-h-[80%]", modalContainerProps?.className)}
-                    style={{ zIndex: 22 + i, ...modalContainerProps?.style }}
-                >
+                <ModalContainer>
                     <div ref={childrenContainerRef} {...childrenContainerProps} className={cn("bg-surface-container overflow-auto rounded py-4 px-10 size-full", childrenContainerProps?.className)}>
                         {children}
                     </div>
@@ -70,7 +88,7 @@ export function Modal({ children, open = false, onClose, modalContainerProps, ch
                             {closeIcon}
                         </Button>
                     }
-                </Container>
+                </ModalContainer>
             </AnimatedSlide>
         </>
         , document.body

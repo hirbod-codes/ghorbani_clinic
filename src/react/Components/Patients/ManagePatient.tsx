@@ -74,7 +74,7 @@ export function ManagePatient({ inputPatient, onDone }: { onDone?: (patient: Pat
                 {inputPatient ? t('ManagePatient.UpdatePatient') : t('ManagePatient.RegisterPatient')}
             </div>
 
-            <Stack direction='vertical' stackProps={{ className: 'sm:col-span-5 col-span-full' }}>
+            <Stack direction='vertical' stackProps={{ className: 'lg:col-span-5 col-span-full' }}>
                 {/* Social Id */}
                 <Input
                     label={t('ManagePatient.socialId')}
@@ -156,11 +156,11 @@ export function ManagePatient({ inputPatient, onDone }: { onDone?: (patient: Pat
                 }
             </Stack>
 
-            <div className='sm:col-span-1 invisible sm:visible flex flex-row justify-center '>
+            <div className='lg:col-span-1 invisible lg:visible flex flex-row justify-center '>
                 <Separator orientation='vertical' />
             </div>
 
-            <Stack direction='vertical' stackProps={{ className: 'sm:col-span-5 col-span-full' }}>
+            <Stack direction='vertical' stackProps={{ className: 'lg:col-span-5 col-span-full' }}>
                 {/* Phone Number */}
                 <Input
                     label={t('ManagePatient.phoneNumber')}
@@ -190,6 +190,7 @@ export function ManagePatient({ inputPatient, onDone }: { onDone?: (patient: Pat
                         {t('ManagePatient.birthDate')}
                     </p>
                     <DateField
+                        id='birthDate'
                         width='4rem'
                         onChange={(date) => {
                             const birthDate = toDateTimeView({ date, time: { hour: 0, minute: 0, second: 0 } }, { ...locale, calendar: 'Gregorian' }, locale)
@@ -212,6 +213,7 @@ export function ManagePatient({ inputPatient, onDone }: { onDone?: (patient: Pat
                         {t('ManagePatient.gender')}
                     </p>
                     <Select
+                        id='gender'
                         onValueChange={(value) => setPatient({ ...patient!, gender: value })}
                         defaultValue={patient?.gender ?? ''}
                         inputProps={{ className: 'w-[7rem]' }}

@@ -12,14 +12,16 @@ const SelectContext = createContext<{ updateSelection: ({ value, displayValue }:
 export type SelectProps = {
     defaultValue?: string
     defaultDisplayValue?: string
+    id?: string
     label?: string
     onValueChange: (v) => void | Promise<void>
     children: ReactElement[]
     loading?: boolean
     inputProps?: ComponentProps<typeof Input>
+    canDropdownMenuWidthGrow?: boolean
 }
 
-export function Select({ defaultValue, defaultDisplayValue, label, onValueChange, children, loading = false, inputProps }: SelectProps) {
+export function Select({ defaultValue, defaultDisplayValue, id, label, onValueChange, children, loading = false, inputProps, canDropdownMenuWidthGrow = true }: SelectProps) {
     const [value, setValue] = useState(defaultValue)
     const [displayValue, setDisplayValue] = useState(defaultDisplayValue)
     const [open, setOpen] = useState(false)
@@ -30,7 +32,7 @@ export function Select({ defaultValue, defaultDisplayValue, label, onValueChange
 
     useEffect(() => {
         if (inputRef?.current)
-            setWidth(inputRef.current.getBoundingClientRect().width.toFixed(0) + 'px')
+            setWidth(inputRef.current.getBoundingClientRect().width.toFixed(2) + 'px')
     }, [inputRef, inputRef?.current])
 
     return (
@@ -43,14 +45,13 @@ export function Select({ defaultValue, defaultDisplayValue, label, onValueChange
                     inputRef={inputRef}
                     label={label}
                     labelId={label}
-                    id={label}
-                    className="cursor-none"
-                    containerProps={{ className: 'cursor-pointer', onClick: (e) => { setOpen(!open) } }}
+                    id={id ?? label}
                     value={displayValue}
                     readOnly
-                    // onClick={(e) => { setOpen(!open) }}
-                    endIcon={open ? <ChevronUp /> : <ChevronDown />}
                     {...inputProps}
+                    endIcon={inputProps?.endIcon ?? (open ? <ChevronUp /> : <ChevronDown />)}
+                    className={cn('cursor-pointer', inputProps?.className)}
+                    containerProps={{ ...inputProps?.containerProps, className: cn('cursor-pointer', inputProps?.containerProps?.className), onClick: (e) => { setOpen(!open); if (inputProps?.containerProps?.onClick) inputProps.containerProps.onClick(e) } }}
                 />
             }
 
@@ -58,7 +59,7 @@ export function Select({ defaultValue, defaultDisplayValue, label, onValueChange
                 anchorRef={inputRef}
                 open={open}
                 onOpenChange={(b) => { if (!b) setOpen(false) }}
-                containerProps={{ className: 'rounded-md bg-surface-container-high my-0 shadow-md', style: { width } }}
+                containerProps={{ className: 'rounded-md bg-surface-container-high my-0 shadow-md', style: canDropdownMenuWidthGrow ? { minWidth: width } : { width } }}
             >
                 <SelectContext.Provider value={{
                     updateSelection: ({ value, displayValue }) => {

@@ -34,7 +34,7 @@ export function InputGroup({ fields = [], inputBorderRadius = 'md', containerPro
                             {...f.props}
                             inputProps={{
                                 ...f.props?.inputProps,
-                                className: `w-20 py-1 px-2 bg-surface text-surface-foreground ${rightBorder} border-accent ${roundness}`,
+                                className: cn(`w-20 py-1 px-2 bg-surface text-surface-foreground ${rightBorder} border- accent ${roundness}`, f?.props?.inputProps?.className),
                             }}
                         />
                 }))

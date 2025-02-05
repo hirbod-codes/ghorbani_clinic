@@ -30,6 +30,8 @@ export type InputProps = {
 export const Input = memo(function Input({ label, labelId, errorText, helperText, containerProps, inputRef, animateHeight = false, labelContainerProps, ...inputProps }: InputProps) {
     const input = <ReferenceInput inputRef={inputRef} id={labelId} {...inputProps} />
 
+    let t = 'cursor-pointer'
+
     const [containerRef, animateContainerRef] = useAnimate()
 
     useEffect(() => {

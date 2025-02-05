@@ -100,6 +100,8 @@ export function ManagePatientModal({ open, onClose, inputPatient }: { open: bool
                 <Modal
                     open={open}
                     onClose={onClose}
+                    useResponsiveContainer={false}
+                    modalContainerProps={{ className: 'w-5/6' }}
                 >
                     <ManagePatient
                         onDone={(p, v, f) => {

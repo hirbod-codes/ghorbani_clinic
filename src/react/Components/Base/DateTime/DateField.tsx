@@ -7,7 +7,7 @@ import { InputGroup } from '../InputGroup';
 import { t } from 'i18next';
 import { Select } from '../Select';
 
-export function DateField({ defaultDate, width = '7rem', onChange, variant }: { defaultDate?: Date; width?: string; onChange?: (date: Date) => void; variant?: "standard" | "outlined" | "filled"; }) {
+export function DateField({ defaultDate, width = '7rem', onChange, variant, id }: { defaultDate?: Date; width?: string; onChange?: (date: Date) => void; variant?: "standard" | "outlined" | "filled"; id?: string }) {
     const local = useContext(ConfigurationContext)!.local;
     const localeMonths = getLocaleMonths(local, DateTime.local({ zone: local.zone }).year);
 
@@ -33,6 +33,7 @@ export function DateField({ defaultDate, width = '7rem', onChange, variant }: { 
                     {
                         type: 'input',
                         props: {
+                            id,
                             placeholder: t('DateField.Year'),
                             style: { width },
                             value: year ?? '',
@@ -51,21 +52,24 @@ export function DateField({ defaultDate, width = '7rem', onChange, variant }: { 
                     {
                         type: 'select',
                         props: {
-                            inputProps: { style: { width } },
+                            id,
+                            inputProps: { className: 'w-[3.5cm]' },
                             children: localeMonths.map((e, i) => <Select.Item value={e.name} key={i}>{e.name}</Select.Item>),
-                            // defaultValue: defaultDate?.month !== undefined ? Number(defaultDate?.month) : undefined,
+                            defaultValue: defaultDate?.month !== undefined ? localeMonths[defaultDate?.month - 1].name : undefined,
                             onValueChange(v) {
-                                setMonth(Number(v))
+                                let m = localeMonths.findIndex(f => f.name === v) + 1
+                                setMonth(m)
 
                                 if (year !== undefined && day !== undefined)
                                     if (onChange)
-                                        onChange({ year: year, month: Number(v), day: day })
+                                        onChange({ year: year, month: m, day: day })
                             },
                         }
                     },
                     {
                         type: 'input',
                         props: {
+                            id,
                             placeholder: t('DateField.Day'),
                             style: { width },
                             value: day ?? '',
