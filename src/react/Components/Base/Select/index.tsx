@@ -31,6 +31,11 @@ export function Select({ defaultValue, defaultDisplayValue, id, label, onValueCh
     const inputRef = useRef<HTMLInputElement>(null)
 
     useEffect(() => {
+        if (defaultDisplayValue === undefined && defaultValue !== undefined)
+            setDisplayValue(defaultValue)
+    }, [])
+
+    useEffect(() => {
         if (inputRef?.current)
             setWidth(inputRef.current.getBoundingClientRect().width.toFixed(2) + 'px')
     }, [inputRef, inputRef?.current])

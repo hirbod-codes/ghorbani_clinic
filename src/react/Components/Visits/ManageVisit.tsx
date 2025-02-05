@@ -10,6 +10,10 @@ import { Button } from '../../Components/Base/Button';
 import { Separator } from '../../shadcn/components/ui/separator';
 import { PlusIcon, XIcon } from 'lucide-react';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '../../shadcn/components/ui/accordion';
+import { Stack } from '../Base/Stack';
+import { DateField } from '../Base/DateTime/DateField';
+import { Date, Time } from '../../Lib/DateTime';
+import { TimeField } from '../Base/DateTime/TimeField';
 
 export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId: string; defaultVisits?: Visit[]; onChange?: (visits: Visit[]) => void; }) {
     const local = useContext(ConfigurationContext)!.local;
@@ -28,6 +32,9 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
     const [showTreatments, setShowTreatments] = useState<boolean>(false)
     const [activeVisitIndex, setActiveVisitIndex] = useState<number | undefined>(undefined);
     const [visits, setVisits] = useState<Visit[]>([]);
+
+    const [visitsDates, setVisitsDates] = useState<Date[]>([]);
+    const [visitsTimes, setVisitsTimes] = useState<Time[]>([]);
 
     useEffect(() => {
         setVisits([...defaultVisits ?? []]);
@@ -79,19 +86,33 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                     setVisits([...visits])
                 }}
             />
-            <div className='flex flex-col items-center space-x-2 space-y-2 w-full'>
+
+            <Stack direction='vertical' stackProps={{ className: 'w-full' }}>
                 {
                     visits.map((v, i) =>
-                        <>
-                            <Accordion key={i} type="single" collapsible>
-                                <AccordionItem value="item-1">
-                                    <AccordionTrigger>
-                                        <p>{visits[i]?.due && toFormat(visits[i].due, local)}</p>
-                                    </AccordionTrigger>
-                                    <AccordionContent>
-                                        <div className='flex flex-col items-center space-x-2 space-y-2 w-full'>
-                                            <DateTimeField
-                                                onChange={(dateTime) => {
+                        <Accordion key={i} type="single" collapsible>
+                            <AccordionItem value="item-1">
+                                <AccordionTrigger>
+                                    <p>{visits[i]?.due && toFormat(visits[i].due, local)}</p>
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                    <Stack direction='vertical' stackProps={{ className: 'items-center w-full' }}>
+                                        <Stack stackProps={{ className: 'justify-between items-center m-0 w-full' }}>
+                                            <p>
+                                                {t('ManageVisits.date')}
+                                            </p>
+                                            <DateField
+                                                width='4rem'
+                                                defaultDate={toDateTimeView(visits[i].due, local).date}
+                                                onChange={(date) => {
+                                                    visitsDates[i] = date
+                                                    setVisitsDates([...visitsDates])
+
+                                                    if (visitsTimes[i] === undefined)
+                                                        return
+
+                                                    const dateTime = { date: visitsDates[i], time: visitsTimes[i] }
+
                                                     const convertedDate = toDateTimeView({ date: dateTime.date, time: dateTime.time }, { ...local, calendar: 'Gregorian', zone: 'UTC' }, local);
                                                     visits[i].due = DateTime.local(convertedDate.date.year, convertedDate.date.month, convertedDate.date.day, convertedDate.time.hour, convertedDate.time.minute, convertedDate.time.second, { zone: 'UTC' }).toUnixInteger();
 
@@ -99,29 +120,50 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                                                         onChange([...visits])
                                                     setVisits([...visits])
                                                 }}
-                                                defaultDate={toDateTimeView(visits[i].due, local).date}
-                                                defaultTime={toDateTimeView(visits[i].due, local).time}
                                             />
+                                        </Stack>
 
-                                            <Separator />
+                                        <Stack stackProps={{ className: 'justify-between items-center m-0 w-full' }}>
+                                            <p>
+                                                {t('ManageVisits.time')}
+                                            </p>
+                                            <TimeField
+                                                inputProps={{ className: 'w-[4rem]' }}
+                                                defaultTime={toDateTimeView(visits[i].due, local).time}
+                                                onChange={(time) => {
+                                                    visitsTimes[i] = time
+                                                    setVisitsTimes([...visitsTimes])
 
-                                            <div className='flex flex-row items-center justify-evenly w-full'>
-                                                <Button variant='outline' onClick={() => { setActiveVisitIndex(i); setShowDiagnosis(true) }}>
-                                                    {t('ManageVisits.diagnosis')}
-                                                </Button>
+                                                    if (visitsDates[i] === undefined)
+                                                        return
 
-                                                <Separator />
+                                                    const dateTime = { date: visitsDates[i], time: visitsTimes[i] }
 
-                                                <Button variant='outline' onClick={() => { setActiveVisitIndex(i); setShowTreatments(true) }}>
-                                                    {t('ManageVisits.treatments')}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            </Accordion>
-                            {i < (visits.length - 1) && <Separator />}
-                        </>
+                                                    const convertedDate = toDateTimeView({ date: dateTime.date, time: dateTime.time }, { ...local, calendar: 'Gregorian', zone: 'UTC' }, local);
+                                                    visits[i].due = DateTime.local(convertedDate.date.year, convertedDate.date.month, convertedDate.date.day, convertedDate.time.hour, convertedDate.time.minute, convertedDate.time.second, { zone: 'UTC' }).toUnixInteger();
+
+                                                    if (onChange)
+                                                        onChange([...visits])
+                                                    setVisits([...visits])
+                                                }}
+                                            />
+                                        </Stack>
+
+                                        <Stack stackProps={{ className: 'items-center justify-evenly w-full' }}>
+                                            <Button variant='outline' onClick={() => { setActiveVisitIndex(i); setShowDiagnosis(true) }}>
+                                                {t('ManageVisits.diagnosis')}
+                                            </Button>
+
+                                            <Separator orientation='vertical' />
+
+                                            <Button variant='outline' onClick={() => { setActiveVisitIndex(i); setShowTreatments(true) }}>
+                                                {t('ManageVisits.treatments')}
+                                            </Button>
+                                        </Stack>
+                                    </Stack>
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Accordion>
                     )
                 }
 
@@ -155,7 +197,7 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                         <PlusIcon />
                     </Button >
                 </div >
-            </div >
+            </Stack>
         </>
     );
 }

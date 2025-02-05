@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { ComponentProps, useState } from 'react';
 import { Time } from '../../../Lib/DateTime';
 import { t } from 'i18next';
 import { Input } from '../Input';
 
-export function TimeField({ defaultTime, onChange, variant }: { defaultTime?: Time; onChange?: (time: Time) => void; variant?: "standard" | "outlined" | "filled"; }) {
+export function TimeField({ defaultTime, onChange, variant }: { defaultTime?: Time; onChange?: (time: Time) => void; variant?: "standard" | "outlined" | "filled"; inputProps?: ComponentProps<typeof Input> }) {
     const [hour, setHour] = useState<number | undefined>(undefined);
     const [minute, setMinute] = useState<number | undefined>(undefined);
     const [second, setSecond] = useState<number | undefined>(undefined);
