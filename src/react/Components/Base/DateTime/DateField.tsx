@@ -1,10 +1,11 @@
-import { useState, useContext } from 'react';
+import { useState, useContext, useEffect } from 'react';
 import { DateTime } from 'luxon';
 import { Date } from '../../../Lib/DateTime';
 import { ConfigurationContext } from '../../../Contexts/Configuration/ConfigurationContext';
 import { getLocaleMonths } from '../../../Lib/DateTime/date-time-helpers';
 import { InputGroup } from '../InputGroup';
 import { t } from 'i18next';
+import { Select } from '../Select';
 
 export function DateField({ defaultDate, width = '7rem', onChange, variant }: { defaultDate?: Date; width?: string; onChange?: (date: Date) => void; variant?: "standard" | "outlined" | "filled"; }) {
     const local = useContext(ConfigurationContext)!.local;
@@ -14,14 +15,16 @@ export function DateField({ defaultDate, width = '7rem', onChange, variant }: { 
     const [month, setMonth] = useState<number | undefined>(undefined);
     const [day, setDay] = useState<number | undefined>(undefined);
 
-    if (!year && defaultDate?.year)
-        setYear(defaultDate.year);
+    useEffect(() => {
+        if (!year && defaultDate?.year)
+            setYear(defaultDate.year);
 
-    if (!month && defaultDate?.month)
-        setMonth(defaultDate.month);
+        if (!month && defaultDate?.month)
+            setMonth(defaultDate.month);
 
-    if (!day && defaultDate?.day)
-        setDay(defaultDate.day);
+        if (!day && defaultDate?.day)
+            setDay(defaultDate.day);
+    }, [])
 
     return (
         <>
@@ -35,10 +38,9 @@ export function DateField({ defaultDate, width = '7rem', onChange, variant }: { 
                             value: year ?? '',
                             onChange: (e) => {
                                 try {
-                                    if (month === undefined || day === undefined)
-                                        setYear(Number(e.target.value));
-                                    else {
-                                        setYear(Number(e.target.value));
+                                    setYear(Number(e.target.value))
+
+                                    if (month !== undefined && day !== undefined) {
                                         if (onChange)
                                             onChange({ year: Number(e.target.value), month, day });
                                     }
@@ -49,10 +51,16 @@ export function DateField({ defaultDate, width = '7rem', onChange, variant }: { 
                     {
                         type: 'select',
                         props: {
-                            selectOptions: {
-                                type: 'items',
-                                items: localeMonths.map((m, i) => ({ value: m.name, displayValue: m.name }))
-                            }
+                            inputProps: { style: { width } },
+                            children: localeMonths.map((e, i) => <Select.Item value={e.name} key={i}>{e.name}</Select.Item>),
+                            // defaultValue: defaultDate?.month !== undefined ? Number(defaultDate?.month) : undefined,
+                            onValueChange(v) {
+                                setMonth(Number(v))
+
+                                if (year !== undefined && day !== undefined)
+                                    if (onChange)
+                                        onChange({ year: year, month: Number(v), day: day })
+                            },
                         }
                     },
                     {

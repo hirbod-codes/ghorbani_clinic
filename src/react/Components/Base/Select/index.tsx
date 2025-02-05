@@ -4,12 +4,22 @@ import { DropdownMenu } from "../DropdownMenu"
 import { Button } from "../Button"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { Input } from "../Input"
-import { Label } from "@/src/react/shadcn/components/ui/label"
 import { CircularLoadingIcon } from "../CircularLoadingIcon"
+import { cn } from "@/src/react/shadcn/lib/utils"
 
 const SelectContext = createContext<{ updateSelection: ({ value, displayValue }: { value: string, displayValue: string }) => void } | undefined>(undefined)
 
-export function Select({ defaultValue, defaultDisplayValue, label, onValueChange, children, loading = false }: { defaultValue?: string, defaultDisplayValue?: string, label?: string, onValueChange: (v) => void | Promise<void>, children: ReactElement[], loading?: boolean }) {
+export type SelectProps = {
+    defaultValue?: string
+    defaultDisplayValue?: string
+    label?: string
+    onValueChange: (v) => void | Promise<void>
+    children: ReactElement[]
+    loading?: boolean
+    inputProps?: ComponentProps<typeof Input>
+}
+
+export function Select({ defaultValue, defaultDisplayValue, label, onValueChange, children, loading = false, inputProps }: SelectProps) {
     const [value, setValue] = useState(defaultValue)
     const [displayValue, setDisplayValue] = useState(defaultDisplayValue)
     const [open, setOpen] = useState(false)
@@ -25,23 +35,25 @@ export function Select({ defaultValue, defaultDisplayValue, label, onValueChange
 
     return (
         <>
-            <Stack stackProps={{ className: "items-center justify-center size-full last:mr-0" }}>
-                {loading
-                    ? <>
-                        <Button className="w-full [&_svg]:size-8" size='sm' variant="text" style={{ width }}>
-                            <CircularLoadingIcon />
-                        </Button>
-                    </>
-                    : <>
-                        {label &&
-                            <Label htmlFor={label}>
-                                {label}
-                            </Label>
-                        }
-                        <Input inputRef={inputRef} id={label} className="cursor-pointer" containerProps={{ className: 'flex-grow' }} value={displayValue} readOnly onClick={(e) => { setOpen(!open) }} endIcon={open ? <ChevronUp /> : <ChevronDown />} />
-                    </>
-                }
-            </Stack>
+            {loading
+                ? <Button className="w-full [&_svg]:size-8" size='sm' variant="text" style={{ width }}>
+                    <CircularLoadingIcon />
+                </Button>
+                : <>
+                    <Input
+                        inputRef={inputRef}
+                        label={label}
+                        labelId={label}
+                        id={label}
+                        className="cursor-pointer"
+                        value={displayValue}
+                        readOnly
+                        onClick={(e) => { setOpen(!open) }}
+                        endIcon={open ? <ChevronUp /> : <ChevronDown />}
+                        {...inputProps}
+                    />
+                </>
+            }
 
             <DropdownMenu
                 anchorRef={inputRef}
@@ -67,12 +79,15 @@ export function Select({ defaultValue, defaultDisplayValue, label, onValueChange
     )
 }
 
-Select.Item = ({ children, value, displayValue, containerProps }: { children: ReactNode, value: string, displayValue: string, containerProps?: ComponentProps<typeof Button> }) => {
+Select.Item = ({ children, value, displayValue, containerProps }: { children: ReactNode, value: string, displayValue?: string, containerProps?: ComponentProps<'div'> }) => {
     const c = useContext(SelectContext)
 
+    if (displayValue === undefined)
+        displayValue = value
+
     return (
-        <Button variant='text' fgColor='surface-foreground' {...containerProps} onClick={() => c?.updateSelection({ value, displayValue })}>
+        <div {...containerProps} onClick={(e) => { c?.updateSelection({ value, displayValue }); if (containerProps?.onClick) containerProps.onClick(e) }} className={cn("cursor-pointer", containerProps?.className)}>
             {children}
-        </Button>
+        </div>
     )
 }

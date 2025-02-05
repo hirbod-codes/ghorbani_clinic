@@ -6,7 +6,7 @@ export function InputWithIcon({ startIcon, endIcon, inputRef, ...props }: { star
     const EndIcon = endIcon;
 
     return (
-        <div className="w-full relative">
+        <div className="relative">
             {StartIcon && (
                 <div className="absolute left-1.5 top-1/2 transform -translate-y-1/2">
                     {startIcon}

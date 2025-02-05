@@ -12,7 +12,7 @@ import { Separator } from "../../shadcn/components/ui/separator";
 export const General = memo(function General() {
     const configuration = useContext(ConfigurationContext)!
 
-    const [limit, setLimit] = useState<string>()
+    const [limit, setLimit] = useState<string>('0')
 
     const setConfigDownloadsDirectorySize = async (l: number) => {
         await (window as typeof window & { configAPI: configAPI }).configAPI.setDownloadsDirectorySize(l)
@@ -24,7 +24,7 @@ export const General = memo(function General() {
 
     useEffect(() => {
         getConfig().then((n) => {
-            setLimit((n ?? 2_000_000_000).toString())
+            setLimit(Math.round(Number(n ?? '0') / 1000_000_000).toFixed(2))
         })
     }, [])
 
@@ -32,20 +32,15 @@ export const General = memo(function General() {
         <Container className="absolute top-1/4 left-1/2 -translate-x-1/2 mt-2">
             <Stack direction='vertical'>
                 <Input
-                    value={Math.round(Number(limit ?? '0') / 1000_000_000).toFixed(2)}
+                    value={limit}
                     onChange={async (e) => {
-                        if (e.target.value === '') {
-                            setLimit('')
-                            return
-                        }
+                        setLimit(e.target.value)
 
-                        let l = Number.parseInt(e.target.value)
-                        if (!l)
+                        let l = Number(e.target.value)
+                        if (!l || Number.isNaN(l) || l === Infinity || l === -Infinity)
                             return
-                        else
-                            setLimit((l * 1000_000_000).toString())
 
-                        await setConfigDownloadsDirectorySize(l)
+                        await setConfigDownloadsDirectorySize(l * 1000_000_000)
                     }}
                     label={t('General.TemporaryStorageLimit')}
                     labelId={t('General.TemporaryStorageLimit')}

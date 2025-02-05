@@ -23,11 +23,12 @@ export type InputProps = {
     errorText?: string
     helperText?: string
     containerProps?: MotionProps & ComponentProps<'div'>
+    labelContainerProps?: ComponentProps<typeof Stack>
     animateHeight?: boolean
 } & ComponentProps<typeof ReferenceInput>
 
-export const Input = memo(function Input({ label, labelId, errorText, helperText, containerProps, inputRef, animateHeight = false, ...inputProps }: InputProps) {
-    const input = <ReferenceInput inputRef={inputRef} id={labelId} {...inputProps} className={cn("", inputProps?.className)} />
+export const Input = memo(function Input({ label, labelId, errorText, helperText, containerProps, inputRef, animateHeight = false, labelContainerProps, ...inputProps }: InputProps) {
+    const input = <ReferenceInput inputRef={inputRef} id={labelId} {...inputProps} />
 
     const [containerRef, animateContainerRef] = useAnimate()
 
@@ -41,9 +42,9 @@ export const Input = memo(function Input({ label, labelId, errorText, helperText
     }, [errorText, helperText])
 
     return (
-        <div ref={containerRef} {...containerProps} className={cn("flex flex-col relative", containerProps?.className)} style={{ height: animateHeight ? '1cm' : '1.5cm' }}>
+        <div ref={containerRef} {...containerProps} className={cn("flex flex-col relative", containerProps?.className)} style={{ height: animateHeight ? '1cm' : undefined }}>
             {label && labelId
-                ? <Stack stackProps={{ className: "items-center size-full last:m-0 m-0" }}>
+                ? <Stack direction={labelContainerProps?.direction ?? 'horizontal'} stackProps={{ ...labelContainerProps?.stackProps, className: "items-center size-full last:m-0 m-0 " + labelContainerProps?.stackProps?.className }}>
                     <Label htmlFor={labelId}>
                         {label}
                     </Label>
