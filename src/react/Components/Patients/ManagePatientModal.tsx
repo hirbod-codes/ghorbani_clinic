@@ -13,18 +13,6 @@ import { Button } from '../Base/Button';
 import { Stack } from '../Base/Stack';
 import { ManagePatient } from './ManagePatient';
 
-async function getVisits(patientId?: string): Promise<Visit[] | undefined> {
-    if (!patientId)
-        return undefined
-
-    const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getVisitsByPatientId(patientId)
-    console.log({ res })
-    if (res.code !== 200)
-        return undefined
-
-    return res.data ?? []
-}
-
 export function ManagePatientModal({ open, onClose, inputPatient }: { open: boolean, onClose?: () => void, inputPatient?: Patient }) {
     const [loading, setLoading] = useState<boolean>(false)
 

@@ -3,7 +3,7 @@ import { Time } from '../../../Lib/DateTime';
 import { t } from 'i18next';
 import { Input } from '../Input';
 
-export function TimeField({ defaultTime, onChange, variant }: { defaultTime?: Time; onChange?: (time: Time) => void; variant?: "standard" | "outlined" | "filled"; inputProps?: ComponentProps<typeof Input> }) {
+export function TimeField({ defaultTime, onChange, inputProps }: { defaultTime?: Time; onChange?: (time: Time) => void; inputProps?: ComponentProps<typeof Input> }) {
     const [hour, setHour] = useState<number | undefined>(undefined);
     const [minute, setMinute] = useState<number | undefined>(undefined);
     const [second, setSecond] = useState<number | undefined>(undefined);
@@ -19,8 +19,6 @@ export function TimeField({ defaultTime, onChange, variant }: { defaultTime?: Ti
 
     return (
         <Input
-            label={t('TimeField .Time')}
-            labelId='time'
             type='time'
             step={1}
             value={hour === undefined ? '' : `${hour?.toString().padStart(2, '0')}:${minute?.toString().padStart(2, '0')}:${second?.toString().padStart(2, '0')}`}
@@ -36,6 +34,7 @@ export function TimeField({ defaultTime, onChange, variant }: { defaultTime?: Ti
                     });
             }}
             style={{ width: '7rem' }}
+            {...inputProps}
         />
     );
 }

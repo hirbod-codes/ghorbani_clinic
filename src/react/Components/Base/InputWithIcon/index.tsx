@@ -5,10 +5,6 @@ export function InputWithIcon({ startIcon, endIcon, inputRef, ...props }: { star
     const StartIcon = startIcon;
     const EndIcon = endIcon;
 
-    console.log('InputWithIcon', {props})
-
-    let t = 'cursor-pointer'
-
     return (
         <div className="relative">
             {StartIcon && (

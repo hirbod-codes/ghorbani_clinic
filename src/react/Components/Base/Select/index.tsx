@@ -51,7 +51,7 @@ export function Select({ defaultValue, defaultDisplayValue, id, label, onValueCh
                     label={label}
                     labelId={label}
                     id={id ?? label}
-                    value={displayValue}
+                    value={displayValue ?? ''}
                     readOnly
                     {...inputProps}
                     endIcon={inputProps?.endIcon ?? (open ? <ChevronUp /> : <ChevronDown />)}

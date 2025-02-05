@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, memo } from 'react';
 import { DateTime } from 'luxon'
 
 import { Patient } from '../../../Electron/Database/Models/Patient';
@@ -8,15 +8,11 @@ import { DateField } from '../Base/DateTime/DateField';
 import { ManageVisits } from '../Visits/ManageVisit';
 import { t } from 'i18next';
 import { RendererDbAPI } from '../../../Electron/Database/renderer';
-import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
-import { publish } from '../../Lib/Events';
 import { MedicalHistory } from './MedicalHistory';
 import { EditorModal } from '../Base/Editor/EditorModal';
 import { DocumentManagement } from '../DocumentManagement';
 import { toDateTimeView } from '../../Lib/DateTime/date-time-helpers';
-import { MainProcessResponse } from 'src/Electron/types';
 import { Modal } from '../Base/Modal';
-import { CircularLoadingIcon } from '../Base/CircularLoadingIcon';
 import { Input } from '../Base/Input';
 import { Button } from '../Base/Button';
 import { Select } from '../Base/Select';
@@ -35,7 +31,7 @@ async function getVisits(patientId?: string): Promise<Visit[] | undefined> {
     return res.data ?? []
 }
 
-export function ManagePatient({ inputPatient, onDone }: { onDone?: (patient: Patient, visits: Visit[], files: { fileName: string, bytes: Buffer | Uint8Array }[]) => void, inputPatient?: Patient }) {
+export const ManagePatient = memo(function ManagePatient({ inputPatient, onDone }: { onDone?: (patient: Patient, visits: Visit[], files: { fileName: string, bytes: Buffer | Uint8Array }[]) => void, inputPatient?: Patient }) {
     const locale = useContext(ConfigurationContext)!.local
 
     const [socialIdError, setSocialIdError] = useState<boolean>(false)
@@ -69,8 +65,8 @@ export function ManagePatient({ inputPatient, onDone }: { onDone?: (patient: Pat
     }, [inputPatient])
 
     return (
-        <div className='grid grid-cols-11 space-x-1 space-y-1 size-full'>
-            <div className='col-span-full text-lg p-2 pl-0'>
+        <div className='grid grid-cols-11 space-x-1 space-y-1 w-full'>
+            <div className='col-span-full text-lg py-4'>
                 {inputPatient ? t('ManagePatient.UpdatePatient') : t('ManagePatient.RegisterPatient')}
             </div>
 
@@ -84,7 +80,10 @@ export function ManagePatient({ inputPatient, onDone }: { onDone?: (patient: Pat
                     labelContainerProps={{ stackProps: { className: 'justify-between' } }}
                     onChange={(e) => {
                         const id = e.target.value
-                        if (id.length !== 10)
+                        if (id.length > 10)
+                            return
+
+                        if (id.length !== 10 && id.length !== 0)
                             setSocialIdError(true)
                         else
                             setSocialIdError(false)
@@ -94,7 +93,9 @@ export function ManagePatient({ inputPatient, onDone }: { onDone?: (patient: Pat
                     id='socialId'
                     value={patient?.socialId ?? ''}
                     required
-                    errorText={socialIdError ? 'must have 10 digits' : ''}
+                    animateHeight
+                    errorText={socialIdError ? 'must have 10 digits' : undefined}
+                    helperText={!patient?.socialId || patient?.socialId.trim() === '' ? 'required' : undefined}
                 />
                 {/* First name */}
                 <Input
@@ -148,7 +149,7 @@ export function ManagePatient({ inputPatient, onDone }: { onDone?: (patient: Pat
                 />
 
                 {/* Files */}
-                <Button variant='outline' onClick={() => setShowFiles(true)}>{t('ManagePatient.Documents')}</Button>
+                <Button className='w-fit' variant='outline' onClick={() => setShowFiles(true)}>{t('ManagePatient.Documents')}</Button>
                 {patient && patient._id &&
                     <Modal open={showFiles} onClose={() => setShowFiles(false)}>
                         <DocumentManagement patientId={patient._id as string} />
@@ -224,11 +225,15 @@ export function ManagePatient({ inputPatient, onDone }: { onDone?: (patient: Pat
                 </Stack>
             </Stack>
 
-            <div className='col-span-full' />
+            <div className='col-span-full py-2' />
+
+            <div className='col-span-full text-md w-full text-center border-b'>
+                {t('ManagePatient.visits')}
+            </div>
 
             {/* Manage Visits */}
             <div className='col-span-full'>
-                {patient && <ManageVisits patientId={patient._id! as string} onChange={(visits: Visit[]) => setVisits(visits)} defaultVisits={visits} />}
+                <ManageVisits patientId={patient?._id as string | undefined} onChange={(visits: Visit[]) => setVisits(visits)} defaultVisits={visits} />
             </div>
 
             <div className='col-span-full'>
@@ -246,4 +251,4 @@ export function ManagePatient({ inputPatient, onDone }: { onDone?: (patient: Pat
             </div>
         </div>
     )
-}
+})

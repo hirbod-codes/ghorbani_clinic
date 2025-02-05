@@ -8,7 +8,6 @@ import { publish } from "../../Lib/Events";
 import { Input } from "../Base/Input";
 import { CircularLoadingIcon } from "../Base/CircularLoadingIcon";
 import { SearchIcon } from "lucide-react";
-import { Modal } from "../Base/Modal";
 
 export const SearchPatientField = memo(function SearchPatientField() {
     const [loading, setLoading] = useState<boolean>(false);
@@ -50,6 +49,7 @@ export const SearchPatientField = memo(function SearchPatientField() {
                 placeholder={t('SearchPatientField.socialId')}
                 onChange={onSocialIdChange}
                 errorText={errorText}
+                animateHeight
                 startIcon={loading ? <CircularLoadingIcon /> : <SearchIcon />}
             />
 

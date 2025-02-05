@@ -30,8 +30,6 @@ export type InputProps = {
 export const Input = memo(function Input({ label, labelId, errorText, helperText, containerProps, inputRef, animateHeight = false, labelContainerProps, ...inputProps }: InputProps) {
     const input = <ReferenceInput inputRef={inputRef} id={labelId} {...inputProps} />
 
-    let t = 'cursor-pointer'
-
     const [containerRef, animateContainerRef] = useAnimate()
 
     useEffect(() => {
@@ -44,7 +42,7 @@ export const Input = memo(function Input({ label, labelId, errorText, helperText
     }, [errorText, helperText])
 
     return (
-        <div ref={containerRef} {...containerProps} className={cn("flex flex-col relative", containerProps?.className)} style={{ height: animateHeight ? '1cm' : undefined }}>
+        <div ref={containerRef} {...containerProps} className={cn("flex flex-col relative", containerProps?.className)} style={{ height: animateHeight ? '1cm' : undefined, ...containerProps?.style }}>
             {label && labelId
                 ? <Stack direction={labelContainerProps?.direction ?? 'horizontal'} stackProps={{ ...labelContainerProps?.stackProps, className: "items-center size-full last:m-0 m-0 " + labelContainerProps?.stackProps?.className }}>
                     <Label htmlFor={labelId}>
@@ -66,11 +64,13 @@ export const Input = memo(function Input({ label, labelId, errorText, helperText
                         exit='exit'
                         variants={inputVariants}
                         transition={{ ease: [0.5, 0, 0.5, 1] }}
-                        className="relative bottom-0 inline"
+                        className="absolute -bottom-2 inline"
                     >
-                        <p className="text-left text-xs text-error text-nowrap text-ellipsis w-full overflow-hidden">
-                            {errorText}
-                        </p>
+                        <Tooltip tooltipContent={errorText}>
+                            <p className="text-left text-xs text-error text-nowrap text-ellipsis w-full overflow-hidden">
+                                {errorText}
+                            </p>
+                        </Tooltip>
                     </motion.div>
                     :
                     (
@@ -84,7 +84,7 @@ export const Input = memo(function Input({ label, labelId, errorText, helperText
                                 exit='exit'
                                 variants={inputVariants}
                                 transition={{ ease: [0.5, 0, 0.5, 1] }}
-                                className="relative bottom-0 inline"
+                                className="absolute -bottom-2 inline"
                             >
                                 <Tooltip tooltipContent={helperText}>
                                     <p className="text-left text-xs text-surface-foreground text-nowrap text-ellipsis w-full overflow-hidden">

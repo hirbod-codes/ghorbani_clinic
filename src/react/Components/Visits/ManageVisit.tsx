@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, memo } from 'react';
 import { DateTime } from 'luxon';
 import type { Visit } from '../../../Electron/Database/Models/Visit';
 import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext';
@@ -15,7 +15,7 @@ import { DateField } from '../Base/DateTime/DateField';
 import { Date, Time } from '../../Lib/DateTime';
 import { TimeField } from '../Base/DateTime/TimeField';
 
-export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId: string; defaultVisits?: Visit[]; onChange?: (visits: Visit[]) => void; }) {
+export const ManageVisits = memo(function ManageVisits({ patientId = '', defaultVisits, onChange }: { patientId?: string; defaultVisits?: Visit[]; onChange?: (visits: Visit[]) => void; }) {
     const local = useContext(ConfigurationContext)!.local;
 
     const getDefaultVisit = (): Visit => {
@@ -116,9 +116,9 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                                                     const convertedDate = toDateTimeView({ date: dateTime.date, time: dateTime.time }, { ...local, calendar: 'Gregorian', zone: 'UTC' }, local);
                                                     visits[i].due = DateTime.local(convertedDate.date.year, convertedDate.date.month, convertedDate.date.day, convertedDate.time.hour, convertedDate.time.minute, convertedDate.time.second, { zone: 'UTC' }).toUnixInteger();
 
+                                                    setVisits([...visits])
                                                     if (onChange)
                                                         onChange([...visits])
-                                                    setVisits([...visits])
                                                 }}
                                             />
                                         </Stack>
@@ -142,9 +142,9 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                                                     const convertedDate = toDateTimeView({ date: dateTime.date, time: dateTime.time }, { ...local, calendar: 'Gregorian', zone: 'UTC' }, local);
                                                     visits[i].due = DateTime.local(convertedDate.date.year, convertedDate.date.month, convertedDate.date.day, convertedDate.time.hour, convertedDate.time.minute, convertedDate.time.second, { zone: 'UTC' }).toUnixInteger();
 
+                                                    setVisits([...visits])
                                                     if (onChange)
                                                         onChange([...visits])
-                                                    setVisits([...visits])
                                                 }}
                                             />
                                         </Stack>
@@ -167,11 +167,14 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                     )
                 }
 
-                <div className='flex flex-row space-x-1 space-y-1 justify-center'>
+                <Stack stackProps={{ className: 'justify-center' }}>
                     {
                         visits.length !== 0 &&
                         <>
                             <Button
+                                variant='outline'
+                                isIcon={true}
+                                size='sm'
                                 fgColor="error"
                                 onClick={() => {
                                     visits.pop();
@@ -186,6 +189,9 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                         </>
                     }
                     <Button
+                        variant='outline'
+                        isIcon={true}
+                        size='sm'
                         fgColor="success"
                         onClick={() => {
                             visits.push(getDefaultVisit());
@@ -196,8 +202,8 @@ export function ManageVisits({ patientId, defaultVisits, onChange }: { patientId
                     >
                         <PlusIcon />
                     </Button >
-                </div >
+                </Stack>
             </Stack>
         </>
     );
-}
+})
