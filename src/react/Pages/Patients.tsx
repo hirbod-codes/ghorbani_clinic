@@ -12,7 +12,7 @@ import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
 import { useNavigate } from "react-router-dom";
 import { MedicalHistory } from "../Components/Patients/MedicalHistory";
 import { EditorModal } from "../Components/Base/Editor/EditorModal";
-import { ManagePatient } from "../Components/Patients/ManagePatient";
+import { ManagePatientModal } from "../Components/Patients/ManagePatientModal";
 import { DataGrid } from "../Components/DataGrid";
 import { ColumnDef } from "@tanstack/react-table";
 import { getLuxonLocale } from "../Lib/localization";
@@ -319,7 +319,7 @@ export const Patients = memo(function Patients() {
                 <DocumentManagement patientId={activePatientId!} />
             </Modal>
 
-            <ManagePatient
+            <ManagePatientModal
                 open={editingPatientId !== undefined || creatingPatient}
                 onClose={() => { setEditingPatientId(undefined); setCreatingPatient(false) }}
                 inputPatient={patients?.find(p => p._id && p._id === editingPatientId)}

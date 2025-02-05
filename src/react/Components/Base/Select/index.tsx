@@ -39,20 +39,19 @@ export function Select({ defaultValue, defaultDisplayValue, label, onValueChange
                 ? <Button className="w-full [&_svg]:size-8" size='sm' variant="text" style={{ width }}>
                     <CircularLoadingIcon />
                 </Button>
-                : <>
-                    <Input
-                        inputRef={inputRef}
-                        label={label}
-                        labelId={label}
-                        id={label}
-                        className="cursor-pointer"
-                        value={displayValue}
-                        readOnly
-                        onClick={(e) => { setOpen(!open) }}
-                        endIcon={open ? <ChevronUp /> : <ChevronDown />}
-                        {...inputProps}
-                    />
-                </>
+                : <Input
+                    inputRef={inputRef}
+                    label={label}
+                    labelId={label}
+                    id={label}
+                    className="cursor-none"
+                    containerProps={{ className: 'cursor-pointer', onClick: (e) => { setOpen(!open) } }}
+                    value={displayValue}
+                    readOnly
+                    // onClick={(e) => { setOpen(!open) }}
+                    endIcon={open ? <ChevronUp /> : <ChevronDown />}
+                    {...inputProps}
+                />
             }
 
             <DropdownMenu

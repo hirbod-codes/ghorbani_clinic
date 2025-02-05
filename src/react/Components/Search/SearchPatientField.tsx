@@ -2,12 +2,13 @@ import { useState, ChangeEvent, memo } from "react";
 import { t } from "i18next";
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
 import { Patient } from "../../../Electron/Database/Models/Patient";
-import { ManagePatient } from "../Patients/ManagePatient";
+import { ManagePatientModal } from "../Patients/ManagePatientModal";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 import { Input } from "../Base/Input";
 import { CircularLoadingIcon } from "../Base/CircularLoadingIcon";
 import { SearchIcon } from "lucide-react";
+import { Modal } from "../Base/Modal";
 
 export const SearchPatientField = memo(function SearchPatientField() {
     const [loading, setLoading] = useState<boolean>(false);
@@ -52,8 +53,9 @@ export const SearchPatientField = memo(function SearchPatientField() {
                 startIcon={loading ? <CircularLoadingIcon /> : <SearchIcon />}
             />
 
-            <ManagePatient
-                open={patient !== undefined}
+            <ManagePatientModal
+                // open={patient !== undefined}
+                open={true}
                 onClose={() => { setPatient(undefined); setSocialId(undefined) }}
                 inputPatient={patient}
             />
