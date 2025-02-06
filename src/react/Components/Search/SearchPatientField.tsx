@@ -54,8 +54,8 @@ export const SearchPatientField = memo(function SearchPatientField() {
             />
 
             <ManagePatientModal
-                open={patient !== undefined}
-                // open={true}
+                // open={patient !== undefined}
+                open={true}
                 onClose={() => { setPatient(undefined); setSocialId(undefined) }}
                 inputPatient={patient}
             />

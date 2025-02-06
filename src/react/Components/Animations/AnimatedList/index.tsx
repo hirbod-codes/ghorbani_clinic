@@ -1,4 +1,4 @@
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { SlideMotion, SlideMotionProps } from "../AnimatedSlide/SlideMotion";
 
 export type AnimatedListProps = Omit<SlideMotionProps, 'children' | 'fullHeight' | 'open'> & {
@@ -13,10 +13,10 @@ export function AnimatedList({ collection, withDelay = false, presenceMode = 'sy
     slideMotionProps.inSource = slideMotionProps.inSource ?? 'left'
     slideMotionProps.outSource = slideMotionProps.outSource ?? 'right'
 
-    console.log('AnimatedList', { collection, withDelay, ...slideMotionProps })
+    // console.log('AnimatedList', { collection, withDelay, ...slideMotionProps })
 
     return (
-        <div className="flex flex-col h-full w-full relative">
+        <motion.div layout className="flex flex-col h-full w-full relative overflow-hidden">
             <AnimatePresence mode={presenceMode}>
                 {collection.map((c, i) =>
                     <SlideMotion
@@ -27,11 +27,12 @@ export function AnimatedList({ collection, withDelay = false, presenceMode = 'sy
                         inSource={slideMotionProps.inSource}
                         outSource={slideMotionProps.outSource}
                         layout='position'
+                        {...slideMotionProps}
                     >
                         {c.elm}
                     </SlideMotion>
                 )}
             </AnimatePresence>
-        </div >
+        </motion.div >
     )
 }

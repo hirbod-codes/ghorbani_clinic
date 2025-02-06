@@ -59,7 +59,7 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                         onClose()
                 }}
                 open={open}
-                modalContainerProps={{ style: { minWidth: '80%' } }}
+                modalContainerProps={{ style: { minWidth: '80%', minHeight: '70%' } }}
             >
                 <Stack direction="vertical" stackProps={{ className: "size-full justify-end" }}>
                     <div className="w-full flex-grow p-2">
@@ -87,7 +87,7 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
 
                                     <Separator />
 
-                                    <Stack stackProps={{ className: "overflow-auto flex-grow" }}>
+                                    <Stack direction='vertical' stackProps={{ className: "overflow-auto flex-grow" }}>
                                         {medicalHistory?.histories?.map((h, i) =>
                                             <p key={i}>
                                                 {h}
@@ -135,18 +135,23 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
 
             <Modal
                 open={isEditingHistories}
-                onClose={() => { setIsEditingHistories(false) }}
-                childrenContainerProps={{}}
+                closeButton={false}
+                modalContainerProps={{ style: { minWidth: '80%', minHeight: '70%' } }}
             >
                 <MedicalHistorySearch
                     deletable
                     creatable
                     selectable
-                    defaultSelection={medicalHistory?.histories}
-                    onSelectionChange={(s) => {
+                    selection={medicalHistory?.histories}
+                    onDone={(s) => {
                         setHasUnsavedChanges(true)
                         setMedicalHistory({ ...medicalHistory, histories: s })
+                        setIsEditingHistories(false)
                     }}
+                    onCancel={() => {
+                        setIsEditingHistories(false)
+                    }}
+
                 />
             </Modal>
 

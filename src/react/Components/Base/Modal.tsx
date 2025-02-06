@@ -65,7 +65,7 @@ export function Modal({ children, open = false, onClose, useResponsiveContainer 
                     motionDivProps: {
                         ...animatedSlideProps?.motionDivProps,
                         id: 'modal',
-                        className: cn("absolute top-0 left-0 h-screen w-screen flex flex-col justify-center items-center", animatedSlideProps?.motionDivProps?.className),
+                        className: cn("absolute bottom-0 left-0 h-[calc(100vh-2rem)] w-screen flex flex-col justify-center items-center", animatedSlideProps?.motionDivProps?.className),
                         style: { ...animatedSlideProps?.motionDivProps?.style, zIndex: 20 + i },
                     }
                 }}
@@ -73,7 +73,7 @@ export function Modal({ children, open = false, onClose, useResponsiveContainer 
                 {open &&
                     <div
                         id='modalScreen'
-                        className="h-screen w-screen overflow-hidden absolute top-0 left-0 bg-[black] my-12 opacity-70"
+                        className="h-screen w-screen overflow-hidden absolute top-0 left-0 bg-[black] opacity-70"
                         onClick={() => { if (onClose) onClose() }}
                         style={{ zIndex: 21 + i }}
                     />}

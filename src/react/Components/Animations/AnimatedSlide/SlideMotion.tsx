@@ -27,7 +27,7 @@ export function SlideMotion({ children, motionKey, motionDivProps, delay = 0, in
         motionDivProps.transition = motionDivProps?.transition ?? slideGetTransitions(delay ?? 0)
     }, [delay])
 
-    console.log('SlideMotion', { children, motionKey, motionDivProps, inSource, outSource, disappear })
+    // console.log('SlideMotion', { children, motionKey, motionDivProps, inSource, outSource, disappear })
 
     return (
         <motion.div

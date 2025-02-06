@@ -1,5 +1,5 @@
 import { t } from "i18next";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { memo, useContext, useEffect, useMemo, useState } from "react";
 import { MedicalHistory } from "../../../Electron/Database/Models/MedicalHistory";
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
 import { AuthContext } from "../../Contexts/AuthContext";
@@ -15,11 +15,9 @@ import { CheckIcon, PlusIcon, SearchIcon, Trash2Icon } from "lucide-react";
 import { Switch } from "../Base/Switch";
 import { Separator } from "../../shadcn/components/ui/separator";
 import { Modal } from "../Base/Modal";
-import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 import { Stack } from "../Base/Stack";
 
-export function MedicalHistorySearch({ creatable = false, deletable = false, defaultSelection, selectable = false, onSelectionChange }: { creatable?: boolean, deletable?: boolean, defaultSelection?: string[], selectable?: boolean, onSelectionChange?: (selection: string[]) => (void | Promise<void>) }) {
-    const themeOptions = useContext(ConfigurationContext)!.themeOptions
+export const MedicalHistorySearch = memo(function MedicalHistorySearch({ creatable = false, deletable = false, selection: defaultSelection, selectable = false, onDone, onCancel }: { creatable?: boolean, deletable?: boolean, selection?: string[], selectable?: boolean, onDone?: (selection: string[]) => (void | Promise<void>), onCancel?: () => (void | Promise<void>) }) {
     const auth = useContext(AuthContext)
 
     const initDialog: any = {
@@ -89,11 +87,12 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
         })
 
     const [selection, setSelection] = useState(defaultSelection ?? [])
-
     useEffect(() => {
-        if (onSelectionChange)
-            onSelectionChange(selection)
-    }, [selection])
+        if (defaultSelection)
+            setSelection(defaultSelection)
+    }, [defaultSelection])
+
+    console.log('MedicalHistorySearch', { creatable, deletable, defaultSelection, selectable, creatingMedicalHistory, searchStr, medicalHistories, isSearching, selection });
 
     return (
         <>
@@ -102,83 +101,105 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
                     <Input
                         value={searchStr}
                         onChange={(e) => setSearchStr(e.target.value)}
-                        label={t('MedicalHistorySearch.search')}
-                        labelId={t('MedicalHistorySearch.search')}
-                        startIcon={<SearchIcon />}
+                        className={createsMedicalHistory && creatable ? 'pl-[1cm] pr-[2cm]' : undefined}
+                        startIcon={isSearching ? <CircularLoadingIcon /> : <SearchIcon onClick={search} className="cursor-pointer" />}
+                        endIcon={
+                            createsMedicalHistory && creatable &&
+                            <Button
+                                bgColor="success"
+                                fgColor='success-foreground'
+                                className="h-full border-0"
+                                onClick={() => setCreatingMedicalHistory(true)}
+                            >
+                                +{t('MedicalHistorySearch.Add')}
+                            </Button>
+                        }
+                        endIconProps={{ className: 'right-[1px] h-[calc(100%-2px)] border-0' }}
+                        onKeyDown={e => { if (e.code === 'Enter' || e.code === 'NumpadEnter') search() }}
                     />
+                </Stack>
 
-                    {isSearching
-                        ? <CircularLoadingIcon />
-                        : <Button isIcon variant='text' onClick={search}>
-                            <CheckIcon />
-                        </Button>
+                <Stack direction='vertical' stackProps={{ className: 'justify-between flex-grow overflow-hidden size-full' }}>
+                    <div className='h-full w-full p-2 overflow-auto shadow-md'>
+                        <AnimatedList
+                            collection={medicalHistories.map((md, i) => ({
+                                key: md.name,
+                                elm:
+                                    <Stack stackProps={{ className: 'items-center justify-between w-full' }}>
+                                        {selectable === true &&
+                                            <Switch checked={selection?.find(f => f === md.name) !== undefined} onCheckedChange={(v) => {
+                                                if (selection.find(f => f === md.name) !== undefined)
+                                                    setSelection(selection.filter(f => f !== md.name))
+                                                else
+                                                    setSelection([...selection, md.name])
+                                            }} />
+                                        }
+                                        <p className="overflow-auto">
+                                            {md.name}
+                                        </p>
+                                        {deletesMedicalHistory && deletable &&
+                                            <Button isIcon variant="text" fgColor="error" onClick={() => deleteMedicalHistory(md._id as string)}>
+                                                <Trash2Icon />
+                                            </Button>
+                                        }
+                                    </Stack>
+                            }))}
+                            withDelay={false}
+                        />
+                    </div>
+
+                    <Separator />
+
+                    {selectable &&
+                        <div className="h-[48%] w-full p-2 overflow-auto shadow-md">
+                            <AnimatedList
+                                presenceMode="sync"
+                                motionDivProps={{ transition: { ease: [0, 0.5, 0.5, 1] } }}
+                                collection={selection.map((name, i) => ({
+                                    key: name,
+                                    elm:
+                                        <Stack stackProps={{ className: 'items-center justify-between w-full' }}>
+                                            <p className="overflow-auto">
+                                                {name}
+                                            </p>
+
+                                            <Button isIcon variant='text' fgColor='error' onClick={() => setSelection(selection.filter(f => f !== name))}>
+                                                <Trash2Icon />
+                                            </Button>
+                                        </Stack>
+                                }))}
+                                withDelay={false}
+                            />
+                        </div>
                     }
                 </Stack>
 
-                <div className='flex-grow overflow-hidden w-full'>
-                    <Stack direction='vertical' stackProps={{ className: 'justify-between size-full' }}>
-                        <div className='h-full w-full p-2 overflow-auto shadow-md'>
-                            <AnimatedList
-                                collection={medicalHistories.map((md, i) => ({
-                                    key: md.name,
-                                    elm:
-                                        <Stack stackProps={{ className: 'items-center justify-between w-full' }}>
-                                            {selectable === true &&
-                                                <Switch checked={selection?.find(f => f === md.name) !== undefined} onCheckedChange={(v) => setSelection((old) => {
-                                                    if (old.find(f => f === md.name) !== undefined)
-                                                        return old.filter(f => f !== md.name)
-                                                    else
-                                                        return [...old, md.name]
-                                                })} />
-                                            }
-                                            <p className="overflow-auto">
-                                                {md.name}
-                                            </p>
-                                            {deletesMedicalHistory && deletable &&
-                                                <Button isIcon variant="text" fgColor="error" onClick={() => deleteMedicalHistory(md._id as string)}>
-                                                    <Trash2Icon />
-                                                </Button>
-                                            }
-                                        </Stack>
-                                }))}
-                                withDelay={true}
-                            />
-                        </div>
+                <Stack stackProps={{ className: 'w-full justify-around' }}>
+                    <Button
+                        bgColor='error'
+                        fgColor='error-foreground'
+                        onClick={() => {
+                            if (onCancel)
+                                onCancel()
+                        }}
+                    >
+                        {t('MedicalHistorySearch.cancel')}
 
-                        <Separator />
-
-                        {selectable &&
-                            <div className="h-[48%] w-full p-2 overflow-auto shadow-md">
-                                <AnimatedList
-                                    collection={selection.map((name, i) => ({
-                                        key: name,
-                                        elm:
-                                            <Stack stackProps={{ className: 'items-center justify-between w-full' }}>
-                                                <p className="overflow-auto">
-                                                    {name}
-                                                </p>
-
-                                                <Button isIcon variant='text' fgColor='error' onClick={() => setSelection(selection.filter(f => f !== name))}>
-                                                    <Trash2Icon />
-                                                </Button>
-                                            </Stack>
-                                    }))}
-                                    withDelay={true}
-                                />
-                            </div>
-                        }
-                    </Stack>
-                </div>
-
-                {createsMedicalHistory && creatable &&
-                    <Button isIcon variant='text' onClick={() => setCreatingMedicalHistory(true)} fgColor="success">
-                        <PlusIcon />
                     </Button>
-                }
+                    <Button
+                        onClick={() => {
+                            if (onDone)
+                                onDone(selection)
+                        }}
+                    >
+                        {t('MedicalHistorySearch.done')}
+
+                    </Button>
+                </Stack>
             </Stack>
 
             {/* Medical history creation, Name field */}
-            < EditorModal
+            <EditorModal
                 open={creatingMedicalHistory}
                 onClose={() => setCreatingMedicalHistory(false)}
                 hideCanvas={true}
@@ -232,5 +253,5 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
             </Modal>
         </>
     )
-}
+})
 
