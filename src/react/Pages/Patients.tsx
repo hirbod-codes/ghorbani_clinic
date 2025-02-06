@@ -120,10 +120,10 @@ export const Patients = memo(function Patients() {
                 })
     }, [])
 
-    const readsMedicalHistories = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth.user.roleName).read(resources.MEDICAL_HISTORY), [auth])
-    const createsPatient = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).create(resources.PATIENT), [auth])
-    const updatesPatient = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).update(resources.PATIENT), [auth])
-    const deletesPatient = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).delete(resources.PATIENT), [auth])
+    const readsMedicalHistories = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth.user.roleName).read(resources.MEDICAL_HISTORY).granted, [auth])
+    const createsPatient = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).create(resources.PATIENT).granted, [auth])
+    const updatesPatient = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).update(resources.PATIENT).granted, [auth])
+    const deletesPatient = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).delete(resources.PATIENT).granted, [auth])
 
     const overWriteColumns: ColumnDef<any>[] = [
         {

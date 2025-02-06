@@ -4,6 +4,7 @@ import { ConfigurationContext } from '../Contexts/Configuration/ConfigurationCon
 import { LogInIcon, LogOutIcon, MoonIcon, SunIcon } from 'lucide-react';
 import { CircularLoadingIcon } from './Base/CircularLoadingIcon';
 import { Button } from './Base/Button';
+import { SearchPatientField } from './Search/SearchPatientField';
 
 export const AppBar = memo(function AppBar() {
     const auth = useContext(AuthContext)
@@ -17,12 +18,13 @@ export const AppBar = memo(function AppBar() {
 
     return (
         <>
-            <div className='relative border-b-0 shadow-none bg-surface-container'>
+            <div className='relative border-b-0 shadow-none'>
                 <div className='flex flex-row w-full items-center'>
-                    <h4 className='flex-grow px-4'>
-                        {/* Title */}
-                        {auth?.user?.username}
-                    </h4>
+                    <div className='flex-grow'>
+                        <div className='w-[12cm]'>
+                            <SearchPatientField />
+                        </div>
+                    </div>
                     {
                         auth?.user &&
                         <Button variant='text' isIcon className='rounded-none' onClick={async () => await auth?.logout()}>

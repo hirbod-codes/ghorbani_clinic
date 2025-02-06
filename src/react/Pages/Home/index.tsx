@@ -21,12 +21,6 @@ export const Home = memo(function Home() {
     return (
         <div className="size-full overflow-y-auto overflow-x-hidden">
             <div className="grid grid-cols-12 justify-center w-full *:p-1">
-                <div className="sm:col-span-0 md:col-span-3" />
-                <div className="sm:col-span-12 md:col-span-6 col-span-12">
-                    <SearchPatientField />
-                </div>
-                <div className="sm:col-span-0 md:col-span-3" />
-
                 <div className="sm:col-span-12 md:col-span-3 col-span-12">
                     <Clock />
                 </div>
@@ -46,8 +40,8 @@ export const Home = memo(function Home() {
                             bbbbbbbbb
                         </div>
                     </div> */}
-                    {/* <Chart x={[85, 85, 80, 85, 56, 55, 40, 50]} y={[85, 85, 80, 85, 56, 55, 40, 50]} /> */}
-                    {/* <div className="absolute top-0 left-0 bg-surface-bright z-50 size-[800px]">
+                {/* <Chart x={[85, 85, 80, 85, 56, 55, 40, 50]} y={[85, 85, 80, 85, 56, 55, 40, 50]} /> */}
+                {/* <div className="absolute top-0 left-0 bg-surface-bright z-50 size-[800px]">
                         <Chart
                             shapes={[
                                 new LineChart({

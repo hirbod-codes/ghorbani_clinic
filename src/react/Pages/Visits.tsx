@@ -111,7 +111,7 @@ export const Visits = memo(function Visits() {
         // })
     }, [])
 
-    const deletesVisit = useMemo(() => auth!.user && auth!.accessControl && auth!.accessControl.can(auth!.user?.roleName ?? '').delete(resources.VISIT), [auth])
+    const deletesVisit = useMemo(() => auth!.user && auth!.accessControl && auth!.accessControl.can(auth!.user?.roleName ?? '').delete(resources.VISIT).granted, [auth])
 
     const overWriteColumns: ColumnDef<any>[] = [
         {
