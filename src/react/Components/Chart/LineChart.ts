@@ -67,6 +67,12 @@ export class LineChart extends Shape {
         this.setDefaults('fill')
         this.setDefaults('hover')
 
+        this.animationsController.horizontalLines = this.horizontalLinesOptions.controller ?? 0
+        this.animationsDuration.horizontalLines = this.horizontalLinesOptions.duration ?? 0
+
+        this.animationsController.verticalLines = this.verticalLinesOptions.controller ?? 0
+        this.animationsDuration.verticalLines = this.verticalLinesOptions.duration ?? 0
+
         this.animationsController.stroke = this.strokeOptions.controller ?? 0
         this.animationsDuration.stroke = this.strokeOptions.duration ?? 0
 
@@ -345,8 +351,8 @@ export class LineChart extends Shape {
 
     private previousIndex: number | undefined = undefined
     animateDefaults(t: DOMHighResTimeStamp, ctx: CanvasRenderingContext2D, hoverEvent?: PointerEvent) {
-        this.animate(t, 'strokeVerticalLines', (dx) => this.strokeVerticalLines(ctx, getEasingFunction(this.verticalLinesOptions.ease ?? 'easeInSine')(dx)))
-        this.animate(t, 'strokeHorizontalLines', (dx) => this.strokeHorizontalLines(ctx, getEasingFunction(this.horizontalLinesOptions.ease ?? 'easeInSine')(dx)))
+        this.animate(t, 'verticalLines', (dx) => this.strokeVerticalLines(ctx, getEasingFunction(this.verticalLinesOptions.ease ?? 'easeInSine')(dx)))
+        this.animate(t, 'horizontalLines', (dx) => this.strokeHorizontalLines(ctx, getEasingFunction(this.horizontalLinesOptions.ease ?? 'easeInSine')(dx)))
         this.animate(t, 'stroke', (dx) => this.stroke(ctx, getEasingFunction(this.strokeOptions.ease ?? 'easeInSine')(dx)))
         this.animate(t, 'fill', (dx) => this.fill(ctx, getEasingFunction(this.fillOptions.ease ?? 'easeInSine')(dx)))
         this.animate(t, 'hover', (dx) => {

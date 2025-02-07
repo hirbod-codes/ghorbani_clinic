@@ -1,6 +1,6 @@
 import { SearchPatientField } from "../../Components/Search/SearchPatientField";
 import { Analytics } from "./Analytics";
-import { memo, useContext, useEffect, useRef, useState } from "react";
+import { memo, ReactNode, useContext, useEffect, useRef, useState } from "react";
 import { Calendar } from "./Calendar";
 import { Clock } from "../../Components/Clock";
 import { ChartArea, Chart as ChartJs } from 'chart.js/auto'
@@ -9,6 +9,11 @@ import { Button } from "../../Components/Base/Button";
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 import { Chart } from "../../Components/Chart";
 import { LineChart } from "../../Components/Chart/LineChart";
+import { Visit } from "@/src/Electron/Database/Models/Visit";
+import { DateTime } from "luxon";
+import { Date } from "../../Lib/DateTime";
+import { RendererDbAPI } from "@/src/Electron/Database/renderer";
+import { toDateTime, toFormat } from "../../Lib/DateTime/date-time-helpers";
 
 export const Home = memo(function Home() {
     console.log('Home')
@@ -29,20 +34,16 @@ export const Home = memo(function Home() {
                     <Calendar />
                 </div>
 
-                <div className="sm:col-span-12 md:col-span-3 col-span-12">
+                {/* <div className="sm:col-span-12 md:col-span-3 col-span-12">
                     <Analytics />
-                </div>
+                </div> */}
 
-                {/* <div className="sm:col-span-12 md:col-span-4 col-span-12">
-                    <Chart2 />
-                    <div className="absolute top-1/2 left-1/2 border border-red-500">
-                        <div className="relative -translate-y-1/2 -translate-x-1/2 border border-green-500">
-                            bbbbbbbbb
-                        </div>
-                    </div> */}
-                {/* <Chart x={[85, 85, 80, 85, 56, 55, 40, 50]} y={[85, 85, 80, 85, 56, 55, 40, 50]} /> */}
-                {/* <div className="absolute top-0 left-0 bg-surface-bright z-50 size-[800px]">
-                        <Chart
+                <div className="sm:col-span-12 md:col-span-4 col-span-12">
+                    {/* <Chart2 /> */}
+                    {/* <Chart x={[85, 85, 80, 85, 56, 55, 40, 50]} y={[85, 85, 80, 85, 56, 55, 40, 50]} /> */}
+                    <div className="absolute top-0 left-0 bg-surface-bright z-50 size-[800px]">
+                        <VisitsChart />
+                        {/* <Chart
                             shapes={[
                                 new LineChart({
                                     x,
@@ -97,13 +98,167 @@ export const Home = memo(function Home() {
                                     animationDuration: 5000
                                 })
                             ]}
-                        />
+                        /> */}
                     </div>
-                </div> */}
+                </div>
             </div>
         </div>
     )
 })
+
+export function VisitsChart() {
+    let local = useContext(ConfigurationContext)!.local
+
+    const [visits, setVisits] = useState<Visit[]>([])
+    const [shapes, setShapes] = useState<LineChart[]>()
+
+    const [startDate, setStartDate] = useState<number>(DateTime.utc().minus({ months: 6 }).toUnixInteger())
+    const [endDate, setEndDate] = useState<number>(DateTime.utc().toUnixInteger())
+
+    useEffect(() => {
+        init()
+    }, [])
+
+    async function init() {
+        let vs = await fetchVisits()
+        if (Array.isArray(vs))
+            setVisits(vs)
+        else
+            return
+
+        if (vs.length <= 0)
+            return
+
+        let vspd = calculateVisitsPerDay(vs)
+        console.log({ vspd })
+
+        let xRange: [number | undefined, number | undefined] = [Math.min(DateTime.fromSeconds(vs[0].due).toUnixInteger(), startDate), DateTime.fromSeconds(vs[vs.length - 1].due).plus({ months: 1 }).minus({ days: 1 }).set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toUnixInteger()]
+        console.log({ xRange })
+
+        let xLabels: { value: number, node: ReactNode }[] = [{ value: xRange[1]!, node: xRange[1]! }]
+        let ts = DateTime.fromSeconds(xRange[1]!).minus({ months: 1 }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toUnixInteger()
+        while (true) {
+            if (ts <= xRange[0]!) {
+                xLabels.unshift({ value: xRange[0]!, node: getMonth(xRange[0]!) })
+                break
+            }
+
+            ts = DateTime.fromSeconds(ts).minus({ months: 1 }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toUnixInteger()
+
+            xLabels.unshift({ value: ts, node: getMonth(ts) })
+        }
+        console.log({ xLabels })
+
+        let chart = new LineChart({
+            x: vspd.map(v => v.dateTS),
+            y: vspd.map(v => v.count),
+            xRange,
+            strokeOptions: {
+                controller: 3,
+                duration: 5000,
+                styles: {
+                    strokeStyle: '#00ff0080',
+                    lineWidth: 20,
+                    lineCap: 'round',
+                },
+                ease: 'easeOutExpo'
+            }
+        })
+
+        setShapes([chart])
+    }
+
+    function getMonth(ts: number): string {
+        return toFormat(ts, local, undefined, 'LLL')
+    }
+
+    function calculateVisitsPerDay(vs: Visit[]): { count: number, dateTS: number }[] {
+        // {dateTS => count}
+        let map: { [k: string]: number } = {}
+        for (let i = 0; i < vs.length; i++) {
+            let k = DateTime.fromSeconds(vs[i].due).toFormat('yyyy LLL dd')
+
+            if (map[k] === undefined)
+                map[k] = 1
+            else
+                map[k] += 1
+        }
+
+        return Object.entries(map).map(e => ({ count: e[1], dateTS: DateTime.fromFormat(e[0], 'yyyy LLL dd').toUnixInteger() }))
+    }
+
+    async function fetchVisits(): Promise<Visit[]> {
+        try {
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getVisitsByDate(startDate, endDate)
+            console.log({ res })
+
+            if (res.code !== 200 || !res.data)
+                return []
+
+            return res.data ?? []
+        } catch (error) {
+            console.error(error)
+            return []
+        }
+    }
+
+    return (
+        <Chart shapes={shapes} />
+    )
+    // shapes={[
+    //     new LineChart({
+    //         x,
+    //         y,
+    //         xLabels: x.map(value => ({ value, node: value })),
+    //         yLabels: y.map(value => ({ value, node: value })),
+    //         hoverOptions: {
+    //             animate(ctx, e, dataPoints, dataPointIndex, chartOptions, hoverOptions, dx) {
+    //                 ctx.strokeStyle = 'red'
+    //                 ctx.lineWidth = 1
+
+    //                 if (dataPoints[dataPointIndex] !== undefined) {
+    //                     ctx.beginPath()
+    //                     ctx.ellipse(dataPoints[dataPointIndex].x, dataPoints[dataPointIndex].y, hoverOptions.hoverRadius ?? 20, hoverOptions.hoverRadius ?? 20, 0, 0, 2 * Math.PI * dx)
+    //                     ctx.stroke()
+    //                 }
+    //             },
+    //             controller: 3,
+    //             duration: 2000,
+    //             ease: 'easeOutExpo',
+    //             getHoverNode: (ps, i) => 'aaaaaaaaaa',
+    //             hoverHeight: 100,
+    //             hoverWidth: 200,
+    //             hoverRadius: 20,
+    //         },
+    //         fillOptions: {
+    //             styles: undefined,
+    //             animateStyles(ctx, dataPoints, styleOptions, chartOptions, fraction) {
+    //                 let g = ctx.createLinearGradient(0, 0, 0, chartOptions?.height ?? 10)
+    //                 g.addColorStop(0, 'red')
+    //                 g.addColorStop(1, 'transparent')
+    //                 return {
+    //                     fillStyle: g,
+    //                     // fillStyle: '#0000ff00',
+    //                     // strokeStyle: 'red',
+    //                     strokeStyle: 'transparent',
+    //                     lineCap: 'butt',
+    //                     lineWidth: 20,
+    //                 }
+    //             },
+    //         },
+    //         strokeOptions: {
+    //             controller: 3,
+    //             duration: 5000,
+    //             styles: {
+    //                 strokeStyle: '#00ff0080',
+    //                 lineWidth: 20,
+    //                 lineCap: 'round',
+    //             },
+    //             ease: 'easeOutExpo'
+    //         },
+    //     })
+    // ]}
+}
 
 export function Chart2() {
     const containerRef = useRef<HTMLCanvasElement>(null)
