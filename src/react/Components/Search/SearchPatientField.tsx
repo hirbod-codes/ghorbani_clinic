@@ -73,14 +73,14 @@ export const SearchPatientField = memo(function SearchPatientField() {
                         <Button
                             bgColor="success"
                             fgColor='success-foreground'
-                            className="h-full border-0"
+                            className="h-full border-0 "
                             onClick={() => setOpen(true)}
                         >
                             +{t('SearchPatientField.Create')}
                         </Button>
                         : undefined
                 }
-                endIconProps={{ className: 'right-[1px] h-[calc(100%-2px)] border-0' }}
+                endIconProps={{ className: 'right-0 border-0' }}
             />
 
             <ManagePatientModal

@@ -27,7 +27,7 @@ export const AppBar = memo(function AppBar() {
                     </div>
                     {
                         auth?.user &&
-                        <Button variant='text' isIcon className='rounded-none' onClick={async () => await auth?.logout()}>
+                        <Button variant='text' isIcon onClick={async () => await auth?.logout()}>
                             {
                                 auth?.isAuthLoading
                                     ? <CircularLoadingIcon />
@@ -37,7 +37,7 @@ export const AppBar = memo(function AppBar() {
                     }
                     {
                         !auth?.isAuthLoading && !auth?.user &&
-                        <Button variant='text' isIcon className='rounded-none' onClick={() => auth?.showModal()}>
+                        <Button variant='text' isIcon onClick={() => auth?.showModal()}>
                             {
                                 auth?.isAuthLoading
                                     ? <CircularLoadingIcon />
@@ -45,7 +45,7 @@ export const AppBar = memo(function AppBar() {
                             }
                         </Button>
                     }
-                    <Button id='theme' variant='text' isIcon className='rounded-none' onClick={async () => await configuration.updateTheme(configuration.themeOptions.mode === 'dark' ? 'light' : 'dark')}>
+                    <Button id='theme' variant='text' isIcon onClick={async () => await configuration.updateTheme(configuration.themeOptions.mode === 'dark' ? 'light' : 'dark')}>
                         {configuration.themeOptions.mode == 'dark' ? <SunIcon fontSize='inherit' /> : <MoonIcon fontSize='inherit' />}
                     </Button>
                 </div>
