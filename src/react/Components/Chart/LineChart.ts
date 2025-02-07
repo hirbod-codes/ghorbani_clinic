@@ -18,20 +18,28 @@ export class LineChart extends Shape {
     points: Point[]
     xLabels: { value?: number, node?: ReactNode }[] = []
     yLabels: { value?: number, node?: ReactNode }[] = []
+    xRange: [number | undefined, number | undefined]
+    yRange: [number | undefined, number | undefined]
     private chartOptions?: ChartOptions
     hoverOptions: DrawOnHoverOptions
     fillOptions: DrawShapeOptions
     strokeOptions: DrawShapeOptions
+    verticalLinesOptions: DrawShapeOptions
+    horizontalLinesOptions: DrawShapeOptions
 
     constructor(
         options: {
             x: number[],
             y: number[],
-            fillOptions: DrawShapeOptions,
-            strokeOptions: DrawShapeOptions,
-            hoverOptions: DrawOnHoverOptions,
             xLabels?: { value?: number, node?: ReactNode }[],
             yLabels?: { value?: number, node?: ReactNode }[],
+            xRange?: [number | undefined, number | undefined],
+            yRange?: [number | undefined, number | undefined],
+            fillOptions?: DrawShapeOptions,
+            strokeOptions?: DrawShapeOptions,
+            hoverOptions?: DrawOnHoverOptions,
+            verticalLinesOptions?: DrawShapeOptions,
+            horizontalLinesOptions?: DrawShapeOptions,
             chartOptions?: ChartOptions,
             animationDuration?: number,
         }
@@ -47,9 +55,13 @@ export class LineChart extends Shape {
         this.rawY = [...options.y]
         this.xLabels = options.xLabels ?? []
         this.yLabels = options.yLabels ?? []
-        this.fillOptions = options.fillOptions
-        this.strokeOptions = options.strokeOptions
-        this.hoverOptions = options.hoverOptions
+        this.xRange = [...(options.xRange ?? [undefined, undefined])]
+        this.yRange = [...(options.yRange ?? [undefined, undefined])]
+        this.fillOptions = options.fillOptions ?? {}
+        this.strokeOptions = options.strokeOptions ?? {}
+        this.hoverOptions = options.hoverOptions ?? {}
+        this.verticalLinesOptions = options.verticalLinesOptions ?? {}
+        this.horizontalLinesOptions = options.horizontalLinesOptions ?? {}
 
         this.setDefaults('stroke')
         this.setDefaults('fill')
@@ -75,23 +87,72 @@ export class LineChart extends Shape {
     }
 
     private setDistributedPoints(x: number[], y: number[], width: number, height: number, offset: number) {
-        this.x = this.distribute(x, width).map(v => v + offset)
-        this.y = this.distribute(y, height)
+        let ps = this.calculateExtremePoints(x.map((m, i) => ({ x: m, y: y[i] })))
+
+        this.x = this.linearInterpolation(this.getInRangeValues(ps.map(m => m.x), this.xRange), width).map(v => v + offset)
+        this.y = this.linearInterpolation(this.getInRangeValues(ps.map(m => m.y), this.yRange), height)
             .map(v => height - v)
             .map(v => v + offset)
 
         this.points = this.x.map((v, i) => ({ x: v, y: this.y[i] }))
 
-        this.xLabels = this.xLabels.map((l, i) => ({ ...l, value: this.points[this.rawX.findIndex(v => v === l.value)].x }))
-        this.yLabels = this.yLabels.map((l, i) => ({ ...l, value: this.points[this.rawY.findIndex(v => v === l.value)].y }))
+        this.xLabels = this.linearInterpolation(this.xLabels.map((l, i) => l.value).filter(f => f !== undefined && f !== null), width)
+            .map((value, i) => ({ value, node: this.xLabels[i].node }))
+
+        this.yLabels = this.linearInterpolation(this.yLabels.map((l, i) => l.value).filter(f => f !== undefined && f !== null), height)
+            .map((value, i) => ({ value, node: this.yLabels[i].node }))
     }
 
-    private distribute(values: number[], range: number) {
-        const valuesMax = values.reduce((p, c, i) => c > p ? c : p, values[0])
-        const valuesMin = values.reduce((p, c, i) => c < p ? c : p, values[0])
+    private linearInterpolation(values: number[], range: number) {
+        let valuesMax = values[0], valuesMin = values[0]
+        for (let i = 1; i < values.length; i++) {
+            if (values[i] > valuesMax)
+                valuesMax = values[i]
+            if (values[i] < valuesMin)
+                valuesMin = values[i]
+        }
 
         const valuesRange = valuesMax - valuesMin
         return values.map(v => ((v - valuesMin) / valuesRange) * range)
+    }
+
+    private calculateExtremePoints(points: Point[]): Point[] {
+        let extremePoints: Point[] = [points[0]]
+
+        let previousDirection: 1 | 0 | -1 | undefined = undefined, direction: 1 | 0 | -1 | undefined = undefined
+        for (let i = 1; i < points.length; i++) {
+            // Invalid data
+            if (points[i].x <= points[i - 1].x)
+                return []
+
+            if (points[i].y - points[i - 1].y > 0)
+                direction = 1
+            else if (points[i].y - points[i - 1].y < 0)
+                direction = -1
+            else
+                direction = 0
+
+            if (previousDirection !== undefined && direction !== previousDirection)
+                extremePoints.push(points[i])
+
+            previousDirection = direction
+        }
+
+        return extremePoints
+    }
+
+    private getInRangeValues(values: number[], range: [number | undefined, number | undefined]) {
+        let valuesMax = values[0], valuesMin = values[0]
+        for (let i = 1; i < values.length; i++) {
+            if (values[i] > valuesMax)
+                valuesMax = values[i]
+            if (values[i] < valuesMin)
+                valuesMin = values[i]
+        }
+
+        let maxRange = Math.max(valuesMin, range[0] ?? valuesMin)
+        let minRange = Math.min(valuesMax, range[1] ?? valuesMax)
+        return values.filter(v => v >= minRange && v <= maxRange)
     }
 
     /**
@@ -186,6 +247,40 @@ export class LineChart extends Shape {
         }
     }
 
+    /**
+     * @param ctx 
+     * @param e 
+     * @param dataPointIndex 
+     * @param dx by default, 1
+     * @returns 
+     */
+    strokeVerticalLines(ctx: CanvasRenderingContext2D, dx: number = 1) {
+        if (this.verticalLinesOptions.animateStyles)
+            this.verticalLinesOptions.styles = this.verticalLinesOptions.animateStyles(ctx, this.points, this.verticalLinesOptions.styles, this.chartOptions, dx)
+
+        if (this.verticalLinesOptions.animateDraw) {
+            this.verticalLinesOptions.animateDraw(ctx, this.points, this.verticalLinesOptions.styles, this.chartOptions, dx)
+            return
+        }
+    }
+
+    /**
+     * @param ctx 
+     * @param e 
+     * @param dataPointIndex 
+     * @param dx by default, 1
+     * @returns 
+     */
+    strokeHorizontalLines(ctx: CanvasRenderingContext2D, dx: number = 1) {
+        if (this.horizontalLinesOptions.animateStyles)
+            this.horizontalLinesOptions.styles = this.horizontalLinesOptions.animateStyles(ctx, this.points, this.horizontalLinesOptions.styles, this.chartOptions, dx)
+
+        if (this.horizontalLinesOptions.animateDraw) {
+            this.horizontalLinesOptions.animateDraw(ctx, this.points, this.horizontalLinesOptions.styles, this.chartOptions, dx)
+            return
+        }
+    }
+
     findHoveringDataPoint(p: Point): number | undefined {
         if (this.hoverOptions.hoverRadius === undefined)
             return undefined
@@ -250,6 +345,8 @@ export class LineChart extends Shape {
 
     private previousIndex: number | undefined = undefined
     animateDefaults(t: DOMHighResTimeStamp, ctx: CanvasRenderingContext2D, hoverEvent?: PointerEvent) {
+        this.animate(t, 'strokeVerticalLines', (dx) => this.strokeVerticalLines(ctx, getEasingFunction(this.verticalLinesOptions.ease ?? 'easeInSine')(dx)))
+        this.animate(t, 'strokeHorizontalLines', (dx) => this.strokeHorizontalLines(ctx, getEasingFunction(this.horizontalLinesOptions.ease ?? 'easeInSine')(dx)))
         this.animate(t, 'stroke', (dx) => this.stroke(ctx, getEasingFunction(this.strokeOptions.ease ?? 'easeInSine')(dx)))
         this.animate(t, 'fill', (dx) => this.fill(ctx, getEasingFunction(this.fillOptions.ease ?? 'easeInSine')(dx)))
         this.animate(t, 'hover', (dx) => {

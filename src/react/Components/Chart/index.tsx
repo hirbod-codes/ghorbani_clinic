@@ -60,12 +60,8 @@ export type ChartProps = {
     chartOptions?: ChartOptions
     shapes?: LineChart[]
     animationDuration?: number
-    gridHorizontalLines?: DrawOptions & { count?: number }
-    gridVerticalLines?: DrawOptions & { count?: number }
     xAxis?: DrawOptions
     yAxis?: DrawOptions
-    xLabels?: { value: number, node?: ReactNode }[]
-    yLabels?: { value: number, node?: ReactNode }[]
 }
 
 export function Chart({
@@ -76,12 +72,8 @@ export function Chart({
     },
     shapes = [],
     animationDuration = 5000,
-    gridHorizontalLines = {},
-    gridVerticalLines = {},
     xAxis = {},
     yAxis = {},
-    xLabels = [],
-    yLabels = [],
 }: ChartProps) {
     const themeOptions = useContext(ConfigurationContext)!.themeOptions
 
@@ -102,54 +94,6 @@ export function Chart({
         let dx = (passed % animationDuration) / animationDuration
 
         ctx.clearRect(0, 0, canvasWidth, canvasHeight)
-
-        let gridHorizontalLinesFraction = getEasingFunction(gridHorizontalLines.ease ?? 'easeInSine')(dx)
-        gridHorizontalLines.styles = {
-            strokeStyle: themeOptions.colors.outline[themeOptions.mode].main,
-            lineWidth: 0.5,
-            ...gridHorizontalLines?.animateStyles ? gridHorizontalLines.animateStyles(ctx, { ...gridHorizontalLines.styles }, chartOptions.current, gridHorizontalLinesFraction) : gridHorizontalLines?.styles
-        }
-        gridHorizontalLines?.animateDraw
-            ? gridHorizontalLines.animateDraw(
-                ctx,
-                gridHorizontalLines.styles,
-                chartOptions.current,
-                gridHorizontalLinesFraction
-            )
-            : drawGridHorizontalLines(
-                ctx,
-                gridHorizontalLines?.count ?? 5,
-                chartOptions.current.width!,
-                chartOptions.current.height!,
-                chartOptions.current.offset ?? 30,
-                gridHorizontalLines.styles,
-                gridHorizontalLinesFraction,
-                animationDuration
-            )
-
-        let gridVerticalLinesFraction = getEasingFunction(gridVerticalLines.ease ?? 'easeInSine')(dx)
-        gridVerticalLines.styles = {
-            strokeStyle: themeOptions.colors.outline[themeOptions.mode].main,
-            lineWidth: 0.5,
-            ...gridVerticalLines?.animateStyles ? gridVerticalLines.animateStyles(ctx, { ...gridVerticalLines.styles }, chartOptions.current, gridVerticalLinesFraction) : gridVerticalLines?.styles
-        }
-        gridVerticalLines?.animateDraw
-            ? gridVerticalLines.animateDraw(
-                ctx,
-                gridVerticalLines.styles,
-                chartOptions.current,
-                gridVerticalLinesFraction
-            )
-            : drawGridVerticalLines(
-                ctx,
-                gridVerticalLines?.count ?? 5,
-                chartOptions.current.width!,
-                chartOptions.current.height!,
-                chartOptions.current.offset ?? 30,
-                gridVerticalLines.styles,
-                gridVerticalLinesFraction,
-                animationDuration
-            )
 
         let xAxisFraction = getEasingFunction(xAxis.ease ?? 'easeInSine')(dx)
         xAxis.styles =
@@ -315,7 +259,7 @@ export function Chart({
             {shapes.map(s =>
                 s.xLabels.map((l, i) =>
                     l.value !== undefined && l.node !== undefined
-                        ? <div key={i} className="absolute" style={{ top: `${(chartOptions.current.height ?? 0) + (chartOptions.current.offset ?? 0) + (chartOptions.current.xAxisOffset ?? 0)}px`, left: l.value }}>
+                        ? <div key={i} className="absolute" style={{ top: `${(s.getChartOptions()!.height ?? 0) + (s.getChartOptions()!.offset ?? 0) + (s.getChartOptions()!.xAxisOffset ?? 0)}px`, left: l.value }}>
                             <div className="relative -translate-y-1/2 -translate-x-1/2">
                                 {l.node}
                             </div>
@@ -327,7 +271,7 @@ export function Chart({
             {shapes.map(s =>
                 s.yLabels.map((l, i) =>
                     l.value !== undefined && l.node !== undefined
-                        ? <div key={i} className="absolute" style={{ top: l.value, left: `${(chartOptions.current.offset ?? 0) - (chartOptions.current.yAxisOffset ?? 0)}px` }}>
+                        ? <div key={i} className="absolute" style={{ top: l.value, left: `${(s.getChartOptions()!.offset ?? 0) - (s.getChartOptions()!.yAxisOffset ?? 0)}px` }}>
                             <div className="relative -translate-y-1/2 -translate-x-full">
                                 {l.node}
                             </div>
