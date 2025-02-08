@@ -331,7 +331,7 @@ export class LineChart extends Shape {
         })
 
         if (animationDuration !== undefined)
-            return curves.reduce<Point[]>((p, c, i) => p.concat(c.getLUT(c.length())), [])
+            return curves.reduce<Point[]>((p, c, i) => p.concat(c.getLUT(c.length() * 4)), [])
         else
             return curves
     }
