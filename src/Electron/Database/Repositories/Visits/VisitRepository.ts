@@ -19,7 +19,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         ipcMain.handle('get-visits-estimated-count', async () => await this.handleErrors(async () => await this.getVisitsEstimatedCount()))
         ipcMain.handle('get-expired-visits-count', async () => await this.handleErrors(async () => await this.getExpiredVisitsCount()))
         ipcMain.handle('get-expired-visits', async () => await this.handleErrors(async () => await this.getExpiredVisits()))
-        ipcMain.handle('get-visits-by-date', async (_e, { startDate, endDate }: { startDate: number, endDate: number }) => await this.handleErrors(async () => await this.getVisitsByDate(startDate, endDate)))
+        ipcMain.handle('get-visits-by-date', async (_e, { startDate, endDate, ascending }: { startDate: number, endDate: number, ascending?: boolean }) => await this.handleErrors(async () => await this.getVisitsByDate(startDate, endDate, ascending)))
         ipcMain.handle('get-visits-by-patient-id', async (_e, { patientId }: { patientId: string }) => await this.handleErrors(async () => await this.getVisitsByPatientId(patientId)))
         ipcMain.handle('get-visits', async (_e, { offset, count }: { offset: number, count: number }) => await this.handleErrors(async () => await this.getVisits(offset, count)))
         ipcMain.handle('update-visit', async (_e, { visit }: { visit: Visit }) => await this.handleErrors(async () => await this.updateVisit(visit)))
@@ -72,7 +72,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         return (await (await this.getVisitsCollection()).find({ due: { $lt: nowTs } }).toArray())
     }
 
-    async getVisitsByDate(startDate: number, endDate: number): Promise<Visit[]> {
+    async getVisitsByDate(startDate: number, endDate: number, ascending = false): Promise<Visit[]> {
         if (startDate > endDate)
             throw new Error('Invalid start and end date provided')
 
@@ -86,7 +86,7 @@ export class VisitRepository extends MongoDB implements IVisitRepository {
         if (!privileges.can(user.roleName).read(resources.VISIT).granted)
             throw new Unauthorized()
 
-        const visits: Visit[] = await (await this.getVisitsCollection()).find({ $and: [{ due: { $lte: endDate } }, { due: { $gte: startDate } }] }).sort('due', -1).toArray()
+        const visits: Visit[] = await (await this.getVisitsCollection()).find({ $and: [{ due: { $lte: endDate } }, { due: { $gte: startDate } }] }).sort('due', ascending ? 1 : -1).toArray()
 
         const readableVisits = extractKeysRecursive(visits, getFields(readableFields, privileges.can(user.roleName).read(resources.VISIT).attributes));
 

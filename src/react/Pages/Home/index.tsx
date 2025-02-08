@@ -41,7 +41,7 @@ export const Home = memo(function Home() {
                 <div className="sm:col-span-12 md:col-span-4 col-span-12">
                     {/* <Chart2 /> */}
                     {/* <Chart x={[85, 85, 80, 85, 56, 55, 40, 50]} y={[85, 85, 80, 85, 56, 55, 40, 50]} /> */}
-                    <div className="absolute top-0 left-0 bg-surface-bright z-50 size-[800px]">
+                    <div className="absolute top-0 left-0 bg-surface-bright z-50 w-[1000px] h-[800px]">
                         <VisitsChart />
                         {/* <Chart
                             shapes={[
@@ -115,6 +115,8 @@ export function VisitsChart() {
     const [startDate, setStartDate] = useState<number>(DateTime.utc().minus({ months: 6 }).toUnixInteger())
     const [endDate, setEndDate] = useState<number>(DateTime.utc().toUnixInteger())
 
+    const [ready, setReady] = useState(false)
+
     useEffect(() => {
         init()
     }, [])
@@ -135,7 +137,7 @@ export function VisitsChart() {
         let xRange: [number | undefined, number | undefined] = [Math.min(DateTime.fromSeconds(vs[0].due).toUnixInteger(), startDate), DateTime.fromSeconds(vs[vs.length - 1].due).plus({ months: 1 }).minus({ days: 1 }).set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toUnixInteger()]
         console.log({ xRange })
 
-        let xLabels: { value: number, node: ReactNode }[] = [{ value: xRange[1]!, node: xRange[1]! }]
+        let xLabels: { value: number, node: ReactNode }[] = [{ value: xRange[1]!, node: getMonth(xRange[1]!) }]
         let ts = DateTime.fromSeconds(xRange[1]!).minus({ months: 1 }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toUnixInteger()
         while (true) {
             if (ts <= xRange[0]!) {
@@ -143,29 +145,52 @@ export function VisitsChart() {
                 break
             }
 
-            ts = DateTime.fromSeconds(ts).minus({ months: 1 }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toUnixInteger()
-
             xLabels.unshift({ value: ts, node: getMonth(ts) })
+
+            ts = DateTime.fromSeconds(ts).minus({ months: 1 }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toUnixInteger()
         }
-        console.log({ xLabels })
 
         let chart = new LineChart({
             x: vspd.map(v => v.dateTS),
             y: vspd.map(v => v.count),
+            xLabels: xLabels.map(v => ({ ...v, options: { className: 'text-xs' } })),
+            yLabels: Array(10).fill(0).map((v, i) => ({ value: i, node: i, options: { className: 'text-xs' } })),
             xRange,
+            // yRange: [1, 4],
             strokeOptions: {
                 controller: 3,
                 duration: 5000,
+                // animateDraw(ctx, dataPoints, styleOptions, chartOptions, fraction) {
+                //     if (styleOptions)
+                //         Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions![k])
+
+                //     let rectWidth = 10
+                //     dataPoints.forEach(p => {
+                //         ctx.beginPath()
+                //         let offset = chartOptions!.offset! + 2
+                //         let h = chartOptions!.height! - p.y - offset
+                //         ctx.rect(p.x - rectWidth / 2, chartOptions!.height! + offset - fraction! * h, rectWidth, h * fraction!)
+                //         // ctx.stroke()
+                //         ctx.fill()
+                //     })
+
+                //     ctx.beginPath()
+                //     ctx.moveTo(dataPoints[0].x, dataPoints[0].y)
+                //     dataPoints.forEach(p => ctx.lineTo(p.x, p.y))
+                //     ctx.stroke()
+                // },
                 styles: {
+                    fillStyle: 'transparent',
                     strokeStyle: '#00ff0080',
-                    lineWidth: 20,
-                    lineCap: 'round',
+                    lineWidth: 4,
+                    lineCap: 'butt',
                 },
                 ease: 'easeOutExpo'
-            }
+            },
         })
 
         setShapes([chart])
+        setReady(true)
     }
 
     function getMonth(ts: number): string {
@@ -189,7 +214,7 @@ export function VisitsChart() {
 
     async function fetchVisits(): Promise<Visit[]> {
         try {
-            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getVisitsByDate(startDate, endDate)
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getVisitsByDate(startDate, endDate, true)
             console.log({ res })
 
             if (res.code !== 200 || !res.data)
@@ -203,7 +228,7 @@ export function VisitsChart() {
     }
 
     return (
-        <Chart shapes={shapes} />
+        ready && <Chart shapes={shapes} xAxis={{ styles: { lineWidth: 2 } }} />
     )
     // shapes={[
     //     new LineChart({

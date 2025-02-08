@@ -1,4 +1,4 @@
-import { PointerEvent, ReactNode, useContext, useEffect, useReducer, useRef } from "react"
+import { PointerEvent, ReactNode, useCallback, useContext, useEffect, useReducer, useRef } from "react"
 import { Point } from "../../Lib/Math"
 import { EasingName, getEasingFunction } from "../../Components/Animations/easings"
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext"
@@ -6,6 +6,7 @@ import { DrawOptions, ChartOptions, CanvasStyleOptions } from "./index.d"
 import { LineChart } from "../../Components/Chart/LineChart"
 import { DropdownMenu } from "../Base/DropdownMenu"
 import { useAnimate } from "../Animations/useAnimate"
+import { cn } from "../../shadcn/lib/utils"
 
 function drawXAxis(ctx: CanvasRenderingContext2D, chartWidth: number, chartHeight: number, offset: number, styleOptions: CanvasStyleOptions, fraction: number, animationDuration: number) {
     ctx.beginPath()
@@ -84,10 +85,21 @@ export function Chart({
 
     const drawAnimation = useAnimate()
 
+    const containerRef = useRef<HTMLDivElement>(null)
+    const canvasWidth = useRef<number>()
+    const canvasHeight = useRef<number>()
+
+    const hover = useRef<{ [k: number]: { open?: boolean, pIndex?: number, top?: number, left?: number, node?: ReactNode } }>({})
+    const hoverEvent = useRef<PointerEvent>()
+
+    const [, rerender] = useReducer(x => x + 1, 0)
+
+    console.log('Chart', { chartOptions, isDrawn, canvasRef, ctx, drawAnimation, containerRef, canvasWidth, canvasHeight, hover, hoverEvent, shapes, animationDuration, xAxis, yAxis });
+
     let oldT = 0
     let passed = 0
 
-    function draw(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number, t: DOMHighResTimeStamp) {
+    const draw = useCallback(function draw(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number, t: DOMHighResTimeStamp) {
         if (oldT === 0)
             oldT = t
         passed = t - oldT
@@ -150,16 +162,7 @@ export function Chart({
         ctx.clip(path)
 
         shapes.forEach(s => s.animateDefaults(t, ctx, hoverEvent.current))
-    }
-
-    const containerRef = useRef<HTMLDivElement>(null)
-    const canvasWidth = useRef<number>()
-    const canvasHeight = useRef<number>()
-
-    const hover = useRef<{ [k: number]: { open?: boolean, pIndex?: number, top?: number, left?: number, node?: ReactNode } }>({})
-    const hoverEvent = useRef<PointerEvent>()
-
-    const [, rerender] = useReducer(x => x + 1, 0)
+    }, [shapes, xAxis, yAxis, chartOptions.current])
 
     useEffect(() => {
         if (canvasRef.current && containerRef.current && !isDrawn.current) {
@@ -182,7 +185,7 @@ export function Chart({
             chartOptions.current.width = rect.width - (chartOptions.current.offset ?? 0) * 2
             chartOptions.current.height = rect.height - (chartOptions.current.offset ?? 0) * 2
 
-            console.log({ rect, chartOptions: chartOptions.current })
+            console.log({ shapes, rect, chartOptions: chartOptions.current })
 
             shapes.forEach(s => s.setChartOptions({ ...chartOptions.current, ...s.getChartOptions(), width: chartOptions.current.width, height: chartOptions.current.height }))
 
@@ -190,7 +193,7 @@ export function Chart({
 
             rerender()
         }
-    }, [])
+    }, [shapes])
 
     function onPointerOver(e: PointerEvent) {
         hoverEvent.current = e
@@ -258,8 +261,8 @@ export function Chart({
 
             {shapes.map(s =>
                 s.xLabels.map((l, i) =>
-                    l.value !== undefined && l.node !== undefined
-                        ? <div key={i} className="absolute" style={{ top: `${(s.getChartOptions()!.height ?? 0) + (s.getChartOptions()!.offset ?? 0) + (s.getChartOptions()!.xAxisOffset ?? 0)}px`, left: l.value }}>
+                    l.value !== undefined && l.node !== undefined && s.getChartOptions() !== undefined
+                        ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: `${(s.getChartOptions()!.height ?? 0) + (s.getChartOptions()!.offset ?? 0) + (s.getChartOptions()!.xAxisOffset ?? 0)}px`, left: l.value }}>
                             <div className="relative -translate-y-1/2 -translate-x-1/2">
                                 {l.node}
                             </div>
@@ -270,8 +273,8 @@ export function Chart({
 
             {shapes.map(s =>
                 s.yLabels.map((l, i) =>
-                    l.value !== undefined && l.node !== undefined
-                        ? <div key={i} className="absolute" style={{ top: l.value, left: `${(s.getChartOptions()!.offset ?? 0) - (s.getChartOptions()!.yAxisOffset ?? 0)}px` }}>
+                    l.value !== undefined && l.node !== undefined && s.getChartOptions() !== undefined
+                        ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: l.value, left: `${(s.getChartOptions()!.offset ?? 0) - (s.getChartOptions()!.yAxisOffset ?? 0)}px` }}>
                             <div className="relative -translate-y-1/2 -translate-x-full">
                                 {l.node}
                             </div>

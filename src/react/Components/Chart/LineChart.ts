@@ -1,6 +1,6 @@
 import { Bezier } from "bezier-js"
 import { Point } from "../../Lib/Math"
-import { PointerEvent, ReactNode } from "react"
+import { ComponentProps, PointerEvent, ReactNode } from "react"
 import { ChartOptions, DrawOnHoverOptions, DrawShapeOptions } from "./index.d"
 import { Circle } from "../Base/Canvas/Shapes/Circle"
 import { getEasingFunction } from "../Animations/easings"
@@ -16,8 +16,8 @@ export class LineChart extends Shape {
     x: number[]
     y: number[]
     points: Point[]
-    xLabels: { value?: number, node?: ReactNode }[] = []
-    yLabels: { value?: number, node?: ReactNode }[] = []
+    xLabels: { value?: number, node?: ReactNode, options?: ComponentProps<'div'> }[] = []
+    yLabels: { value?: number, node?: ReactNode, options?: ComponentProps<'div'> }[] = []
     xRange: [number | undefined, number | undefined]
     yRange: [number | undefined, number | undefined]
     private chartOptions?: ChartOptions
@@ -31,8 +31,8 @@ export class LineChart extends Shape {
         options: {
             x: number[],
             y: number[],
-            xLabels?: { value?: number, node?: ReactNode }[],
-            yLabels?: { value?: number, node?: ReactNode }[],
+            xLabels?: { value?: number, node?: ReactNode, options?: ComponentProps<'div'> }[],
+            yLabels?: { value?: number, node?: ReactNode, options?: ComponentProps<'div'> }[],
             xRange?: [number | undefined, number | undefined],
             yRange?: [number | undefined, number | undefined],
             fillOptions?: DrawShapeOptions,
@@ -95,31 +95,37 @@ export class LineChart extends Shape {
     private setDistributedPoints(x: number[], y: number[], width: number, height: number, offset: number) {
         let ps = this.calculateExtremePoints(x.map((m, i) => ({ x: m, y: y[i] })))
 
-        this.x = this.linearInterpolation(this.getInRangeValues(ps.map(m => m.x), this.xRange), width).map(v => v + offset)
-        this.y = this.linearInterpolation(this.getInRangeValues(ps.map(m => m.y), this.yRange), height)
+        this.x = this.linearInterpolation(ps.map(m => m.x), width, this.xRange).map(v => v + offset)
+        this.y = this.linearInterpolation(ps.map(m => m.y), height, this.yRange)
             .map(v => height - v)
             .map(v => v + offset)
 
         this.points = this.x.map((v, i) => ({ x: v, y: this.y[i] }))
 
+
         this.xLabels = this.linearInterpolation(this.xLabels.map((l, i) => l.value).filter(f => f !== undefined && f !== null), width)
-            .map((value, i) => ({ value, node: this.xLabels[i].node }))
+            .map(v => v + offset)
+            .map((value, i) => ({ ...this.xLabels[i], value }))
 
         this.yLabels = this.linearInterpolation(this.yLabels.map((l, i) => l.value).filter(f => f !== undefined && f !== null), height)
-            .map((value, i) => ({ value, node: this.yLabels[i].node }))
+            .map(v => height - v)
+            .map(v => v + offset)
+            .map((value, i) => ({ ...this.yLabels[i], value }))
     }
 
-    private linearInterpolation(values: number[], range: number) {
-        let valuesMax = values[0], valuesMin = values[0]
-        for (let i = 1; i < values.length; i++) {
-            if (values[i] > valuesMax)
-                valuesMax = values[i]
-            if (values[i] < valuesMin)
-                valuesMin = values[i]
+    private linearInterpolation(values: number[], range: number, valuesRange?: [number | undefined, number | undefined]) {
+        if (valuesRange === undefined || valuesRange[0] === undefined || valuesRange[1] === undefined) {
+            let valuesMax = -Infinity, valuesMin = Infinity
+            for (let i = 0; i < values.length; i++) {
+                if (values[i] > valuesMax)
+                    valuesMax = values[i]
+                if (values[i] < valuesMin)
+                    valuesMin = values[i]
+            }
+            valuesRange = [valuesMin, valuesMax]
         }
 
-        const valuesRange = valuesMax - valuesMin
-        return values.map(v => ((v - valuesMin) / valuesRange) * range)
+        return values.map(v => ((v - valuesRange[0]!) / (valuesRange[1]! - valuesRange[0]!)) * range)
     }
 
     private calculateExtremePoints(points: Point[]): Point[] {
@@ -129,7 +135,7 @@ export class LineChart extends Shape {
         for (let i = 1; i < points.length; i++) {
             // Invalid data
             if (points[i].x <= points[i - 1].x)
-                return []
+                throw new Error('invalid data provided to calculateExtremePoints method')
 
             if (points[i].y - points[i - 1].y > 0)
                 direction = 1
@@ -145,20 +151,6 @@ export class LineChart extends Shape {
         }
 
         return extremePoints
-    }
-
-    private getInRangeValues(values: number[], range: [number | undefined, number | undefined]) {
-        let valuesMax = values[0], valuesMin = values[0]
-        for (let i = 1; i < values.length; i++) {
-            if (values[i] > valuesMax)
-                valuesMax = values[i]
-            if (values[i] < valuesMin)
-                valuesMin = values[i]
-        }
-
-        let maxRange = Math.max(valuesMin, range[0] ?? valuesMin)
-        let minRange = Math.min(valuesMax, range[1] ?? valuesMax)
-        return values.filter(v => v >= minRange && v <= maxRange)
     }
 
     /**
@@ -338,14 +330,9 @@ export class LineChart extends Shape {
                 drawLine(curve, c, i)
         })
 
-        if (animationDuration !== undefined) {
-            let pointCount = length * 10
-            return curves.reduce<Point[]>((p, c, i) => {
-                let steps = (c.length() / length) * pointCount
-                // console.log('curves length', i, { pointCount, length, curveLength: c.length(), curvePoints: c.getLUT(steps).length, steps })
-                return p.concat(c.getLUT(steps))
-            }, [])
-        } else
+        if (animationDuration !== undefined)
+            return curves.reduce<Point[]>((p, c, i) => p.concat(c.getLUT(c.length())), [])
+        else
             return curves
     }
 
