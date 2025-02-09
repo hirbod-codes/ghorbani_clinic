@@ -26,7 +26,7 @@ export const Layout = memo(function Layout() {
 
                     <Stack size={3} direction='vertical' stackProps={{ className: 'flex-grow w-full relative overflow-hidden bg-surface h-full' }}>
                         <AppBar />
-                        <div className="flex-grow">
+                        <div className="flex-grow overflow-auto">
                             <AnimatedOutlet />
                         </div>
                     </Stack>
