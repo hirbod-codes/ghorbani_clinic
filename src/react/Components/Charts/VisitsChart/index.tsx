@@ -126,7 +126,7 @@ export function VisitsChart() {
             },
             hoverOptions: {
                 getHoverNode: (ps, i) =>
-                    <Stack direction="vertical" stackProps={{ className: 'p-2 rounded-lg bg-surface-container' }}>
+                    <Stack direction="vertical" stackProps={{ className: 'p-2 rounded-lg bg-surface-container border' }}>
                         <Stack stackProps={{ className: 'justify-between' }}><div>count</div> <div>{vspd[i].count}</div></Stack>
                         <Stack stackProps={{ className: 'justify-between' }}><div>date</div> <div>{toFormat(vspd[i].dateTS, local, undefined, DATE)}</div></Stack>
                     </Stack>,
