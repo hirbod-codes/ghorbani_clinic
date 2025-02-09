@@ -98,7 +98,7 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, an
                     {...containerProps}
                     id="dropdown-container"
                     ref={scope}
-                    className={cn(['bg-surface-container absolute z-50'], containerProps?.className)}
+                    className={cn(['absolute z-50'], containerProps?.className)}
                     style={{ top: '-100%', ...containerProps?.style }}
                 >
                     {children}
