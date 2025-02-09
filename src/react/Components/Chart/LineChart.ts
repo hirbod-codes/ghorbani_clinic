@@ -92,24 +92,24 @@ export class LineChart extends Shape {
         this.setDistributedPoints(this.rawX, this.rawY, chartOptions.width!, chartOptions.height!, chartOptions.offset!)
     }
 
-    private setDistributedPoints(x: number[], y: number[], width: number, height: number, offset: number) {
+    private setDistributedPoints(x: number[], y: number[], width: number, height: number, offset: ChartOptions['offset']) {
         let ps = this.calculateExtremePoints(x.map((m, i) => ({ x: m, y: y[i] })))
 
-        this.x = this.linearInterpolation(ps.map(m => m.x), width, this.xRange).map(v => v + offset)
+        this.x = this.linearInterpolation(ps.map(m => m.x), width, this.xRange).map(v => v + offset!.left)
         this.y = this.linearInterpolation(ps.map(m => m.y), height, this.yRange)
             .map(v => height - v)
-            .map(v => v + offset)
+            .map(v => v + offset!.top)
 
         this.points = this.x.map((v, i) => ({ x: v, y: this.y[i] }))
 
 
-        this.xLabels = this.linearInterpolation(this.xLabels.map((l, i) => l.value).filter(f => f !== undefined && f !== null), width)
-            .map(v => v + offset)
+        this.xLabels = this.linearInterpolation(this.xLabels.map((l, i) => l.value).filter(f => f !== undefined && f !== null), width, this.xRange)
+            .map(v => v + offset!.left)
             .map((value, i) => ({ ...this.xLabels[i], value }))
 
-        this.yLabels = this.linearInterpolation(this.yLabels.map((l, i) => l.value).filter(f => f !== undefined && f !== null), height)
+        this.yLabels = this.linearInterpolation(this.yLabels.map((l, i) => l.value).filter(f => f !== undefined && f !== null), height, this.yRange)
             .map(v => height - v)
-            .map(v => v + offset)
+            .map(v => v + offset!.top)
             .map((value, i) => ({ ...this.yLabels[i], value }))
     }
 
@@ -224,8 +224,8 @@ export class LineChart extends Shape {
 
         ctx.stroke()
 
-        ctx.lineTo(this.points[this.points.length - 1].x, this.chartOptions.height! + this.chartOptions.offset!)
-        ctx.lineTo(this.points[0].x, this.chartOptions.height! + this.chartOptions.offset!)
+        ctx.lineTo(this.points[this.points.length - 1].x, this.chartOptions.height! + this.chartOptions.offset!.top)
+        ctx.lineTo(this.points[0].x, this.chartOptions.height! + this.chartOptions.offset!.top)
         ctx.lineTo(this.points[0].x, this.points[0].y)
 
         ctx.fill()

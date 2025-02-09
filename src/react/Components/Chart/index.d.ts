@@ -6,7 +6,7 @@ export type ChartOptions = {
     bgColor?: string
     width?: number
     height?: number
-    offset?: number
+    offset?: { top: number, left: number, right: number, bottom: number }
     xAxisOffset?: number
     yAxisOffset?: number
 }

@@ -1,6 +1,7 @@
 import { ComponentProps, memo, ReactNode, RefObject, useEffect, useReducer, useRef, useState } from "react";
 import { cn } from "@/src/react/shadcn/lib/utils";
 import { createPortal } from "react-dom";
+import { AnimationPlaybackControls, useAnimate } from "framer-motion";
 
 export type DropdownMenuProps = {
     children: ReactNode
@@ -14,12 +15,14 @@ export type DropdownMenuProps = {
 }
 
 export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, anchorDomRect, open = false, onOpenChange, containerProps, verticalPosition = 'bottom', horizontalPosition = 'center' }: DropdownMenuProps) {
-    const [display, setDisplay] = useState<string>('none')
-    const [opacity, setOpacity] = useState<number>(0)
-    const containerRef = useRef<HTMLDivElement>(null)
+    const [, rerender] = useReducer(x => x + 1, 0)
+
+    const [scope, animate] = useAnimate()
+
+    const helperRef = useRef<HTMLDivElement>(null)
 
     const updatePosition = () => {
-        if (!containerRef?.current)
+        if (!scope?.current)
             return
 
         if (!anchorDomRect && !anchorRef?.current)
@@ -28,38 +31,29 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, an
         if (anchorDomRect && (!anchorDomRect.left || !anchorDomRect.top || !anchorDomRect.width || !anchorDomRect.height))
             return
 
-        const aRect = anchorDomRect ?? anchorRef?.current!.getBoundingClientRect()
-        const cRect = containerRef.current.getBoundingClientRect()
+        const aRect: any = anchorDomRect ?? anchorRef?.current!.getBoundingClientRect()
+        const cRect = { ...scope.current.getBoundingClientRect(), width: helperRef?.current?.getBoundingClientRect().width, height: helperRef?.current?.getBoundingClientRect().height }
 
-        // console.log('updatePosition', verticalPosition, horizontalPosition, { visualViewport: window.visualViewport, 'ref': anchorRef.current, 'scrollTop': anchorRef.current.scrollTop, 'offsetTop': anchorRef.current.offsetTop, 'offsetLeft': anchorRef.current.offsetLeft, 'offsetHeight': anchorRef.current.offsetHeight, 'offsetWidth': anchorRef.current.offsetWidth, 'aRect.top': aRect.top, 'aRect.bottom': aRect.bottom, 'aRect.left': aRect.left, 'aRect.right': aRect.right, 'aRect.width': aRect.width, 'aRect.height': aRect.height })
-        // console.log('updatePosition', verticalPosition, horizontalPosition, { 'ref': containerRef.current, 'offsetTop': containerRef.current.offsetTop, 'offsetLeft': containerRef.current.offsetLeft, 'offsetHeight': containerRef.current.offsetHeight, 'offsetWidth': containerRef.current.offsetWidth, 'cRect.top': cRect.top, 'cRect.bottom': cRect.bottom, 'cRect.left': cRect.left, 'cRect.right': cRect.right, 'cRect.width': cRect.width, 'cRect.height': cRect.height })
+        // console.log('updatePosition', verticalPosition, horizontalPosition, { visualViewport: window.visualViewport, 'ref': anchorRef?.current, 'scrollTop': anchorRef?.current?.scrollTop, 'offsetTop': anchorRef?.current?.offsetTop, 'offsetLeft': anchorRef?.current?.offsetLeft, 'offsetHeight': anchorRef?.current?.offsetHeight, 'offsetWidth': anchorRef?.current?.offsetWidth, 'aRect.top': aRect?.top, 'aRect.bottom': aRect?.bottom, 'aRect.left': aRect?.left, 'aRect.right': aRect?.right, 'aRect.width': aRect?.width, 'aRect.height': aRect?.height })
+        // console.log('updatePosition', verticalPosition, horizontalPosition, { 'ref': scope.current, 'offsetTop': scope.current.offsetTop, 'offsetLeft': scope.current.offsetLeft, 'offsetHeight': scope.current.offsetHeight, 'offsetWidth': scope.current.offsetWidth, 'cRect.top': cRect.top, 'cRect.bottom': cRect.bottom, 'cRect.left': cRect.left, 'cRect.right': cRect.right, 'cRect.width': cRect.width, 'cRect.height': cRect.height })
 
-        containerRef.current.style.bottom = ''
-        containerRef.current.style.top = ''
-        containerRef.current.style.right = ''
-        containerRef.current.style.left = ''
-
-        positionElement(containerRef.current, verticalPosition, horizontalPosition, aRect! as DOMRect, cRect, window.innerHeight, window.innerWidth)
+        return positionElement(scope.current, verticalPosition, horizontalPosition, aRect! as DOMRect, cRect, window.innerHeight, window.innerWidth)
     }
 
     useEffect(() => {
-        updatePosition()
-
-        if (containerRef.current) {
+        if (scope?.current) {
+            let domRect = updatePosition()
+            rerender()
+            let c: AnimationPlaybackControls
             if (open)
-                setDisplay('block')
+                c = animate(scope.current, { display: 'block', opacity: 1 })
             else
-                setOpacity(0)
+                c = animate(scope.current, { display: 'none', opacity: 0 })
         }
 
         if (onOpenChange)
             onOpenChange(open)
-    }, [open, display, anchorRef?.current, containerRef?.current, anchorDomRect])
-
-    useEffect(() => {
-        if (display === 'block')
-            setTimeout(() => { setOpacity(1) }, 1)
-    }, [display])
+    }, [open])
 
     useEffect(() => {
         updatePosition()
@@ -69,10 +63,10 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, an
 
     useEffect(() => {
         function handleClickOutside(e) {
-            if (!containerRef || !containerRef?.current || !onOpenChange || !anchorRef || !anchorRef?.current)
+            if (!scope || !scope?.current || !onOpenChange || !anchorRef || !anchorRef?.current)
                 return
 
-            const c = containerRef.current.getBoundingClientRect()
+            const c = scope.current.getBoundingClientRect()
             const a = anchorRef.current.getBoundingClientRect()
 
             const outOfContainer = e.clientX < c.left || e.clientX > c.right || e.clientY < c.top || e.clientY > c.bottom
@@ -87,78 +81,86 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, an
         return () => {
             document.body.removeEventListener("pointerdown", handleClickOutside);
         };
-    }, [containerRef, containerRef?.current]);
+    }, [scope, scope?.current]);
 
-    console.log('DropdownMenu', { display, opacity, containerRef: containerRef.current, anchorRef, open, onOpenChange, containerProps, verticalPosition, horizontalPosition })
+    console.log('DropdownMenu', { anchorDomRect, containerRef: scope, anchorRef, onOpenChange, containerProps, verticalPosition, horizontalPosition })
 
-    return createPortal(
-        <div
-            {...containerProps}
-            id="dropdown-container"
-            ref={containerRef}
-            className={cn(['bg-surface-container absolute z-50 transition-opacity duration-500'], containerProps?.className)}
-            style={{ display, opacity, ...containerProps?.style }}
-            onTransitionEnd={() => {
-                if (opacity === 0)
-                    setDisplay('none')
-            }}
-        >
-            {display !== 'none' && children}
-        </div>
-        , document.body
+    return (
+        <>
+            <div ref={helperRef} className="absolute z-[60] invisible">{children}</div>
+            {createPortal(
+                <div
+                    {...containerProps}
+                    id="dropdown-container"
+                    ref={scope}
+                    className={cn(['bg-surface-container absolute z-50'], containerProps?.className)}
+                    style={{ top: '-100%', ...containerProps?.style }}
+                >
+                    {children}
+                </div>
+                , document.body
+            )}
+        </>
     )
 })
 
-function positionElement(element: HTMLElement, verticalPosition: 'top' | 'center' | 'bottom', horizontalPosition: 'left' | 'center' | 'right', anchor: DOMRect, container: DOMRect, screenHeight: number, screenWidth: number, shouldOverlap = false): void {
+function positionElement(element: HTMLElement | undefined, verticalPosition: 'top' | 'center' | 'bottom', horizontalPosition: 'left' | 'center' | 'right', anchor: DOMRect, container: DOMRect, screenHeight: number, screenWidth: number, shouldOverlap = false): { left?: string, right?: string, top?: string, bottom?: string } {
+    let domRect: { left: string, right: string, top: string, bottom: string } = {
+        left: 'auto',
+        right: 'auto',
+        top: 'auto',
+        bottom: 'auto',
+    }
+
     switch (verticalPosition) {
         case 'top':
             if (!isTopNegative(anchor, container))
-                putTop(element, anchor, container)
+                domRect.top = putTop(element, anchor, container)
             else if (shouldOverlap)
-                putAbsoluteTop(element)
+                domRect.top = putAbsoluteTop(element)
             else if (horizontalPosition === 'center')
                 if (!isBottomNegative(anchor, container, screenHeight))
-                    putBottom(element, anchor)
+                    domRect.top = putBottom(element, anchor)
                 else
-                    putAbsoluteTop(element)
+                    domRect.top = putAbsoluteTop(element)
             else
-                putAbsoluteTop(element)
+                domRect.top = putAbsoluteTop(element)
             break;
 
         case 'center':
             if (shouldOverlap)
-                putCenterVertically(element, anchor, container)
+                domRect.top = putCenterVertically(element, anchor, container)
             else if (horizontalPosition === 'center')
                 throw new Error('horizontalPosition and verticalPosition must not be set to center, when shouldOverlap is set to true.')
             else if (isLeftNegative(anchor, container) && isRightNegative(anchor, container, screenWidth))
                 if (!isTopNegative(anchor, container))
-                    putTop(element, anchor, container)
+                    domRect.top = putTop(element, anchor, container)
                 else if (!isBottomNegative(anchor, container, screenHeight))
-                    putBottom(element, anchor)
+                    domRect.top = putBottom(element, anchor)
                 else
-                    putAbsoluteTop(element)
+                    domRect.top = putAbsoluteTop(element)
             else if (!isVerticalCenterNegative(anchor, container, screenHeight))
-                putCenterVertically(element, anchor, container)
+                domRect.top = putCenterVertically(element, anchor, container)
             else if (isVerticalCenterTopNegative(anchor, container))
-                putAbsoluteTop(element)
+                domRect.top = putAbsoluteTop(element)
             else if (isVerticalCenterBottomNegative(anchor, container, screenHeight))
-                putAbsoluteBottom(element)
+                domRect.bottom = putAbsoluteBottom(element)
             else
-                putAbsoluteTop(element)
+                domRect.top = putAbsoluteTop(element)
             break;
 
         case 'bottom':
             if (!isBottomNegative(anchor, container, screenHeight))
-                putBottom(element, anchor)
+                domRect.top = putBottom(element, anchor)
             else if (shouldOverlap)
-                putAbsoluteBottom(element)
+                domRect.bottom = putAbsoluteBottom(element)
             else if (horizontalPosition === 'center')
                 if (!isTopNegative(anchor, container))
-                    putTop(element, anchor, container)
+                    domRect.top = putTop(element, anchor, container)
                 else
-                    putAbsoluteBottom(element)
+                    domRect.bottom = putAbsoluteBottom(element)
             else
-                putAbsoluteBottom(element)
+                domRect.bottom = putAbsoluteBottom(element)
             break;
 
         default:
@@ -168,57 +170,59 @@ function positionElement(element: HTMLElement, verticalPosition: 'top' | 'center
     switch (horizontalPosition) {
         case 'left':
             if (!isLeftNegative(anchor, container))
-                putLeft(element, anchor, container)
+                domRect.left = putLeft(element, anchor, container)
             else if (shouldOverlap)
-                putAbsoluteLeft(element)
+                domRect.left = putAbsoluteLeft(element)
             else if (verticalPosition === 'center')
                 if (!isRightNegative(anchor, container, screenWidth))
-                    putRight(element, anchor)
+                    domRect.left = putRight(element, anchor)
                 else
-                    putAbsoluteLeft(element)
+                    domRect.left = putAbsoluteLeft(element)
             else
-                putAbsoluteLeft(element)
+                domRect.left = putAbsoluteLeft(element)
             break;
 
         case 'center':
             if (shouldOverlap)
-                putCenterHorizontally(element, anchor, container)
+                domRect.left = putCenterHorizontally(element, anchor, container)
             else if (verticalPosition === 'center')
                 throw new Error('horizontalPosition and verticalPosition must not be set to center, when shouldOverlap is set to true.')
             else if (isTopNegative(anchor, container) && isBottomNegative(anchor, container, screenWidth))
                 if (!isLeftNegative(anchor, container))
-                    putLeft(element, anchor, container)
+                    domRect.left = putLeft(element, anchor, container)
                 else if (!isRightNegative(anchor, container, screenHeight))
-                    putRight(element, anchor)
+                    domRect.left = putRight(element, anchor)
                 else
-                    putAbsoluteLeft(element)
+                    domRect.left = putAbsoluteLeft(element)
             else if (!isHorizontalCenterNegative(anchor, container, screenWidth))
-                putCenterHorizontally(element, anchor, container)
+                domRect.left = putCenterHorizontally(element, anchor, container)
             else if (isHorizontalCenterLeftNegative(anchor, container))
-                putAbsoluteLeft(element)
+                domRect.left = putAbsoluteLeft(element)
             else if (isHorizontalCenterRightNegative(anchor, container, screenWidth))
-                putAbsoluteRight(element)
+                domRect.right = putAbsoluteRight(element)
             else
-                putAbsoluteLeft(element)
+                domRect.left = putAbsoluteLeft(element)
             break;
 
         case 'right':
             if (!isRightNegative(anchor, container, screenWidth))
-                putRight(element, anchor)
+                domRect.left = putRight(element, anchor)
             else if (shouldOverlap)
-                putAbsoluteRight(element)
+                domRect.right = putAbsoluteRight(element)
             else if (verticalPosition === 'center')
                 if (!isLeftNegative(anchor, container))
-                    putLeft(element, anchor, container)
+                    domRect.left = putLeft(element, anchor, container)
                 else
-                    putAbsoluteRight(element)
+                    domRect.right = putAbsoluteRight(element)
             else
-                putAbsoluteRight(element)
+                domRect.right = putAbsoluteRight(element)
             break;
 
         default:
             throw new Error('Unsupported value for horizontalPosition provided, supported values are: left, center, right')
     }
+
+    return domRect
 }
 
 function isTopNegative(anchor: DOMRect, container: DOMRect): boolean {
@@ -261,42 +265,62 @@ function isHorizontalCenterLeftNegative(anchor: DOMRect, container: DOMRect): bo
     return (anchor.left + (anchor.width / 2) - (container.width / 2)) < 0
 }
 
-function putAbsoluteTop(containerElement: HTMLElement, margin = 0): void {
-    containerElement.style.top = `${margin.toFixed(0)}px`
+function putAbsoluteTop(containerElement: HTMLElement | undefined, margin = 0): string {
+    if (containerElement)
+        containerElement.style.top = `${margin.toFixed(0)}px`
+    return `${margin.toFixed(0)}px`
 }
 
-function putAbsoluteRight(containerElement: HTMLElement, margin = 0): void {
-    containerElement.style.right = `${margin.toFixed(0)}px`
+function putAbsoluteRight(containerElement: HTMLElement | undefined, margin = 0): string {
+    if (containerElement)
+        containerElement.style.right = `${margin.toFixed(0)}px`
+    return `${margin.toFixed(0)}px`
 }
 
-function putAbsoluteBottom(containerElement: HTMLElement, margin = 0): void {
-    containerElement.style.bottom = `${margin.toFixed(0)}px`
+function putAbsoluteBottom(containerElement: HTMLElement | undefined, margin = 0): string {
+    if (containerElement)
+        containerElement.style.bottom = `${margin.toFixed(0)}px`
+    return `${margin.toFixed(0)}px`
 }
 
-function putAbsoluteLeft(containerElement: HTMLElement, margin = 0): void {
-    containerElement.style.left = `${margin.toFixed(0)}px`
+function putAbsoluteLeft(containerElement: HTMLElement | undefined, margin = 0): string {
+    if (containerElement)
+        containerElement.style.left = `${margin.toFixed(0)}px`
+    return `${margin.toFixed(0)}px`
 }
 
-function putTop(containerElement: HTMLElement, anchor: DOMRect, container: DOMRect): void {
-    containerElement.style.top = `${anchor.top - container.height}px`
+function putTop(containerElement: HTMLElement | undefined, anchor: DOMRect, container: DOMRect): string {
+    if (containerElement)
+        containerElement.style.top = `${anchor.top - container.height}px`
+    return `${anchor.top - container.height}px`
 }
 
-function putRight(containerElement: HTMLElement, anchor: DOMRect): void {
-    containerElement.style.left = `${anchor.left + anchor.width}px`
+function putRight(containerElement: HTMLElement | undefined, anchor: DOMRect): string {
+    if (containerElement)
+        containerElement.style.left = `${anchor.left + anchor.width}px`
+    return `${anchor.left + anchor.width}px`
 }
 
-function putBottom(containerElement: HTMLElement, anchor: DOMRect): void {
-    containerElement.style.top = `${anchor.top + anchor.height}px`
+function putBottom(containerElement: HTMLElement | undefined, anchor: DOMRect): string {
+    if (containerElement)
+        containerElement.style.top = `${anchor.top + anchor.height}px`
+    return `${anchor.top + anchor.height}px`
 }
 
-function putLeft(containerElement: HTMLElement, anchor: DOMRect, container: DOMRect): void {
-    containerElement.style.left = `${anchor.left - container.width}px`
+function putLeft(containerElement: HTMLElement | undefined, anchor: DOMRect, container: DOMRect): string {
+    if (containerElement)
+        containerElement.style.left = `${anchor.left - container.width}px`
+    return `${anchor.left - container.width}px`
 }
 
-function putCenterHorizontally(containerElement: HTMLElement, anchor: DOMRect, container: DOMRect): void {
-    containerElement.style.left = `${anchor.left + (anchor.width / 2) - (container.width / 2)}px`
+function putCenterHorizontally(containerElement: HTMLElement | undefined, anchor: DOMRect, container: DOMRect): string {
+    if (containerElement)
+        containerElement.style.left = `${anchor.left + (anchor.width / 2) - (container.width / 2)}px`
+    return `${anchor.left + (anchor.width / 2) - (container.width / 2)}px`
 }
 
-function putCenterVertically(containerElement: HTMLElement, anchor: DOMRect, container: DOMRect): void {
-    containerElement.style.top = `${anchor.top + (anchor.height / 2) - (container.height / 2)}px`
+function putCenterVertically(containerElement: HTMLElement | undefined, anchor: DOMRect, container: DOMRect): string {
+    if (containerElement)
+        containerElement.style.top = `${anchor.top + (anchor.height / 2) - (container.height / 2)}px`
+    return `${anchor.top + (anchor.height / 2) - (container.height / 2)}px`
 }

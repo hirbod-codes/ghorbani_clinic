@@ -8,51 +8,22 @@ import { DropdownMenu } from "../Base/DropdownMenu"
 import { useAnimate } from "../Animations/useAnimate"
 import { cn } from "../../shadcn/lib/utils"
 
-function drawXAxis(ctx: CanvasRenderingContext2D, chartWidth: number, chartHeight: number, offset: number, styleOptions: CanvasStyleOptions, fraction: number, animationDuration: number) {
+function drawXAxis(ctx: CanvasRenderingContext2D, chartWidth: number, chartHeight: number, offset: ChartOptions['offset'], styleOptions: CanvasStyleOptions, fraction: number, animationDuration: number) {
     ctx.beginPath()
     Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions[k])
 
-    ctx.moveTo(offset, chartHeight + offset)
-    ctx.lineTo(chartWidth + offset, chartHeight + offset)
+    ctx.moveTo(offset!.left, chartHeight + offset!.top)
+    ctx.lineTo(chartWidth + offset!.left, chartHeight + offset!.top)
 
     ctx.stroke()
 }
 
-function drawYAxis(ctx: CanvasRenderingContext2D, chartWidth: number, chartHeight: number, offset: number, styleOptions: CanvasStyleOptions, fraction: number, animationDuration: number) {
+function drawYAxis(ctx: CanvasRenderingContext2D, chartWidth: number, chartHeight: number, offset: ChartOptions['offset'], styleOptions: CanvasStyleOptions, fraction: number, animationDuration: number) {
     ctx.beginPath()
     Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions[k])
 
-    ctx.moveTo(offset, chartHeight + offset)
-    ctx.lineTo(offset, offset)
-
-    ctx.stroke()
-}
-
-function drawGridHorizontalLines(ctx: CanvasRenderingContext2D, count: number, chartWidth: number, chartHeight: number, offset: number, styleOptions: CanvasStyleOptions, fraction: number, animationDuration: number) {
-    ctx.beginPath()
-    Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions[k])
-
-    let segments = count - 2 + 1
-    for (let i = 0; i < segments; i++) {
-        ctx.moveTo(offset + ((i + 1) * chartWidth / segments), chartHeight + offset)
-        ctx.lineTo(offset + ((i + 1) * chartWidth / segments), offset)
-    }
-
-    ctx.stroke()
-}
-
-function drawGridVerticalLines(ctx: CanvasRenderingContext2D, count: number, chartWidth: number, chartHeight: number, offset: number, styleOptions: CanvasStyleOptions, fraction: number, animationDuration: number) {
-    ctx.beginPath()
-    Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions[k])
-
-    ctx.moveTo(offset, offset)
-    ctx.lineTo(chartWidth + offset, offset)
-
-    let segments = count - 2 + 1
-    for (let i = 0; i < segments - 1; i++) {
-        ctx.moveTo(offset, offset + ((i + 1) * chartHeight / segments))
-        ctx.lineTo(chartWidth + offset, offset + ((i + 1) * chartHeight / segments))
-    }
+    ctx.moveTo(offset!.left, chartHeight + offset!.top)
+    ctx.lineTo(offset!.left, offset!.top)
 
     ctx.stroke()
 }
@@ -63,19 +34,28 @@ export type ChartProps = {
     animationDuration?: number
     xAxis?: DrawOptions
     yAxis?: DrawOptions
+    beforeAxisDrawHook?: (ctx: CanvasRenderingContext2D, t: DOMHighResTimeStamp, dx: number, chartOptions: ChartOptions) => void
+    afterAxisDrawHook?: (ctx: CanvasRenderingContext2D, t: DOMHighResTimeStamp, dx: number, chartOptions: ChartOptions) => void
 }
 
 export function Chart({
-    chartOptions: chartOptionsInput = {
-        offset: 60,
-        xAxisOffset: 15,
-        yAxisOffset: 15,
-    },
+    chartOptions: chartOptionsInput,
     shapes = [],
     animationDuration = 5000,
     xAxis = {},
     yAxis = {},
+    beforeAxisDrawHook,
+    afterAxisDrawHook,
 }: ChartProps) {
+    if (!chartOptionsInput)
+        chartOptionsInput = {
+            offset: { top: 20, right: 20, left: 60, bottom: 60 },
+            xAxisOffset: 15,
+            yAxisOffset: 15,
+        }
+    else if (!chartOptionsInput.offset)
+        chartOptionsInput.offset = { top: 0, right: 0, left: 60, bottom: 60 }
+
     const themeOptions = useContext(ConfigurationContext)!.themeOptions
 
     const chartOptions = useRef<ChartOptions>(chartOptionsInput)
@@ -107,6 +87,9 @@ export function Chart({
 
         ctx.clearRect(0, 0, canvasWidth, canvasHeight)
 
+        if (beforeAxisDrawHook)
+            beforeAxisDrawHook(ctx, t, dx, chartOptions.current)
+
         let xAxisFraction = getEasingFunction(xAxis.ease ?? 'easeInSine')(dx)
         xAxis.styles =
         {
@@ -126,7 +109,7 @@ export function Chart({
                 ctx,
                 chartOptions.current.width!,
                 chartOptions.current.height!,
-                chartOptions.current.offset ?? 30,
+                chartOptions.current.offset,
                 xAxis.styles,
                 xAxisFraction,
                 animationDuration
@@ -151,14 +134,17 @@ export function Chart({
                 ctx,
                 chartOptions.current.width!,
                 chartOptions.current.height!,
-                chartOptions.current.offset ?? 30,
+                chartOptions.current.offset!,
                 yAxis.styles,
                 yAxisFraction,
                 animationDuration
             )
 
+        if (afterAxisDrawHook)
+            afterAxisDrawHook(ctx, t, dx, chartOptions.current)
+
         let path = new Path2D()
-        path.rect((chartOptions.current.offset ?? 0) - (yAxis?.styles?.lineWidth ?? 0), (chartOptions.current.offset ?? 0) - (xAxis?.styles?.lineWidth ?? 0), (chartOptions.current.width ?? 0) + (yAxis?.styles?.lineWidth ?? 0), (chartOptions.current.height ?? 0) + (xAxis?.styles?.lineWidth ?? 0) * 2)
+        path.rect((chartOptions.current.offset!.left) - (yAxis?.styles?.lineWidth ?? 0), (chartOptions.current.offset!.top) - (xAxis?.styles?.lineWidth ?? 0), (chartOptions.current.width ?? 0) + (yAxis?.styles?.lineWidth ?? 0), (chartOptions.current.height ?? 0) + (xAxis?.styles?.lineWidth ?? 0) * 2)
         ctx.clip(path)
 
         shapes.forEach(s => s.animateDefaults(t, ctx, hoverEvent.current))
@@ -182,8 +168,8 @@ export function Chart({
             canvasRef.current.height = rect.height * scale
             ctx.current.scale(scale, scale)
 
-            chartOptions.current.width = rect.width - (chartOptions.current.offset ?? 0) * 2
-            chartOptions.current.height = rect.height - (chartOptions.current.offset ?? 0) * 2
+            chartOptions.current.width = rect.width - (chartOptions.current.offset!.left + chartOptions.current.offset!.right)
+            chartOptions.current.height = rect.height - (chartOptions.current.offset!.top + chartOptions.current.offset!.bottom)
 
             console.log({ shapes, rect, chartOptions: chartOptions.current })
 
@@ -214,14 +200,16 @@ export function Chart({
 
             if (pIndex === undefined)
                 hover.current[i].open = false
-            else
+            else {
+                const canvasDomRect = canvasRef.current?.getBoundingClientRect()
                 hover.current[i] = {
                     open: true,
                     pIndex: pIndex,
-                    top: shapes[i].points[pIndex]?.y,
-                    left: shapes[i].points[pIndex]?.x,
+                    top: (canvasDomRect?.top ?? 0) + shapes[i].points[pIndex]?.y,
+                    left: (canvasDomRect?.left ?? 0) + shapes[i].points[pIndex]?.x,
                     node: shapes[i].hoverOptions.getHoverNode !== undefined && typeof shapes[i].hoverOptions.getHoverNode === 'function' ? shapes[i].hoverOptions.getHoverNode!(shapes[i].points, pIndex) : ''
                 }
+            }
 
             if (shouldRerender)
                 rerender()
@@ -237,8 +225,7 @@ export function Chart({
                 onPointerMove={onPointerOver}
                 onPointerLeave={() => {
                     hoverEvent.current = undefined
-                    for (const k in hover.current)
-                        hover.current[k].open = false
+                    hover.current = {}
                     rerender()
                 }}
             />
@@ -247,10 +234,13 @@ export function Chart({
                 <DropdownMenu
                     key={i}
                     open={hover.current[i]?.open ?? false}
-                    containerProps={{ style: { zIndex: 50 } }}
+                    containerProps={{
+                        className: 'pointer-events-none select-none',
+                        style: { zIndex: 50 }
+                    }}
                     anchorDomRect={{
-                        width: s.hoverOptions.hoverWidth,
-                        height: s.hoverOptions.hoverHeight,
+                        width: 1,
+                        height: 1,
                         top: hover.current[i]?.top,
                         left: hover.current[i]?.left,
                     }}
@@ -262,7 +252,7 @@ export function Chart({
             {shapes.map(s =>
                 s.xLabels.map((l, i) =>
                     l.value !== undefined && l.node !== undefined && s.getChartOptions() !== undefined
-                        ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: `${(s.getChartOptions()!.height ?? 0) + (s.getChartOptions()!.offset ?? 0) + (s.getChartOptions()!.xAxisOffset ?? 0)}px`, left: l.value }}>
+                        ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: `${(s.getChartOptions()!.height ?? 0) + (s.getChartOptions()!.offset!.top ?? 0) + (s.getChartOptions()!.xAxisOffset ?? 0)}px`, left: l.value }}>
                             <div className="relative -translate-y-1/2 -translate-x-1/2">
                                 {l.node}
                             </div>
@@ -274,7 +264,7 @@ export function Chart({
             {shapes.map(s =>
                 s.yLabels.map((l, i) =>
                     l.value !== undefined && l.node !== undefined && s.getChartOptions() !== undefined
-                        ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: l.value, left: `${(s.getChartOptions()!.offset ?? 0) - (s.getChartOptions()!.yAxisOffset ?? 0)}px` }}>
+                        ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: l.value, left: `${(s.getChartOptions()!.offset!.left ?? 0) - (s.getChartOptions()!.yAxisOffset ?? 0)}px` }}>
                             <div className="relative -translate-y-1/2 -translate-x-full">
                                 {l.node}
                             </div>

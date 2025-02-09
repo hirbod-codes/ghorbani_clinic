@@ -14,6 +14,7 @@ import { DateTime } from "luxon";
 import { Date } from "../../Lib/DateTime";
 import { RendererDbAPI } from "@/src/Electron/Database/renderer";
 import { toDateTime, toFormat } from "../../Lib/DateTime/date-time-helpers";
+import { Stack } from "../../Components/Base/Stack";
 
 export const Home = memo(function Home() {
     console.log('Home')
@@ -41,7 +42,7 @@ export const Home = memo(function Home() {
                 <div className="sm:col-span-12 md:col-span-4 col-span-12">
                     {/* <Chart2 /> */}
                     {/* <Chart x={[85, 85, 80, 85, 56, 55, 40, 50]} y={[85, 85, 80, 85, 56, 55, 40, 50]} /> */}
-                    <div className="absolute top-0 left-0 bg-surface-bright z-50 w-[1000px] h-[800px]">
+                    <div className="absolute bottom-0 right-0 bg-surface-bright z-50 w-[1000px] h-[800px]">
                         <VisitsChart />
                         {/* <Chart
                             shapes={[
@@ -117,6 +118,8 @@ export function VisitsChart() {
 
     const [ready, setReady] = useState(false)
 
+    const xRange = useRef<[number | undefined, number | undefined]>()
+
     useEffect(() => {
         init()
     }, [])
@@ -134,58 +137,83 @@ export function VisitsChart() {
         let vspd = calculateVisitsPerDay(vs)
         console.log({ vspd })
 
-        let xRange: [number | undefined, number | undefined] = [Math.min(DateTime.fromSeconds(vs[0].due).toUnixInteger(), startDate), DateTime.fromSeconds(vs[vs.length - 1].due).plus({ months: 1 }).minus({ days: 1 }).set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toUnixInteger()]
-        console.log({ xRange })
+        xRange.current = [Math.max(DateTime.fromSeconds(vs[0].due).toUnixInteger(), startDate), DateTime.fromSeconds(vs[vs.length - 1].due).plus({ months: 1 }).minus({ days: 1 }).set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toUnixInteger()]
+        xRange.current = [vspd[0].dateTS, vspd[vspd.length - 1].dateTS]
+        console.log({ xRange: xRange.current })
 
-        let xLabels: { value: number, node: ReactNode }[] = [{ value: xRange[1]!, node: getMonth(xRange[1]!) }]
-        let ts = DateTime.fromSeconds(xRange[1]!).minus({ months: 1 }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toUnixInteger()
+        let xLabels: { value: number, node: ReactNode }[] = [{ value: xRange.current[1]!, node: getMonth(xRange.current[1]!) }]
+        let ts = DateTime.fromSeconds(xRange.current[1]!).minus({ months: 1 }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toUnixInteger()
         while (true) {
-            if (ts <= xRange[0]!) {
-                xLabels.unshift({ value: xRange[0]!, node: getMonth(xRange[0]!) })
+            xLabels.push({ value: ts, node: getMonth(ts) })
+
+            ts = DateTime.fromSeconds(ts).minus({ months: 1 }).toUnixInteger()
+
+            if (ts <= xRange.current[0]!)
                 break
-            }
-
-            xLabels.unshift({ value: ts, node: getMonth(ts) })
-
-            ts = DateTime.fromSeconds(ts).minus({ months: 1 }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toUnixInteger()
         }
 
         let chart = new LineChart({
             x: vspd.map(v => v.dateTS),
             y: vspd.map(v => v.count),
             xLabels: xLabels.map(v => ({ ...v, options: { className: 'text-xs' } })),
-            yLabels: Array(10).fill(0).map((v, i) => ({ value: i, node: i, options: { className: 'text-xs' } })),
-            xRange,
-            // yRange: [1, 4],
+            yLabels: Array(6).fill(0).map((v, i) => ({ value: i, node: i, options: { className: 'text-xs' } })),
+            xRange: xRange.current,
+            yRange: [0, 5],
             strokeOptions: {
-                controller: 3,
+                controller: 1,
                 duration: 5000,
-                // animateDraw(ctx, dataPoints, styleOptions, chartOptions, fraction) {
-                //     if (styleOptions)
-                //         Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions![k])
+                animateDraw(ctx, dataPoints, styleOptions, chartOptions, fraction) {
+                    if (styleOptions)
+                        Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions![k])
 
-                //     let rectWidth = 10
-                //     dataPoints.forEach(p => {
-                //         ctx.beginPath()
-                //         let offset = chartOptions!.offset! + 2
-                //         let h = chartOptions!.height! - p.y - offset
-                //         ctx.rect(p.x - rectWidth / 2, chartOptions!.height! + offset - fraction! * h, rectWidth, h * fraction!)
-                //         // ctx.stroke()
-                //         ctx.fill()
-                //     })
+                    let lineWidth = 2
+                    let rectWidth = 10 - lineWidth
+                    dataPoints.forEach(p => {
+                        ctx.beginPath()
+                        let offset = chartOptions!.offset!.top
+                        let h = (chartOptions!.height! - p.y + offset - lineWidth / 2) * fraction!
+                        ctx.rect(lineWidth / 2 + p.x - rectWidth / 2, chartOptions!.height! + offset - h, rectWidth, h)
+                        ctx.stroke()
+                        ctx.fill()
+                    })
 
-                //     ctx.beginPath()
-                //     ctx.moveTo(dataPoints[0].x, dataPoints[0].y)
-                //     dataPoints.forEach(p => ctx.lineTo(p.x, p.y))
-                //     ctx.stroke()
-                // },
+                    ctx.beginPath()
+                    ctx.moveTo(dataPoints[0].x, dataPoints[0].y)
+                    dataPoints.forEach(p => ctx.lineTo(p.x, p.y))
+                    ctx.stroke()
+                },
                 styles: {
-                    fillStyle: 'transparent',
+                    fillStyle: '#00ff0080',
                     strokeStyle: '#00ff0080',
-                    lineWidth: 4,
-                    lineCap: 'butt',
+                    lineWidth: 2,
+                    lineCap: 'round',
                 },
                 ease: 'easeOutExpo'
+            },
+            hoverOptions: {
+                // animate(ctx, e, dataPoints, dataPointIndex, chartOptions, hoverOptions, dx) {
+                //     ctx.strokeStyle = 'red'
+                //     ctx.lineWidth = 1
+
+                //     if (dataPoints[dataPointIndex] !== undefined) {
+                //         ctx.beginPath()
+                //         ctx.ellipse(dataPoints[dataPointIndex].x, dataPoints[dataPointIndex].y, hoverOptions.hoverRadius ?? 20, hoverOptions.hoverRadius ?? 20, 0, 0, 2 * Math.PI * dx)
+                //         ctx.stroke()
+                //     }
+                // },
+                // controller: 0,
+                // ease: 'easeOutExpo',
+                getHoverNode: (ps, i) =>
+                    <Stack direction="vertical" stackProps={{className:''}}>
+                        <p>x: {ps[i].x}</p>
+                        <p>y: {ps[i].y}</p>
+                        <p>count: {vspd[i].count}</p>
+                        <p>vspd ts: {vspd[i].dateTS}</p>
+                        <p>vspd date: {toFormat(vspd[i].dateTS, local)}</p>
+                    </Stack>,
+                hoverHeight: 100,
+                hoverWidth: 200,
+                hoverRadius: 20,
             },
         })
 
@@ -228,7 +256,25 @@ export function VisitsChart() {
     }
 
     return (
-        ready && <Chart shapes={shapes} xAxis={{ styles: { lineWidth: 2 } }} />
+        ready &&
+        <Chart
+            shapes={shapes}
+            xAxis={{ styles: { lineWidth: 2 } }}
+            afterAxisDrawHook={(ctx, t, dx, chartOptions) => {
+                let range = xRange.current![1]! - xRange.current![0]!
+                let ts = DateTime.fromSeconds(xRange.current![0]!).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).plus({ days: 1 }).toUnixInteger()
+                do {
+                    let x = chartOptions!.offset!.left + chartOptions!.width! * (ts - xRange.current![0]!) / range
+                    let y = chartOptions!.height! + chartOptions!.offset!.top
+                    ctx.beginPath()
+                    ctx.moveTo(x, y)
+                    ctx.lineTo(x, y + 8)
+                    ctx.stroke()
+
+                    ts = DateTime.fromSeconds(ts).plus({ days: 1 }).toUnixInteger()
+                } while (ts <= xRange.current![1]!);
+            }}
+        />
     )
     // shapes={[
     //     new LineChart({
