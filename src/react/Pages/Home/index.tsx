@@ -13,7 +13,7 @@ import { Visit } from "@/src/Electron/Database/Models/Visit";
 import { DateTime, Duration } from "luxon";
 import { Date } from "../../Lib/DateTime";
 import { RendererDbAPI } from "@/src/Electron/Database/renderer";
-import { toDateTime, toFormat } from "../../Lib/DateTime/date-time-helpers";
+import { gregorianToPersian, persianToGregorian, toDateTime, toFormat } from "../../Lib/DateTime/date-time-helpers";
 import { Stack } from "../../Components/Base/Stack";
 
 export const Home = memo(function Home() {
@@ -137,20 +137,41 @@ export function VisitsChart() {
         let vspd = calculateVisitsPerDay(vs)
         console.log({ vspd })
 
-        xRange.current = [Math.min(DateTime.fromSeconds(vs[0].due).toUnixInteger(), startDate), DateTime.fromSeconds(vs[vs.length - 1].due).plus({ months: 1 }).minus({ days: 1 }).set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toUnixInteger()]
+        xRange.current = [Math.min(vs[0].due, startDate), DateTime.fromSeconds(vs[vs.length - 1].due).plus({ months: 1 }).minus({ days: 1 }).set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toUnixInteger()]
         xRange.current = [vspd[0].dateTS, vspd[vspd.length - 1].dateTS]
         console.log({ xRange: xRange.current })
 
-        let xLabels: { value: number, node: ReactNode }[] = [{ value: xRange.current[1]!, node: getMonth(xRange.current[1]!) }]
-        let ts = DateTime.fromSeconds(xRange.current[1]!).minus({ months: 1 }).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).toUnixInteger()
-        while (true) {
+        let xLabels: { value: number, node: ReactNode }[] = []
+        if (local.calendar === 'Gregorian') {
+            let ts = DateTime.fromSeconds(xRange.current[1]!).set({ day: 1, hour: 0, minute: 0, second: 0, millisecond: 0 }).toUnixInteger()
             xLabels.push({ value: ts, node: getMonth(ts) })
+            while (true) {
+                xLabels.push({ value: ts, node: getMonth(ts) })
 
-            ts = DateTime.fromSeconds(ts).minus({ months: 1 }).toUnixInteger()
+                ts = DateTime.fromSeconds(ts).minus({ months: 1 }).toUnixInteger()
 
-            if (ts <= xRange.current[0]!)
-                break
+                if (ts <= xRange.current[0]!)
+                    break
+            }
+        } else {
+            let ts = Infinity
+            let p = gregorianToPersian(DateTime.fromSeconds(xRange.current![1]!).toObject())
+            p.day = 1
+            do {
+                ts = toDateTime({ date: persianToGregorian(p), time: { hour: 0, minute: 0, second: 0, millisecond: 0 } }, { ...local, calendar: 'Gregorian', zone: 'UTC' }, { ...local, calendar: 'Gregorian', zone: 'UTC' }).toUnixInteger()
+
+                xLabels.push({ value: ts, node: getMonth(ts) })
+
+                if (p.month > 1)
+                    p.month -= 1
+                else {
+                    p.month = 12
+                    p.year -= 1
+                }
+                console.log(p)
+            } while (ts > xRange.current[0]!);
         }
+        console.log({ xLabels })
 
         let chart = new LineChart({
             x: vspd.map(v => v.dateTS),
@@ -207,18 +228,6 @@ export function VisitsChart() {
                 ease: 'easeOutExpo'
             },
             hoverOptions: {
-                // animate(ctx, e, dataPoints, dataPointIndex, chartOptions, hoverOptions, dx) {
-                //     ctx.strokeStyle = 'red'
-                //     ctx.lineWidth = 1
-
-                //     if (dataPoints[dataPointIndex] !== undefined) {
-                //         ctx.beginPath()
-                //         ctx.ellipse(dataPoints[dataPointIndex].x, dataPoints[dataPointIndex].y, hoverOptions.hoverRadius ?? 20, hoverOptions.hoverRadius ?? 20, 0, 0, 2 * Math.PI * dx)
-                //         ctx.stroke()
-                //     }
-                // },
-                // controller: 0,
-                // ease: 'easeOutExpo',
                 getHoverNode: (ps, i) =>
                     <Stack direction="vertical" stackProps={{ className: '' }}>
                         <p>x: {ps[i].x}</p>
@@ -227,8 +236,6 @@ export function VisitsChart() {
                         <p>vspd ts: {vspd[i].dateTS}</p>
                         <p>vspd date: {toFormat(vspd[i].dateTS, local)}</p>
                     </Stack>,
-                hoverHeight: 100,
-                hoverWidth: 200,
                 hoverRadius: 0,
             },
         })
