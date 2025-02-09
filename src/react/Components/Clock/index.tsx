@@ -1,10 +1,12 @@
 import { DateTime } from "luxon"
-import { memo, useContext, useEffect, useState } from "react"
+import { ComponentProps, memo, useContext, useEffect, useState } from "react"
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext"
 import { toFormat } from "../../Lib/DateTime/date-time-helpers"
 import { getLuxonLocale } from "../../Lib/localization"
+import { Stack } from "../Base/Stack"
+import { cn } from "../../shadcn/lib/utils"
 
-export const Clock = memo(function Clock() {
+export const Clock = memo(function Clock({ containerProps }: { containerProps?: ComponentProps<typeof Stack> }) {
     const configuration = useContext(ConfigurationContext)!
 
     const getDate = () => localizeNumbers(toFormat(DateTime.utc().toUnixInteger(), configuration.local, undefined, 'cccc y/M/d'), getLuxonLocale(configuration.local.language))
@@ -20,7 +22,7 @@ export const Clock = memo(function Clock() {
         return result
     }
 
-    const [date, setDate] = useState('getDate()')
+    const [date, setDate] = useState(getDate())
     const [time, setTime] = useState(getTime())
 
     useEffect(() => {
@@ -31,10 +33,10 @@ export const Clock = memo(function Clock() {
     }, []);
 
     return (
-        <div className="p-2 flex flex-col items-center border rounded-md">
+        <Stack direction="vertical" {...containerProps} stackProps={{ ...containerProps?.stackProps, className: cn("items-center", containerProps?.stackProps?.className), }}>
             <p>{date}</p>
             <p>{time}</p>
-        </div>
+        </Stack>
     )
 })
 

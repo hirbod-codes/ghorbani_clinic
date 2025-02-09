@@ -225,7 +225,7 @@ export function Chart({
         <div className="size-full" ref={containerRef}>
             <canvas
                 ref={canvasRef}
-                className="border border-blue-500 size-full"
+                className="size-full"
                 style={{ backgroundColor: chartOptions.current.bgColor }}
                 onPointerMove={onPointerOver}
                 onPointerLeave={() => {

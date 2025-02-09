@@ -1,4 +1,4 @@
-import { useCallback, useContext, useState } from "react";
+import { ComponentProps, useCallback, useContext, useState } from "react";
 import { Visit } from "../../../Electron/Database/Models/Visit";
 import { AnimatedCard } from "../../Components/Animations/AnimatedCard";
 import { Calendar as CalendarComponent } from "../../Components/Calendar";
@@ -8,8 +8,9 @@ import { DataGrid } from "../../Components/DataGrid";
 import { t } from "i18next";
 import { CircularLoadingIcon } from "../../Components/Base/CircularLoadingIcon";
 import { Stack } from "../../Components/Base/Stack";
+import { cn } from "../../shadcn/lib/utils";
 
-export function Calendar() {
+export function Calendar({ containerProps }: { containerProps?: ComponentProps<'div'> }) {
     const locale = useContext(ConfigurationContext)!.local
 
     const [cardKey, setCardKey] = useState<number>()
@@ -48,8 +49,8 @@ export function Calendar() {
     }, [])
 
     return (
-        <div className="relative z-[1]">
-            <div className="overflow-auto shadow-md z-[2] bg-surface-container-low p-1 rounded-md" style={{ minWidth: '25rem' }}>
+        <div {...containerProps} className={cn("relative z-[1]", containerProps?.className)}>
+            <div className="overflow-auto z-[2] p-1" style={{ minWidth: '25rem' }}>
                 <CalendarComponent onDayPointerOver={onOver} onDayPointerOut={onOut} />
             </div>
 
