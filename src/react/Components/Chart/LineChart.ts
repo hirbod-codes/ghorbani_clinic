@@ -26,9 +26,11 @@ export class LineChart extends Shape {
     strokeOptions: DrawShapeOptions
     verticalLinesOptions: DrawShapeOptions
     horizontalLinesOptions: DrawShapeOptions
+    calculateExtremes: boolean
 
     constructor(
         options: {
+            calculateExtremes?: boolean,
             x: number[],
             y: number[],
             xLabels?: { value?: number, node?: ReactNode, options?: ComponentProps<'div'> }[],
@@ -51,6 +53,7 @@ export class LineChart extends Shape {
             this.chartOptions = options.chartOptions
         }
 
+        this.calculateExtremes = options.calculateExtremes ?? false
         this.rawX = [...options.x]
         this.rawY = [...options.y]
         this.xLabels = options.xLabels ?? []
@@ -93,10 +96,14 @@ export class LineChart extends Shape {
     }
 
     private setDistributedPoints(x: number[], y: number[], width: number, height: number, offset: ChartOptions['offset']) {
-        let ps = this.calculateExtremePoints(x.map((m, i) => ({ x: m, y: y[i] })))
+        if (this.calculateExtremes) {
+            let ps = this.calculateExtremePoints(x.map((m, i) => ({ x: m, y: y[i] })))
+            x = ps.map(v => v.x)
+            y = ps.map(v => v.y)
+        }
 
-        this.x = this.linearInterpolation(ps.map(m => m.x), width, this.xRange).map(v => v + offset!.left)
-        this.y = this.linearInterpolation(ps.map(m => m.y), height, this.yRange)
+        this.x = this.linearInterpolation(x, width, this.xRange).map(v => v + offset!.left)
+        this.y = this.linearInterpolation(y, height, this.yRange)
             .map(v => height - v)
             .map(v => v + offset!.top)
 
@@ -144,8 +151,8 @@ export class LineChart extends Shape {
             else
                 direction = 0
 
-            if (previousDirection !== undefined && direction !== previousDirection)
-                extremePoints.push(points[i])
+            if (direction !== previousDirection || i === points.length - 1)
+                extremePoints.push(points[i - 1])
 
             previousDirection = direction
         }
@@ -256,10 +263,8 @@ export class LineChart extends Shape {
         if (this.verticalLinesOptions.animateStyles)
             this.verticalLinesOptions.styles = this.verticalLinesOptions.animateStyles(ctx, this.points, this.verticalLinesOptions.styles, this.chartOptions, dx)
 
-        if (this.verticalLinesOptions.animateDraw) {
+        if (this.verticalLinesOptions.animateDraw)
             this.verticalLinesOptions.animateDraw(ctx, this.points, this.verticalLinesOptions.styles, this.chartOptions, dx)
-            return
-        }
     }
 
     /**

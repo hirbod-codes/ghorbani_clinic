@@ -36,6 +36,7 @@ export type ChartProps = {
     yAxis?: DrawOptions
     beforeAxisDrawHook?: (ctx: CanvasRenderingContext2D, t: DOMHighResTimeStamp, dx: number, chartOptions: ChartOptions) => void
     afterAxisDrawHook?: (ctx: CanvasRenderingContext2D, t: DOMHighResTimeStamp, dx: number, chartOptions: ChartOptions) => void
+    afterChartOptionsSet?: (chartOptions: ChartOptions) => void
 }
 
 export function Chart({
@@ -46,6 +47,7 @@ export function Chart({
     yAxis = {},
     beforeAxisDrawHook,
     afterAxisDrawHook,
+    afterChartOptionsSet,
 }: ChartProps) {
     if (!chartOptionsInput)
         chartOptionsInput = {
@@ -175,6 +177,9 @@ export function Chart({
 
             shapes.forEach(s => s.setChartOptions({ ...chartOptions.current, ...s.getChartOptions(), width: chartOptions.current.width, height: chartOptions.current.height }))
 
+            if (afterChartOptionsSet)
+                afterChartOptionsSet({ ...chartOptions.current, width: chartOptions.current.width, height: chartOptions.current.height })
+
             drawAnimation.play((t => draw(ctx.current!, canvasWidth.current!, canvasHeight.current!, t)))
 
             rerender()
@@ -234,13 +239,14 @@ export function Chart({
                 <DropdownMenu
                     key={i}
                     open={hover.current[i]?.open ?? false}
+                    verticalPosition="top"
                     containerProps={{
                         className: 'pointer-events-none select-none',
                         style: { zIndex: 50 }
                     }}
                     anchorDomRect={{
-                        width: 1,
-                        height: 1,
+                        width: 10,
+                        height: 10,
                         top: hover.current[i]?.top,
                         left: hover.current[i]?.left,
                     }}

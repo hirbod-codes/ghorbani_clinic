@@ -10,7 +10,7 @@ import { ConfigurationContext } from "../../Contexts/Configuration/Configuration
 import { Chart } from "../../Components/Chart";
 import { LineChart } from "../../Components/Chart/LineChart";
 import { Visit } from "@/src/Electron/Database/Models/Visit";
-import { DateTime } from "luxon";
+import { DateTime, Duration } from "luxon";
 import { Date } from "../../Lib/DateTime";
 import { RendererDbAPI } from "@/src/Electron/Database/renderer";
 import { toDateTime, toFormat } from "../../Lib/DateTime/date-time-helpers";
@@ -137,7 +137,7 @@ export function VisitsChart() {
         let vspd = calculateVisitsPerDay(vs)
         console.log({ vspd })
 
-        xRange.current = [Math.max(DateTime.fromSeconds(vs[0].due).toUnixInteger(), startDate), DateTime.fromSeconds(vs[vs.length - 1].due).plus({ months: 1 }).minus({ days: 1 }).set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toUnixInteger()]
+        xRange.current = [Math.min(DateTime.fromSeconds(vs[0].due).toUnixInteger(), startDate), DateTime.fromSeconds(vs[vs.length - 1].due).plus({ months: 1 }).minus({ days: 1 }).set({ hour: 23, minute: 59, second: 59, millisecond: 999 }).toUnixInteger()]
         xRange.current = [vspd[0].dateTS, vspd[vspd.length - 1].dateTS]
         console.log({ xRange: xRange.current })
 
@@ -159,6 +159,25 @@ export function VisitsChart() {
             yLabels: Array(6).fill(0).map((v, i) => ({ value: i, node: i, options: { className: 'text-xs' } })),
             xRange: xRange.current,
             yRange: [0, 5],
+            verticalLinesOptions: {
+                controller: 1,
+                duration: 5000,
+                styles: {
+                    lineWidth: 0.5
+                },
+                animateDraw(ctx, dataPoints, styleOptions, chartOptions, fraction) {
+                    if (styleOptions)
+                        Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions![k])
+
+                    xLabels.forEach(l => {
+                        let x = ((l.value - xRange.current![0]!) / (xRange.current![1]! - xRange.current![0]!)) * chartOptions!.width! + chartOptions!.offset!.left!
+                        ctx.beginPath()
+                        ctx.moveTo(x, chartOptions!.offset!.top + chartOptions!.height!)
+                        ctx.lineTo(x, chartOptions!.offset!.top)
+                        ctx.stroke()
+                    })
+                },
+            },
             strokeOptions: {
                 controller: 1,
                 duration: 5000,
@@ -166,26 +185,23 @@ export function VisitsChart() {
                     if (styleOptions)
                         Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions![k])
 
-                    let lineWidth = 2
-                    let rectWidth = 10 - lineWidth
+                    let lineWidth = styleOptions?.lineWidth ?? 0
+                    let range = (xRange.current![1]! - xRange.current![0]!)
+                    let day = Duration.fromDurationLike({ days: 1 }).toMillis() / 1000
+                    let rectWidth = 0.75 * chartOptions!.width! / (range / day)
                     dataPoints.forEach(p => {
                         ctx.beginPath()
                         let offset = chartOptions!.offset!.top
                         let h = (chartOptions!.height! - p.y + offset - lineWidth / 2) * fraction!
-                        ctx.rect(lineWidth / 2 + p.x - rectWidth / 2, chartOptions!.height! + offset - h, rectWidth, h)
+                        ctx.roundRect(lineWidth / 2 + p.x - rectWidth / 2, chartOptions!.height! + offset - h, rectWidth, h, 2)
                         ctx.stroke()
                         ctx.fill()
                     })
-
-                    ctx.beginPath()
-                    ctx.moveTo(dataPoints[0].x, dataPoints[0].y)
-                    dataPoints.forEach(p => ctx.lineTo(p.x, p.y))
-                    ctx.stroke()
                 },
                 styles: {
                     fillStyle: '#00ff0080',
-                    strokeStyle: '#00ff0080',
-                    lineWidth: 2,
+                    strokeStyle: 'transparent',
+                    lineWidth: 0,
                     lineCap: 'round',
                 },
                 ease: 'easeOutExpo'
@@ -204,7 +220,7 @@ export function VisitsChart() {
                 // controller: 0,
                 // ease: 'easeOutExpo',
                 getHoverNode: (ps, i) =>
-                    <Stack direction="vertical" stackProps={{className:''}}>
+                    <Stack direction="vertical" stackProps={{ className: '' }}>
                         <p>x: {ps[i].x}</p>
                         <p>y: {ps[i].y}</p>
                         <p>count: {vspd[i].count}</p>
@@ -213,7 +229,7 @@ export function VisitsChart() {
                     </Stack>,
                 hoverHeight: 100,
                 hoverWidth: 200,
-                hoverRadius: 20,
+                hoverRadius: 0,
             },
         })
 
@@ -263,6 +279,7 @@ export function VisitsChart() {
             afterAxisDrawHook={(ctx, t, dx, chartOptions) => {
                 let range = xRange.current![1]! - xRange.current![0]!
                 let ts = DateTime.fromSeconds(xRange.current![0]!).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).plus({ days: 1 }).toUnixInteger()
+                ctx.lineWidth = 0.5
                 do {
                     let x = chartOptions!.offset!.left + chartOptions!.width! * (ts - xRange.current![0]!) / range
                     let y = chartOptions!.height! + chartOptions!.offset!.top
@@ -272,63 +289,11 @@ export function VisitsChart() {
                     ctx.stroke()
 
                     ts = DateTime.fromSeconds(ts).plus({ days: 1 }).toUnixInteger()
-                } while (ts <= xRange.current![1]!);
+                } while (ts < xRange.current![1]!);
             }}
+            afterChartOptionsSet={(chartOptions) => shapes!.forEach(s => s.hoverOptions.hoverRadius = 0.75 * chartOptions!.width! / (((xRange.current![1]! - xRange.current![0]!)) / (Duration.fromDurationLike({ days: 1 }).toMillis() / 1000)))}
         />
     )
-    // shapes={[
-    //     new LineChart({
-    //         x,
-    //         y,
-    //         xLabels: x.map(value => ({ value, node: value })),
-    //         yLabels: y.map(value => ({ value, node: value })),
-    //         hoverOptions: {
-    //             animate(ctx, e, dataPoints, dataPointIndex, chartOptions, hoverOptions, dx) {
-    //                 ctx.strokeStyle = 'red'
-    //                 ctx.lineWidth = 1
-
-    //                 if (dataPoints[dataPointIndex] !== undefined) {
-    //                     ctx.beginPath()
-    //                     ctx.ellipse(dataPoints[dataPointIndex].x, dataPoints[dataPointIndex].y, hoverOptions.hoverRadius ?? 20, hoverOptions.hoverRadius ?? 20, 0, 0, 2 * Math.PI * dx)
-    //                     ctx.stroke()
-    //                 }
-    //             },
-    //             controller: 3,
-    //             duration: 2000,
-    //             ease: 'easeOutExpo',
-    //             getHoverNode: (ps, i) => 'aaaaaaaaaa',
-    //             hoverHeight: 100,
-    //             hoverWidth: 200,
-    //             hoverRadius: 20,
-    //         },
-    //         fillOptions: {
-    //             styles: undefined,
-    //             animateStyles(ctx, dataPoints, styleOptions, chartOptions, fraction) {
-    //                 let g = ctx.createLinearGradient(0, 0, 0, chartOptions?.height ?? 10)
-    //                 g.addColorStop(0, 'red')
-    //                 g.addColorStop(1, 'transparent')
-    //                 return {
-    //                     fillStyle: g,
-    //                     // fillStyle: '#0000ff00',
-    //                     // strokeStyle: 'red',
-    //                     strokeStyle: 'transparent',
-    //                     lineCap: 'butt',
-    //                     lineWidth: 20,
-    //                 }
-    //             },
-    //         },
-    //         strokeOptions: {
-    //             controller: 3,
-    //             duration: 5000,
-    //             styles: {
-    //                 strokeStyle: '#00ff0080',
-    //                 lineWidth: 20,
-    //                 lineCap: 'round',
-    //             },
-    //             ease: 'easeOutExpo'
-    //         },
-    //     })
-    // ]}
 }
 
 export function Chart2() {
