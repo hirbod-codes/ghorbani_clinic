@@ -176,8 +176,8 @@ export function VisitsChart() {
         ready &&
         <Chart
             shapes={shapes}
-            xAxis={{ styles: { lineWidth: 4 } }}
-            yAxis={{ styles: { lineWidth: 4 } }}
+            xAxis={{ styles: { lineWidth: 2 } }}
+            yAxis={{ styles: { lineWidth: 2 } }}
             afterAxisDrawHook={(ctx, t, dx, chartOptions) => {
                 let range = xRange.current![1]! - xRange.current![0]!
                 let ts = DateTime.fromSeconds(xRange.current![0]!).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).plus({ days: 1 }).toUnixInteger()
