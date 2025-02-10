@@ -11,16 +11,20 @@ export const Home = memo(function Home() {
     console.log('Home')
 
     return (
-        <div className="size-full overflow-hidden">
-            <div className="grid grid-cols-12 grid-rows-4 justify-center size-full">
-                <div className="sm:col-span-12 md:col-span-4 col-span-12 row-span-2">
+        <div className="size-full lg:overflow-hidden overflow-auto">
+            <div className="grid lg:grid-flow-col grid-cols-12 lg:grid-rows-4 justify-center size-full">
+                <div className="sm:col-span-12 lg:col-span-4 col-span-12 lg:row-span-2">
                     <Stack direction="vertical" stackProps={{ className: 'h-full' }}>
                         <Clock containerProps={{ stackProps: { className: 'py-2 border m-1 rounded-xl bg-surface-container shadow-lg' } }} />
                         <Calendar containerProps={{ className: 'flex-grow border m-1 rounded-xl bg-surface-container shadow-lg' }} />
                     </Stack>
                 </div>
 
-                <div className="sm:col-span-12 md:col-span-8 col-span-12 row-span-2 border m-1 rounded-xl bg-surface-container shadow-lg">
+                <div className="sm:col-span-12 lg:col-span-4 col-span-12 lg:row-span-2 p-2 border m-1 rounded-xl bg-surface-container shadow-lg">
+                    <Analytics />
+                </div>
+
+                <div className="sm:col-span-12 lg:col-span-8 col-span-12 lg:row-span-2 border m-1 rounded-xl bg-surface-container shadow-lg">
                     <Stack direction="vertical" stackProps={{ className: 'p-4 h-full' }}>
                         <Stack stackProps={{ className: 'justify-between items-center' }}>
                             <div className="text-2xl">{t('Home.Patients')}</div>
@@ -32,11 +36,7 @@ export const Home = memo(function Home() {
                     </Stack>
                 </div>
 
-                <div className="sm:col-span-12 md:col-span-4 col-span-12 row-span-2 p-2 border m-1 rounded-xl bg-surface-container shadow-lg">
-                    <Analytics />
-                </div>
-
-                <div className="sm:col-span-12 md:col-span-8 col-span-12 row-span-2 border m-1 rounded-xl bg-surface-container shadow-lg">
+                <div className="sm:col-span-12 lg:col-span-8 col-span-12 lg:row-span-2 border m-1 rounded-xl bg-surface-container shadow-lg">
                     <Stack direction="vertical" stackProps={{ className: 'p-4 h-full' }}>
                         <Stack stackProps={{ className: 'justify-between items-center' }}>
                             <div className="text-2xl">{t('Home.Visits')}</div>

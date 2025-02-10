@@ -7,6 +7,7 @@ import { CalendarScopes } from "./index.d";
 import { NextPrevButtons } from "./NextPrevButtons";
 import { Slide } from "./Slide";
 import { Separator } from "../../shadcn/components/ui/separator";
+import { Stack } from "../Base/Stack";
 
 export type CalendarProps = {
     validScopes?: CalendarScopes[],
@@ -140,27 +141,29 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
     console.log('Calendar', { locale: local, collection, columns, calendarManager })
 
     return (
-        <div className="flex flex-col *:select-none">
-            <div className="flex flex-row items-center">
+        <Stack direction='vertical' stackProps={{ className: "*:select-none size-full py-4" }}>
+            <Stack stackProps={{ className: "items-center" }}>
                 <NextPrevButtons onPrev={() => { calendarManager.previous(); rerender() }} onNext={() => { calendarManager.next(); rerender() }} />
 
                 <Separator orientation="vertical" />
 
-                <div className="flex flex-row justify-center flex-grow">
-                    <p onClick={onTitleClick} className="text-center cursor-pointer">
+                <Stack stackProps={{ className: "justify-center flex-grow" }}>
+                    <div onClick={onTitleClick} className="text-center cursor-pointer">
                         {calendarManager.getTitle()}
-                    </p>
-                </div>
-            </div>
+                    </div>
+                </Stack>
+            </Stack>
 
-            <Slide
-                columns={columns}
-                collection={collection}
-                headers={headers}
-                onElmClick={onElmClick}
-                onPointerOver={onPointerOver}
-                onPointerOut={onPointerOut}
-            />
-        </div>
+            <div className="flex-grow">
+                <Slide
+                    columns={columns}
+                    collection={collection}
+                    headers={headers}
+                    onElmClick={onElmClick}
+                    onPointerOver={onPointerOver}
+                    onPointerOut={onPointerOut}
+                />
+            </div>
+        </Stack>
     )
 })

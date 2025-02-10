@@ -131,9 +131,9 @@ export function DataGrid({
         })
 
     const [density, setDensity] = useState<Density>('compact')
-    const [columnOrder, setColumnOrder] = useState<string[]>((columns ?? []).map(c => c.id).filter(f => f !== undefined))
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-    const [columnPinning, setColumnPinning] = useState<ColumnPinningState>({ left: ['counter'], right: [] })
+    const [columnOrder, setColumnOrder] = useState<string[]>(defaultColumnOrderModel ?? (columns ?? []).map(c => c.id).filter(f => f !== undefined))
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(defaultColumnVisibilityModel)
+    const [columnPinning, setColumnPinning] = useState<ColumnPinningState>(defaultColumnPinningModel)
 
     const [hasInit, setHasInit] = useState(false)
 
@@ -334,7 +334,7 @@ export function DataGrid({
                     }
                 }}
             >
-                <Stack {...containerProps} direction='vertical' stackProps={{ id: 'dataGridContainer', className: cn('p-2 border rounded-md h-full overflow-hidden text-nowrap', containerProps?.stackProps?.className), ...containerProps?.stackProps }}>
+                <Stack {...containerProps} direction='vertical' stackProps={{ ...containerProps?.stackProps, id: containerProps?.stackProps?.id ?? 'dataGridContainer', className: cn('p-2 border rounded-md h-full overflow-hidden text-nowrap', containerProps?.stackProps?.className) }}>
                     {/* NOTE: This provider creates div elements, so don't nest inside of <table> elements */}
                     <DndContext
                         collisionDetection={closestCenter}
@@ -354,7 +354,7 @@ export function DataGrid({
                         sensors={sensors}
                     >
                         {headerNodes.length > 0 &&
-                            <Stack  {...headerNodesContainerProps} stackProps={{ id: 'headerNodesContainer', className: cn('bg-surface-container p-2 rounded-md', headerNodesContainerProps?.stackProps?.className), ...headerNodesContainerProps?.stackProps }}>
+                            <Stack  {...headerNodesContainerProps} stackProps={{ ...headerNodesContainerProps?.stackProps, id: headerNodesContainerProps?.stackProps?.id ?? 'headerNodesContainer', className: cn('bg-surface-container p-2 rounded-md', headerNodesContainerProps?.stackProps?.className) }}>
                                 {...headerNodes.map((n, i) =>
                                     <Fragment key={i}>
                                         {n}
@@ -404,7 +404,7 @@ export function DataGrid({
                             )
                         }
                         {footerNodes.length > 0 &&
-                            <Stack {...footerNodesContainerProps} stackProps={{ id: 'footerNodesContainer', className: cn('bg-surface-container p-2 rounded-md justify-end', footerNodesContainerProps?.stackProps?.className), ...footerNodesContainerProps?.stackProps }}>
+                            <Stack {...footerNodesContainerProps} stackProps={{ ...footerNodesContainerProps?.stackProps, id: footerNodesContainerProps?.stackProps?.id ?? 'footerNodesContainer', className: cn('bg-surface-container p-2 rounded-md justify-end', footerNodesContainerProps?.stackProps?.className) }}>
                                 {...footerNodes.map((n, i) =>
                                     <Fragment key={i}>
                                         {n}

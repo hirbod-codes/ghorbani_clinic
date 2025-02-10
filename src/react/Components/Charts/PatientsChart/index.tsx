@@ -2,10 +2,9 @@ import { Patient } from "@/src/Electron/Database/Models/Patient"
 import { ConfigurationContext } from "@/src/react/Contexts/Configuration/ConfigurationContext"
 import { ReactNode, useContext, useEffect, useRef, useState } from "react"
 import { LineChart } from "../../Chart/LineChart"
-import { DateTime, Duration } from "luxon"
+import { DateTime } from "luxon"
 import { RendererDbAPI } from "@/src/Electron/Database/renderer"
-import { Stack } from "../../Base/Stack"
-import { DATE, gregorianToPersian, persianToGregorian, toDateTime, toFormat } from "@/src/react/Lib/DateTime/date-time-helpers"
+import { gregorianToPersian, persianToGregorian, toDateTime, toFormat } from "@/src/react/Lib/DateTime/date-time-helpers"
 import { Chart } from "../../Chart"
 
 export function PatientsChart() {
@@ -106,15 +105,7 @@ export function PatientsChart() {
                     lineCap: 'round',
                 },
                 ease: 'easeOutExpo'
-            },
-            hoverOptions: {
-                getHoverNode: (ps, i) =>
-                    <Stack direction="vertical" stackProps={{ className: 'p-2 rounded-lg bg-surface-container border' }}>
-                        <Stack stackProps={{ className: 'justify-between' }}><div>count</div> <div>{pspm[i].count}</div></Stack>
-                        <Stack stackProps={{ className: 'justify-between' }}><div>date</div> <div>{toFormat(pspm[i].dateTS, local, undefined, DATE)}</div></Stack>
-                    </Stack>,
-                hoverRadius: 0,
-            },
+            }
         })
 
         setShapes([chart])
@@ -157,7 +148,6 @@ export function PatientsChart() {
             shapes={shapes}
             xAxis={{ styles: { lineWidth: 4 } }}
             yAxis={{ styles: { lineWidth: 4 } }}
-            afterChartOptionsSet={(chartOptions) => shapes!.forEach(s => s.hoverOptions.hoverRadius = 0.75 * chartOptions!.width! / (((xRange.current![1]! - xRange.current![0]!)) / (Duration.fromDurationLike({ days: 1 }).toMillis() / 1000)))}
             chartOptions={{
                 offset: {
                     top: 0,
