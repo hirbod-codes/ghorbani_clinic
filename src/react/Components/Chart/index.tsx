@@ -56,7 +56,7 @@ export function Chart({
             yAxisOffset: 15,
         }
     else if (!chartOptionsInput.offset)
-        chartOptionsInput.offset = { top: 0, right: 0, left: 60, bottom: 60 }
+        chartOptionsInput.offset = { top: 20, right: 20, left: 60, bottom: 60 }
 
     const themeOptions = useContext(ConfigurationContext)!.themeOptions
 
@@ -146,16 +146,14 @@ export function Chart({
             afterAxisDrawHook(ctx, t, dx, chartOptions.current)
 
         let path = new Path2D()
-        path.rect((chartOptions.current.offset!.left) - (yAxis?.styles?.lineWidth ?? 0), (chartOptions.current.offset!.top) - (xAxis?.styles?.lineWidth ?? 0), (chartOptions.current.width ?? 0) + (yAxis?.styles?.lineWidth ?? 0), (chartOptions.current.height ?? 0) + (xAxis?.styles?.lineWidth ?? 0) * 2)
+        path.rect((chartOptions.current.offset!.left) + (yAxis?.styles?.lineWidth ?? 0) / 2, (chartOptions.current.offset!.top), (chartOptions.current.width ?? 0) - (yAxis?.styles?.lineWidth ?? 0) / 2, (chartOptions.current.height ?? 0) - (xAxis?.styles?.lineWidth ?? 0) / 2)
         ctx.clip(path)
 
         shapes.forEach(s => s.animateDefaults(t, ctx, hoverEvent.current))
     }, [shapes, xAxis, yAxis, chartOptions.current])
 
     useEffect(() => {
-        if (canvasRef.current && containerRef.current && !isDrawn.current) {
-            isDrawn.current = true
-
+        if (shapes.length > 0 && canvasRef.current && containerRef.current) {
             const rect = containerRef.current.getBoundingClientRect()
             canvasWidth.current = rect.width
             canvasHeight.current = rect.height
@@ -173,53 +171,52 @@ export function Chart({
             chartOptions.current.width = rect.width - (chartOptions.current.offset!.left + chartOptions.current.offset!.right)
             chartOptions.current.height = rect.height - (chartOptions.current.offset!.top + chartOptions.current.offset!.bottom)
 
-            console.log({ shapes, rect, chartOptions: chartOptions.current })
-
             shapes.forEach(s => s.setChartOptions({ ...chartOptions.current, ...s.getChartOptions(), width: chartOptions.current.width, height: chartOptions.current.height }))
 
             if (afterChartOptionsSet)
                 afterChartOptionsSet({ ...chartOptions.current, width: chartOptions.current.width, height: chartOptions.current.height })
 
-            drawAnimation.play((t => draw(ctx.current!, canvasWidth.current!, canvasHeight.current!, t)))
-
             rerender()
-        }
-    }, [shapes])
 
-    function onPointerOver(e: PointerEvent) {
+            drawAnimation.play((t => draw(ctx.current!, canvasWidth.current!, canvasHeight.current!, t)))
+        }
+    }, [shapes, canvasRef?.current, containerRef?.current])
+
+    const onPointerOver = useCallback(function onPointerOver(e: PointerEvent) {
         hoverEvent.current = e
 
-        for (let i = 0; i < shapes.length; i++) {
-            let shouldRerender = false
+        if (shapes)
+            for (let i = 0; i < shapes.length; i++) {
+                let shouldRerender = false
 
-            let pIndex = shapes[i].findHoveringDataPoint({ x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY })
+                let pIndex = shapes[i].findHoveringDataPoint({ x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY })
 
-            if (
-                (hover.current[i]?.open === true && pIndex === undefined) ||
-                (hover.current[i]?.open === false && pIndex !== undefined)
-            )
-                shouldRerender = true
+                if (
+                    (hover.current[i]?.open === true && pIndex === undefined) ||
+                    (hover.current[i]?.open === false && pIndex !== undefined)
+                )
+                    shouldRerender = true
 
-            if (hover.current[i] === undefined)
-                hover.current[i] = {}
+                if (hover.current[i] === undefined)
+                    hover.current[i] = {}
 
-            if (pIndex === undefined)
-                hover.current[i].open = false
-            else {
-                const canvasDomRect = canvasRef.current?.getBoundingClientRect()
-                hover.current[i] = {
-                    open: true,
-                    pIndex: pIndex,
-                    top: (canvasDomRect?.top ?? 0) + shapes[i].points[pIndex]?.y,
-                    left: (canvasDomRect?.left ?? 0) + shapes[i].points[pIndex]?.x,
-                    node: shapes[i].hoverOptions.getHoverNode !== undefined && typeof shapes[i].hoverOptions.getHoverNode === 'function' ? shapes[i].hoverOptions.getHoverNode!(shapes[i].points, pIndex) : ''
+                if (pIndex === undefined)
+                    hover.current[i].open = false
+                else {
+                    const canvasDomRect = canvasRef.current?.getBoundingClientRect()
+                    hover.current[i] = {
+                        open: true,
+                        pIndex: pIndex,
+                        top: (canvasDomRect?.top ?? 0) + shapes[i].points[pIndex]?.y,
+                        left: (canvasDomRect?.left ?? 0) + shapes[i].points[pIndex]?.x,
+                        node: shapes[i].hoverOptions.getHoverNode !== undefined && typeof shapes[i].hoverOptions.getHoverNode === 'function' ? shapes[i].hoverOptions.getHoverNode!(shapes[i].points, pIndex) : ''
+                    }
                 }
-            }
 
-            if (shouldRerender)
-                rerender()
-        }
-    }
+                if (shouldRerender)
+                    rerender()
+            }
+    }, [shapes])
 
     return (
         <div className="size-full" ref={containerRef}>
@@ -255,9 +252,9 @@ export function Chart({
                 </DropdownMenu>
             )}
 
-            {shapes.map(s =>
-                s.xLabels.map((l, i) =>
-                    l.value !== undefined && l.node !== undefined && s.getChartOptions() !== undefined
+            {(shapes.map(s =>
+                s.getChartOptions() && s.xLabels.map((l, i) =>
+                    l.value !== undefined && l.node !== undefined
                         ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: `${(s.getChartOptions()!.height ?? 0) + (s.getChartOptions()!.offset!.top ?? 0) + (s.getChartOptions()!.xAxisOffset ?? 0)}px`, left: l.value }}>
                             <div className="relative -translate-y-1/2 -translate-x-1/2">
                                 {l.node}
@@ -265,11 +262,11 @@ export function Chart({
                         </div>
                         : undefined
                 )
-            )}
+            ))}
 
-            {shapes.map(s =>
-                s.yLabels.map((l, i) =>
-                    l.value !== undefined && l.node !== undefined && s.getChartOptions() !== undefined
+            {(shapes.map(s =>
+                s.getChartOptions() && s.yLabels.map((l, i) =>
+                    l.value !== undefined && l.node !== undefined
                         ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: l.value, left: `${(s.getChartOptions()!.offset!.left ?? 0) - (s.getChartOptions()!.yAxisOffset ?? 0)}px` }}>
                             <div className="relative -translate-y-1/2 -translate-x-full">
                                 {l.node}
@@ -277,7 +274,7 @@ export function Chart({
                         </div>
                         : undefined
                 )
-            )}
+            ))}
         </div >
     )
 }

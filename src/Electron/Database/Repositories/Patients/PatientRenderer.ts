@@ -12,6 +12,7 @@ export function handleRendererEvents(): RendererEvents {
         getPatientsWithVisits: async (offset: number, count: number): Promise<MainProcessResponse<(Patient & { visits: Visit[] })[]>> => JSON.parse(await ipcRenderer.invoke('get-patients-with-visits', { offset, count })),
         getPatients: async (offset: number, count: number): Promise<MainProcessResponse<Patient[]>> => JSON.parse(await ipcRenderer.invoke('get-patients', { offset, count })),
         getPatient: async (socialId: string): Promise<MainProcessResponse<Patient | null>> => JSON.parse(await ipcRenderer.invoke('get-patient', { socialId })),
+        getPatientsByCreatedAtDate: async (startDate: number, endDate: number, ascending = false): Promise<MainProcessResponse<Patient[]>> => JSON.parse(await ipcRenderer.invoke('get-patients-by-created-at-date', { startDate, endDate, ascending })),
         updatePatient: async (patient: Patient): Promise<MainProcessResponse<UpdateResult>> => JSON.parse(await ipcRenderer.invoke('update-patient', { patient })),
         deletePatient: async (id: string): Promise<MainProcessResponse<DeleteResult>> => JSON.parse(await ipcRenderer.invoke('delete-patient', { id })),
     }
@@ -24,6 +25,7 @@ export type RendererEvents = {
     getPatientsWithVisits: (offset: number, count: number) => Promise<MainProcessResponse<(Patient & { visits: Visit[] })[]>>
     getPatients: (offset: number, count: number) => Promise<MainProcessResponse<Patient[]>>
     getPatient: (socialId: string) => Promise<MainProcessResponse<Patient | null>>
+    getPatientsByCreatedAtDate: (startDate: number, endDate: number, ascending?: boolean) => Promise<MainProcessResponse<Patient[]>>
     updatePatient: (patient: Patient) => Promise<MainProcessResponse<UpdateResult>>
     deletePatient: (id: string) => Promise<MainProcessResponse<DeleteResult>>
 }

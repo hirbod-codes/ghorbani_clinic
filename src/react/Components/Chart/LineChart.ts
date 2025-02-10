@@ -2,13 +2,8 @@ import { Bezier } from "bezier-js"
 import { Point } from "../../Lib/Math"
 import { ComponentProps, PointerEvent, ReactNode } from "react"
 import { ChartOptions, DrawOnHoverOptions, DrawShapeOptions } from "./index.d"
-import { Circle } from "../Base/Canvas/Shapes/Circle"
 import { getEasingFunction } from "../Animations/easings"
 import { Shape } from "./Shape"
-
-function createCircles(ctx: CanvasRenderingContext2D, points: Point[], radius: number, lineWidth?: number, strokeStyle?: string | CanvasGradient | CanvasPattern, fillStyle?: string | CanvasGradient | CanvasPattern, shadowBlur?: number, shadowColor?: string, shadowOffsetX?: number, shadowOffsetY?: number): Circle[] {
-    return points.map(p => new Circle(p.x, p.y, radius, lineWidth, strokeStyle, fillStyle, shadowBlur, shadowColor, shadowOffsetX, shadowOffsetY))
-}
 
 export class LineChart extends Shape {
     rawX: number[]
@@ -16,6 +11,8 @@ export class LineChart extends Shape {
     x: number[]
     y: number[]
     points: Point[]
+    rawXLabels: { value?: number, node?: ReactNode, options?: ComponentProps<'div'> }[] = []
+    rawYLabels: { value?: number, node?: ReactNode, options?: ComponentProps<'div'> }[] = []
     xLabels: { value?: number, node?: ReactNode, options?: ComponentProps<'div'> }[] = []
     yLabels: { value?: number, node?: ReactNode, options?: ComponentProps<'div'> }[] = []
     xRange: [number | undefined, number | undefined]
@@ -48,18 +45,17 @@ export class LineChart extends Shape {
     ) {
         super()
 
-        if (options.chartOptions !== undefined) {
-            this.setDistributedPoints(options.x, options.y, options.chartOptions.width!, options.chartOptions.height!, options.chartOptions.offset!)
-            this.chartOptions = options.chartOptions
-        }
-
-        this.calculateExtremes = options.calculateExtremes ?? false
         this.rawX = [...options.x]
         this.rawY = [...options.y]
-        this.xLabels = options.xLabels ?? []
-        this.yLabels = options.yLabels ?? []
+        this.rawXLabels = options.xLabels ?? []
+        this.rawYLabels = options.yLabels ?? []
+        this.calculateExtremes = options.calculateExtremes ?? false
         this.xRange = [...(options.xRange ?? [undefined, undefined])]
         this.yRange = [...(options.yRange ?? [undefined, undefined])]
+        
+        if (options.chartOptions !== undefined)
+            this.setChartOptions(options.chartOptions)
+
         this.fillOptions = options.fillOptions ?? {}
         this.strokeOptions = options.strokeOptions ?? {}
         this.hoverOptions = options.hoverOptions ?? {}
@@ -96,28 +92,32 @@ export class LineChart extends Shape {
     }
 
     private setDistributedPoints(x: number[], y: number[], width: number, height: number, offset: ChartOptions['offset']) {
+        let localX: number[], localY: number[]
         if (this.calculateExtremes) {
             let ps = this.calculateExtremePoints(x.map((m, i) => ({ x: m, y: y[i] })))
-            x = ps.map(v => v.x)
-            y = ps.map(v => v.y)
+            localX = ps.map(v => v.x)
+            localY = ps.map(v => v.y)
+        } else {
+            localX = x
+            localY = y
         }
 
-        this.x = this.linearInterpolation(x, width, this.xRange).map(v => v + offset!.left)
-        this.y = this.linearInterpolation(y, height, this.yRange)
+        this.x = this.linearInterpolation(localX, width, this.xRange).map(v => v + offset!.left)
+        this.y = this.linearInterpolation(localY, height, this.yRange)
             .map(v => height - v)
             .map(v => v + offset!.top)
 
         this.points = this.x.map((v, i) => ({ x: v, y: this.y[i] }))
 
 
-        this.xLabels = this.linearInterpolation(this.xLabels.map((l, i) => l.value).filter(f => f !== undefined && f !== null), width, this.xRange)
+        this.xLabels = this.linearInterpolation(this.rawXLabels.map((l, i) => l.value).filter(f => f !== undefined && f !== null), width, this.xRange)
             .map(v => v + offset!.left)
-            .map((value, i) => ({ ...this.xLabels[i], value }))
+            .map((value, i) => ({ ...this.rawXLabels[i], value }))
 
-        this.yLabels = this.linearInterpolation(this.yLabels.map((l, i) => l.value).filter(f => f !== undefined && f !== null), height, this.yRange)
+        this.yLabels = this.linearInterpolation(this.rawYLabels.map((l, i) => l.value).filter(f => f !== undefined && f !== null), height, this.yRange)
             .map(v => height - v)
             .map(v => v + offset!.top)
-            .map((value, i) => ({ ...this.yLabels[i], value }))
+            .map((value, i) => ({ ...this.rawYLabels[i], value }))
     }
 
     private linearInterpolation(values: number[], range: number, valuesRange?: [number | undefined, number | undefined]) {

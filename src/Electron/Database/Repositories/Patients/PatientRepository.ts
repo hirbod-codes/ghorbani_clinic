@@ -20,6 +20,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         ipcMain.handle('get-patients-with-visits', async (_e, { offset, count }: { offset: number; count: number; }) => await this.handleErrors(async () => await this.getPatientsWithVisits(offset, count)))
         ipcMain.handle('get-patient', async (_e, { socialId }: { socialId: string; }) => await this.handleErrors(async () => await this.getPatient(socialId)))
         ipcMain.handle('get-patients', async (_e, { offset, count }: { offset: number; count: number; }) => await this.handleErrors(async () => await this.getPatients(offset, count)))
+        ipcMain.handle('get-patients-by-created-at-date', async (_e, { startDate, endDate, ascending }: { startDate: number, endDate: number, ascending?: boolean }) => await this.handleErrors(async () => await this.getPatientsByCreatedAtDate(startDate, endDate, ascending)))
         ipcMain.handle('update-patient', async (_e, { patient }: { patient: Patient; }) => await this.handleErrors(async () => await this.updatePatient(patient)))
         ipcMain.handle('delete-patient', async (_e, { id }: { id: string; }) => await this.handleErrors(async () => await this.deletePatient(id)))
     }
@@ -130,6 +131,27 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         const readablePatients = extractKeysRecursive(patients, getFields(patientReadableFields, permission.attributes));
 
         return readablePatients
+    }
+
+    async getPatientsByCreatedAtDate(startDate: number, endDate: number, ascending = false) {
+        if (startDate > endDate)
+            throw new Error('Invalid start and end date provided')
+
+        console.log('Authenticating...')
+        const user = await authRepository.getAuthenticatedUser()
+        if (!user)
+            throw new Unauthenticated();
+
+        console.log('Authorizing...')
+        const privileges = await privilegesRepository.getAccessControl();
+        if (!privileges.can(user.roleName).read(resources.PATIENT).granted)
+            throw new Unauthorized()
+
+        const patients: Patient[] = await (await this.getPatientsCollection()).find({ $and: [{ createdAt: { $lte: endDate } }, { createdAt: { $gte: startDate } }] }).sort('createdAt', ascending ? 1 : -1).toArray()
+
+        const readableVisits = extractKeysRecursive(patients, getFields(patientReadableFields, privileges.can(user.roleName).read(resources.PATIENT).attributes));
+
+        return readableVisits
     }
 
     async getPatientsWithVisits(offset: number, count: number): Promise<(Patient & { visits: Visit[] })[]> {

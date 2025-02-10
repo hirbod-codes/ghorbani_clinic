@@ -1,17 +1,17 @@
-import { ReactNode, useContext, useEffect, useRef, useState } from "react"
+import { Patient } from "@/src/Electron/Database/Models/Patient"
 import { ConfigurationContext } from "@/src/react/Contexts/Configuration/ConfigurationContext"
-import { Visit } from "@/src/Electron/Database/Models/Visit"
+import { ReactNode, useContext, useEffect, useRef, useState } from "react"
 import { LineChart } from "../../Chart/LineChart"
 import { DateTime, Duration } from "luxon"
-import { DATE, gregorianToPersian, persianToGregorian, toDateTime, toFormat } from "@/src/react/Lib/DateTime/date-time-helpers"
-import { Stack } from "../../Base/Stack"
 import { RendererDbAPI } from "@/src/Electron/Database/renderer"
+import { Stack } from "../../Base/Stack"
+import { DATE, gregorianToPersian, persianToGregorian, toDateTime, toFormat } from "@/src/react/Lib/DateTime/date-time-helpers"
 import { Chart } from "../../Chart"
 
-export function VisitsChart() {
+export function PatientsChart() {
     let local = useContext(ConfigurationContext)!.local
 
-    const [visits, setVisits] = useState<Visit[]>([])
+    const [patients, setPatients] = useState<Patient[]>([])
     const [shapes, setShapes] = useState<LineChart[]>()
 
     const [startDate, setStartDate] = useState<number>(DateTime.utc().minus({ months: 6 }).toUnixInteger())
@@ -26,26 +26,26 @@ export function VisitsChart() {
     }, [])
 
     async function init() {
-        let vs = await fetchVisits()
-        if (Array.isArray(vs))
-            setVisits(vs)
+        let patients = await fetchPatients()
+        if (Array.isArray(patients))
+            setPatients(patients)
         else
             return
 
-        if (vs.length <= 0)
+        if (patients.length <= 0)
             return
 
-        let vspd = calculateVisitsPerDay(vs)
+        let pspm = calculatePatientsPerMonth(patients)
 
-        let yRange: [number | undefined, number | undefined] = [0, vspd.reduce((p, c, i) => c.count > p ? c.count : p, 0)]
-        xRange.current = [vspd[0].dateTS, vspd[vspd.length - 1].dateTS]
+        let yRange: [number | undefined, number | undefined] = [0, pspm.reduce((p, c, i) => c.count > p ? c.count : p, 0)]
+        xRange.current = [pspm[0].dateTS, pspm[pspm.length - 1].dateTS]
 
         let xLabels: { value: number, node: ReactNode }[] = []
         if (local.calendar === 'Gregorian') {
             let ts = DateTime.fromSeconds(xRange.current[1]!).set({ day: 1, hour: 0, minute: 0, second: 0, millisecond: 0 }).toUnixInteger()
-            xLabels.push({ value: ts, node: getMonth(ts) })
+            xLabels.push({ value: ts, node: toFormat(ts, local, undefined, 'LLL') })
             while (true) {
-                xLabels.push({ value: ts, node: getMonth(ts) })
+                xLabels.push({ value: ts, node: toFormat(ts, local, undefined, 'LLL') })
 
                 ts = DateTime.fromSeconds(ts).minus({ months: 1 }).toUnixInteger()
 
@@ -59,7 +59,7 @@ export function VisitsChart() {
             do {
                 ts = toDateTime({ date: persianToGregorian(p), time: { hour: 0, minute: 0, second: 0, millisecond: 0 } }, { ...local, calendar: 'Gregorian', zone: 'UTC' }, { ...local, calendar: 'Gregorian', zone: 'UTC' }).toUnixInteger()
 
-                xLabels.push({ value: ts, node: getMonth(ts) })
+                xLabels.push({ value: ts, node: toFormat(ts, local, undefined, 'LLL') })
 
                 if (p.month > 1)
                     p.month -= 1
@@ -71,8 +71,8 @@ export function VisitsChart() {
         }
 
         let chart = new LineChart({
-            x: vspd.map(v => v.dateTS),
-            y: vspd.map(v => v.count),
+            x: pspm.map(v => v.dateTS),
+            y: pspm.map(v => v.count),
             xLabels: xLabels.map(v => ({ ...v, options: { className: 'text-xs' } })),
             yLabels: Array(yRange[1]! + 1).fill(0).map((v, i) => ({ value: i, node: i, options: { className: 'text-xs' } })),
             xRange: xRange.current,
@@ -99,27 +99,10 @@ export function VisitsChart() {
             strokeOptions: {
                 controller: 1,
                 duration: 5000,
-                animateDraw(ctx, dataPoints, styleOptions, chartOptions, fraction) {
-                    if (styleOptions)
-                        Object.keys(styleOptions).forEach(k => ctx[k] = styleOptions![k])
-
-                    let lineWidth = styleOptions?.lineWidth ?? 0
-                    let range = (xRange.current![1]! - xRange.current![0]!)
-                    let day = Duration.fromDurationLike({ days: 1 }).toMillis() / 1000
-                    let rectWidth = 0.75 * chartOptions!.width! / (range / day)
-                    dataPoints.forEach(p => {
-                        ctx.beginPath()
-                        let offset = chartOptions!.offset!.top
-                        let h = (chartOptions!.height! - p.y + offset - lineWidth / 2) * fraction!
-                        ctx.roundRect(lineWidth / 2 + p.x - rectWidth / 2, chartOptions!.height! + offset - h, rectWidth, h, 2)
-                        ctx.stroke()
-                        ctx.fill()
-                    })
-                },
                 styles: {
-                    fillStyle: '#00ff0080',
-                    strokeStyle: 'transparent',
-                    lineWidth: 0,
+                    fillStyle: 'transparent',
+                    strokeStyle: '#00ff0080',
+                    lineWidth: 2,
                     lineCap: 'round',
                 },
                 ease: 'easeOutExpo'
@@ -127,8 +110,8 @@ export function VisitsChart() {
             hoverOptions: {
                 getHoverNode: (ps, i) =>
                     <Stack direction="vertical" stackProps={{ className: 'p-2 rounded-lg bg-surface-container border' }}>
-                        <Stack stackProps={{ className: 'justify-between' }}><div>count</div> <div>{vspd[i].count}</div></Stack>
-                        <Stack stackProps={{ className: 'justify-between' }}><div>date</div> <div>{toFormat(vspd[i].dateTS, local, undefined, DATE)}</div></Stack>
+                        <Stack stackProps={{ className: 'justify-between' }}><div>count</div> <div>{pspm[i].count}</div></Stack>
+                        <Stack stackProps={{ className: 'justify-between' }}><div>date</div> <div>{toFormat(pspm[i].dateTS, local, undefined, DATE)}</div></Stack>
                     </Stack>,
                 hoverRadius: 0,
             },
@@ -138,15 +121,11 @@ export function VisitsChart() {
         setReady(true)
     }
 
-    function getMonth(ts: number): string {
-        return toFormat(ts, local, undefined, 'LLL')
-    }
-
-    function calculateVisitsPerDay(vs: Visit[]): { count: number, dateTS: number }[] {
+    function calculatePatientsPerMonth(vs: Patient[]): { count: number, dateTS: number }[] {
         // {dateTS => count}
         let map: { [k: string]: number } = {}
         for (let i = 0; i < vs.length; i++) {
-            let k = DateTime.fromSeconds(vs[i].due).toFormat('yyyy LLL dd')
+            let k = DateTime.fromSeconds(vs[i].createdAt!).toFormat('yyyy LLL')
 
             if (map[k] === undefined)
                 map[k] = 1
@@ -154,12 +133,12 @@ export function VisitsChart() {
                 map[k] += 1
         }
 
-        return Object.entries(map).map(e => ({ count: e[1], dateTS: DateTime.fromFormat(e[0], 'yyyy LLL dd').toUnixInteger() }))
+        return Object.entries(map).map(e => ({ count: e[1], dateTS: DateTime.fromFormat(e[0], 'yyyy LLL').toUnixInteger() }))
     }
 
-    async function fetchVisits(): Promise<Visit[]> {
+    async function fetchPatients(): Promise<Patient[]> {
         try {
-            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getVisitsByDate(startDate, endDate, true)
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getPatientsByCreatedAtDate(startDate, endDate, true)
             console.log({ res })
 
             if (res.code !== 200 || !res.data)
@@ -178,21 +157,6 @@ export function VisitsChart() {
             shapes={shapes}
             xAxis={{ styles: { lineWidth: 4 } }}
             yAxis={{ styles: { lineWidth: 4 } }}
-            afterAxisDrawHook={(ctx, t, dx, chartOptions) => {
-                let range = xRange.current![1]! - xRange.current![0]!
-                let ts = DateTime.fromSeconds(xRange.current![0]!).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).plus({ days: 1 }).toUnixInteger()
-                ctx.lineWidth = 0.5
-                do {
-                    let x = chartOptions!.offset!.left + chartOptions!.width! * (ts - xRange.current![0]!) / range
-                    let y = chartOptions!.height! + chartOptions!.offset!.top
-                    ctx.beginPath()
-                    ctx.moveTo(x, y)
-                    ctx.lineTo(x, y + 8)
-                    ctx.stroke()
-
-                    ts = DateTime.fromSeconds(ts).plus({ days: 1 }).toUnixInteger()
-                } while (ts < xRange.current![1]!);
-            }}
             afterChartOptionsSet={(chartOptions) => shapes!.forEach(s => s.hoverOptions.hoverRadius = 0.75 * chartOptions!.width! / (((xRange.current![1]! - xRange.current![0]!)) / (Duration.fromDurationLike({ days: 1 }).toMillis() / 1000)))}
             chartOptions={{
                 offset: {
@@ -207,3 +171,4 @@ export function VisitsChart() {
         />
     )
 }
+
