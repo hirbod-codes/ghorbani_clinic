@@ -1,6 +1,6 @@
 import { RouterProvider, createBrowserRouter, Navigate } from "react-router-dom";
 import { Layout } from './Pages/Layout';
-import { AnimatedLayout, PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from './Pages/AnimatedLayout';
+import { AnimatedLayout } from './Pages/AnimatedLayout';
 import { Home } from './Pages/Home';
 import { Users } from './Pages/Users';
 import { Patients } from './Pages/Patients';
@@ -10,11 +10,12 @@ import { DbSettings } from './Pages/Settings/DbSettings';
 import { ThemeSettings } from './Pages/Settings/ThemeSettings';
 import { MedicalHistories } from "./Pages/MedicalHistories";
 import { useMemo } from "react";
-import { publish } from "./Lib/Events";
+import { Error } from "./Pages/Error";
 
 export function Main() {
     console.log('Main')
 
+    const error = useMemo(() => <Error />, [])
     const general = useMemo(() => <General />, [])
     const dbSettings = useMemo(() => <DbSettings />, [])
     const themeSettings = useMemo(() => <ThemeSettings />, [])
@@ -30,12 +31,16 @@ export function Main() {
         {
             path: '/',
             element: <Layout />,
-            // errorElement: <Navigate to="/" replace={true} />,
+            errorElement: <Navigate to="/error" replace={true} />,
             children: [
                 {
                     index: true,
                     path: "/",
                     element: shouldAnimateLayout ? <AnimatedLayout>{home}</AnimatedLayout> : home
+                },
+                {
+                    path: "/error",
+                    element: shouldAnimateLayout ? <AnimatedLayout>{error}</AnimatedLayout> : error
                 },
                 {
                     path: "/Users",
