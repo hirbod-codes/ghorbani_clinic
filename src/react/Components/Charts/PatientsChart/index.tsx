@@ -146,8 +146,8 @@ export function PatientsChart() {
         ready &&
         <Chart
             shapes={shapes}
-            xAxis={{ styles: { lineWidth: 4 } }}
-            yAxis={{ styles: { lineWidth: 4 } }}
+            xAxis={{ styles: { lineWidth: 2 } }}
+            yAxis={{ styles: { lineWidth: 2 } }}
             chartOptions={{
                 offset: {
                     top: 0,
