@@ -15,16 +15,16 @@ export const Home = memo(function Home() {
             <div className="grid lg:grid-flow-col grid-cols-12 lg:grid-rows-4 justify-center size-full">
                 <div className="sm:col-span-12 lg:col-span-4 col-span-12 lg:row-span-2">
                     <Stack direction="vertical" stackProps={{ className: 'h-full' }}>
-                        <Clock containerProps={{ stackProps: { className: 'py-2 border m-1 rounded-xl bg-surface-container shadow-lg' } }} />
-                        <Calendar containerProps={{ className: 'flex-grow border m-1 rounded-xl bg-surface-container shadow-lg' }} />
+                        <Clock containerProps={{ stackProps: { className: 'py-2 border m-1 rounded-xl bg-surface-container shadow-sm' } }} />
+                        <Calendar containerProps={{ className: 'flex-grow border m-1 rounded-xl bg-surface-container shadow-sm' }} />
                     </Stack>
                 </div>
 
-                <div className="sm:col-span-12 lg:col-span-4 col-span-12 lg:row-span-2 p-2 border m-1 rounded-xl bg-surface-container shadow-lg">
+                <div className="sm:col-span-12 lg:col-span-4 col-span-12 lg:row-span-2 p-2 border m-1 rounded-xl bg-surface-container shadow-sm">
                     <Analytics />
                 </div>
 
-                <div className="sm:col-span-12 lg:col-span-8 col-span-12 lg:row-span-2 border m-1 rounded-xl bg-surface-container shadow-lg">
+                <div className="sm:col-span-12 lg:col-span-8 col-span-12 lg:row-span-2 border m-1 rounded-xl bg-surface-container shadow-sm">
                     <Stack direction="vertical" stackProps={{ className: 'p-4 h-full' }}>
                         <Stack stackProps={{ className: 'justify-between items-center' }}>
                             <div className="text-2xl">{t('Home.Patients')}</div>
@@ -36,7 +36,7 @@ export const Home = memo(function Home() {
                     </Stack>
                 </div>
 
-                <div className="sm:col-span-12 lg:col-span-8 col-span-12 lg:row-span-2 border m-1 rounded-xl bg-surface-container shadow-lg">
+                <div className="sm:col-span-12 lg:col-span-8 col-span-12 lg:row-span-2 border m-1 rounded-xl bg-surface-container shadow-sm">
                     <Stack direction="vertical" stackProps={{ className: 'p-4 h-full' }}>
                         <Stack stackProps={{ className: 'justify-between items-center' }}>
                             <div className="text-2xl">{t('Home.Visits')}</div>
