@@ -1,5 +1,5 @@
 import { Analytics } from "./Analytics";
-import { memo, ReactNode, useContext, useEffect, useRef, useState } from "react";
+import { memo } from "react";
 import { Calendar } from "./Calendar";
 import { Clock } from "../../Components/Clock";
 import { VisitsChart } from "../../Components/Charts/VisitsChart";
