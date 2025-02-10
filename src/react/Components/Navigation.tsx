@@ -49,7 +49,7 @@ export const Navigation = memo(function Navigation() {
                         }
                     }}
                     layout
-                    className='absolute flex flex-col overflow-auto h-full items-start justify-stretch w-fit bg-surface-container border rounded-lg shadow-lg'
+                    className='absolute flex flex-col overflow-auto h-full items-start justify-stretch w-fit bg-surface-container border rounded-lg shadow-sm'
                     onPointerEnter={() => {
                         timer.current = setTimeout(() => {
                             setOpenDrawer(true)
