@@ -1,4 +1,4 @@
-import { memo, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { Button } from "../Base/Button";
 
 export type SlideProps = {
@@ -13,6 +13,21 @@ export type SlideProps = {
 
 export const Slide = memo(function Slide({ columns, collection, headers, onElmClick, onPointerOver, onPointerOut, coloredIndex }: SlideProps) {
     const [selectedIndex, setSelectedIndex] = useState<number>()
+
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (selectedIndex !== undefined) {
+                setSelectedIndex(undefined)
+            }
+        }
+
+        document.body.addEventListener("pointerdown", handleClickOutside);
+
+        return () => {
+            document.body.removeEventListener("pointerdown", handleClickOutside);
+        };
+    }, [selectedIndex]);
+
     return (
         <>
             <div className='grid text-center size-full items-center justify-center' style={{ gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))` }}>
@@ -32,7 +47,7 @@ export const Slide = memo(function Slide({ columns, collection, headers, onElmCl
                                 variant="outline"
                                 isIcon
                                 size='sm'
-                                fgColor={coloredIndex !== undefined && coloredIndex === i ? '' : (selectedIndex !== undefined && selectedIndex === i ? 'primary' : 'surface-foreground')}
+                                fgColor={coloredIndex !== undefined && coloredIndex === i ? 'warning' : (selectedIndex !== undefined && selectedIndex === i ? 'primary' : 'surface-foreground')}
                                 onClick={async () => { setSelectedIndex(i); if (onElmClick) await onElmClick(e, i) }}
                             >
                                 {e}

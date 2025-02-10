@@ -1,4 +1,4 @@
-import { ComponentProps, useCallback, useContext, useState } from "react";
+import { ComponentProps, useCallback, useContext, useEffect, useState } from "react";
 import { Visit } from "../../../Electron/Database/Models/Visit";
 import { AnimatedCard } from "../../Components/Animations/AnimatedCard";
 import { Calendar as CalendarComponent } from "../../Components/Calendar";
@@ -23,6 +23,8 @@ export function Calendar({ containerProps }: { containerProps?: ComponentProps<'
     const [cardKey, setCardKey] = useState<number>()
     const [showVisitsStats, setShowVisitsStats] = useState<boolean>(false)
 
+    const [isLocked, setIsLocked] = useState<boolean>(false)
+
     const [visits, setVisits] = useState<Visit[]>([])
     const [patientsCount, setPatientsCount] = useState<number>(0)
     const [fetchingVisits, setFetchingVisits] = useState<boolean>(false)
@@ -31,11 +33,9 @@ export function Calendar({ containerProps }: { containerProps?: ComponentProps<'
     const [showDiagnosis, setShowDiagnosis] = useState<string | undefined>(undefined)
     const [showTreatments, setShowTreatments] = useState<string | undefined>(undefined)
 
-    console.log('Calendar', { visits, patientsCount, showVisitsStats, fetchingVisits })
+    console.log('Calendar', { isLocked, visits, patientsCount, showVisitsStats, fetchingVisits })
 
-    const onOver = useCallback(async (year: number, month: number, day: number) => {
-        console.log('onEnter``````````````````````````````````````````````````````````````')
-
+    const updateCard = async (year: number, month: number, day: number) => {
         setCardKey(day)
         setShowVisitsStats(true)
 
@@ -50,14 +50,44 @@ export function Calendar({ containerProps }: { containerProps?: ComponentProps<'
         let c: string[] = []
         vs.forEach(v => { if (!c.includes(v.patientId as string)) c.push(v.patientId as string) })
         setPatientsCount(c.length)
-    }, [])
+    }
+
+    const onOver = useCallback(async (year: number, month: number, day: number) => {
+        console.log('onEnter``````````````````````````````````````````````````````````````')
+
+        if (isLocked)
+            return
+
+        await updateCard(year, month, day)
+    }, [isLocked])
 
     const onOut = useCallback((y: number, m: number, d: number) => {
         console.log('onLeave``````````````````````````````````````````````````````````````')
+
+        if (isLocked)
+            return
+
         setVisits([])
         setPatientsCount(0)
         setShowVisitsStats(false)
-    }, [])
+    }, [isLocked])
+
+    useEffect(() => {
+        function handleClickOutside(e) {
+            if (isLocked) {
+                setIsLocked(false)
+                setVisits([])
+                setPatientsCount(0)
+                setShowVisitsStats(false)
+            }
+        }
+
+        document.body.addEventListener("pointerdown", handleClickOutside);
+
+        return () => {
+            document.body.removeEventListener("pointerdown", handleClickOutside);
+        };
+    }, [isLocked]);
 
     const updateVisit = async (visit: Visit) => {
         try {
@@ -110,13 +140,13 @@ export function Calendar({ containerProps }: { containerProps?: ComponentProps<'
         <>
             <div {...containerProps} className={cn("relative z-[1] h-full", containerProps?.className)}>
                 <div className="overflow-auto z-[2] p-1 h-full">
-                    <CalendarComponent onDayPointerOver={onOver} onDayPointerOut={onOut} />
+                    <CalendarComponent onDaySelect={async (year, month, day) => { if (day !== cardKey) await updateCard(year, month, day); setIsLocked(true) }} onDayPointerOver={onOver} onDayPointerOut={onOut} />
                 </div>
 
                 <div className="absolute top-0 -z-[1] w-full">
                     <AnimatedCard
                         animationKey={cardKey ?? 0}
-                        open={showVisitsStats}
+                        open={isLocked || showVisitsStats}
                         props={{ className: 'bg-surface-container-high size-full rounded-lg shadow-lg border overflow-hidden p-4', style: { height: '20rem' } }}
                     >
                         {fetchingVisits && <CircularLoadingIcon />}

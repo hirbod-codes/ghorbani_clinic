@@ -1,6 +1,6 @@
 import { memo, useContext, useReducer, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
-import { toDateTimeView } from "../../Lib/DateTime/date-time-helpers";
+import { toDateTimeView, toFormat } from "../../Lib/DateTime/date-time-helpers";
 import { DateTime } from "luxon";
 import { CalendarManager } from "./CalendarManager";
 import { CalendarScopes } from "./index.d";
@@ -54,6 +54,13 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
         rerender()
     }
 
+    let coloredIndex
+    let ts = DateTime.utc().toUnixInteger()
+    if (
+        calendarManager.selectedYear === Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'yyyy')) &&
+        calendarManager.selectedMonth === Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'M'))
+    )
+        coloredIndex = Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'd')) + 1
     const onElmClick = (value: string | number, i: number) => {
         switch (calendarManager.getScope()) {
             case 'years':
@@ -121,7 +128,7 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
         }
     }
 
-    let collection: (string | number)[], headers: string[] | undefined = undefined, columns = 12
+    let collection: (string | number)[], headers: string[] | undefined = undefined, columns = 7
     switch (calendarManager.getScope()) {
         case 'days':
             columns = 7
@@ -162,6 +169,7 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
                     onElmClick={onElmClick}
                     onPointerOver={onPointerOver}
                     onPointerOut={onPointerOut}
+                    coloredIndex={coloredIndex}
                 />
             </div>
         </Stack>
