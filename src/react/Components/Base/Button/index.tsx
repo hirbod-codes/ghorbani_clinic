@@ -16,9 +16,10 @@ export type ButtonProps = {
     size?: 'xl' | 'lg' | 'md' | 'sm' | 'xs'
     isIcon?: boolean
     buttonRef?: RefObject<HTMLButtonElement>
+    layout?: boolean | "position" | "size" | "preserve-aspect"
 } & (MotionProps & ComponentProps<'button'>)
 
-export const Button = memo(function Button({ children, rippleEffect = true, variant = 'contained', rawBgColor, rawFgColor, bgColor = 'primary-foreground', fgColor = 'primary', size = 'md', isIcon = false, buttonRef, ...buttonProps }: ButtonProps) {
+export const Button = memo(function Button({ children, rippleEffect = true, variant = 'contained', rawBgColor, rawFgColor, bgColor = 'primary-container', fgColor = 'primary', size = 'md', isIcon = false, buttonRef, layout, ...buttonProps }: ButtonProps) {
     const themeOptions = useContext(ConfigurationContext)!.themeOptions
 
     let style: CSSProperties = {}
@@ -72,7 +73,7 @@ export const Button = memo(function Button({ children, rippleEffect = true, vari
 
     return (
         <motion.button
-            layout
+            layout={layout}
             initial={false}
             {...buttonProps}
             ref={buttonRef}
