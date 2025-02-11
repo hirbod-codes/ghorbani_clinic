@@ -8,8 +8,10 @@ import { getCommonPinningStyles } from "./helpers";
 import { Button } from "../../Components/Base/Button";
 import { ArrowLeftToLineIcon, ArrowRightToLineIcon, PinIcon } from "lucide-react";
 import { Stack } from "../Base/Stack";
+import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 
 export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>; }) => {
+    let local = useContext(ConfigurationContext)!.local
     const ctx = useContext(DataGridContext)!
     const table = ctx.table!
 
@@ -87,7 +89,7 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
                                 header.column.pin('left')
                         }}
                     >
-                        <ArrowLeftToLineIcon fontSize="inherit" />
+                        {local.direction === 'ltr' ? <ArrowLeftToLineIcon fontSize="inherit" /> : <ArrowRightToLineIcon fontSize="inherit" />}
                     </Button>
 
                     <p {...listeners} className={`flex-grow text-center cursor-${isDragging ? 'grabbing' : 'grab'}`}>
@@ -109,7 +111,7 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
                                 header.column.pin('right')
                         }}
                     >
-                        <ArrowRightToLineIcon fontSize="inherit" />
+                        {local.direction === 'ltr' ? <ArrowRightToLineIcon fontSize="inherit" /> : <ArrowLeftToLineIcon fontSize="inherit" />}
                     </Button>
                 </Stack>
 

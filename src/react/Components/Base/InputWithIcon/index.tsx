@@ -1,15 +1,18 @@
+import { ConfigurationContext } from "@/src/react/Contexts/Configuration/ConfigurationContext";
 import { cn } from "@/src/react/shadcn/lib/utils";
-import { ComponentProps, ReactNode, RefObject } from "react";
+import { ComponentProps, ReactNode, RefObject, useContext } from "react";
 
 export function InputWithIcon({ startIcon, startIconProps, endIcon, endIconProps, inputRef, ...props }: { startIcon?: ReactNode, startIconProps?: ComponentProps<'div'>, endIcon?: ReactNode, endIconProps?: ComponentProps<'div'>, inputRef?: RefObject<HTMLInputElement> } & ComponentProps<'input'>) {
-    const StartIcon = startIcon;
-    const EndIcon = endIcon;
+    let local = useContext(ConfigurationContext)!.local
+
+    let si = local.direction === 'ltr' ? startIcon : endIcon
+    let ei = local.direction === 'ltr' ? endIcon : startIcon
 
     return (
         <div className="relative">
-            {StartIcon && (
+            {si && (
                 <div {...startIconProps} className={cn("absolute left-1.5 top-1/2 transform -translate-y-1/2", startIconProps?.className)}>
-                    {startIcon}
+                    {si}
                 </div>
             )}
             <input
@@ -21,9 +24,9 @@ export function InputWithIcon({ startIcon, startIconProps, endIcon, endIconProps
                     props?.className
                 )}
             />
-            {EndIcon && (
+            {ei && (
                 <div {...endIconProps} className={cn("absolute right-3 top-1/2 transform -translate-y-1/2", endIconProps?.className)}>
-                    {endIcon}
+                    {ei}
                 </div>
             )}
         </div>

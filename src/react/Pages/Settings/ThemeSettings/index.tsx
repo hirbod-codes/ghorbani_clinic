@@ -8,6 +8,7 @@ import { Button } from "@/src/react/Components/Base/Button";
 import { ColorVariant } from "./ColorVariant";
 import { ColorMain } from "./ColorMain";
 import { ColorStatic } from "@/src/react/Lib/Colors/ColorStatic";
+import { Stack } from "@/src/react/Components/Base/Stack";
 
 export const ThemeSettings = memo(function ThemeSettings() {
     const c = useContext(ConfigurationContext)!
@@ -147,52 +148,52 @@ export const ThemeSettings = memo(function ThemeSettings() {
     ), [])
 
     return (
-        <div className="flex flex-col h-full">
+        <Stack direction='vertical' stackProps={{ className: "h-full" }}>
             <div className="flex-grow grid grid-cols-12 grid-rows-1 items-stretch size-full p-2 overflow-hidden *:m-2">
-                <div id='grid-item-1' className="col-span-5 row-span-1 flex flex-row">
-                    <div className="w-full flex flex-col items-stretch space-y-4 px-2 overflow-y-auto">
+                <Stack stackProps={{ id: 'grid-item-1', className: "col-span-5 row-span-1" }}>
+                    <Stack direction='vertical' stackProps={{ className: "w-full items-stretch overflow-y-auto" }}>
                         <div>
                             <p className="text-xl">Core Colors</p>
                             <p className="text-sm ">Override or set key colors that will be used to generate tonal palettes and schemes.</p>
                         </div>
                         <div>
                             <p className="text-xl">Color match</p>
-                            <div className="flex flex-row items-center justify-between w-full">
+                            <Stack stackProps={{ className: "items-center justify-between w-full" }}>
                                 <p className="text-sm ">Stay true to my color inputs.</p>
                                 <CheckBox size='sm' inputProps={{ checked: shouldControlColors, onChange: (e) => { setShouldControlColors(e.currentTarget.checked) } }} />
-                            </div>
+                            </Stack>
                         </div>
 
                         {['primary', 'secondary', 'tertiary', 'info', 'success', 'warning', 'error']
                             .map((k, i) =>
-                                <div key={i} className="flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
+                                <Stack key={i} stackProps={{ className: "items-center rounded-3xl bg-gray-500 p-2 ", style: { color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] } }}>
                                     <ColorMain
                                         colorKey={`${k}.${themeOptions.mode}`}
                                         color={themeOptions.colors[k].main}
                                         containerProps={circleStyle}
                                         onColorChange={onColorChange}
                                     />
-                                </div>
+                                </Stack>
                             )
                         }
 
-                        <div className="flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
+                        <Stack stackProps={{ className: "items-center rounded-3xl bg-gray-500 p-2", style: { color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] } }}>
                             <div className="rounded-full size-[1.2cm]" style={{ backgroundColor: themeOptions.colors.natural }} />
                             <div>
                                 <p className="text-xl text-nowrap">Natural</p>
                                 <p className="text-sm text-nowrap">Used for background and surfaces</p>
                             </div>
-                        </div>
-                        <div className="flex flex-row items-center rounded-3xl bg-gray-500 p-2 space-x-3" style={{ color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] }}>
+                        </Stack>
+                        <Stack stackProps={{ className: "items-center rounded-3xl bg-gray-500 p-2", style: { color: themeOptions.colors.surface[themeOptions.mode].inverse, backgroundColor: themeOptions.colors.surface[themeOptions.mode]['inverse-foreground'] } }}>
                             <div className="rounded-full size-[1.2cm]" style={{ backgroundColor: themeOptions.colors.naturalVariant }} />
                             <div>
                                 <p className="text-xl text-nowrap">Natural Variants</p>
                                 <p className="text-sm text-nowrap">Used for medium emphasis and variants</p>
                             </div>
-                        </div>
-                    </div>
+                        </Stack>
+                    </Stack>
                     <Separator orientation="vertical" className="mx-4 my-8 h-auto" />
-                </div>
+                </Stack>
 
                 <div id='grid-item-2' className="col-span-7 row-span-1">
                     <div className="size-full bg-surface-container rounded-xl p-2">
@@ -313,6 +314,6 @@ export const ThemeSettings = memo(function ThemeSettings() {
                     <SaveIcon /> Save
                 </Button>
             </div>
-        </div>
+        </Stack>
     )
 })
