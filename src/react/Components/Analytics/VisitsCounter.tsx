@@ -77,17 +77,19 @@ export const VisitsCounter = memo(function VisitsCounter() {
         previousMonthVisitsCount !== undefined && monthlyVisitsCount !== undefined && !initLoading &&
         <div className='flex flex-col p-4 border rounded-2xl shadow-sm'>
             <div className="text-sm mb-2">
-                {t('Analytics.VisitsPerMonth')}
+                {t('VisitsCounter.VisitsPerMonth')}
             </div>
             <div className="flex items-baseline justify-between w-full">
                 <div className="flex items-baseline">
                     <motion.div className="text-4xl mr-1">
                         {transformedVisitsCountText}
                     </motion.div>
-                    <div className={`text-xs ${((monthlyVisitsCount - previousMonthVisitsCount) / previousMonthVisitsCount) > 0 ? 'text-success' : 'text-error'}`}>
-                        <motion.div className="text-xs inline">
-                            {transformedVisitsChangeText}
-                        </motion.div>%
+                    <div>
+                        <div dir="ltr" className={`inline text-xs ${((monthlyVisitsCount - previousMonthVisitsCount) / previousMonthVisitsCount) > 0 ? 'text-success' : 'text-error'}`}>
+                            <motion.div className="inline text-xs">
+                                {transformedVisitsChangeText}
+                            </motion.div>%
+                        </div>
                         {((monthlyVisitsCount - previousMonthVisitsCount) / previousMonthVisitsCount) > 0
                             ? (local.direction === 'ltr' ? <MoveUpRightIcon size={15} className={`inline text-xs text-success`} /> : <MoveUpLeftIcon size={15} className={`inline text-xs text-success`} />)
                             : (local.direction === 'ltr' ? <MoveDownRightIcon size={15} className={`inline text-xs text-error`} /> : <MoveDownLeftIcon size={15} className={`inline text-xs text-error`} />)
@@ -95,7 +97,7 @@ export const VisitsCounter = memo(function VisitsCounter() {
                     </div>
                 </div>
                 <div className="flex items-center">
-                    <div className="text-xs text-outline mr-1">{t('Analytics.visits')}</div>
+                    <div className="text-xs text-outline mr-1">{t('VisitsCounter.Visits')}</div>
                     <Button size='xs' variant="text" className="w-6 h-6" fgColor="primary" onClick={() => navigate('/Visits')}>
                         {local.direction === 'ltr'
                             ? <ChevronRightIcon />
