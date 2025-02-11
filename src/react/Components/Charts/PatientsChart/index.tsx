@@ -73,7 +73,7 @@ export function PatientsChart() {
             x: pspm.map(v => v.dateTS),
             y: pspm.map(v => v.count),
             xLabels: xLabels.map(v => ({ ...v, options: { className: 'text-xs' } })),
-            yLabels: Array(yRange[1]! + 1).fill(0).map((v, i) => ({ value: i, node: i, options: { className: 'text-xs' } })),
+            yLabels: Array(5).fill(0).map((v, i) => ({ value: (yRange![1]! - yRange![0]!) * i / 4, node: (yRange![1]! - yRange![0]!) * i / 4, options: { className: 'text-xs' } })),
             xRange: xRange.current,
             yRange,
             verticalLinesOptions: {
