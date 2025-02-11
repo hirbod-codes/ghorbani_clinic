@@ -28,4 +28,3 @@ export const Error = memo(function Error() {
         </>
     )
 })
-
