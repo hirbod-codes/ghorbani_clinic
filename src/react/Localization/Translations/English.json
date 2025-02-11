@@ -8,6 +8,12 @@
     "persianCalendarName": "Persian",
     "gregorianCalendarName": "Gregorian",
     "Asia/Tehran": "Asia/Tehran",
+    "Home": {
+        "Patients": "Patients",
+        "Visits": "Visits",
+        "Monthly": "Monthly",
+        "Daily": "Daily"
+    },
     "SearchPatientField": {
         "search": "Search",
         "socialId": "Social Id",
@@ -15,12 +21,24 @@
         "patientNotFound": "Patient Not Found"
     },
     "Analytics": {
-        "failedToFetchPatientsCount": "Failed to fetch patients count",
-        "failedToFetchVisitsCount": "Failed to fetch visits count",
-        "failedToFetchExpiredVisitsCount": "Failed to fetch expired visits count",
-        "visits": "Visits",
-        "expiredVisits": "Expired visits",
-        "patients": "Patients"
+        "Summary": "Summary"
+    },
+    "VisitsCounter": {
+        "VisitsPerMonth": "Visits per month",
+        "Visits": "Visits"
+    },
+    "PatientsCounter": {
+        "PatientsPerMonth": "PatientsPerMonth",
+        "Patients": "Patients"
+    },
+    "Calendar": {
+        "failedToUpdateVisit": "Failed to update the visit",
+        "successfullyUpdatedVisit": "Successfully updated the visit",
+        "Show": "Show",
+        "PatientsCount": "Patients count",
+        "VisitsCount": "Visits count",
+        "diagnosis": "Diagnosis",
+        "treatments": "Treatments"
     },
     "Roles": {
         "admin": "Admin",
