@@ -54,6 +54,10 @@
     "GeneralSetting": {
         "TemporaryStorageLimit": "Temporary storage limit"
     },
+    "Error": {
+        "errorMessage": "Unfortunately, There's been a problem.",
+        "buttonText": "Go back to Home"
+    },
     "Roles": {
         "admin": "Admin",
         "doctor": "Doctor",
