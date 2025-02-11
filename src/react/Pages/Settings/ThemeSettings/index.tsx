@@ -148,7 +148,7 @@ export const ThemeSettings = memo(function ThemeSettings() {
     ), [])
 
     return (
-        <Stack direction='vertical' stackProps={{ className: "h-full" }}>
+        <Stack direction='vertical' stackProps={{ className: "h-full", dir: 'ltr' }}>
             <div className="flex-grow grid grid-cols-12 grid-rows-1 items-stretch size-full p-2 overflow-hidden *:m-2">
                 <Stack stackProps={{ id: 'grid-item-1', className: "col-span-5 row-span-1" }}>
                     <Stack direction='vertical' stackProps={{ className: "w-full items-stretch overflow-y-auto" }}>
