@@ -8,6 +8,12 @@
     "persianCalendarName": "شمسی",
     "gregorianCalendarName": "میلادی",
     "Asia/Tehran": "آسیا/تهران",
+    "Home": {
+        "Patients": "بیماران",
+        "Visits": "نوبت ها",
+        "Monthly": "ماهاته",
+        "Daily": "روزانه"
+    },
     "SearchPatientField": {
         "search": "جستجو",
         "socialId": "شماره ملی",
@@ -15,12 +21,24 @@
         "patientNotFound": "بیمار یافت نشد"
     },
     "Analytics": {
-        "failedToFetchPatientsCount": "بازیابی تعداد بیماران با شکست مواجه شد",
-        "failedToFetchVisitsCount": "بازیابی تعداد ویزیت‌ها با شکست مواجه شد",
-        "failedToFetchExpiredVisitsCount": "بازیابی تعداد ویزیت‌های منقضی شده با شکست مواجه شد",
-        "visits": "ویزیت‌ها",
-        "expiredVisits": "ویزیت‌های منقضی شده",
-        "patients": "بیماران"
+        "Summary": "خلاصه"
+    },
+    "VisitsCounter": {
+        "VisitsPerMonth": "نوبت در ماه",
+        "Visits": "نوبت ها"
+    },
+    "PatientsCounter": {
+        "PatientsPerMonth": "PatientsPerMonth",
+        "Patients": "Patients"
+    },
+    "Calendar": {
+        "failedToUpdateVisit": "بروزرسانی نوبت با شکست مواجه شد",
+        "successfullyUpdatedVisit": "نوبت با موفقیت بروزرسانی شد",
+        "Show": "نمایش",
+        "PatientsCount": "تعداد بیماران",
+        "VisitsCount": "تعداد نوبت ها",
+        "diagnosis": "تشخیص",
+        "treatments": "درمان"
     },
     "Roles": {
         "admin": "مدیر سیستم",
