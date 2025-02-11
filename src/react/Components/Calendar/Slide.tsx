@@ -43,7 +43,7 @@ export const Slide = memo(function Slide({ columns, collection, headers, onElmCl
                             <Button
                                 onPointerOver={async () => { if (onPointerOver) await onPointerOver(e, i) }}
                                 onPointerOut={async () => { if (onPointerOut) await onPointerOut(e, i) }}
-                                className='text-sm'
+                                className='text-xs'
                                 variant="outline"
                                 isIcon
                                 size='sm'
