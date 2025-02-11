@@ -107,6 +107,12 @@
         "done": "Done"
     },
     "Patients": {
+        "successfullyFetchedPatients": "Successfully fetched patients",
+        "NoData": "No data",
+        "deletePatientDialogContent": "You're about to delete a patient, Are you sure?",
+        "Documents": "Documents",
+        "Yes": "Yes",
+        "No": "No",
         "failedToFetchPatients": "Failed to fetch patients",
         "Show": "Show",
         "actions": "Actions",
