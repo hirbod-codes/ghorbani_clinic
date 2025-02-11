@@ -8,6 +8,17 @@
     "persianCalendarName": "شمسی",
     "gregorianCalendarName": "میلادی",
     "Asia/Tehran": "آسیا/تهران",
+    "common": {
+        "general": "عمومی",
+        "settings": "تنظیمات",
+        "home": "صفحه اصلی",
+        "language": "زبان",
+        "timeZone": "منطقه زمانی",
+        "calendar": "تقویم",
+        "persianCalendarName": "شمسی",
+        "gregorianCalendarName": "میلادی",
+        "Asia/Tehran": "آسیا/تهران"
+    },
     "Home": {
         "Patients": "بیماران",
         "Visits": "نوبت ها",
@@ -39,6 +50,9 @@
         "VisitsCount": "تعداد نوبت ها",
         "diagnosis": "تشخیص",
         "treatments": "درمان"
+    },
+    "GeneralSetting": {
+        "TemporaryStorageLimit": "محدودیت حافظه موقت"
     },
     "Roles": {
         "admin": "مدیر سیستم",
