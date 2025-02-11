@@ -87,7 +87,7 @@ export const Visits = memo(function Visits() {
         if (res.data.length > 0) {
             publish(RESULT_EVENT_NAME, {
                 severity: 'success',
-                message: t('Patients.successfullyFetchedVisits')
+                message: t('Visits.successfullyFetchedVisits')
             })
 
             setVisits(res.data)
