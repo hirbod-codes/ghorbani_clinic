@@ -66,7 +66,7 @@ export const General = memo(function General() {
                     label={t('language')}
                     defaultDisplayValue={languages.find(v => v.code === configuration.local.language)!.name}
                     defaultValue={languages.find(v => v.code === configuration.local.language)!.code}
-                    onValueChange={(e) => configuration.updateLocal(configuration.local.language, e as Calendar, configuration.local.direction, configuration.local.zone)}
+                    onValueChange={(e) => configuration.updateLocal(e, configuration.local.calendar, e === 'en' ? 'ltr' : 'rtl', configuration.local.zone)}
                 >
                     {languages.map((e, i) =>
                         <Fragment key={i}>

@@ -17,7 +17,7 @@ import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 import { RendererDbAPI } from "@/src/Electron/Database/renderer";
 
-export function Calendar({ containerProps }: { containerProps?: ComponentProps<'div'> }) {
+export function Calendar({ containerProps, calendarContainerProps }: { containerProps?: ComponentProps<'div'>, calendarContainerProps?: ComponentProps<'div'> }) {
     const configuration = useContext(ConfigurationContext)!
 
     const [cardKey, setCardKey] = useState<number>()
@@ -138,12 +138,8 @@ export function Calendar({ containerProps }: { containerProps?: ComponentProps<'
 
     return (
         <>
-            <div {...containerProps} className={cn("relative z-[1] h-full", containerProps?.className)}>
-                <div className="overflow-auto z-[2] p-1 h-full">
-                    <CalendarComponent onDaySelect={async (year, month, day) => { if (day !== cardKey) await updateCard(year, month, day); setIsLocked(true) }} onDayPointerOver={onOver} onDayPointerOut={onOut} />
-                </div>
-
-                <div className="absolute top-0 -z-[1] w-full">
+            <div {...containerProps} className={cn("relative h-full", containerProps?.className)}>
+                <div className="relative top-0 z-[1] w-full">
                     <AnimatedCard
                         animationKey={cardKey ?? 0}
                         open={isLocked || showVisitsStats}
@@ -180,6 +176,10 @@ export function Calendar({ containerProps }: { containerProps?: ComponentProps<'
                             </>
                         }
                     </AnimatedCard>
+                </div>
+
+                <div {...calendarContainerProps} className={cn("relative top-0 left-0 overflow-auto z-[2] p-1 size-full", calendarContainerProps?.className)}>
+                    <CalendarComponent onDaySelect={async (year, month, day) => { if (day !== cardKey) await updateCard(year, month, day); setIsLocked(true) }} onDayPointerOver={onOver} onDayPointerOut={onOut} />
                 </div>
             </div>
 

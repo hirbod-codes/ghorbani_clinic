@@ -1,13 +1,16 @@
-import { memo, useEffect, useState } from "react";
+import { memo, useContext, useEffect, useState } from "react";
 import { t } from "i18next";
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
 import { animate, motion, useMotionValue, useTransform } from "framer-motion";
 import { Button } from "../../Components/Base/Button";
-import { ChevronRightIcon, TrendingDownIcon, TrendingUpIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, MoveDownLeftIcon, MoveDownRightIcon, MoveUpLeftIcon, MoveUpRightIcon } from "lucide-react";
 import { DateTime } from "luxon";
 import { useNavigate } from "react-router-dom";
+import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 
 export const PatientsCounter = memo(function PatientsCounter() {
+    const local = useContext(ConfigurationContext)!.local
+
     const navigate = useNavigate()
     const [initLoading, setInitLoading] = useState<boolean>(true);
 
@@ -73,8 +76,7 @@ export const PatientsCounter = memo(function PatientsCounter() {
         previousMonthPatientsCount !== undefined && monthlyPatientsCount !== undefined && !initLoading &&
         <div className='flex flex-col p-4 border rounded-2xl shadow-sm'>
             <div className="text-sm mb-2">
-                MonthlyPatients
-                {/* {t('Analytics.MonthlyPatients')} */}
+                {t('Analytics.PatientsPerMonth')}
             </div>
             <div className="flex items-baseline justify-between w-full">
                 <div className="flex items-baseline">
@@ -86,15 +88,18 @@ export const PatientsCounter = memo(function PatientsCounter() {
                             {transformedPatientsChangeText}
                         </motion.div>%
                         {((monthlyPatientsCount - previousMonthPatientsCount) / previousMonthPatientsCount) > 0
-                            ? <TrendingUpIcon size={15} className={`inline text-xs text-success`} />
-                            : <TrendingDownIcon size={15} className={`inline text-xs text-error`} />
+                            ? (local.direction === 'ltr' ? <MoveUpRightIcon size={15} className={`inline text-xs text-success`} /> : <MoveUpLeftIcon size={15} className={`inline text-xs text-success`} />)
+                            : (local.direction === 'ltr' ? <MoveDownRightIcon size={15} className={`inline text-xs text-error`} /> : <MoveDownLeftIcon size={15} className={`inline text-xs text-error`} />)
                         }
                     </div>
                 </div>
                 <div className="flex items-center">
                     <div className="text-xs text-outline mr-1">{t('Analytics.patients')}</div>
                     <Button size='xs' variant="text" className="w-6 h-6" fgColor="primary" onClick={() => navigate('/Patients')}>
-                        <ChevronRightIcon />
+                        {local.direction === 'ltr'
+                            ? <ChevronRightIcon />
+                            : <ChevronLeftIcon />
+                        }
                     </Button>
                 </div>
             </div>

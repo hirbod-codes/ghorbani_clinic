@@ -16,7 +16,7 @@ export const Home = memo(function Home() {
                 <div className="sm:col-span-12 lg:col-span-4 col-span-12 lg:row-span-2">
                     <Stack direction="vertical" stackProps={{ className: 'h-full' }}>
                         <Clock containerProps={{ stackProps: { className: 'py-2 border m-1 rounded-xl bg-surface-container shadow-sm' } }} />
-                        <Calendar containerProps={{ className: 'flex-grow border m-1 rounded-xl bg-surface-container shadow-sm' }} />
+                        <Calendar containerProps={{ className: 'flex-grow m-1' }} calendarContainerProps={{ className: 'border rounded-xl bg-surface-container shadow-sm' }} />
                     </Stack>
                 </div>
 
