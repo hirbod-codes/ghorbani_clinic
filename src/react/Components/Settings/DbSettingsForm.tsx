@@ -55,7 +55,7 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                         <Input type='password' value={password} placeholder={t('DbSettingsForm.password')} onChange={(e) => setPassword(e.target.value)} label={t('DbSettingsForm.password')} />
 
                         <Input value={url.replace('mongodb://', '')} placeholder={t('DbSettingsForm.ip_port')} onChange={(e) => setUrl('mongodb://' + e.target.value.replace('mongodb://', ''))} label={t('DbSettingsForm.url')} />
-                        <Input value={databaseName} onChange={(e) => setDatabaseName(e.target.value)} placeholder={t('DbSettingsForm.db_name')} label={t('DbSettingsForm.databaseName')} />
+                        <Input value={databaseName} onChange={(e) => setDatabaseName(e.target.value)} placeholder={t('DbSettingsForm.databaseName')} label={t('DbSettingsForm.databaseName')} />
 
                         <Switch
                             label={t('DbSettingsForm.supportsTransaction')}
