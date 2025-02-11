@@ -8,6 +8,17 @@
     "persianCalendarName": "Persian",
     "gregorianCalendarName": "Gregorian",
     "Asia/Tehran": "Asia/Tehran",
+    "common": {
+        "general": "General",
+        "settings": "Settings",
+        "home": "Home",
+        "language": "Language",
+        "timeZone": "Time Zone",
+        "calendar": "Calendar",
+        "persianCalendarName": "Persian",
+        "gregorianCalendarName": "Gregorian",
+        "Asia/Tehran": "Asia/Tehran"
+    },
     "Home": {
         "Patients": "Patients",
         "Visits": "Visits",
@@ -39,6 +50,9 @@
         "VisitsCount": "Visits count",
         "diagnosis": "Diagnosis",
         "treatments": "Treatments"
+    },
+    "GeneralSetting": {
+        "TemporaryStorageLimit": "Temporary storage limit"
     },
     "Roles": {
         "admin": "Admin",
