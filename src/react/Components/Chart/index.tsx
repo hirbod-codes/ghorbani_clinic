@@ -146,7 +146,12 @@ export function Chart({
             afterAxisDrawHook(ctx, t, dx, chartOptions.current)
 
         let path = new Path2D()
-        path.rect((chartOptions.current.offset!.left) + (yAxis?.styles?.lineWidth ?? 0) / 2, (chartOptions.current.offset!.top), (chartOptions.current.width ?? 0) - (yAxis?.styles?.lineWidth ?? 0) / 2, (chartOptions.current.height ?? 0) - (xAxis?.styles?.lineWidth ?? 0) / 2)
+        path.rect(
+            (chartOptions.current.offset!.left) + (yAxis?.styles?.lineWidth ?? 0) / 2,
+            (chartOptions.current.offset!.top) - 5,
+            (chartOptions.current.width ?? 0) - (yAxis?.styles?.lineWidth ?? 0) / 2,
+            (chartOptions.current.height ?? 0) - (xAxis?.styles?.lineWidth ?? 0) / 2 + 5
+        )
         ctx.clip(path)
 
         shapes.forEach(s => s.animateDefaults(t, ctx, hoverEvent.current))

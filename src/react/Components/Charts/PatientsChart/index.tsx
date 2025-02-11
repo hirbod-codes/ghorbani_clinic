@@ -105,6 +105,25 @@ export function PatientsChart() {
                     lineCap: 'round',
                 },
                 ease: 'easeOutExpo'
+            },
+            fillOptions: {
+                controller: 1,
+                duration: 5000,
+                animateStyles(ctx, dataPoints, styleOptions, chartOptions, fraction) {
+                    let offsetTop = chartOptions!.offset!.top
+                    let offsetLeft = chartOptions!.offset!.left
+                    let g = ctx.createLinearGradient(offsetLeft, offsetTop, offsetLeft, offsetTop + chartOptions!.height!)
+                    g.addColorStop(0, '#00ff0080')
+                    g.addColorStop(1, 'transparent')
+                    styleOptions!.fillStyle = g
+                    return styleOptions!
+                },
+                styles: {
+                    fillStyle: 'transparent',
+                    strokeStyle: 'transparent',
+                    lineWidth: 0,
+                },
+                ease: 'easeOutExpo'
             }
         })
 
@@ -150,10 +169,10 @@ export function PatientsChart() {
             yAxis={{ styles: { lineWidth: 2 } }}
             chartOptions={{
                 offset: {
-                    top: 0,
+                    top: 10,
                     bottom: 30,
                     left: 30,
-                    right: 0,
+                    right: 10,
                 },
                 xAxisOffset: 15,
                 yAxisOffset: 15,

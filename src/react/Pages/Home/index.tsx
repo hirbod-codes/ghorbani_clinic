@@ -1,4 +1,3 @@
-import { Analytics } from "./Analytics";
 import { memo } from "react";
 import { Calendar } from "./Calendar";
 import { Clock } from "../../Components/Clock";
@@ -6,6 +5,7 @@ import { VisitsChart } from "../../Components/Charts/VisitsChart";
 import { Stack } from "../../Components/Base/Stack";
 import { t } from "i18next";
 import { PatientsChart } from "../../Components/Charts/PatientsChart";
+import { Analytics } from "../../Components/Analytics";
 
 export const Home = memo(function Home() {
     console.log('Home')
