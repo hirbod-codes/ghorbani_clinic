@@ -42,30 +42,30 @@ export const General = memo(function General() {
 
                         await setConfigDownloadsDirectorySize(l * 1000_000_000)
                     }}
-                    label={t('General.TemporaryStorageLimit')}
-                    labelId={t('General.TemporaryStorageLimit')}
+                    label={t('GeneralSetting.TemporaryStorageLimit')}
+                    labelId={t('GeneralSetting.TemporaryStorageLimit')}
                     endIcon={<p>GB</p>}
                     labelContainerProps={{ stackProps: { className: 'w-full justify-between' } }}
                 />
 
                 <Select
                     label="Calendar"
-                    defaultDisplayValue={configuration.local.calendar === 'Persian' ? t('persianCalendarName') : t('gregorianCalendarName')}
+                    defaultDisplayValue={configuration.local.calendar === 'Persian' ? t('common.persianCalendarName') : t('common.gregorianCalendarName')}
                     defaultValue={configuration.local.calendar}
                     onValueChange={(e) => configuration.updateLocal(configuration.local.language, e as Calendar, configuration.local.direction, configuration.local.zone)}
                     inputProps={{ labelContainerProps: { stackProps: { className: 'w-full justify-between' } } }}
                 >
-                    <Select.Item value='Persian' displayValue={t('persianCalendarName')}>
-                        {t('persianCalendarName')}
+                    <Select.Item value='Persian' displayValue={t('common.persianCalendarName')}>
+                        {t('common.persianCalendarName')}
                     </Select.Item>
                     <Separator />
-                    <Select.Item value='Gregorian' displayValue={t('gregorianCalendarName')}>
-                        {t('gregorianCalendarName')}
+                    <Select.Item value='Gregorian' displayValue={t('common.gregorianCalendarName')}>
+                        {t('common.gregorianCalendarName')}
                     </Select.Item>
                 </Select>
 
                 <Select
-                    label={t('language')}
+                    label={t('common.language')}
                     defaultDisplayValue={languages.find(v => v.code === configuration.local.language)!.name}
                     defaultValue={languages.find(v => v.code === configuration.local.language)!.code}
                     onValueChange={(e) => configuration.updateLocal(e, configuration.local.calendar, e === 'en' ? 'ltr' : 'rtl', configuration.local.zone)}
@@ -84,7 +84,7 @@ export const General = memo(function General() {
                 </Select>
 
                 <Select
-                    label={t('timezone')}
+                    label={t('common.timezone')}
                     defaultDisplayValue={configuration.local.zone}
                     defaultValue={configuration.local.zone}
                     onValueChange={(e) => configuration.updateLocal(configuration.local.language, e as Calendar, configuration.local.direction, configuration.local.zone)}
