@@ -229,7 +229,7 @@ export const Users = memo(function Users() {
 
     return (
         <>
-            <div className="grid grid-cols-12 h-full">
+            <div className="grid grid-cols-12 gap-2 h-full">
                 {/* Roles */}
                 {
                     readsRole &&
@@ -237,7 +237,7 @@ export const Users = memo(function Users() {
                         <Stack direction='vertical' stackProps={{ className: 'border rounded-md' }}>
                             <h4 className="text-center pt-2 pb-4">{t('Users.roles')}</h4>
                             <Separator />
-                            <Stack direction='vertical'>
+                            <Stack direction='vertical' stackProps={{ className: 'p-2' }}>
                                 {roles?.map((r, i) =>
                                     <div
                                         key={i}
