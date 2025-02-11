@@ -192,6 +192,8 @@
         "Db": "پایگاه داده"
     },
     "DbSettings": {
+        "successfullySeededDB": "دیتابیس با موفقیت غنی شد",
+        "CheckConnection": "بررسی اتصال",
         "Seed": "بذرپاشی",
         "Truncate": "تخلیه",
         "doYouWantToSeedDB": "آیا مایل به بذرپاشی پایگاه داده هستید؟",
@@ -204,7 +206,7 @@
         "dbSettings": "تنظیمات پایگاه داده",
         "username": "نام کاربری",
         "password": "گذرواژه",
-        "ip": "آی‌پی",
+        "ip_port": "Ip:Port",
         "url": "آدرس اینترنتی",
         "databaseName": "نام پایگاه داده",
         "supportsTransaction": "پشتیبانی از تراکنش",
