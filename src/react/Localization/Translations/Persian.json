@@ -177,6 +177,9 @@
         "save": "Save"
     },
     "Visits": {
+        "successfullyFetchedVisits": "اطلاعات نوبت ها دریافت شد",
+        "successfullyUpdatedVisit": "بروزرسانی نوبت موفقیت بود",
+        "failedToUpdateVisit": "نوبت حذف نشد!",
         "failedToFetchVisits": "بازیابی ویزیت‌ها با شکست مواجه شد",
         "Show": "نمایش",
         "Refresh": "به‌روزرسانی",
