@@ -35,10 +35,13 @@ export function VisitsChart() {
         if (vs.length <= 0)
             return
 
-        let vspd = calculateVisitsPerDay(vs)
+        let visitsPerDay = calculateVisitsPerDay(vs)
 
-        let yRange: [number | undefined, number | undefined] = [0, vspd.reduce((p, c, i) => c.count > p ? c.count : p, 0)]
-        xRange.current = [vspd[0].dateTS, vspd[vspd.length - 1].dateTS]
+        if (visitsPerDay.length <= 0)
+            return
+
+        let yRange: [number | undefined, number | undefined] = [0, visitsPerDay.reduce((p, c, i) => c.count > p ? c.count : p, 0)]
+        xRange.current = [visitsPerDay[0].dateTS, visitsPerDay[visitsPerDay.length - 1].dateTS]
 
         let xLabels: { value: number, node: ReactNode }[] = []
         if (local.calendar === 'Gregorian') {
@@ -53,13 +56,20 @@ export function VisitsChart() {
                     break
             }
         } else {
-            let ts = Infinity
+            let ts: number
             let p = gregorianToPersian(DateTime.fromSeconds(xRange.current![1]!).toObject())
             p.day = 1
             do {
+                console.log(
+                    xRange.current![1]!,
+                    JSON.stringify(DateTime.fromSeconds(xRange.current![1]!).toObject()),
+                    gregorianToPersian(DateTime.fromSeconds(xRange.current![1]!).toObject()),
+                    persianToGregorian(gregorianToPersian(DateTime.fromSeconds(xRange.current![1]!).toObject()))
+                );
+
                 ts = toDateTime({ date: persianToGregorian(p), time: { hour: 0, minute: 0, second: 0, millisecond: 0 } }, { ...local, calendar: 'Gregorian', zone: 'UTC' }, { ...local, calendar: 'Gregorian', zone: 'UTC' }).toUnixInteger()
 
-                xLabels.push({ value: ts, node: getMonth(ts) })
+                xLabels.push({ value: ts, node: toFormat(ts, local, undefined, 'LLL') })
 
                 if (p.month > 1)
                     p.month -= 1
@@ -71,8 +81,8 @@ export function VisitsChart() {
         }
 
         let chart = new LineChart({
-            x: vspd.map(v => v.dateTS),
-            y: vspd.map(v => v.count),
+            x: visitsPerDay.map(v => v.dateTS),
+            y: visitsPerDay.map(v => v.count),
             xLabels: xLabels.map(v => ({ ...v, options: { className: 'text-xs' } })),
             yLabels: Array(yRange[1]! + 1).fill(0).map((v, i) => ({ value: i, node: i, options: { className: 'text-xs' } })),
             xRange: xRange.current,
@@ -105,13 +115,14 @@ export function VisitsChart() {
 
                     let lineWidth = styleOptions?.lineWidth ?? 0
                     let range = (xRange.current![1]! - xRange.current![0]!)
-                    let day = Duration.fromDurationLike({ days: 1 }).toMillis() / 1000
-                    let rectWidth = 0.75 * chartOptions!.width! / (range / day)
+                    let month = Duration.fromDurationLike({ months: 1 }).toMillis() / 1000
+                    let rectWidth = 0.75 * chartOptions!.width! / (range / month)
                     dataPoints.forEach(p => {
                         ctx.beginPath()
+                        let roundness = rectWidth / 4
                         let offset = chartOptions!.offset!.top
-                        let h = (chartOptions!.height! - p.y + offset - lineWidth / 2) * fraction!
-                        ctx.roundRect(lineWidth / 2 + p.x - rectWidth / 2, chartOptions!.height! + offset - h, rectWidth, h, 2)
+                        let h = (chartOptions!.height! - p.y + offset - lineWidth / 2) * fraction! + roundness
+                        ctx.roundRect(lineWidth / 2 + p.x - rectWidth / 2, chartOptions!.height! + offset - h + roundness, rectWidth, h, roundness)
                         ctx.stroke()
                         ctx.fill()
                     })
@@ -127,8 +138,8 @@ export function VisitsChart() {
             hoverOptions: {
                 getHoverNode: (ps, i) =>
                     <Stack direction="vertical" stackProps={{ className: 'p-2 rounded-lg bg-surface-container border' }}>
-                        <Stack stackProps={{ className: 'justify-between' }}><div>count</div> <div>{vspd[i].count}</div></Stack>
-                        <Stack stackProps={{ className: 'justify-between' }}><div>date</div> <div>{toFormat(vspd[i].dateTS, local, undefined, DATE)}</div></Stack>
+                        <Stack stackProps={{ className: 'justify-between' }}><div>count</div> <div>{visitsPerDay[i].count}</div></Stack>
+                        <Stack stackProps={{ className: 'justify-between' }}><div>date</div> <div>{toFormat(visitsPerDay[i].dateTS, local, undefined, DATE)}</div></Stack>
                     </Stack>,
                 hoverRadius: 0,
             },
@@ -146,7 +157,7 @@ export function VisitsChart() {
         // {dateTS => count}
         let map: { [k: string]: number } = {}
         for (let i = 0; i < vs.length; i++) {
-            let k = DateTime.fromSeconds(vs[i].due).toFormat('yyyy LLL dd')
+            let k = toFormat(vs[i].due, local, undefined, 'yyyy M')
 
             if (map[k] === undefined)
                 map[k] = 1
@@ -154,7 +165,11 @@ export function VisitsChart() {
                 map[k] += 1
         }
 
-        return Object.entries(map).map(e => ({ count: e[1], dateTS: DateTime.fromFormat(e[0], 'yyyy LLL dd').toUnixInteger() }))
+        if (local.calendar === 'Gregorian')
+            return Object.entries(map).map(e => ({ count: e[1], dateTS: DateTime.fromFormat(e[0], 'yyyy M').toUnixInteger() }))
+        else
+            return Object.entries(map).map(e => ({ count: e[1], dateTS: toDateTime({ date: persianToGregorian({ year: Number(e[0].split(' ')[0]), month: Number(e[0].split(' ')[1]), day: 1 }), time: { hour: 0, minute: 0, second: 0, millisecond: 0 } }, local, { ...local, calendar: 'Gregorian', zone: 'UTC' }).toUnixInteger() }))
+
     }
 
     async function fetchVisits(): Promise<Visit[]> {
