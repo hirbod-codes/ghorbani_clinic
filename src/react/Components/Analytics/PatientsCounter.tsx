@@ -76,17 +76,19 @@ export const PatientsCounter = memo(function PatientsCounter() {
         previousMonthPatientsCount !== undefined && monthlyPatientsCount !== undefined && !initLoading &&
         <div className='flex flex-col p-4 border rounded-2xl shadow-sm'>
             <div className="text-sm mb-2">
-                {t('Analytics.PatientsPerMonth')}
+                {t('PatientsCounter.PatientsPerMonth')}
             </div>
             <div className="flex items-baseline justify-between w-full">
                 <div className="flex items-baseline">
                     <motion.div className="text-4xl mr-1">
                         {transformedPatientsCountText}
                     </motion.div>
-                    <div className={`text-xs ${((monthlyPatientsCount - previousMonthPatientsCount) / previousMonthPatientsCount) > 0 ? 'text-success' : 'text-error'}`}>
-                        <motion.div className="text-xs inline">
-                            {transformedPatientsChangeText}
-                        </motion.div>%
+                    <div>
+                        <div dir='ltr' className={`inline text-xs ${((monthlyPatientsCount - previousMonthPatientsCount) / previousMonthPatientsCount) > 0 ? 'text-success' : 'text-error'}`}>
+                            <motion.div className="inline text-xs">
+                                {transformedPatientsChangeText}
+                            </motion.div>%
+                        </div>
                         {((monthlyPatientsCount - previousMonthPatientsCount) / previousMonthPatientsCount) > 0
                             ? (local.direction === 'ltr' ? <MoveUpRightIcon size={15} className={`inline text-xs text-success`} /> : <MoveUpLeftIcon size={15} className={`inline text-xs text-success`} />)
                             : (local.direction === 'ltr' ? <MoveDownRightIcon size={15} className={`inline text-xs text-error`} /> : <MoveDownLeftIcon size={15} className={`inline text-xs text-error`} />)
@@ -94,7 +96,7 @@ export const PatientsCounter = memo(function PatientsCounter() {
                     </div>
                 </div>
                 <div className="flex items-center">
-                    <div className="text-xs text-outline mr-1">{t('Analytics.patients')}</div>
+                    <div className="text-xs text-outline mr-1">{t('PatientsCounter.Patients')}</div>
                     <Button size='xs' variant="text" className="w-6 h-6" fgColor="primary" onClick={() => navigate('/Patients')}>
                         {local.direction === 'ltr'
                             ? <ChevronRightIcon />
