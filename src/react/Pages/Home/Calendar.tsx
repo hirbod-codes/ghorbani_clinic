@@ -17,6 +17,7 @@ import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 import { RendererDbAPI } from "@/src/Electron/Database/renderer";
 
+// To Do: fix on DataGrid click
 export function Calendar({ containerProps, calendarContainerProps }: { containerProps?: ComponentProps<'div'>, calendarContainerProps?: ComponentProps<'div'> }) {
     const configuration = useContext(ConfigurationContext)!
 
@@ -150,11 +151,11 @@ export function Calendar({ containerProps, calendarContainerProps }: { container
                             <>
                                 <Stack direction='vertical' stackProps={{ className: 'h-full' }}>
                                     <Stack stackProps={{ className: "items-center justify-between" }}>
-                                        <p>{t('Calendar.patientsCount')}:</p>
+                                        <p>{t('Calendar.PatientsCount')}:</p>
                                         <p>{patientsCount}</p>
                                     </Stack>
                                     <Stack stackProps={{ className: "items-center justify-between" }}>
-                                        <p>{t('Calendar.visitsCount')}:</p>
+                                        <p>{t('Calendar.VisitsCount')}:</p>
                                         <p>{visits.length}</p>
                                     </Stack>
 
@@ -192,7 +193,7 @@ export function Calendar({ containerProps, calendarContainerProps }: { container
                 canvasId={visits.find(f => f._id === showDiagnosis)?.diagnosis?.canvas as string}
                 title={t('Visits.diagnosis')}
                 onSave={async (diagnosis, canvasId) => {
-                    console.log('ManageVisits', 'diagnosis', 'onChange', diagnosis, canvasId)
+                    console.log('Calendar', 'diagnosis', 'onChange', diagnosis, canvasId)
 
                     if (visits.find(f => f._id === showDiagnosis)) {
                         visits.find(f => f._id === showDiagnosis)!.diagnosis = { text: diagnosis, canvas: canvasId }
@@ -210,7 +211,7 @@ export function Calendar({ containerProps, calendarContainerProps }: { container
                 canvasId={visits.find(f => f._id === showTreatments)?.treatments?.canvas as string}
                 title={t('Visits.treatments')}
                 onSave={async (treatments, canvasId) => {
-                    console.log('ManageVisits', 'treatments', 'onChange', treatments, canvasId)
+                    console.log('Calendar', 'treatments', 'onChange', treatments, canvasId)
 
                     if (visits.find(f => f._id === showTreatments)) {
                         visits.find(f => f._id === showTreatments)!.treatments = { text: treatments, canvas: canvasId }
