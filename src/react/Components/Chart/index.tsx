@@ -219,7 +219,7 @@ export function Chart({
     }, [shapes])
 
     return (
-        <div className="size-full" ref={containerRef}>
+        <div className="size-full overflow-hidden" ref={containerRef}>
             <canvas
                 ref={canvasRef}
                 className="size-full"
