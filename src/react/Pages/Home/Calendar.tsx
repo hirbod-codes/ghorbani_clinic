@@ -103,14 +103,14 @@ export function Calendar({ containerProps, calendarContainerProps }: { container
             if (res.code !== 200 || !res.data) {
                 publish(RESULT_EVENT_NAME, {
                     severity: 'error',
-                    message: t('Visits.failedToUpdateVisit')
+                    message: t('Calendar.failedToUpdateVisit')
                 })
                 return
             }
 
             publish(RESULT_EVENT_NAME, {
                 severity: 'success',
-                message: t('Visits.successfullyUpdatedVisit')
+                message: t('Calendar.successfullyUpdatedVisit')
             })
         } catch (error) {
             console.error(error)
@@ -123,12 +123,12 @@ export function Calendar({ containerProps, calendarContainerProps }: { container
         {
             id: 'diagnosis',
             accessorKey: 'diagnosis',
-            cell: ({ row }) => <Button onClick={() => setShowDiagnosis(visits.find(v => v._id === row.original._id)?._id as string)}>{t('Visits.Show')}</Button>
+            cell: ({ row }) => <Button onClick={() => setShowDiagnosis(visits.find(v => v._id === row.original._id)?._id as string)}>{t('Calendar.Show')}</Button>
         },
         {
             id: 'treatments',
             accessorKey: 'treatments',
-            cell: ({ row }) => (<Button onClick={() => setShowTreatments(visits.find(v => v._id === row.original._id)?._id as string)}>{t('Visits.Show')}</Button>)
+            cell: ({ row }) => (<Button onClick={() => setShowTreatments(visits.find(v => v._id === row.original._id)?._id as string)}>{t('Calendar.Show')}</Button>)
         },
         {
             id: 'due',
@@ -191,7 +191,7 @@ export function Calendar({ containerProps, calendarContainerProps }: { container
                 }}
                 text={visits.find(f => f._id === showDiagnosis)?.diagnosis?.text}
                 canvasId={visits.find(f => f._id === showDiagnosis)?.diagnosis?.canvas as string}
-                title={t('Visits.diagnosis')}
+                title={t('Calendar.diagnosis')}
                 onSave={async (diagnosis, canvasId) => {
                     console.log('Calendar', 'diagnosis', 'onChange', diagnosis, canvasId)
 
@@ -209,7 +209,7 @@ export function Calendar({ containerProps, calendarContainerProps }: { container
                 }}
                 text={visits.find(f => f._id === showTreatments)?.treatments?.text}
                 canvasId={visits.find(f => f._id === showTreatments)?.treatments?.canvas as string}
-                title={t('Visits.treatments')}
+                title={t('Calendar.treatments')}
                 onSave={async (treatments, canvasId) => {
                     console.log('Calendar', 'treatments', 'onChange', treatments, canvasId)
 
