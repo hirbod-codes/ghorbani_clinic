@@ -110,6 +110,12 @@
         "done": "انجام شد"
     },
     "Patients": {
+        "successfullyFetchedPatients": "اطلاعات بیماران دریافت شد.",
+        "NoData": "No data",
+        "deletePatientDialogContent": "در حال حذف یک بیمار هستید، آیا می خواهید ادامه دهید؟",
+        "Documents": "مدارک",
+        "Yes": "بله",
+        "No": "خیر",
         "failedToFetchPatients": "بازیابی اطلاعات بیماران با شکست مواجه شد",
         "Show": "نمایش",
         "actions": "اقدامات",
