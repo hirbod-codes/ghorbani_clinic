@@ -11,9 +11,11 @@ import { SearchIcon } from "lucide-react";
 import { AuthContext } from "../../Contexts/AuthContext";
 import { Button } from "../Base/Button";
 import { resources } from "@/src/Electron/Database/Repositories/Auth/resources";
+import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
 
 export const SearchPatientField = memo(function SearchPatientField() {
     const auth = useContext(AuthContext)
+    const local = useContext(ConfigurationContext)!.local
 
     const [open, setOpen] = useState<boolean>(false);
 
@@ -67,20 +69,20 @@ export const SearchPatientField = memo(function SearchPatientField() {
                 errorText={errorText}
                 animateHeight
                 startIcon={loading ? <CircularLoadingIcon /> : <SearchIcon />}
-                className={createsPatient ? 'pl-[1cm] pr-[2cm]' : undefined}
+                className={createsPatient ? (local.direction === 'ltr' ? 'pl-[1cm] pr-[2cm]' : 'pr-[1cm] pl-[2cm]') : undefined}
                 endIcon={
                     createsPatient ?
                         <Button
                             bgColor="success"
                             fgColor='success-foreground'
-                            className="h-full border-0 "
+                            className="h-full border-0"
                             onClick={() => setOpen(true)}
                         >
                             +{t('SearchPatientField.Create')}
                         </Button>
                         : undefined
                 }
-                endIconProps={{ className: 'right-0 border-0' }}
+                endIconProps={{ className: `${local.direction === 'ltr' ? 'right-0' : 'left-0'} border-0` }}
             />
 
             <ManagePatientModal

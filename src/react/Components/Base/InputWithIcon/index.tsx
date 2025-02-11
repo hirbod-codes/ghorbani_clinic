@@ -8,10 +8,13 @@ export function InputWithIcon({ startIcon, startIconProps, endIcon, endIconProps
     let si = local.direction === 'ltr' ? startIcon : endIcon
     let ei = local.direction === 'ltr' ? endIcon : startIcon
 
+    let siProps = local.direction === 'ltr' ? startIconProps : endIconProps
+    let eiProps = local.direction === 'ltr' ? endIconProps : startIconProps
+
     return (
         <div className="relative">
             {si && (
-                <div {...startIconProps} className={cn("absolute left-1.5 top-1/2 transform -translate-y-1/2", startIconProps?.className)}>
+                <div {...siProps} className={cn("absolute left-1.5 top-1/2 transform -translate-y-1/2", siProps?.className)}>
                     {si}
                 </div>
             )}
@@ -25,7 +28,7 @@ export function InputWithIcon({ startIcon, startIconProps, endIcon, endIconProps
                 )}
             />
             {ei && (
-                <div {...endIconProps} className={cn("absolute right-3 top-1/2 transform -translate-y-1/2", endIconProps?.className)}>
+                <div {...eiProps} className={cn("absolute right-3 top-1/2 transform -translate-y-1/2", eiProps?.className)}>
                     {ei}
                 </div>
             )}
