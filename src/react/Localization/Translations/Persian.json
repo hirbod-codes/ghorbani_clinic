@@ -54,6 +54,10 @@
     "GeneralSetting": {
         "TemporaryStorageLimit": "محدودیت حافظه موقت"
     },
+    "Error": {
+        "errorMessage": "متاسفانه، به مشکلی برخوردیم.",
+        "buttonText": "برگرد به خانه"
+    },
     "Roles": {
         "admin": "مدیر سیستم",
         "doctor": "پزشک",
