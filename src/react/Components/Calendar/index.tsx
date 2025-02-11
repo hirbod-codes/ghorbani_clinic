@@ -1,6 +1,6 @@
 import { memo, useContext, useReducer, useState } from "react";
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
-import { toDateTimeView, toFormat } from "../../Lib/DateTime/date-time-helpers";
+import { toDateTime, toDateTimeView, toFormat } from "../../Lib/DateTime/date-time-helpers";
 import { DateTime } from "luxon";
 import { CalendarManager } from "./CalendarManager";
 import { CalendarScopes } from "./index.d";
@@ -54,13 +54,6 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
         rerender()
     }
 
-    let coloredIndex
-    let ts = DateTime.utc().toUnixInteger()
-    if (
-        calendarManager.selectedYear === Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'yyyy')) &&
-        calendarManager.selectedMonth === Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'M'))
-    )
-        coloredIndex = Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'd')) + 1
     const onElmClick = (value: string | number, i: number) => {
         switch (calendarManager.getScope()) {
             case 'years':
@@ -128,20 +121,35 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
         }
     }
 
+    let ts = toDateTime(DateTime.utc(), local).toUnixInteger()
+    let coloredIndex
     let collection: (string | number)[], headers: string[] | undefined = undefined, columns = 7
     switch (calendarManager.getScope()) {
         case 'days':
             columns = 7
             collection = calendarManager.getScopeValues() as number[]
             headers = calendarManager.getWeekDays().map(e => e.slice(0, 3))
+
+            if (
+                calendarManager.selectedYear === Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'yyyy')) &&
+                calendarManager.selectedMonth === Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'M'))
+            )
+                coloredIndex = collection.filter(f => f === null).length + Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'd')) - 1
+
             break;
         case 'months':
             columns = 3
             collection = calendarManager.getScopeValues().map(e => e.name.slice(0, 3))
+
+            if (calendarManager.selectedYear === Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'yyyy')))
+                coloredIndex = Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'M')) - 1
             break;
         case 'years':
             columns = 7
             collection = calendarManager.getScopeValues() as number[]
+
+            if (collection.includes(Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'yyyy'))))
+                coloredIndex = collection.findIndex(f => f === Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'yyyy')))
             break;
     }
 
