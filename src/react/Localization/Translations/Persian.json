@@ -133,7 +133,13 @@
         "successfullyUpdatedPatientMedicalHistory": "تاریخچه پزشکی بیمار با موفقیت بروزرسانی شد"
     },
     "ManagePatient": {
-        "failedToUpdatePatient":"بروزرسانی اطلاعات بیمار شکست خورد",
+        "UpdatePatient": "بروزرسانی بیمار",
+        "RegisterPatient": "ثبت بیمار",
+        "Documents": "مدارک",
+        "male": "مذکر",
+        "female": "مونث",
+        "visits": "نوبت ها",
+        "failedToUpdatePatient": "بروزرسانی اطلاعات بیمار شکست خورد",
         "failedToUpdatePatientVisits": "بروزرسانی ویزیت‌های بیمار با شکست مواجه شد",
         "failedToRegisterPatient": "ثبت بیمار با شکست مواجه شد",
         "failedToRegisterPatientVisits": "ثبت ویزیت‌های بیمار با شکست مواجه شد",
