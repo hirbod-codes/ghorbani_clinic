@@ -52,7 +52,7 @@ export class LineChart extends Shape {
         this.calculateExtremes = options.calculateExtremes ?? false
         this.xRange = [...(options.xRange ?? [undefined, undefined])]
         this.yRange = [...(options.yRange ?? [undefined, undefined])]
-        
+
         if (options.chartOptions !== undefined)
             this.setChartOptions(options.chartOptions)
 
@@ -290,14 +290,15 @@ export class LineChart extends Shape {
 
         let r = this.hoverOptions.hoverRadius!
 
-        for (let i = 0; i < this.points.length; i++)
-            if (
-                p.x <= this.points[i].x + r &&
-                p.x >= this.points[i].x - r &&
-                p.y <= this.points[i].y + r &&
-                p.y >= this.points[i].y - r
-            )
-                return i
+        if (this.points !== undefined)
+            for (let i = 0; i < this.points.length; i++)
+                if (
+                    p.x <= this.points[i].x + r &&
+                    p.x >= this.points[i].x - r &&
+                    p.y <= this.points[i].y + r &&
+                    p.y >= this.points[i].y - r
+                )
+                    return i
 
         return undefined
     }

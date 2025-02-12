@@ -74,7 +74,7 @@ export function Chart({
     const hover = useRef<{ [k: number]: { open?: boolean, pIndex?: number, top?: number, left?: number, node?: ReactNode } }>({})
     const hoverEvent = useRef<PointerEvent>()
 
-    const hasDrawn = useRef<boolean>(false)
+    const hasPlayed = useRef<boolean>(false)
 
     const [, rerender] = useReducer(x => x + 1, 0)
 
@@ -160,9 +160,8 @@ export function Chart({
     }, [shapes, xAxis, yAxis, chartOptions.current])
 
     useEffect(() => {
-        if (shapes.length > 0 && canvasRef.current && containerRef.current && hasDrawn.current === false) {
-            hasDrawn.current = true
-
+        console.log('Chart', 'useEffect')
+        if (canvasRef.current && containerRef.current) {
             const rect = containerRef.current.getBoundingClientRect()
             canvasWidth.current = rect.width
             canvasHeight.current = rect.height
@@ -179,7 +178,12 @@ export function Chart({
 
             chartOptions.current.width = rect.width - (chartOptions.current.offset!.left + chartOptions.current.offset!.right)
             chartOptions.current.height = rect.height - (chartOptions.current.offset!.top + chartOptions.current.offset!.bottom)
+        }
+    }, [shapes, canvasRef?.current, containerRef?.current])
 
+    useEffect(() => {
+        console.log('Chart', 'useEffect2')
+        if (ctx.current && canvasWidth.current && canvasHeight.current && shapes.length > 0 && shapes.find(f => f.getChartOptions() === undefined) !== undefined) {
             shapes.forEach(s => s.setChartOptions({ ...chartOptions.current, ...s.getChartOptions(), width: chartOptions.current.width, height: chartOptions.current.height }))
 
             if (afterChartOptionsSet)
@@ -187,9 +191,12 @@ export function Chart({
 
             rerender()
 
-            drawAnimation.play((t => draw(ctx.current!, canvasWidth.current!, canvasHeight.current!, t)))
+            if (!hasPlayed.current) {
+                hasPlayed.current = true
+                drawAnimation.play((t => draw(ctx.current!, canvasWidth.current!, canvasHeight.current!, t)))
+            }
         }
-    }, [shapes, canvasRef?.current, containerRef?.current])
+    }, [chartOptions?.current, shapes, canvasRef?.current, containerRef?.current])
 
     const onPointerOver = useCallback(function onPointerOver(e: PointerEvent) {
         hoverEvent.current = e

@@ -1,4 +1,4 @@
-import { memo } from "react";
+import { memo, useEffect, useRef } from "react";
 import { Calendar } from "./Calendar";
 import { Clock } from "../../Components/Clock";
 import { VisitsChart } from "../../Components/Charts/VisitsChart";
@@ -9,6 +9,15 @@ import { Analytics } from "../../Components/Analytics";
 
 export const Home = memo(function Home() {
     console.log('Home')
+
+    const ttt = useRef(false)
+
+    useEffect(() => {
+        if (ttt.current === false) {
+            ttt.current = true
+            requestAnimationFrame((t) => { })
+        }
+    }, [])
 
     return (
         <div className="size-full lg:overflow-hidden overflow-auto">
@@ -23,7 +32,7 @@ export const Home = memo(function Home() {
                 <div className="sm:col-span-12 lg:col-span-4 col-span-12 lg:row-span-2 p-2 border m-1 rounded-xl bg-surface-container shadow-sm">
                     <Analytics />
                 </div>
-
+                {/* 
                 <div className="sm:col-span-12 lg:col-span-8 col-span-12 lg:row-span-2 border m-1 rounded-xl bg-surface-container shadow-sm">
                     <Stack direction="vertical" stackProps={{ className: 'p-4 h-full' }}>
                         <Stack stackProps={{ className: 'justify-between items-center' }}>
@@ -34,7 +43,7 @@ export const Home = memo(function Home() {
                             <PatientsChart />
                         </div>
                     </Stack>
-                </div>
+                </div> */}
 
                 <div className="sm:col-span-12 lg:col-span-8 col-span-12 lg:row-span-2 border m-1 rounded-xl bg-surface-container shadow-sm">
                     <Stack direction="vertical" stackProps={{ className: 'p-4 h-full' }}>

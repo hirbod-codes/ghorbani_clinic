@@ -75,56 +75,61 @@ export class Shape {
     animate(t: DOMHighResTimeStamp, animationKey: number | string, animationCallback: (dx: number) => void) {
         this.setDefaults(animationKey)
 
-        if (this.animationsDuration[animationKey] === undefined || this.animationsDuration[animationKey] <= 0)
+        if (this.animationsDuration[animationKey] === undefined || this.animationsDuration[animationKey] <= 0) {
             if (typeof this.animationsController[animationKey] === 'number' && this.animationsController[animationKey] >= 0)
                 animationCallback(1)
             else if (Array.isArray(this.animationsController[animationKey]) && this.animationsController[animationKey].length > 0)
                 animationCallback(1)
-            else
-                return
+
+            return
+        }
 
         if (this.animationsFirstTimestamp[animationKey] === 0)
             this.animationsFirstTimestamp[animationKey] = t
 
         this.animationsPassed[animationKey] = t - this.animationsFirstTimestamp[animationKey]
 
-        let dx = this.animationsPreviousDx[animationKey]
-
-        if (!this.animationsStop[animationKey]) {
-            dx = (this.animationsPassed[animationKey] % this.animationsDuration[animationKey]) / this.animationsDuration[animationKey]
-
-            if (this.animationsPreviousDx[animationKey] > dx)
-                this.animationsRunCounts[animationKey] += 1
-            this.animationsPreviousDx[animationKey] = dx
+        if (this.animationsStop[animationKey] === true)
+            animationCallback(this.animationsPreviousDx[animationKey])
+        else {
+            let dx = (this.animationsPassed[animationKey] % this.animationsDuration[animationKey]) / this.animationsDuration[animationKey]
 
             let i = Math.floor(this.animationsPassed[animationKey] / this.animationsDuration[animationKey])
 
-            let tmp = this.shouldAnimate(this.animationsController[animationKey], this.animationsRunCounts[animationKey], i, dx)
-            if (tmp === undefined)
+            let tmp = this.shouldAnimate(this.animationsController[animationKey], this.animationsPreviousDx[animationKey] > dx ? this.animationsRunCounts[animationKey] + 1 : this.animationsRunCounts[animationKey], i, dx)
+            if (tmp === false)
                 return
 
-            dx = tmp
-        }
+            if (tmp === true)
+                animationCallback(1)
+            else {
+                if (this.animationsPreviousDx[animationKey] > dx)
+                    this.animationsRunCounts[animationKey] += 1
+                this.animationsPreviousDx[animationKey] = dx
 
-        animationCallback(dx)
+                animationCallback(tmp)
+            }
+        }
     }
 
-    private shouldAnimate(controller: number | any[], animationRunsCount: number, animationRunIndex: number, dx: number): number | undefined {
+    private shouldAnimate(controller: number | any[], animationRunsCount: number, animationRunIndex: number, dx: number): number | boolean {
         if (typeof controller === 'number')
             if (controller < 0)
-                return
+                return false
             else if (controller === 0)
-                return 1
+                return true
             else if (animationRunsCount <= controller)
                 return dx
             else
-                return 1
+                return true
         else if (Array.isArray(controller))
             if (controller[animationRunIndex] === true)
                 return dx
             else if (controller[animationRunIndex] === false)
-                return 1
+                return true
             else
-                return
+                return false
+        else
+            throw new Error('Invalid controller provided for chart animations!')
     }
 }

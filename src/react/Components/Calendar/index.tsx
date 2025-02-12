@@ -8,6 +8,7 @@ import { NextPrevButtons } from "./NextPrevButtons";
 import { Slide } from "./Slide";
 import { Separator } from "../../shadcn/components/ui/separator";
 import { Stack } from "../Base/Stack";
+import { localizeNumbers } from "../../Localization/helpers";
 
 export type CalendarProps = {
     validScopes?: CalendarScopes[],
@@ -74,7 +75,7 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
                 break;
             case 'days':
                 if (onDaySelect)
-                    onDaySelect(calendarManager.selectedYear, calendarManager.selectedMonth, i + 1)
+                    onDaySelect(calendarManager.selectedYear, calendarManager.selectedMonth, i + 1 - collection.filter(f => f === null).length)
                 break;
         }
     }
@@ -121,7 +122,7 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
         }
     }
 
-    let ts = toDateTime(DateTime.utc(), local).toUnixInteger()
+    let ts = DateTime.utc().toUnixInteger()
     let coloredIndex
     let collection: (string | number)[], headers: string[] | undefined = undefined, columns = 7
     switch (calendarManager.getScope()) {
@@ -131,25 +132,24 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
             headers = calendarManager.getWeekDays().map(e => e.slice(0, 3))
 
             if (
-                calendarManager.selectedYear === Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'yyyy')) &&
-                calendarManager.selectedMonth === Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'M'))
+                calendarManager.selectedYear === Number(toFormat(ts, { ...local, language: 'en' }, { ...local, zone: 'UTC' }, 'yyyy')) &&
+                calendarManager.selectedMonth === Number(toFormat(ts, { ...local, language: 'en' }, { ...local, zone: 'UTC' }, 'M'))
             )
-                coloredIndex = collection.filter(f => f === null).length + Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'd')) - 1
-
+                coloredIndex = collection.filter(f => f === null).length + Number(toFormat(ts, { ...local, language: 'en' }, { ...local, zone: 'UTC' }, 'd')) - 1
             break;
         case 'months':
             columns = 3
             collection = calendarManager.getScopeValues().map(e => e.name.slice(0, 3))
 
-            if (calendarManager.selectedYear === Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'yyyy')))
-                coloredIndex = Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'M')) - 1
+            if (calendarManager.selectedYear === Number(toFormat(ts, { ...local, language: 'en' }, { ...local, zone: 'UTC' }, 'yyyy')))
+                coloredIndex = Number(toFormat(ts, { ...local, language: 'en' }, { ...local, zone: 'UTC' }, 'M')) - 1
             break;
         case 'years':
             columns = 7
-            collection = calendarManager.getScopeValues() as number[]
+            collection = (calendarManager.getScopeValues() as number[])
 
-            if (collection.includes(Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'yyyy'))))
-                coloredIndex = collection.findIndex(f => f === Number(toFormat(ts, local, { ...local, zone: 'UTC' }, 'yyyy')))
+            if (collection.includes(Number(toFormat(ts, { ...local, language: 'en' }, { ...local, zone: 'UTC' }, 'yyyy'))))
+                coloredIndex = collection.findIndex(f => f === Number(toFormat(ts, { ...local, language: 'en' }, { ...local, zone: 'UTC' }, 'yyyy')))
             break;
     }
 
@@ -172,7 +172,7 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
             <div className="flex-grow">
                 <Slide
                     columns={columns}
-                    collection={collection}
+                    collection={collection.map(n => ({ value: n, displayValue: calendarManager.getScope() === 'months' ? n : localizeNumbers(local.language, n, { useGrouping: false }) }))}
                     headers={headers}
                     onElmClick={onElmClick}
                     onPointerOver={onPointerOver}

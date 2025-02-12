@@ -7,6 +7,8 @@ import { DATE, gregorianToPersian, persianToGregorian, toDateTime, toFormat } fr
 import { Stack } from "../../Base/Stack"
 import { RendererDbAPI } from "@/src/Electron/Database/renderer"
 import { Chart } from "../../Chart"
+import { localizeNumbers } from "@/src/react/Localization/helpers"
+import { t } from "i18next"
 
 export function VisitsChart() {
     let local = useContext(ConfigurationContext)!.local
@@ -21,8 +23,13 @@ export function VisitsChart() {
 
     const xRange = useRef<[number | undefined, number | undefined]>()
 
+    const hasPlayed = useRef<boolean>(false)
+
     useEffect(() => {
-        init()
+        if (!hasPlayed.current) {
+            hasPlayed.current = true
+            init()
+        }
     }, [])
 
     async function init() {
@@ -66,12 +73,6 @@ export function VisitsChart() {
             let safety = 0
             do {
                 safety++
-                console.log(
-                    xRange.current![1]!,
-                    JSON.stringify(DateTime.fromSeconds(xRange.current![1]!).toObject()),
-                    gregorianToPersian(DateTime.fromSeconds(xRange.current![1]!).toObject()),
-                    persianToGregorian(gregorianToPersian(DateTime.fromSeconds(xRange.current![1]!).toObject()))
-                );
 
                 ts = toDateTime({ date: persianToGregorian(p), time: { hour: 0, minute: 0, second: 0, millisecond: 0 } }, { ...local, calendar: 'Gregorian', zone: 'UTC' }, { ...local, calendar: 'Gregorian', zone: 'UTC' }).toUnixInteger()
 
@@ -92,7 +93,7 @@ export function VisitsChart() {
             x: visitsPerDay.map(v => v.dateTS),
             y: visitsPerDay.map(v => v.count),
             xLabels: xLabels.map(v => ({ ...v, options: { className: 'text-xs' } })),
-            yLabels: Array(5).fill(0).map((v, i) => ({ value: (yRange![1]! - yRange![0]!) * i / 4, node: (yRange![1]! - yRange![0]!) * i / 4, options: { className: 'text-xs' } })),
+            yLabels: Array(5).fill(0).map((v, i) => ({ value: (yRange![1]! - yRange![0]!) * i / 4, node: localizeNumbers(local.language, (yRange![1]! - yRange![0]!) * i / 4), options: { className: 'text-xs' } })),
             xRange: xRange.current,
             yRange,
             verticalLinesOptions: {
@@ -146,8 +147,8 @@ export function VisitsChart() {
             hoverOptions: {
                 getHoverNode: (ps, i) =>
                     <Stack direction="vertical" stackProps={{ className: 'p-2 rounded-lg bg-surface-container border' }}>
-                        <Stack stackProps={{ className: 'justify-between' }}><div>count</div> <div>{visitsPerDay[i].count}</div></Stack>
-                        <Stack stackProps={{ className: 'justify-between' }}><div>date</div> <div>{toFormat(visitsPerDay[i].dateTS, local, undefined, DATE)}</div></Stack>
+                        <Stack stackProps={{ className: 'justify-between' }}><div>{t('VisitsChart.count')}</div> <div>{localizeNumbers(local.language, visitsPerDay[i].count)}</div></Stack>
+                        <Stack stackProps={{ className: 'justify-between' }}><div>{t('VisitsChart.date')}</div> <div>{toFormat(visitsPerDay[i].dateTS, local, undefined, DATE)}</div></Stack>
                     </Stack>,
                 hoverRadius: 0,
             },
@@ -165,7 +166,7 @@ export function VisitsChart() {
         // {dateTS => count}
         let map: { [k: string]: number } = {}
         for (let i = 0; i < vs.length; i++) {
-            let k = toFormat(vs[i].due, local, undefined, 'yyyy M')
+            let k = DateTime.fromSeconds(vs[i].due!).toFormat('yyyy M')
 
             if (map[k] === undefined)
                 map[k] = 1

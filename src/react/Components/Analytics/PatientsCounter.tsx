@@ -7,6 +7,7 @@ import { ChevronLeftIcon, ChevronRightIcon, MoveDownLeftIcon, MoveDownRightIcon,
 import { DateTime } from "luxon";
 import { useNavigate } from "react-router-dom";
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
+import { localizeNumbers } from "../../Localization/helpers";
 
 export const PatientsCounter = memo(function PatientsCounter() {
     const local = useContext(ConfigurationContext)!.local
@@ -55,22 +56,22 @@ export const PatientsCounter = memo(function PatientsCounter() {
         initProgressBars()
     }, []);
 
-    const visitsCountText = useMotionValue(0);
-    const transformedPatientsCountText = useTransform(visitsCountText, (v) => Math.floor(v));
-    const visitsChangeText = useMotionValue(0);
-    const transformedPatientsChangeText = useTransform(visitsChangeText, (v) => Math.floor(v));
+    const patientsCountText = useMotionValue(0);
+    const transformedPatientsCountText = useTransform(patientsCountText, (v) => localizeNumbers(local.language, Math.floor(v)));
+    const patientsChangeText = useMotionValue(0);
+    const transformedPatientsChangeText = useTransform(patientsChangeText, (v) => localizeNumbers(local.language, Math.floor(v)));
 
     useEffect(() => {
-        if (!initLoading)
-            if (monthlyPatientsCount)
-                animate(visitsCountText, monthlyPatientsCount, { duration: Math.log10(monthlyPatientsCount), ease: [0.2, 0.4, 0.4, 1] })
-    }, [monthlyPatientsCount, !initLoading])
+        if (initLoading === false && monthlyPatientsCount !== undefined)
+            animate(patientsCountText, monthlyPatientsCount, { duration: Math.min(3, Math.log10(monthlyPatientsCount)), ease: [0.2, 0.4, 0.4, 1] })
+    }, [monthlyPatientsCount, initLoading])
 
     useEffect(() => {
-        if (!initLoading)
-            if (monthlyPatientsCount && previousMonthPatientsCount)
-                animate(visitsChangeText, 100 * (monthlyPatientsCount - previousMonthPatientsCount) / previousMonthPatientsCount, { duration: Math.log10(100 * (monthlyPatientsCount - previousMonthPatientsCount) / previousMonthPatientsCount), ease: [0.2, 0.4, 0.4, 1] })
-    }, [monthlyPatientsCount, previousMonthPatientsCount, !initLoading])
+        if (initLoading === false && monthlyPatientsCount !== undefined && previousMonthPatientsCount !== undefined) {
+            let to = 100 * Math.abs(monthlyPatientsCount - previousMonthPatientsCount) / previousMonthPatientsCount
+            animate(patientsChangeText, to, { duration: Math.min(3, Math.log10(to)), ease: [0.2, 0.4, 0.4, 1] })
+        }
+    }, [monthlyPatientsCount, previousMonthPatientsCount, initLoading])
 
     return (
         previousMonthPatientsCount !== undefined && monthlyPatientsCount !== undefined && !initLoading &&
@@ -79,13 +80,13 @@ export const PatientsCounter = memo(function PatientsCounter() {
                 {t('PatientsCounter.PatientsPerMonth')}
             </div>
             <div className="flex items-baseline justify-between w-full">
-                <div className="flex items-baseline">
+                <motion.div className="flex items-baseline">
                     <motion.div className="text-4xl mr-1">
                         {transformedPatientsCountText}
                     </motion.div>
                     <div>
                         <div dir='ltr' className={`inline text-xs ${((monthlyPatientsCount - previousMonthPatientsCount) / previousMonthPatientsCount) > 0 ? 'text-success' : 'text-error'}`}>
-                            <motion.div className="inline text-xs">
+                            {monthlyPatientsCount - previousMonthPatientsCount < 0 && '-'}<motion.div className="inline text-xs">
                                 {transformedPatientsChangeText}
                             </motion.div>%
                         </div>
@@ -94,7 +95,7 @@ export const PatientsCounter = memo(function PatientsCounter() {
                             : (local.direction === 'ltr' ? <MoveDownRightIcon size={15} className={`inline text-xs text-error`} /> : <MoveDownLeftIcon size={15} className={`inline text-xs text-error`} />)
                         }
                     </div>
-                </div>
+                </motion.div>
                 <div className="flex items-center">
                     <div className="text-xs text-outline mr-1">{t('PatientsCounter.Patients')}</div>
                     <Button size='xs' variant="text" className="w-6 h-6" fgColor="primary" onClick={() => navigate('/Patients')}>

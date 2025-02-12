@@ -7,6 +7,7 @@ import { ChevronLeftIcon, ChevronRightIcon, MoveDownLeftIcon, MoveDownRightIcon,
 import { DateTime } from "luxon";
 import { useNavigate } from "react-router-dom";
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext";
+import { localizeNumbers } from "../../Localization/helpers";
 
 
 export const VisitsCounter = memo(function VisitsCounter() {
@@ -57,21 +58,23 @@ export const VisitsCounter = memo(function VisitsCounter() {
     }, []);
 
     const visitsCountText = useMotionValue(0);
-    const transformedVisitsCountText = useTransform(visitsCountText, (v) => Math.floor(v));
+    const transformedVisitsCountText = useTransform(visitsCountText, (v) => localizeNumbers(local.language, Math.floor(v)));
     const visitsChangeText = useMotionValue(0);
-    const transformedVisitsChangeText = useTransform(visitsChangeText, (v) => Math.floor(v));
+    const transformedVisitsChangeText = useTransform(visitsChangeText, (v) => localizeNumbers(local.language, Math.floor(v)));
 
     useEffect(() => {
         if (!initLoading)
-            if (monthlyVisitsCount)
-                animate(visitsCountText, monthlyVisitsCount, { duration: Math.log10(monthlyVisitsCount), ease: [0.2, 0.4, 0.4, 1] })
-    }, [monthlyVisitsCount, !initLoading])
+            if (monthlyVisitsCount !== undefined)
+                animate(visitsCountText, monthlyVisitsCount, { duration: Math.min(3, Math.log10(monthlyVisitsCount)), ease: [0.2, 0.4, 0.4, 1] })
+    }, [monthlyVisitsCount, initLoading])
 
     useEffect(() => {
         if (!initLoading)
-            if (monthlyVisitsCount && previousMonthVisitsCount)
-                animate(visitsChangeText, 100 * (monthlyVisitsCount - previousMonthVisitsCount) / previousMonthVisitsCount, { duration: Math.log10(100 * (monthlyVisitsCount - previousMonthVisitsCount) / previousMonthVisitsCount), ease: [0.2, 0.4, 0.4, 1] })
-    }, [monthlyVisitsCount, previousMonthVisitsCount, !initLoading])
+            if (monthlyVisitsCount !== undefined && previousMonthVisitsCount !== undefined) {
+                let to = 100 * Math.abs(monthlyVisitsCount - previousMonthVisitsCount) / previousMonthVisitsCount
+                animate(visitsChangeText, to, { duration: Math.min(3, Math.log10(to)), ease: [0.2, 0.4, 0.4, 1] })
+            }
+    }, [monthlyVisitsCount, previousMonthVisitsCount, initLoading])
 
     return (
         previousMonthVisitsCount !== undefined && monthlyVisitsCount !== undefined && !initLoading &&
@@ -86,7 +89,7 @@ export const VisitsCounter = memo(function VisitsCounter() {
                     </motion.div>
                     <div>
                         <div dir="ltr" className={`inline text-xs ${((monthlyVisitsCount - previousMonthVisitsCount) / previousMonthVisitsCount) > 0 ? 'text-success' : 'text-error'}`}>
-                            <motion.div className="inline text-xs">
+                            {monthlyVisitsCount - previousMonthVisitsCount < 0 && '-'}<motion.div className="inline text-xs">
                                 {transformedVisitsChangeText}
                             </motion.div>%
                         </div>

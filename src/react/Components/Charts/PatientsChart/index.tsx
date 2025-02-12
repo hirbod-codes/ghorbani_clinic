@@ -6,6 +6,7 @@ import { DateTime } from "luxon"
 import { RendererDbAPI } from "@/src/Electron/Database/renderer"
 import { gregorianToPersian, persianToGregorian, toDateTime, toFormat } from "@/src/react/Lib/DateTime/date-time-helpers"
 import { Chart } from "../../Chart"
+import { localizeNumbers } from "@/src/react/Localization/helpers"
 
 export function PatientsChart() {
     let local = useContext(ConfigurationContext)!.local
@@ -81,7 +82,7 @@ export function PatientsChart() {
             x: pspm.map(v => v.dateTS),
             y: pspm.map(v => v.count),
             xLabels: xLabels.map(v => ({ ...v, options: { className: 'text-xs' } })),
-            yLabels: Array(5).fill(0).map((v, i) => ({ value: (yRange![1]! - yRange![0]!) * i / 4, node: (yRange![1]! - yRange![0]!) * i / 4, options: { className: 'text-xs' } })),
+            yLabels: Array(5).fill(0).map((v, i) => ({ value: (yRange![1]! - yRange![0]!) * i / 4, node: localizeNumbers(local.language, (yRange![1]! - yRange![0]!) * i / 4), options: { className: 'text-xs' } })),
             xRange: xRange.current,
             yRange,
             verticalLinesOptions: {
@@ -139,11 +140,11 @@ export function PatientsChart() {
         setReady(true)
     }
 
-    function calculatePatientsPerMonth(vs: Patient[]): { count: number, dateTS: number }[] {
+    function calculatePatientsPerMonth(patients: Patient[]): { count: number, dateTS: number }[] {
         // {dateTS => count}
         let map: { [k: string]: number } = {}
-        for (let i = 0; i < vs.length; i++) {
-            let k = DateTime.fromSeconds(vs[i].createdAt!).toFormat('yyyy LLL')
+        for (let i = 0; i < patients.length; i++) {
+            let k = DateTime.fromSeconds(patients[i].createdAt!).toFormat('yyyy LLL')
 
             if (map[k] === undefined)
                 map[k] = 1

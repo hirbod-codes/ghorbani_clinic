@@ -49,7 +49,7 @@ export const General = memo(function General() {
                 />
 
                 <Select
-                    label="Calendar"
+                    label={t("common.calendar")}
                     defaultDisplayValue={configuration.local.calendar === 'Persian' ? t('common.persianCalendarName') : t('common.gregorianCalendarName')}
                     defaultValue={configuration.local.calendar}
                     onValueChange={(e) => configuration.updateLocal(configuration.local.language, e as Calendar, configuration.local.direction, configuration.local.zone)}
@@ -84,7 +84,7 @@ export const General = memo(function General() {
                 </Select>
 
                 <Select
-                    label={t('common.timezone')}
+                    label={t('common.timeZone')}
                     defaultDisplayValue={configuration.local.zone}
                     defaultValue={configuration.local.zone}
                     onValueChange={(e) => configuration.updateLocal(configuration.local.language, e as Calendar, configuration.local.direction, configuration.local.zone)}

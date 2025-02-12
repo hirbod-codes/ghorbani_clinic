@@ -5,6 +5,7 @@ import { getPersianMonths, isLeapPersianYear, getPersianWeekDays } from "../../L
 import { getLanguageCode, getMuiLocale } from "../../Lib/localization";
 import { CalendarScopes } from "./index.d";
 import { Calendar, LanguageCodes, Local } from "../../../Electron/Configuration/renderer.d";
+import { localizeNumbers } from "../../Localization/helpers";
 
 export class CalendarManager {
     private type: Calendar;
@@ -63,9 +64,9 @@ export class CalendarManager {
     getTitle(): string {
         switch (this.scope) {
             case 'days':
-                return `${this.selectedYear}, ${this.getMonths()[this.selectedMonth - 1].name}`;
+                return `${localizeNumbers(this.languageCode, this.selectedYear, { useGrouping: false })}, ${this.getMonths()[this.selectedMonth - 1].name}`;
             case 'months':
-                return this.selectedYear.toString();
+                return localizeNumbers(this.languageCode, this.selectedYear, { useGrouping: false }).toString();
             case 'years':
                 return '';
             default:
