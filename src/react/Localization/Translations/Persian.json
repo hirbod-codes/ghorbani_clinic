@@ -28,19 +28,20 @@
     "SearchPatientField": {
         "search": "جستجو",
         "socialId": "شماره ملی",
+        "Create": "ایجاد",
         "InvalidSocialId": "شماره ملی نامعتبر است",
         "patientNotFound": "بیمار یافت نشد"
     },
     "Analytics": {
-        "Summary": "خلاصه"
+        "Summary": " خلاصه ماه گذشته"
     },
     "VisitsCounter": {
         "VisitsPerMonth": "نوبت در ماه",
         "Visits": "نوبت ها"
     },
     "PatientsCounter": {
-        "PatientsPerMonth": "PatientsPerMonth",
-        "Patients": "Patients"
+        "PatientsPerMonth": "بیمار در ماه",
+        "Patients": "بیماران"
     },
     "Calendar": {
         "failedToUpdateVisit": "بروزرسانی نوبت با شکست مواجه شد",
@@ -257,8 +258,8 @@
         "Yes": "بله"
     },
     "Columns": {
-        "columns": "Columns",
-        "counter": "",
+        "columns": "ستون ها",
+        "counter": "ردیف",
         "actions": "اقدامات",
         "_id": "شناسه",
         "patientId": "شناسه بیمار",

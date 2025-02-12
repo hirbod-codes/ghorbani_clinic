@@ -28,11 +28,12 @@
     "SearchPatientField": {
         "search": "Search",
         "socialId": "Social Id",
+        "Create": "Create",
         "InvalidSocialId": "Invalid SocialId",
         "patientNotFound": "Patient Not Found"
     },
     "Analytics": {
-        "Summary": "Summary"
+        "Summary": "Last month's summary"
     },
     "VisitsCounter": {
         "VisitsPerMonth": "Visits per month",

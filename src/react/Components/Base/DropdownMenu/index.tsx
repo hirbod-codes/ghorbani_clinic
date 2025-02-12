@@ -31,8 +31,11 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, an
         if (anchorDomRect && (!anchorDomRect.left || !anchorDomRect.top || !anchorDomRect.width || !anchorDomRect.height))
             return
 
-        const aRect: any = anchorDomRect ?? anchorRef?.current!.getBoundingClientRect()
-        const cRect = { ...scope.current.getBoundingClientRect(), width: helperRef?.current?.getBoundingClientRect().width, height: helperRef?.current?.getBoundingClientRect().height }
+        let aRect: any = anchorDomRect ?? anchorRef?.current!.getBoundingClientRect()
+        const cRect = { ...scope.current.getBoundingClientRect()
+            , width: helperRef?.current?.getBoundingClientRect().width, height: helperRef?.current?.getBoundingClientRect().height 
+        }
+        console.log({ aRect, cRect })
 
         // console.log('updatePosition', verticalPosition, horizontalPosition, { visualViewport: window.visualViewport, 'ref': anchorRef?.current, 'scrollTop': anchorRef?.current?.scrollTop, 'offsetTop': anchorRef?.current?.offsetTop, 'offsetLeft': anchorRef?.current?.offsetLeft, 'offsetHeight': anchorRef?.current?.offsetHeight, 'offsetWidth': anchorRef?.current?.offsetWidth, 'aRect.top': aRect?.top, 'aRect.bottom': aRect?.bottom, 'aRect.left': aRect?.left, 'aRect.right': aRect?.right, 'aRect.width': aRect?.width, 'aRect.height': aRect?.height })
         // console.log('updatePosition', verticalPosition, horizontalPosition, { 'ref': scope.current, 'offsetTop': scope.current.offsetTop, 'offsetLeft': scope.current.offsetLeft, 'offsetHeight': scope.current.offsetHeight, 'offsetWidth': scope.current.offsetWidth, 'cRect.top': cRect.top, 'cRect.bottom': cRect.bottom, 'cRect.left': cRect.left, 'cRect.right': cRect.right, 'cRect.width': cRect.width, 'cRect.height': cRect.height })
@@ -42,12 +45,17 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, an
         scope.current.style.left = ''
         scope.current.style.right = ''
 
-        return positionElement(scope.current, verticalPosition, horizontalPosition, aRect! as DOMRect, cRect, window.innerHeight, window.innerWidth)
+        // aRect = { left: aRect.right, right: aRect.left, top: aRect.top, bottom: aRect.bottom, width: aRect.width, height: aRect.height }
+
+        positionElement(scope.current, verticalPosition, horizontalPosition, aRect! as DOMRect, cRect, window.innerHeight, window.innerWidth)
+
+        // scope.current.style.right = scope.current.style.left
+        // scope.current.style.left = ''
     }
 
     useEffect(() => {
         if (scope?.current) {
-            let domRect = updatePosition()
+            updatePosition()
             rerender()
             let c: AnimationPlaybackControls
             if (open)
@@ -92,7 +100,7 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, an
 
     return (
         <>
-            <div ref={helperRef} className="absolute z-[60] invisible">{children}</div>
+            {createPortal(<div ref={helperRef} className="absolute -z-[60]">{children}</div>, document.body)}
             {createPortal(
                 <div
                     {...containerProps}

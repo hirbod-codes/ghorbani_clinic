@@ -60,7 +60,7 @@ export const ColorDropdown = memo(function ColorDropdown({ children, anchorChild
             <DropdownMenu
                 anchorRef={ref}
                 open={open}
-                containerProps={{ className: 'rounded-md border p-2 space-y-2' }}
+                containerProps={{ className: 'rounded-md border p-2 space-y-2 bg-surface-container-high' }}
                 onOpenChange={(b) => {
                     if (!b) {
                         if (cancel.current === true)

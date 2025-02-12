@@ -19,9 +19,10 @@ export type SelectProps = {
     loading?: boolean
     inputProps?: ComponentProps<typeof Input>
     canDropdownMenuWidthGrow?: boolean
+    listContainerProps?: ComponentProps<typeof Stack>
 }
 
-export function Select({ defaultValue, defaultDisplayValue, id, label, onValueChange, children, loading = false, inputProps, canDropdownMenuWidthGrow = true }: SelectProps) {
+export function Select({ defaultValue, defaultDisplayValue, id, label, onValueChange, children, loading = false, inputProps, canDropdownMenuWidthGrow = true, listContainerProps }: SelectProps) {
     const [value, setValue] = useState(defaultValue)
     const [displayValue, setDisplayValue] = useState(defaultDisplayValue)
     const [open, setOpen] = useState(false)
@@ -64,21 +65,31 @@ export function Select({ defaultValue, defaultDisplayValue, id, label, onValueCh
                 anchorRef={inputRef}
                 open={open}
                 onOpenChange={(b) => { if (!b) setOpen(false) }}
-                containerProps={{ className: 'rounded-md bg-surface-container-high my-0 shadow-md', style: canDropdownMenuWidthGrow ? { minWidth: width } : { width } }}
+                containerProps={{ className: 'rounded-md bg-surface-container-high my-0 shadow-md' }}
             >
-                <SelectContext.Provider value={{
-                    updateSelection: ({ value, displayValue }) => {
-                        setValue(value)
-                        setDisplayValue(displayValue)
-                        setOpen(false)
-                        if (onValueChange)
-                            onValueChange(value)
-                    }
-                }}>
-                    <Stack direction="vertical">
-                        {children}
-                    </Stack>
-                </SelectContext.Provider>
+                <div style={canDropdownMenuWidthGrow ? { minWidth: width } : { width }}>
+                    <SelectContext.Provider value={{
+                        updateSelection: ({ value, displayValue }) => {
+                            setValue(value)
+                            setDisplayValue(displayValue)
+                            setOpen(false)
+                            if (onValueChange)
+                                onValueChange(value)
+                        }
+                    }}>
+                        <Stack
+                            direction="vertical"
+                            {...listContainerProps}
+                            stackProps={{
+                                className: cn('p-2', listContainerProps?.stackProps?.className),
+                                style: { minWidth: canDropdownMenuWidthGrow ? width : undefined, ...listContainerProps?.stackProps?.style },
+                                ...listContainerProps?.stackProps
+                            }}
+                        >
+                            {children}
+                        </Stack>
+                    </SelectContext.Provider>
+                </div>
             </DropdownMenu>
         </>
     )

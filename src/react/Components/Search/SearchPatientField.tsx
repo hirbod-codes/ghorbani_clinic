@@ -78,7 +78,7 @@ export const SearchPatientField = memo(function SearchPatientField() {
                             className="h-full border-0"
                             onClick={() => setOpen(true)}
                         >
-                            +{t('SearchPatientField.Create')}
+                            + {t('SearchPatientField.Create')}
                         </Button>
                         : undefined
                 }
