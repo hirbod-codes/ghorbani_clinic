@@ -2,7 +2,6 @@ import { useState, useContext, useEffect, memo } from 'react';
 import { DateTime } from 'luxon';
 import type { Visit } from '../../../Electron/Database/Models/Visit';
 import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext';
-import { DateTimeField } from '../Base/DateTime/DateTimeField';
 import { t } from 'i18next';
 import { EditorModal } from '../Base/Editor/EditorModal';
 import { toDateTimeView, toFormat } from '../../Lib/DateTime/date-time-helpers';
