@@ -130,6 +130,7 @@
         "successfullyUpdatedPatientMedicalHistory": "Successfully updated patient medical history"
     },
     "ManagePatient": {
+        "failedToUpdatePatient":"Failed to update patient",
         "failedToUpdatePatientVisits": "Failed to update patient visits",
         "failedToRegisterPatient": "Failed to register patient",
         "failedToRegisterPatientVisits": "Failed to register patient visits",
@@ -148,6 +149,7 @@
         "done": "Done"
     },
     "MedicalHistories": {
+        "Edit": "Edit",
         "failedToFetchMedicalHistories": "Failed to fetch medical histories",
         "successfullyFetchedMedicalHistories": "Successfully fetched medical histories",
         "exiting": "Exiting",
