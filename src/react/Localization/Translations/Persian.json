@@ -192,6 +192,8 @@
         "treatments": "درمان‌ها"
     },
     "ManageVisit": {
+        "date": "تاریخ",
+        "time": "زمان",
         "diagnosis": "تشخیص‌ها",
         "treatments": "درمان‌ها"
     },
