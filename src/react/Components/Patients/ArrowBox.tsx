@@ -6,8 +6,8 @@ export function ArrowBox({ size = 30, colors }: { size?: number, colors?: { box:
 
     if (!colors)
         colors = {
-            box: themeOptions.colors.background,
-            arrow: themeOptions.colors.primary,
+            box: themeOptions.colors.success[themeOptions.mode].main,
+            arrow: themeOptions.colors.primary[themeOptions.mode].main,
         }
 
     return (
