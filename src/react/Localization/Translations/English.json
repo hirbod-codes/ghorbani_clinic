@@ -155,6 +155,8 @@
         "done": "Done"
     },
     "MedicalHistories": {
+        "failedToUpdatePatientAddress": "Failed to update patient address",
+        "successfullyUpdatedPatientAddress": "Successfully updated patient address",
         "Edit": "Edit",
         "failedToFetchMedicalHistories": "Failed to fetch medical histories",
         "successfullyFetchedMedicalHistories": "Successfully fetched medical histories",
