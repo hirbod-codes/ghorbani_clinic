@@ -189,6 +189,8 @@
         "treatments": "Treatments"
     },
     "ManageVisit": {
+        "date": "Date",
+        "time": "Time",
         "diagnosis": "Diagnosis",
         "treatments": "Treatments"
     },
