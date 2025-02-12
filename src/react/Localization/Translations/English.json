@@ -130,6 +130,12 @@
         "successfullyUpdatedPatientMedicalHistory": "Successfully updated patient medical history"
     },
     "ManagePatient": {
+        "UpdatePatient":"Update patient",
+        "RegisterPatient":"Register patient",
+        "Documents":"Documents",
+        "male":"Male",
+        "female":"Female",
+        "visits":"Visits",
         "failedToUpdatePatient":"Failed to update patient",
         "failedToUpdatePatientVisits": "Failed to update patient visits",
         "failedToRegisterPatient": "Failed to register patient",
