@@ -12,8 +12,8 @@ export function CircularProgressBar({ percentComplete, size = 50, strokeWidth = 
 
     if (!colors)
         colors = {
-            progress: themeOptions.colors.primary,
-            base: themeOptions.colors.background,
+            base: themeOptions.colors.success[themeOptions.mode].main,
+            progress: themeOptions.colors.primary[themeOptions.mode].main,
         };
     const radius = (size - strokeWidth) / 2;
     const circumference = radius * 2 * Math.PI;
