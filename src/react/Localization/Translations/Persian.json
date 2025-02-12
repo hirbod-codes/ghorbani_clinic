@@ -158,6 +158,8 @@
         "done": "انجام شد"
     },
     "MedicalHistories": {
+        "failedToUpdatePatientAddress": "بروزرسانی آدرس بیمار با شکست مواجه شد",
+        "successfullyUpdatedPatientAddress": "آدرس بیمار با موفقیت بروزرسانی شد",
         "Edit": "ویرایش",
         "failedToFetchMedicalHistories": "بازیابی تاریخچه‌های پزشکی با شکست مواجه شد",
         "successfullyFetchedMedicalHistories": "تاریخچه‌های پزشکی با موفقیت بازیابی شدند",
