@@ -130,13 +130,13 @@
         "successfullyUpdatedPatientMedicalHistory": "Successfully updated patient medical history"
     },
     "ManagePatient": {
-        "UpdatePatient":"Update patient",
-        "RegisterPatient":"Register patient",
-        "Documents":"Documents",
-        "male":"Male",
-        "female":"Female",
-        "visits":"Visits",
-        "failedToUpdatePatient":"Failed to update patient",
+        "UpdatePatient": "Update patient",
+        "RegisterPatient": "Register patient",
+        "Documents": "Documents",
+        "male": "Male",
+        "female": "Female",
+        "visits": "Visits",
+        "failedToUpdatePatient": "Failed to update patient",
         "failedToUpdatePatientVisits": "Failed to update patient visits",
         "failedToRegisterPatient": "Failed to register patient",
         "failedToRegisterPatientVisits": "Failed to register patient visits",
@@ -314,5 +314,14 @@
         "comfortable": "Comfortable",
         "limit": "Limit",
         "paginationLimit": "Pagination limit"
+    },
+    "DocumentManagement": {
+        "successfullyUploadedFiles": "Successfully uploaded files",
+        "size": "Size",
+        "failedToDeleteFile": "Failed to delete file",
+        "successfullyDeletedFile": "Successfully deleted file",
+        "failedToOpenFile": "Failed to open file",
+        "failedToFetchFile": "Failed to fetch file",
+        "successfullyFetchedFile": "Successfully fetched file"
     }
 }
