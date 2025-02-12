@@ -133,6 +133,7 @@
         "successfullyUpdatedPatientMedicalHistory": "تاریخچه پزشکی بیمار با موفقیت بروزرسانی شد"
     },
     "ManagePatient": {
+        "failedToUpdatePatient":"بروزرسانی اطلاعات بیمار شکست خورد",
         "failedToUpdatePatientVisits": "بروزرسانی ویزیت‌های بیمار با شکست مواجه شد",
         "failedToRegisterPatient": "ثبت بیمار با شکست مواجه شد",
         "failedToRegisterPatientVisits": "ثبت ویزیت‌های بیمار با شکست مواجه شد",
@@ -151,6 +152,7 @@
         "done": "انجام شد"
     },
     "MedicalHistories": {
+        "Edit": "ویرایش",
         "failedToFetchMedicalHistories": "بازیابی تاریخچه‌های پزشکی با شکست مواجه شد",
         "successfullyFetchedMedicalHistories": "تاریخچه‌های پزشکی با موفقیت بازیابی شدند",
         "exiting": "خروج",
