@@ -1,5 +1,4 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { useTheme } from "@mui/material";
 import { Column } from "@tanstack/react-table";
 import { CSSProperties, useContext } from "react";
 import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext';
