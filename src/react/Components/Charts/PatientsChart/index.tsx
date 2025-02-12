@@ -43,7 +43,9 @@ export function PatientsChart() {
         if (local.calendar === 'Gregorian') {
             let ts = DateTime.fromSeconds(xRange.current[1]!).set({ day: 1, hour: 0, minute: 0, second: 0, millisecond: 0 }).toUnixInteger()
             xLabels.push({ value: ts, node: toFormat(ts, local, undefined, 'LLL') })
-            while (true) {
+            let safety = 0
+            while (safety < 2000) {
+                safety++
                 xLabels.push({ value: ts, node: toFormat(ts, local, undefined, 'LLL') })
 
                 ts = DateTime.fromSeconds(ts).minus({ months: 1 }).toUnixInteger()
@@ -51,11 +53,15 @@ export function PatientsChart() {
                 if (ts <= xRange.current[0]!)
                     break
             }
+            if (safety >= 2000)
+                console.warn('safety limit exceeded!')
         } else {
             let ts = Infinity
             let p = gregorianToPersian(DateTime.fromSeconds(xRange.current![1]!).toObject())
             p.day = 1
+            let safety = 0
             do {
+                safety++
                 ts = toDateTime({ date: persianToGregorian(p), time: { hour: 0, minute: 0, second: 0, millisecond: 0 } }, { ...local, calendar: 'Gregorian', zone: 'UTC' }, { ...local, calendar: 'Gregorian', zone: 'UTC' }).toUnixInteger()
 
                 xLabels.push({ value: ts, node: toFormat(ts, local, undefined, 'LLL') })
@@ -66,7 +72,9 @@ export function PatientsChart() {
                     p.month = 12
                     p.year -= 1
                 }
-            } while (ts > xRange.current[0]!);
+            } while (safety < 2000 && ts > xRange.current[0]!);
+            if (safety >= 2000)
+                console.warn('safety limit exceeded!')
         }
 
         let chart = new LineChart({

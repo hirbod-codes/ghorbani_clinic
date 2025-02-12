@@ -47,7 +47,9 @@ export function VisitsChart() {
         if (local.calendar === 'Gregorian') {
             let ts = DateTime.fromSeconds(xRange.current[1]!).set({ day: 1, hour: 0, minute: 0, second: 0, millisecond: 0 }).toUnixInteger()
             xLabels.push({ value: ts, node: getMonth(ts) })
-            while (true) {
+            let safety = 0
+            while (safety < 2000) {
+                safety++
                 xLabels.push({ value: ts, node: getMonth(ts) })
 
                 ts = DateTime.fromSeconds(ts).minus({ months: 1 }).toUnixInteger()
@@ -55,11 +57,15 @@ export function VisitsChart() {
                 if (ts <= xRange.current[0]!)
                     break
             }
+            if (safety >= 2000)
+                console.warn('safety limit exceeded!')
         } else {
             let ts: number
             let p = gregorianToPersian(DateTime.fromSeconds(xRange.current![1]!).toObject())
             p.day = 1
+            let safety = 0
             do {
+                safety++
                 console.log(
                     xRange.current![1]!,
                     JSON.stringify(DateTime.fromSeconds(xRange.current![1]!).toObject()),
@@ -77,7 +83,9 @@ export function VisitsChart() {
                     p.month = 12
                     p.year -= 1
                 }
-            } while (ts > xRange.current[0]!);
+            } while (safety < 2000 && ts > xRange.current[0]!);
+            if (safety >= 2000)
+                console.warn('safety limit exceeded!')
         }
 
         let chart = new LineChart({
@@ -197,7 +205,9 @@ export function VisitsChart() {
                 let range = xRange.current![1]! - xRange.current![0]!
                 let ts = DateTime.fromSeconds(xRange.current![0]!).set({ hour: 0, minute: 0, second: 0, millisecond: 0 }).plus({ days: 1 }).toUnixInteger()
                 ctx.lineWidth = 0.5
+                let safety = 0
                 do {
+                    safety++
                     let x = chartOptions!.offset!.left + chartOptions!.width! * (ts - xRange.current![0]!) / range
                     let y = chartOptions!.height! + chartOptions!.offset!.top
                     ctx.beginPath()
@@ -206,7 +216,9 @@ export function VisitsChart() {
                     ctx.stroke()
 
                     ts = DateTime.fromSeconds(ts).plus({ days: 1 }).toUnixInteger()
-                } while (ts < xRange.current![1]!);
+                } while (safety < 2000 && ts < xRange.current![1]!);
+                if (safety >= 2000)
+                    console.warn('safety limit exceeded!')
             }}
             afterChartOptionsSet={(chartOptions) => shapes!.forEach(s => s.hoverOptions.hoverRadius = 0.75 * chartOptions!.width! / (((xRange.current![1]! - xRange.current![0]!)) / (Duration.fromDurationLike({ days: 1 }).toMillis() / 1000)))}
             chartOptions={{

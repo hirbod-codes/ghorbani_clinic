@@ -74,6 +74,8 @@ export function Chart({
     const hover = useRef<{ [k: number]: { open?: boolean, pIndex?: number, top?: number, left?: number, node?: ReactNode } }>({})
     const hoverEvent = useRef<PointerEvent>()
 
+    const hasDrawn = useRef<boolean>(false)
+
     const [, rerender] = useReducer(x => x + 1, 0)
 
     console.log('Chart', { chartOptions, isDrawn, canvasRef, ctx, drawAnimation, containerRef, canvasWidth, canvasHeight, hover, hoverEvent, shapes, animationDuration, xAxis, yAxis });
@@ -158,7 +160,9 @@ export function Chart({
     }, [shapes, xAxis, yAxis, chartOptions.current])
 
     useEffect(() => {
-        if (shapes.length > 0 && canvasRef.current && containerRef.current) {
+        if (shapes.length > 0 && canvasRef.current && containerRef.current && hasDrawn.current === false) {
+            hasDrawn.current = true
+
             const rect = containerRef.current.getBoundingClientRect()
             canvasWidth.current = rect.width
             canvasHeight.current = rect.height
@@ -224,7 +228,7 @@ export function Chart({
     }, [shapes])
 
     return (
-        <div className="size-full overflow-hidden" ref={containerRef}>
+        <div dir="ltr" className="size-full overflow-hidden" ref={containerRef}>
             <canvas
                 ref={canvasRef}
                 className="size-full"
