@@ -317,5 +317,14 @@
         "comfortable": "منبسط",
         "limit": "تعداد سطر",
         "paginationLimit": "تعداد سطر"
+    },
+    "DocumentManagement": {
+        "successfullyUploadedFiles": "مدارک ارسال شد",
+        "size": "اندازه",
+        "failedToDeleteFile": "حذف فایل شکست خورد",
+        "successfullyDeletedFile": "فایل حذف شد",
+        "failedToOpenFile": "فایل باز نشد",
+        "failedToFetchFile": "دانلود فایل شکست خورد",
+        "successfullyFetchedFile": "فایل دانلود شد"
     }
 }
