@@ -118,6 +118,7 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
                 anchorRef={fillColorButtonRef}
                 open={fillOpen}
                 onOpenChange={(b) => { if (!b) setFillOpen(false) }}
+                containerProps={{ className: 'z-50 p-2 border rounded-md bg-surface-container-high' }}
             >
                 <ColorPicker
                     controlledColor={ColorStatic.parse(color).toHsv()}
@@ -140,6 +141,7 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
                 anchorRef={strokeColorButtonRef}
                 open={strokeOpen}
                 onOpenChange={(b) => { if (!b) setStrokeOpen(false) }}
+                containerProps={{ className: 'z-50 p-2 border rounded-md bg-surface-container-high' }}
             >
                 <ColorPicker
                     controlledColor={ColorStatic.parse(color).toHsv()}

@@ -85,7 +85,7 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
                 anchorRef={ref}
                 open={open}
                 onOpenChange={(b) => { if (!b) setOpen(false) }}
-                containerProps={{ className: 'z-50 p-2 border rounded-md' }}
+                containerProps={{ className: 'z-50 p-2 border rounded-md bg-surface-container-high' }}
             >
                 <ColorPicker
                     controlledColor={ColorStatic.parse(color).toHsv()}

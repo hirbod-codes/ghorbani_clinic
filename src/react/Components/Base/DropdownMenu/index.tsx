@@ -32,8 +32,9 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, an
             return
 
         let aRect: any = anchorDomRect ?? anchorRef?.current!.getBoundingClientRect()
-        const cRect = { ...scope.current.getBoundingClientRect()
-            , width: helperRef?.current?.getBoundingClientRect().width, height: helperRef?.current?.getBoundingClientRect().height 
+        const cRect = {
+            ...scope.current.getBoundingClientRect()
+            , width: helperRef?.current?.getBoundingClientRect().width, height: helperRef?.current?.getBoundingClientRect().height
         }
         console.log({ aRect, cRect })
 
@@ -107,7 +108,7 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, an
                     id="dropdown-container"
                     ref={scope}
                     className={cn(['absolute z-50'], containerProps?.className)}
-                    style={{ top: '-100%', ...containerProps?.style }}
+                    style={{ top: '-100%', opacity: 0, ...containerProps?.style }}
                 >
                     {children}
                 </div>
