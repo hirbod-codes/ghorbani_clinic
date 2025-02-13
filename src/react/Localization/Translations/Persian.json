@@ -160,6 +160,7 @@
         "done": "انجام شد"
     },
     "MedicalHistories": {
+        "done": "Done",
         "failedToUpdatePatientAddress": "بروزرسانی آدرس بیمار با شکست مواجه شد",
         "successfullyUpdatedPatientAddress": "آدرس بیمار با موفقیت بروزرسانی شد",
         "Edit": "ویرایش",
@@ -175,7 +176,7 @@
         "cancel": "لغو",
         "failedToAddMedicalHistory": "افزودن تاریخچه پزشکی با شکست مواجه شد",
         "successfullyAddedMedicalHistory": "تاریخچه پزشکی با موفقیت افزوده شد",
-        "add": "افزودن",
+        "Add": "افزودن",
         "No": "خیر",
         "Yes": "بله",
         "deleteMedicalHistoryDialogContent": "Are you sure you want to delete this medical history?",
