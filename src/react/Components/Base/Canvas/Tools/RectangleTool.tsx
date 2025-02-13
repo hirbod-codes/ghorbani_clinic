@@ -25,8 +25,6 @@ export type RectangleToolProps = {
 }
 
 export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, setOnDownHook }: RectangleToolProps) {
-    const themeOptions = useContext(ConfigurationContext)!.themeOptions
-
     const strokeColorButtonRef = useRef<HTMLButtonElement>(null)
     const fillColorButtonRef = useRef<HTMLButtonElement>(null)
     const [color, setColor] = useState<string>('#ffffff')
@@ -102,7 +100,7 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
     }, [fill, stroke, instance, hasMoved])
 
     return (
-        <Stack stackProps={{ className: 'items-center w-max' }}>
+        <Stack stackProps={{ className: 'items-center h-full w-max' }}>
             <Button
                 buttonRef={fillColorButtonRef}
                 variant='outline'

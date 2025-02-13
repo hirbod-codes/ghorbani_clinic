@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { t } from "i18next";
 import { Editor, EditorProps } from "./Editor";
 import { Modal } from "../Modal";
@@ -23,12 +23,12 @@ export function EditorModal({ hideCanvas = false, hideTextEditor = false, open, 
 
     const [hasUnsavedChanges, setHasUnsavedChangesState] = useState(false)
 
-    const setHasUnsavedChanges = (state: boolean) => {
+    const setHasUnsavedChanges = useCallback((state: boolean) => {
         setHasUnsavedChangesState(state)
 
         if (setHasUnsavedChangesProperty)
             setHasUnsavedChangesProperty(state)
-    }
+    }, [])
 
     return (
         <>
@@ -44,7 +44,7 @@ export function EditorModal({ hideCanvas = false, hideTextEditor = false, open, 
                         onClose(dialog.e, dialog.r)
                 }}
                 open={open}
-                modalContainerProps={{ className: 'h-[66%]', id: 'editorModal' }} 
+                modalContainerProps={{ className: 'h-[66%]', id: 'editorModal' }}
             >
                 <Editor
                     hideCanvas={hideCanvas}

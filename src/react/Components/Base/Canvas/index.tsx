@@ -243,9 +243,8 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
 
                 <Separator />
 
-                <div className="w-full pt-1 relative shadow-inner shadow-black">
+                <div className="h-[1.5cm] w-full pt-1 relative shadow-inner shadow-black">
                     {toolNode.map(n => <Fragment key={n.key}>{n.elm}</Fragment>)}
-                    {/* <AnimatedList collection={toolNode} /> */}
                 </div>
 
                 <Separator />

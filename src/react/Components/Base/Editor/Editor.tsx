@@ -267,12 +267,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
     }
 
     useEffect(() => {
-        try {
-            console.group('Editor', 'useEffect')
-
-            init().finally(() => console.groupEnd())
-        }
-        finally { console.groupEnd() }
+        init()
     }, [status, canvas.current, inputCanvasId, inputText, canvasId])
 
     return (

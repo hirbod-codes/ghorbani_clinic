@@ -76,7 +76,7 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
     }, [color, lineWidth, instance, hasMoved])
 
     return (
-        <Stack stackProps={{ className: 'items-center w-max' }}>
+        <Stack stackProps={{ className: 'items-center h-full w-max' }}>
             <Button buttonRef={ref} isIcon variant='text' rawFgColor={color} onClick={() => setOpen(true)}>
                 <PaletteIcon />
             </Button>
