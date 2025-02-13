@@ -3,7 +3,7 @@ import { Button } from "../Base/Button";
 
 export type SlideProps = {
     columns: number
-    collection: { value: number | string, displayValue: number | string }[]
+    collection: (null | { value: number | string, displayValue: number | string })[]
     headers?: string[]
     onElmClick?: (value: string | number, i: number) => void | Promise<void>
     onPointerOver?: (value: string | number, i: number) => void | Promise<void>

@@ -172,7 +172,7 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
             <div className="flex-grow">
                 <Slide
                     columns={columns}
-                    collection={collection.map(n => ({ value: n, displayValue: calendarManager.getScope() === 'months' ? n : localizeNumbers(local.language, n, { useGrouping: false }) }))}
+                    collection={collection.map(n => n === null ? null : ({ value: n, displayValue: calendarManager.getScope() === 'months' ? n : localizeNumbers(local.language, n, { useGrouping: false }) }))}
                     headers={headers}
                     onElmClick={onElmClick}
                     onPointerOver={onPointerOver}
