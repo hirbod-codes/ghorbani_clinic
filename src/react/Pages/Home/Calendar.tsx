@@ -1,4 +1,4 @@
-import { ComponentProps, useCallback, useContext, useEffect, useState } from "react";
+import { ComponentProps, useCallback, useContext, useEffect, useReducer, useRef, useState } from "react";
 import { Visit } from "../../../Electron/Database/Models/Visit";
 import { AnimatedCard } from "../../Components/Animations/AnimatedCard";
 import { Calendar as CalendarComponent } from "../../Components/Calendar";
@@ -16,6 +16,7 @@ import { EditorModal } from "../../Components/Base/Editor/EditorModal";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
 import { publish } from "../../Lib/Events";
 import { RendererDbAPI } from "@/src/Electron/Database/renderer";
+import { useAnimate } from "framer-motion";
 
 // To Do: fix on DataGrid click
 export function Calendar({ containerProps, calendarContainerProps }: { containerProps?: ComponentProps<'div'>, calendarContainerProps?: ComponentProps<'div'> }) {
@@ -33,6 +34,13 @@ export function Calendar({ containerProps, calendarContainerProps }: { container
     // ID of the visit that is taken for its diagnosis representation
     const [showDiagnosis, setShowDiagnosis] = useState<string | undefined>(undefined)
     const [showTreatments, setShowTreatments] = useState<string | undefined>(undefined)
+
+    const animationFinish = useRef<boolean>(true)
+    const [scope, animate] = useAnimate()
+
+    const containerRef = useRef<HTMLDivElement>(null)
+
+    const [, rerender] = useReducer(x => x + 1, 0)
 
     console.log('Calendar', { isLocked, visits, patientsCount, showVisitsStats, fetchingVisits })
 
@@ -137,17 +145,39 @@ export function Calendar({ containerProps, calendarContainerProps }: { container
         },
     ]
 
+    useEffect(() => {
+    }, [])
+
+    useEffect(() => {
+        animationFinish.current = false
+        const checkState = async () => {
+            if (!containerRef.current)
+                return
+
+            if (isLocked || showVisitsStats) {
+                let w = containerRef.current.getBoundingClientRect()!.width + 8
+                if (configuration.local.direction === 'rtl')
+                    w *= -1
+                await animate(scope.current, { x: w, opacity: 1 })
+                animationFinish.current = true
+                rerender()
+            } else {
+                await animate(scope.current, { x: '0', opacity: 0 })
+                animationFinish.current = true
+                rerender()
+            }
+        }
+
+        checkState()
+    }, [isLocked, showVisitsStats])
+
     return (
         <>
-            <div {...containerProps} className={cn("relative h-full", containerProps?.className)}>
-                <div className="relative top-0 z-[1] w-full">
-                    <AnimatedCard
-                        animationKey={cardKey ?? 0}
-                        open={isLocked || showVisitsStats}
-                        props={{ className: 'bg-surface-container-high size-full rounded-lg shadow-lg border overflow-hidden p-4', style: { height: '20rem' } }}
-                    >
-                        {fetchingVisits && <CircularLoadingIcon />}
-                        {!fetchingVisits &&
+            <div ref={containerRef} {...containerProps} className={cn("relative h-full", containerProps?.className)}>
+                <div className="absolute top-0 z-[1] w-full">
+                    <div ref={scope} className="bg-surface-container-high size-full rounded-lg shadow-lg border overflow-hidden p-4 h-80 w-[20cm]">
+                        {animationFinish.current && fetchingVisits && <CircularLoadingIcon />}
+                        {animationFinish.current && !fetchingVisits &&
                             <>
                                 <Stack direction='vertical' stackProps={{ className: 'h-full' }}>
                                     <Stack stackProps={{ className: "items-center justify-between" }}>
@@ -176,10 +206,10 @@ export function Calendar({ containerProps, calendarContainerProps }: { container
                                 </Stack>
                             </>
                         }
-                    </AnimatedCard>
+                    </div>
                 </div>
 
-                <div {...calendarContainerProps} className={cn("relative top-0 left-0 overflow-auto z-[2] p-1 size-full", calendarContainerProps?.className)}>
+                <div {...calendarContainerProps} className={cn("absolute top-0 left-0 overflow-auto z-[2] p-1 size-full", calendarContainerProps?.className)}>
                     <CalendarComponent onDaySelect={async (year, month, day) => { if (day !== cardKey) await updateCard(year, month, day); setIsLocked(true) }} onDayPointerOver={onOver} onDayPointerOut={onOut} />
                 </div>
             </div>

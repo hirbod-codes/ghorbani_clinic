@@ -1,11 +1,9 @@
 import { PointerEvent, ReactNode, useCallback, useContext, useEffect, useReducer, useRef } from "react"
-import { Point } from "../../Lib/Math"
 import { EasingName, getEasingFunction } from "../../Components/Animations/easings"
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext"
 import { DrawOptions, ChartOptions, CanvasStyleOptions } from "./index.d"
 import { LineChart } from "../../Components/Chart/LineChart"
 import { DropdownMenu } from "../Base/DropdownMenu"
-import { useAnimate } from "../Animations/useAnimate"
 import { cn } from "../../shadcn/lib/utils"
 
 function drawXAxis(ctx: CanvasRenderingContext2D, chartWidth: number, chartHeight: number, offset: ChartOptions['offset'], styleOptions: CanvasStyleOptions, fraction: number, animationDuration: number) {
@@ -65,7 +63,7 @@ export function Chart({
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const ctx = useRef<CanvasRenderingContext2D>()
 
-    const drawAnimation = useAnimate()
+    const animationId = useRef<number>()
 
     const containerRef = useRef<HTMLDivElement>(null)
     const canvasWidth = useRef<number>()
@@ -74,16 +72,17 @@ export function Chart({
     const hover = useRef<{ [k: number]: { open?: boolean, pIndex?: number, top?: number, left?: number, node?: ReactNode } }>({})
     const hoverEvent = useRef<PointerEvent>()
 
-    const hasPlayed = useRef<boolean>(false)
-
     const [, rerender] = useReducer(x => x + 1, 0)
 
-    console.log('Chart', { chartOptions, isDrawn, canvasRef, ctx, drawAnimation, containerRef, canvasWidth, canvasHeight, hover, hoverEvent, shapes, animationDuration, xAxis, yAxis });
+    console.log('Chart', { chartOptions, isDrawn, canvasRef, ctx, containerRef, canvasWidth, canvasHeight, hover, hoverEvent, shapes, animationDuration, xAxis, yAxis });
 
     let oldT = 0
     let passed = 0
 
-    const draw = useCallback(function draw(ctx: CanvasRenderingContext2D, canvasWidth: number, canvasHeight: number, t: DOMHighResTimeStamp) {
+    const draw = useCallback(function draw(t: DOMHighResTimeStamp, ctx?: CanvasRenderingContext2D, canvasWidth?: number, canvasHeight?: number) {
+        if (ctx === undefined || canvasWidth === undefined || canvasHeight === undefined)
+            return
+
         if (oldT === 0)
             oldT = t
         passed = t - oldT
@@ -159,9 +158,14 @@ export function Chart({
         shapes.forEach(s => s.animateDefaults(t, ctx, hoverEvent.current))
     }, [shapes, xAxis, yAxis, chartOptions.current])
 
+    function animate(t) {
+        draw(t, ctx.current, canvasWidth.current, canvasHeight.current)
+        animationId.current = requestAnimationFrame(animate)
+    }
+
     useEffect(() => {
-        console.log('Chart', 'useEffect')
         if (canvasRef.current && containerRef.current) {
+            console.log('Chart', 'useEffect')
             const rect = containerRef.current.getBoundingClientRect()
             canvasWidth.current = rect.width
             canvasHeight.current = rect.height
@@ -182,21 +186,23 @@ export function Chart({
     }, [shapes, canvasRef?.current, containerRef?.current])
 
     useEffect(() => {
-        console.log('Chart', 'useEffect2')
         if (ctx.current && canvasWidth.current && canvasHeight.current && shapes.length > 0 && shapes.find(f => f.getChartOptions() === undefined) !== undefined) {
+            console.log('Chart', 'useEffect2')
             shapes.forEach(s => s.setChartOptions({ ...chartOptions.current, ...s.getChartOptions(), width: chartOptions.current.width, height: chartOptions.current.height }))
 
             if (afterChartOptionsSet)
                 afterChartOptionsSet({ ...chartOptions.current, width: chartOptions.current.width, height: chartOptions.current.height })
 
             rerender()
-
-            if (!hasPlayed.current) {
-                hasPlayed.current = true
-                drawAnimation.play((t => draw(ctx.current!, canvasWidth.current!, canvasHeight.current!, t)))
-            }
         }
     }, [chartOptions?.current, shapes, canvasRef?.current, containerRef?.current])
+
+    useEffect(() => {
+        console.log('Chart', 'useEffect3')
+        animationId.current = requestAnimationFrame(animate)
+
+        return () => cancelAnimationFrame(animationId.current!)
+    }, [])
 
     const onPointerOver = useCallback(function onPointerOver(e: PointerEvent) {
         hoverEvent.current = e
