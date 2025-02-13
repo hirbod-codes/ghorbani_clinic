@@ -157,6 +157,7 @@
         "done": "Done"
     },
     "MedicalHistories": {
+        "done": "Done",
         "failedToUpdatePatientAddress": "Failed to update patient address",
         "successfullyUpdatedPatientAddress": "Successfully updated patient address",
         "Edit": "Edit",
@@ -172,7 +173,7 @@
         "cancel": "Cancel",
         "failedToAddMedicalHistory": "Failed to add medical history",
         "successfullyAddedMedicalHistory": "Successfully added medical history",
-        "add": "Add",
+        "Add": "Add",
         "No": "No",
         "Yes": "Yes",
         "deleteMedicalHistoryDialogContent": "Are you sure you want to delete this medical history?",
