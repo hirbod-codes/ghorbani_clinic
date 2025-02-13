@@ -111,7 +111,7 @@ export const MedicalHistorySearch = memo(function MedicalHistorySearch({ creatab
                                 className="h-full border-0"
                                 onClick={() => setCreatingMedicalHistory(true)}
                             >
-                                +{t('MedicalHistorySearch.Add')}
+                                +{t('MedicalHistories.Add')}
                             </Button>
                         }
                         endIconProps={{ className: 'right-[1px] h-[calc(100%-2px)] border-0' }}
@@ -183,7 +183,7 @@ export const MedicalHistorySearch = memo(function MedicalHistorySearch({ creatab
                                 onCancel()
                         }}
                     >
-                        {t('MedicalHistorySearch.cancel')}
+                        {t('MedicalHistories.cancel')}
 
                     </Button>
                     <Button
@@ -192,7 +192,7 @@ export const MedicalHistorySearch = memo(function MedicalHistorySearch({ creatab
                                 onDone(selection)
                         }}
                     >
-                        {t('MedicalHistorySearch.done')}
+                        {t('MedicalHistories.done')}
 
                     </Button>
                 </Stack>
