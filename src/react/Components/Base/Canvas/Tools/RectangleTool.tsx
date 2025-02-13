@@ -111,7 +111,7 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
                 style={{ borderColor: fill as string }}
             >
                 <PaletteIcon />
-                {t('RectangleTool.FillColor')}
+                {t('Canvas.FillColor')}
             </Button>
 
             <DropdownMenu
@@ -133,7 +133,7 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
                 style={{ borderColor: stroke as string }}
             >
                 <PaletteIcon />
-                {t('RectangleTool.StrokeColor')}
+                {t('Canvas.StrokeColor')}
             </Button>
 
             <DropdownMenu

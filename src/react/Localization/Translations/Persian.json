@@ -9,6 +9,8 @@
     "gregorianCalendarName": "میلادی",
     "Asia/Tehran": "آسیا/تهران",
     "common": {
+        "Year": "سال",
+        "Day": "روز",
         "general": "عمومی",
         "settings": "تنظیمات",
         "home": "صفحه اصلی",
@@ -247,6 +249,9 @@
         "search": "جستجو"
     },
     "Editor": {
+        "View": "نمایش",
+        "Notes": "یادداشت",
+        "WhiteBoard": "تخته سفید",
         "failedToUploadCanvas": "بارگذاری بوم با شکست مواجه شد",
         "successfullyUploadedCanvas": "بوم با موفقیت بارگذاری شد",
         "description": "توضیحات"
@@ -258,6 +263,16 @@
         "Yes": "بله"
     },
     "Canvas": {
+        "Reset": "تنظیم مجدد",
+        "FillColor": "رنگ سطح",
+        "StrokeColor": "رنگ اضلاع",
+        "pressureMagnitude": "ضریب فشار",
+        "Print": "پرینت",
+        "BackgroundColor": "رنگ پسزمینه",
+        "Select": "انتخاب",
+        "Pencil": "مداد",
+        "Eraser": "پاک کن",
+        "Rectangle": "مستطیل",
         "radius": "شعاع",
         "lineWidth": "عرض خط",
         "reset": "بازنشانی",

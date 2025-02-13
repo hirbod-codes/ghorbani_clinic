@@ -24,7 +24,6 @@ export function DateTimeField({ variant, defaultDate, defaultTime, onChange, onD
                 }} />
             <TimeField
                 defaultTime={defaultTime}
-                variant={variant ?? 'standard'}
                 onChange={(t) => {
                     setTime(t);
 

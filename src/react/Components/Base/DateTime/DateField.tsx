@@ -34,7 +34,7 @@ export function DateField({ defaultDate, width = '7rem', onChange, variant, id }
                         type: 'input',
                         props: {
                             id,
-                            placeholder: t('DateField.Year'),
+                            placeholder: t('common.Year'),
                             style: { width },
                             value: year ?? '',
                             onChange: (e) => {
@@ -70,7 +70,7 @@ export function DateField({ defaultDate, width = '7rem', onChange, variant, id }
                         type: 'input',
                         props: {
                             id,
-                            placeholder: t('DateField.Day'),
+                            placeholder: t('common.Day'),
                             style: { width },
                             value: day ?? '',
                             onChange: (e) => {

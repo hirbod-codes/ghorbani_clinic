@@ -1,6 +1,5 @@
 import { ComponentProps, useState } from 'react';
 import { Time } from '../../../Lib/DateTime';
-import { t } from 'i18next';
 import { Input } from '../Input';
 
 export function TimeField({ defaultTime, onChange, inputProps }: { defaultTime?: Time; onChange?: (time: Time) => void; inputProps?: ComponentProps<typeof Input> }) {

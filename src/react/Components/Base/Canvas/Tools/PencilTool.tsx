@@ -1,8 +1,6 @@
 import { useContext, useEffect, useRef, useState } from "react";
 import { Draw } from "../types";
 import { t } from "i18next";
-import { HexAlphaColorPicker } from "react-colorful";
-import { PenConnectIcon } from "../../../Icons/PenConnectIcon";
 import { Line } from "../Shapes/Line";
 import { Shapes } from "../Shapes/Shapes";
 import { ConfigurationContext } from "@/src/react/Contexts/Configuration/ConfigurationContext";
@@ -103,14 +101,14 @@ export function PencilTool({ shapes, canvasBackground, setOnDraw, setOnUpHook, s
 
             <Stack stackProps={{ className: "items-center" }}>
                 <Label htmlFor="lineWidth">
-                    {t('Canvas .lineWidth')}
+                    {t('Canvas.lineWidth')}
                 </Label>
                 <Input className="w-[2cm]" type='text' id='lineWidth' onChange={(e) => setLineWidth(e.target.value)} value={lineWidth} />
             </Stack>
 
             <Stack stackProps={{ className: "items-center" }}>
                 <Label htmlFor="pressureMagnitude">
-                    {t('Canvas .pressureMagnitude')}
+                    {t('Canvas.pressureMagnitude')}
                 </Label>
                 <Input className="w-[2cm]" type='text' id='pressureMagnitude' onChange={(e) => setPressureMagnitude(e.target.value)} value={pressureMagnitude} />
             </Stack>

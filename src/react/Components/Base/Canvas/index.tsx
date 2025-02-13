@@ -147,7 +147,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                         </Button>
                     </Tooltip>
 
-                    <Tooltip tooltipContent={t('Canvas.BackgroundColor')}>
+                    <Tooltip tooltipContent={t('Canvas.Reset')}>
                         <Button
                             isIcon
                             variant='text'
