@@ -39,6 +39,8 @@ export const ManageVisits = memo(function ManageVisits({ patientId = '', default
         setVisits([...defaultVisits ?? []]);
     }, [defaultVisits])
 
+    console.log('ManageVisits', { showDiagnosis, showTreatments, activeVisitIndex, visits, visitsDates, visitsTimes, patientId, defaultVisits })
+
     return (
         <>
             <EditorModal
@@ -55,7 +57,7 @@ export const ManageVisits = memo(function ManageVisits({ patientId = '', default
 
                     console.log('ManageVisits', 'diagnosis', 'onChange', diagnosis, canvasId)
 
-                    if (visits[activeVisitIndex].diagnosis)
+                    if (visits[activeVisitIndex])
                         visits[activeVisitIndex].diagnosis = { text: diagnosis, canvas: canvasId }
 
                     if (onChange)
@@ -77,7 +79,7 @@ export const ManageVisits = memo(function ManageVisits({ patientId = '', default
 
                     console.log('ManageVisits', 'treatments', 'onChange', treatments, canvasId)
 
-                    if (visits[activeVisitIndex].treatments)
+                    if (visits[activeVisitIndex])
                         visits[activeVisitIndex].treatments = { text: treatments, canvas: canvasId }
 
                     if (onChange)

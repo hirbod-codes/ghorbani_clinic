@@ -113,12 +113,12 @@ export function MedicalHistoryDataGrid() {
         {
             accessorKey: 'createdAt',
             id: 'createdAt',
-            cell: (props) => toFormat(props.getValue() as number, configuration.local, undefined, DATE),
+            cell: ({ getValue }) => typeof getValue() === 'number' ? toFormat(getValue() as number, configuration.local, undefined, DATE) : '-',
         },
         {
             accessorKey: 'updatedAt',
             id: 'updatedAt',
-            cell: (props) => toFormat(props.getValue() as number, configuration.local, undefined, DATE),
+            cell: ({ getValue }) => typeof getValue() === 'number' ? toFormat(getValue() as number, configuration.local, undefined, DATE) : '-',
         },
     ]
 

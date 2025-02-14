@@ -153,12 +153,12 @@ export const Users = memo(function Users() {
         {
             accessorKey: 'createdAt',
             id: 'createdAt',
-            cell: ({ getValue }) => toFormat(Number(getValue() as string), configuration.local, undefined, DATE),
+            cell: ({ getValue }) => typeof getValue() === 'number' ? toFormat(getValue() as number, configuration.local, undefined, DATE) : '-',
         },
         {
             accessorKey: 'updatedAt',
             id: 'updatedAt',
-            cell: ({ getValue }) => toFormat(Number(getValue() as string), configuration.local, undefined, DATE),
+            cell: ({ getValue }) => typeof getValue() === 'number' ? toFormat(getValue() as number, configuration.local, undefined, DATE) : '-',
         },
     ]
 

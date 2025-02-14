@@ -93,8 +93,10 @@ export function ManagePatientModal({ open, onClose, inputPatient }: { open: bool
                     modalContainerProps={{ className: 'w-5/6' }}
                 >
                     <ManagePatient
-                        onDone={(p, v, f) => {
-                            submit(p, v, f)
+                        onDone={async(p, v, f) => {
+                            await submit(p, v, f)
+                            if(onClose)
+                                onClose()
                         }}
                     />
                 </Modal>

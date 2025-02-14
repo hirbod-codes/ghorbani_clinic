@@ -154,27 +154,27 @@ export const Patients = memo(function Patients() {
         {
             accessorKey: 'age',
             id: 'age',
-            cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.local.language)).format(Number(getValue() as string))
+            cell: ({ getValue }) => typeof getValue() === 'number' ? new Intl.NumberFormat(getLuxonLocale(configuration.local.language)).format(getValue() as number) : '-'
         },
         {
             accessorKey: 'phoneNumber',
             id: 'phoneNumber',
-            cell: ({ getValue }) => new Intl.NumberFormat(getLuxonLocale(configuration.local.language), { trailingZeroDisplay: 'auto', minimumIntegerDigits: 11, useGrouping: false }).format(getValue() as Intl.StringNumericLiteral)
+            cell: ({ getValue }) => getValue() !== undefined && typeof getValue() === 'string' && (getValue() as string).match(/^[0-9]+$/) != null ? new Intl.NumberFormat(getLuxonLocale(configuration.local.language), { trailingZeroDisplay: 'auto', minimumIntegerDigits: 11, useGrouping: false }).format(getValue() as Intl.StringNumericLiteral) : '-'
         },
         {
             accessorKey: 'birthDate',
             id: 'birthDate',
-            cell: (props) => toFormat(props.getValue() as number, configuration.local, undefined, DATE),
+            cell: ({ getValue }) => typeof getValue() === 'number' ? toFormat(getValue() as number, configuration.local, undefined, DATE) : '-',
         },
         {
             accessorKey: 'createdAt',
             id: 'createdAt',
-            cell: (props) => toFormat(props.getValue() as number, configuration.local, undefined, DATE),
+            cell: ({ getValue }) => typeof getValue() === 'number' ? toFormat(getValue() as number, configuration.local, undefined, DATE) : '-',
         },
         {
             accessorKey: 'updatedAt',
             id: 'updatedAt',
-            cell: (props) => toFormat(props.getValue() as number, configuration.local, undefined, DATE),
+            cell: ({ getValue }) => typeof getValue() === 'number' ? toFormat(getValue() as number, configuration.local, undefined, DATE) : '-',
         },
     ]
 
@@ -373,7 +373,7 @@ export const Patients = memo(function Patients() {
                     setActivePatientId(undefined)
                     setShowingMH(false)
                 }}
-                onSave={async (mh) => {
+                onDone={async (mh) => {
                     try {
                         console.group('Patients', 'MedicalHistory', 'onChange')
 

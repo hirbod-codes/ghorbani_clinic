@@ -131,17 +131,17 @@ export const Visits = memo(function Visits() {
         {
             id: 'due',
             accessorKey: 'due',
-            cell: ({ getValue }) => toFormat(Number(getValue() as string), configuration.local, undefined, DATE),
+            cell: ({ getValue }) => typeof getValue() === 'number' ? toFormat(getValue() as number, configuration.local, undefined, DATE) : '-',
         },
         {
             id: 'createdAt',
             accessorKey: 'createdAt',
-            cell: ({ getValue }) => toFormat(Number(getValue() as string), configuration.local, undefined, DATE),
+            cell: ({ getValue }) => typeof getValue() === 'number' ? toFormat(getValue() as number, configuration.local, undefined, DATE) : '-',
         },
         {
             id: 'updatedAt',
             accessorKey: 'updatedAt',
-            cell: ({ getValue }) => toFormat(Number(getValue() as string), configuration.local, undefined, DATE),
+            cell: ({ getValue }) => typeof getValue() === 'number' ? toFormat(getValue() as number, configuration.local, undefined, DATE) : '-',
         },
     ]
 
