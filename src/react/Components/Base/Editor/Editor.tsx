@@ -9,7 +9,6 @@ import { ConfigurationContext } from "../../../Contexts/Configuration/Configurat
 import { SaveIcon } from "../../Icons/SaveIcon";
 import { isCanvasEmpty } from "../Canvas/helpers";
 import { Canvas as CanvasModel } from "../../../../Electron/Database/Models/Canvas";
-import { AnimatedSlide } from "../../Animations/AnimatedSlide";
 import { CircularLoadingIcon } from "../CircularLoadingIcon";
 import { Separator } from "@/src/react/shadcn/components/ui/separator";
 import { Button } from "@/src/react/Components/Base/Button";
