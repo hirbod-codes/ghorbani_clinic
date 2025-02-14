@@ -36,7 +36,7 @@ export const DropdownMenu = memo(function DropdownMenu({ children, anchorRef, an
             ...scope.current.getBoundingClientRect()
             , width: helperRef?.current?.getBoundingClientRect().width, height: helperRef?.current?.getBoundingClientRect().height
         }
-        console.log({ aRect, cRect })
+        // console.log({ aRect, cRect })
 
         // console.log('updatePosition', verticalPosition, horizontalPosition, { visualViewport: window.visualViewport, 'ref': anchorRef?.current, 'scrollTop': anchorRef?.current?.scrollTop, 'offsetTop': anchorRef?.current?.offsetTop, 'offsetLeft': anchorRef?.current?.offsetLeft, 'offsetHeight': anchorRef?.current?.offsetHeight, 'offsetWidth': anchorRef?.current?.offsetWidth, 'aRect.top': aRect?.top, 'aRect.bottom': aRect?.bottom, 'aRect.left': aRect?.left, 'aRect.right': aRect?.right, 'aRect.width': aRect?.width, 'aRect.height': aRect?.height })
         // console.log('updatePosition', verticalPosition, horizontalPosition, { 'ref': scope.current, 'offsetTop': scope.current.offsetTop, 'offsetLeft': scope.current.offsetLeft, 'offsetHeight': scope.current.offsetHeight, 'offsetWidth': scope.current.offsetWidth, 'cRect.top': cRect.top, 'cRect.bottom': cRect.bottom, 'cRect.left': cRect.left, 'cRect.right': cRect.right, 'cRect.width': cRect.width, 'cRect.height': cRect.height })

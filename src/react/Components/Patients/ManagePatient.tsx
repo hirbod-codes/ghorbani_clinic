@@ -142,7 +142,7 @@ export const ManagePatient = memo(function ManagePatient({ inputPatient, onDone 
                     open={showMedicalHistory}
                     onClose={() => setShowMedicalHistory(false)}
                     inputMedicalHistory={patient?.medicalHistory}
-                    onSave={(mh) => {
+                    onDone={(mh) => {
                         setPatient({ ...patient!, medicalHistory: mh });
                         setShowMedicalHistory(false)
                     }}

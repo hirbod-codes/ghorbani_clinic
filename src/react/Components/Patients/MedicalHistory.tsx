@@ -16,11 +16,11 @@ export type MedicalHistoryProps = {
     open: boolean;
     onClose?: () => void;
     inputMedicalHistory?: PatientsMedicalHistory | undefined;
-    onSave?: (medicalHistory: PatientsMedicalHistory) => any;
+    onDone?: (medicalHistory: PatientsMedicalHistory) => any;
     onChange?: (medicalHistory: PatientsMedicalHistory) => any;
 }
 
-export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onChange }: MedicalHistoryProps) {
+export function MedicalHistory({ open, onDone, onClose, inputMedicalHistory, onChange }: MedicalHistoryProps) {
     const auth = useContext(AuthContext)
     const [openDrawer, setOpenDrawer] = useState<boolean>(false)
     const [medicalHistory, setMedicalHistory] = useState<PatientsMedicalHistory | undefined>(inputMedicalHistory)
@@ -108,8 +108,8 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                                     canvasId={medicalHistory?.description?.canvas as string}
                                     onSave={(text, canvas) => {
                                         setMedicalHistory({ ...medicalHistory, description: { text, canvas } });
-                                        if (onSave)
-                                            onSave({ ...medicalHistory, description: { text, canvas } })
+                                        if (onChange)
+                                            onChange({ ...medicalHistory, description: { text, canvas } })
                                     }}
                                     onChange={(text, canvas) => {
                                         if (onChange)
@@ -124,8 +124,8 @@ export function MedicalHistory({ open, onSave, onClose, inputMedicalHistory, onC
                     <Separator />
 
                     <Button variant='outline' onClick={async () => {
-                        if (onSave)
-                            await onSave(medicalHistory)
+                        if (onDone)
+                            await onDone(medicalHistory)
                         setHasUnsavedChanges(false)
                     }}>
                         {t('MedicalHistories.save')}

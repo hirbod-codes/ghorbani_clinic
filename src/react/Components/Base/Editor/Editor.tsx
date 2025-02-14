@@ -1,5 +1,5 @@
 import { t } from "i18next";
-import { useState, useRef, useEffect, useContext, memo } from "react"
+import { useState, useRef, useEffect, useContext, memo, useReducer } from "react"
 import { RendererDbAPI } from "../../../../Electron/Database/renderer";
 import { RESULT_EVENT_NAME } from "../../../Contexts/ResultWrapper";
 import { publish } from "../../../Lib/Events";
@@ -52,6 +52,8 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
     const [canvasHasUnsavedChanges, setCanvasHasUnsavedChangesState] = useState<boolean>(false)
 
     const [backgroundColor, setBackgroundColor] = useState<string>()
+
+    const [, rerender] = useReducer(x => x + 1, 0)
 
     const setCanvasHasUnsavedChanges = (state: boolean) => {
         setCanvasHasUnsavedChangesState(state)
@@ -146,245 +148,281 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                     message: t('Editor.successfullyUploadedCanvas')
                 })
 
+                if (canvasId)
+                    console.log(await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteCanvas(canvasId))
+
                 setCanvasId(res.data)
 
                 id = res.data
-            }
-
-            if (canvasId)
+            } else if (canvasId)
                 console.log(await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteCanvas(canvasId))
 
             if (onSave)
                 await onSave(text, id)
 
             setCanvasHasUnsavedChanges(false)
-        }
-        finally {
-            setLoading(false)
+        } finally {
             console.groupEnd()
         }
     }
 
-    const getCanvas = async (id: string) => {
-        try {
-            console.group('Editor', 'getCanvas')
+    const getCanvas = async (id: string): Promise<{
+        colorSpace: NonNullable<PredefinedColorSpace | undefined>;
+        backgroundColor: string;
+        width: number;
+        height: number;
+        type: string;
+        data: string;
+    } | undefined> => {
+        return new Promise(async (resolve, rej) => {
+            try {
+                console.group('Editor', 'getCanvas')
 
-            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(id)
-            console.log({ res })
+                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(id)
+                console.log({ res })
 
-            if (res.code !== 200 || !res.data)
-                return
+                setTimeout(() => {
+                    if (res.code !== 200 || !res.data)
+                        resolve(undefined)
 
-            return res.data
-        }
-        finally { console.groupEnd() }
+                    resolve(res.data)
+                }, 2000)
+            }
+            finally { console.groupEnd() }
+        })
     }
 
+    const dataRef = useRef<{
+        colorSpace: NonNullable<PredefinedColorSpace | undefined>;
+        backgroundColor: string;
+        width: number;
+        height: number;
+        type: string;
+        data: string;
+    } | undefined>(undefined)
+
     const init = async () => {
-        try {
-            console.group('Editor', 'init')
+        console.log('Editor', 'init')
 
-            console.log({ status, canvas: canvas.current })
+        console.log({ status, canvas: canvas.current })
 
-            setLoading(true)
+        setLoading(true)
 
-            if (!canvasId) {
-                console.log('no canvas id')
-                setLoading(false)
-                return
-            }
+        if (!canvasId) {
+            console.log('no canvas id')
+            setLoading(false)
+            return
+        }
 
-            if (status === 'typing') {
-                setLoading(false)
-                return
-            }
+        if (status === 'typing') {
+            setLoading(false)
+            return
+        }
 
-            const data = await getCanvas(canvasId)
-            if (!data) {
-                publish(RESULT_EVENT_NAME, {
-                    severity: 'error',
-                    message: t('Editor.failedToUploadCanvas')
-                })
+        dataRef.current = await getCanvas(canvasId)
+        setLoading(false)
 
-                setLoading(false)
-                return
-            }
-
+        if (!dataRef.current) {
             publish(RESULT_EVENT_NAME, {
-                severity: 'success',
-                message: t('Editor.successfullyUploadedCanvas')
+                severity: 'error',
+                message: t('Editor.failedToUploadCanvas')
             })
 
-            switch (status) {
-                case 'showing':
-                    if (!imageRef.current) {
-                        console.log('no image ref')
-                        setLoading(false)
-                        return
-                    }
-
-                    const src = `data:${data.type};base64,${data.data}`
-
-                    if (imageSrc === src) {
-                        setLoading(false)
-                        return
-                    }
-
-                    setImageSrc(src);
-
-                    if (data.backgroundColor)
-                        setBackgroundColor(data.backgroundColor)
-
-                    // if src is not different than previous imageSrc then this event wouldn't fire
-                    imageRef.current.onload = () => setLoading(false)
-
-                    break;
-
-                case 'drawing':
-                    if (!canvas.current) {
-                        console.log('no canvas ref')
-                        setLoading(false)
-                        return
-                    }
-
-                    if (data.backgroundColor)
-                        canvas.current.style.backgroundColor = data.backgroundColor
-
-                    const image = new Image()
-                    image.onload = () => {
-                        canvas.current?.getContext('2d', { willReadFrequently: true })?.drawImage(image, 0, 0);
-                        setLoading(false)
-                    }
-                    image.src = 'data:image/png;base64,' + data.data
-
-                    break;
-
-                default:
-                    break;
-            }
+            return
         }
-        finally { console.groupEnd() }
+
+        publish(RESULT_EVENT_NAME, {
+            severity: 'success',
+            message: t('Editor.successfullyUploadedCanvas')
+        })
+    }
+
+    const initCanvas = () => {
+        console.log('Editor', 'initCanvas')
+
+        if (loading) {
+            console.log('still loading!')
+            return
+        }
+
+        if (!dataRef.current) {
+            console.log('no canvas data')
+            return
+        }
+
+        console.log({ status, loading, canvas: canvas.current, dataRef: dataRef.current })
+
+        switch (status) {
+            case 'showing':
+                if (!imageRef.current) {
+                    console.log('no image ref')
+                    return
+                }
+
+                const src = `data:${dataRef.current.type};base64,${dataRef.current.data}`
+
+                if (imageSrc === src) {
+                    return
+                }
+
+                setImageSrc(src);
+
+                if (dataRef.current.backgroundColor)
+                    setBackgroundColor(dataRef.current.backgroundColor)
+
+                break;
+
+            case 'drawing':
+                if (!canvas.current) {
+                    console.log('no canvas ref')
+                    return
+                }
+
+                if (dataRef.current.backgroundColor)
+                    canvas.current.style.backgroundColor = dataRef.current.backgroundColor
+
+                const image = new Image()
+                image.onload = () => {
+                    canvas.current?.getContext('2d', { willReadFrequently: true })?.drawImage(image, 0, 0);
+                }
+                image.src = 'data:image/png;base64,' + dataRef.current.data
+
+                rerender()
+                break;
+
+            default:
+                break;
+        }
     }
 
     useEffect(() => {
         init()
-    }, [status, canvas.current, inputCanvasId, inputText, canvasId])
+    }, [canvasId])
+
+    useEffect(() => {
+        initCanvas()
+    }, [status, imageRef.current, canvas.current, dataRef.current, loading])
 
     return (
         <>
-            <AnimatedSlide open={loading}>
-                <CircularLoadingIcon />
-            </AnimatedSlide>
+            <div className="size-full relative overflow-hidden">
+                {!loading &&
+                    <Stack direction='vertical' stackProps={{ className: "mx-0 items-stretch size-full min-h-96", id: 'editor-container' }}>
+                        <Stack stackProps={{ className: "justify-between items-center overflow-auto" }}>
+                            <div className="overflow-auto text-nowrap">
+                                <Tooltip tooltipContent={title}>
+                                    <h6>{title}</h6>
+                                </Tooltip>
+                            </div>
+                            <Stack stackProps={{ className: "content-center items-center" }}>
+                                <Tooltip tooltipContent={t('Editor.View')}>
+                                    <Button isIcon variant='text' onClick={() => { setStatus('showing') }}>
+                                        <EyeIcon />
+                                    </Button>
+                                </Tooltip>
 
-            <Stack direction='vertical' stackProps={{ className: "mx-0 items-stretch size-full min-h-96", id: 'editor-container' }}>
-                <Stack stackProps={{ className: "justify-between items-center overflow-auto" }}>
-                    <div className="overflow-auto text-nowrap">
-                        <Tooltip tooltipContent={title}>
-                            <h6>{title}</h6>
-                        </Tooltip>
-                    </div>
-                    <Stack stackProps={{ className: "content-center items-center" }}>
-                        <Tooltip tooltipContent={t('Editor.View')}>
-                            <Button isIcon variant='text' onClick={() => { setStatus('showing') }}>
-                                <EyeIcon />
-                            </Button>
-                        </Tooltip>
+                                {!hideTextEditor &&
+                                    <Tooltip tooltipContent={t('Editor.Notes')}>
+                                        <Button isIcon variant='text' onClick={() => { setStatus('typing') }}>
+                                            <FileTypeIcon />
+                                        </Button>
+                                    </Tooltip>
+                                }
 
-                        {!hideTextEditor &&
-                            <Tooltip tooltipContent={t('Editor.Notes')}>
-                                <Button isIcon variant='text' onClick={() => { setStatus('typing') }}>
-                                    <FileTypeIcon />
-                                </Button>
-                            </Tooltip>
+                                {!hideCanvas &&
+                                    <Tooltip tooltipContent={t('Editor.WhiteBoard')}>
+                                        <Button isIcon variant='text' onClick={() => { setStatus('drawing') }}>
+                                            <SquarePenIcon />
+                                        </Button>
+                                    </Tooltip>
+                                }
+                            </Stack>
+                        </Stack>
+
+                        {status === 'showing' &&
+                            <>
+                                <Separator />
+
+                                <Stack direction='vertical' stackProps={{ className: 'pr-1 overflow-auto flex-grow w-full' }}>
+                                    {text &&
+                                        <>
+                                            <h5>
+                                                {t('Editor.description')}
+                                            </h5>
+
+                                            <Separator />
+
+                                            <div dangerouslySetInnerHTML={{ __html: text }} />
+
+                                            <Separator />
+                                        </>
+                                    }
+
+                                    {canvasId &&
+                                        <img ref={imageRef} src={imageSrc} style={{ backgroundColor }} />
+                                    }
+                                </Stack>
+                            </>
                         }
 
-                        {!hideCanvas &&
-                            <Tooltip tooltipContent={t('Editor.WhiteBoard')}>
-                                <Button isIcon variant='text' onClick={() => { setStatus('drawing') }}>
-                                    <SquarePenIcon />
-                                </Button>
-                            </Tooltip>
+                        {!hideTextEditor && status === 'typing' &&
+                            <>
+                                <Separator />
+
+                                {onSave &&
+                                    <Button isIcon variant='text' onClick={saveContent} fgColor={contentHasUnsavedChanges ? 'warning' : 'primary'} >
+                                        {contentHasUnsavedChanges ? <SaveIcon color='inherit' /> : <SaveIcon color='inherit' />}
+                                    </Button>
+                                }
+
+                                <Separator />
+
+                                <div className="flex-grow">
+                                    <TextEditor
+                                        text={inputText}
+                                        onChange={async (html) => {
+                                            setContentHasUnsavedChanges(true)
+                                            setText(html)
+                                            if (onChange)
+                                                await onChange(html, canvasId)
+                                        }}
+                                    />
+                                </div>
+                            </>
+                        }
+
+                        {!hideCanvas && status === 'drawing' &&
+                            <>
+                                <Separator />
+
+                                {onSave &&
+                                    <Button isIcon variant='text' onClick={saveCanvas} fgColor={canvasHasUnsavedChanges ? 'warning' : 'primary'}>
+                                        {canvasHasUnsavedChanges ? <CloudUploadIcon color={themeOptions.colors.warning[themeOptions.mode].main} /> : <FolderCheckIcon color={themeOptions.colors.primary[themeOptions.mode].main} />}
+                                    </Button>
+                                }
+
+                                <Separator />
+
+                                <div className="flex-grow">
+                                    <Canvas
+                                        canvasRef={canvas}
+                                        onChange={async (empty) => {
+                                            setCanvasHasUnsavedChanges(true);
+                                            if (onChange)
+                                                await onChange(text, canvasId)
+                                        }}
+                                    />
+                                </div>
+                            </>
                         }
                     </Stack>
-                </Stack>
-
-                {status === 'showing' &&
-                    <>
-                        <Separator />
-
-                        <Stack direction='vertical' stackProps={{ className: 'pr-1 overflow-auto flex-grow w-full' }}>
-                            {text &&
-                                <>
-                                    <h5>
-                                        {t('Editor.description')}
-                                    </h5>
-
-                                    <Separator />
-
-                                    <div dangerouslySetInnerHTML={{ __html: text }} />
-
-                                    <Separator />
-                                </>
-                            }
-
-                            {canvasId &&
-                                <img ref={imageRef} src={imageSrc} style={{ backgroundColor }} />
-                            }
-                        </Stack>
-                    </>
                 }
-
-                {!hideTextEditor && status === 'typing' &&
-                    <>
-                        <Separator />
-
-                        {onSave &&
-                            <Button isIcon variant='text' onClick={saveContent} fgColor={contentHasUnsavedChanges ? 'warning' : 'primary'} >
-                                {contentHasUnsavedChanges ? <SaveIcon color='inherit' /> : <SaveIcon color='inherit' />}
-                            </Button>
-                        }
-
-                        <Separator />
-
-                        <div className="flex-grow">
-                            <TextEditor
-                                text={inputText}
-                                onChange={async (html) => {
-                                    setContentHasUnsavedChanges(true)
-                                    setText(html)
-                                    if (onChange)
-                                        await onChange(html, canvasId)
-                                }}
-                            />
-                        </div>
-                    </>
+                {loading &&
+                    <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2'>
+                        <CircularLoadingIcon />
+                    </div>
                 }
-
-                {!hideCanvas && status === 'drawing' &&
-                    <>
-                        <Separator />
-
-                        {onSave &&
-                            <Button isIcon variant='text' onClick={saveCanvas} fgColor={canvasHasUnsavedChanges ? 'warning' : 'primary'}>
-                                {canvasHasUnsavedChanges ? <CloudUploadIcon color={themeOptions.colors.warning[themeOptions.mode].main} /> : <FolderCheckIcon color={themeOptions.colors.primary[themeOptions.mode].main} />}
-                            </Button>
-                        }
-
-                        <Separator />
-
-                        <div className="flex-grow">
-                            <Canvas
-                                canvasRef={canvas}
-                                onChange={async (empty) => {
-                                    setCanvasHasUnsavedChanges(true);
-                                    if (onChange)
-                                        await onChange(text, canvasId)
-                                }}
-                            />
-                        </div>
-                    </>
-                }
-            </Stack>
+            </div>
         </>
     )
 })
