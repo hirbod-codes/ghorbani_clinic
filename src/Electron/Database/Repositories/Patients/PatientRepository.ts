@@ -148,7 +148,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!permission.granted)
             throw new Unauthorized()
 
-        const patients: Patient[] = await (await this.getPatientsCollection()).find().limit(count).skip(offset * count).sort('createdAt', -1).toArray();
+        const patients: Patient[] = await (await this.getPatientsCollection()).find().sort('createdAt', -1).limit(count).skip(offset * count).toArray();
 
         const readablePatients = extractKeysRecursive(patients, getFields(patientReadableFields, permission.attributes));
 

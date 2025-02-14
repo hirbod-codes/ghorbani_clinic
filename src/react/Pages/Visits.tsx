@@ -2,7 +2,7 @@ import { useState, useContext, useEffect, useMemo, memo } from "react";
 import { DataGrid } from "../Components/DataGrid";
 import { RendererDbAPI } from "../../Electron/Database/renderer";
 import { t } from "i18next";
-import { DATE, toFormat } from "../Lib/DateTime/date-time-helpers";
+import { DATE, DATE_TIME, toFormat } from "../Lib/DateTime/date-time-helpers";
 import { ConfigurationContext } from "../Contexts/Configuration/ConfigurationContext";
 import { Visit } from "../../Electron/Database/Models/Visit";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
@@ -131,7 +131,7 @@ export const Visits = memo(function Visits() {
         {
             id: 'due',
             accessorKey: 'due',
-            cell: ({ getValue }) => typeof getValue() === 'number' ? toFormat(getValue() as number, configuration.local, undefined, DATE) : '-',
+            cell: ({ getValue }) => typeof getValue() === 'number' ? toFormat(getValue() as number, configuration.local, undefined, DATE_TIME) : '-',
         },
         {
             id: 'createdAt',
