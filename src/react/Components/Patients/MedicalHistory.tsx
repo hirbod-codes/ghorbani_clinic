@@ -35,11 +35,12 @@ export function MedicalHistory({ open, onDone, onClose, inputMedicalHistory, onC
         open: false,
         title: '',
         content: '',
+        dialog: () => { }
     }
     const [dialog, setDialog] = useState(initDialog)
     const closeDialog = () => setDialog(initDialog)
 
-    const updateMedicalHistory = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).update(resources.MEDICAL_HISTORY), [auth])
+    const updateMedicalHistory = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).update(resources.MEDICAL_HISTORY).granted, [auth])
 
     useEffect(() => {
         setMedicalHistory(inputMedicalHistory)
@@ -54,6 +55,10 @@ export function MedicalHistory({ open, onDone, onClose, inputMedicalHistory, onC
                             open: true,
                             title: t('MedicalHistories.exiting'),
                             content: t('MedicalHistories.areYouSure?YouHaveUnsavedChanges'),
+                            action: () => {
+                                setHasUnsavedChanges(false)
+                                if (onClose) onClose()
+                            }
                         })
                     else if (onClose)
                         onClose()
@@ -66,23 +71,21 @@ export function MedicalHistory({ open, onDone, onClose, inputMedicalHistory, onC
                         <Stack stackProps={{ className: "size-full justify-between" }}>
                             <div className="flex-grow shadow-md max-w-[48%] h-full p-3">
                                 <Stack direction='vertical' stackProps={{ className: "size-full" }}>
-                                    {updateMedicalHistory &&
-                                        // using div component because alignItems='start' will make dividers invisible!!
-                                        <div className="flex flex-row justify-start">
+                                    <div className="flex flex-row justify-between items-center">
+                                        <div className="w-full overflow-auto text-nowrap">
+                                            <h6>
+                                                {t('MedicalHistories.medicalHistory')}
+                                            </h6>
+                                        </div>
+
+                                        {updateMedicalHistory &&
+                                            // using div component because alignItems='start' will make dividers invisible!!
                                             <Tooltip tooltipContent={t('MedicalHistories.Edit')}>
                                                 <Button isIcon variant="text" onClick={() => setIsEditingHistories(true)}>
                                                     <EditIcon />
                                                 </Button>
                                             </Tooltip>
-                                        </div>
-                                    }
-
-                                    <Separator />
-
-                                    <div className="w-full overflow-auto text-nowrap">
-                                        <h6>
-                                            {t('MedicalHistories.medicalHistory')}
-                                        </h6>
+                                        }
                                     </div>
 
                                     <Separator />
@@ -115,7 +118,7 @@ export function MedicalHistory({ open, onDone, onClose, inputMedicalHistory, onC
                                         if (onChange)
                                             onChange({ ...medicalHistory, description: { text, canvas } })
                                     }}
-                                    setHasUnsavedChanges={setHasUnsavedChanges}
+                                    setHasUnsavedChanges={(b) => { if (b === true) setHasUnsavedChanges(b) }}
                                 />
                             </div>
                         </Stack>
@@ -164,8 +167,8 @@ export function MedicalHistory({ open, onDone, onClose, inputMedicalHistory, onC
                 <Stack>
                     <Button onClick={closeDialog}>{t('MedicalHistories.No')}</Button>
                     <Button onClick={() => {
-                        if (onClose)
-                            onClose()
+                        if (dialog.action)
+                            dialog.action()
 
                         closeDialog()
                     }}>{t('MedicalHistories.Yes')}</Button>
