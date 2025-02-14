@@ -21,6 +21,9 @@
         "gregorianCalendarName": "میلادی",
         "Asia/Tehran": "آسیا/تهران"
     },
+    "TimeField": {
+        "invalidTimeFormat": "فرم زمان اشتباه"
+    },
     "Home": {
         "Patients": "بیماران",
         "Visits": "نوبت ها",
@@ -135,6 +138,9 @@
         "successfullyUpdatedPatientMedicalHistory": "تاریخچه پزشکی بیمار با موفقیت بروزرسانی شد"
     },
     "ManagePatient": {
+        "thisSocialIdAlreadyExists": "این کد ملی قبلا استفاده شده",
+        "mustHave10Digits": "باید ۱۰ عدد داشته باشد",
+        "files": "فایل",
         "UpdatePatient": "بروزرسانی بیمار",
         "RegisterPatient": "ثبت بیمار",
         "Documents": "مدارک",

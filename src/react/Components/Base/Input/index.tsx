@@ -64,7 +64,7 @@ export const Input = memo(function Input({ label, labelId, errorText, helperText
                         exit='exit'
                         variants={inputVariants}
                         transition={{ ease: [0.5, 0, 0.5, 1] }}
-                        className="absolute -bottom-2 inline"
+                        className="absolute px-2 -bottom-2 inline"
                     >
                         <Tooltip tooltipContent={errorText}>
                             <p className="text-left text-xs text-error text-nowrap text-ellipsis w-full overflow-hidden">
@@ -84,7 +84,7 @@ export const Input = memo(function Input({ label, labelId, errorText, helperText
                                 exit='exit'
                                 variants={inputVariants}
                                 transition={{ ease: [0.5, 0, 0.5, 1] }}
-                                className="absolute -bottom-2 inline"
+                                className="absolute px-2 -bottom-2 inline"
                             >
                                 <Tooltip tooltipContent={helperText}>
                                     <p className="text-left text-xs text-surface-foreground text-nowrap text-ellipsis w-full overflow-hidden">

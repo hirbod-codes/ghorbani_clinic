@@ -1,4 +1,4 @@
-import { useState, useContext, useEffect, memo } from 'react';
+import { useState, useContext, useEffect, memo, useRef } from 'react';
 import { DateTime } from 'luxon'
 
 import { Patient } from '../../../Electron/Database/Models/Patient';
@@ -18,6 +18,10 @@ import { Button } from '../Base/Button';
 import { Select } from '../Base/Select';
 import { Stack } from '../Base/Stack';
 import { Separator } from '../../shadcn/components/ui/separator';
+import { localizeNumbers } from '../../Localization/helpers';
+import { CircularLoadingIcon } from '../Base/CircularLoadingIcon';
+import { CrossIcon } from 'lucide-react';
+import { CircularLoading } from '../Base/CircularLoading';
 
 async function getVisits(patientId?: string): Promise<Visit[] | undefined> {
     if (!patientId)
@@ -38,14 +42,19 @@ export const ManagePatient = memo(function ManagePatient({ inputPatient, onDone 
 
     const [showMedicalHistory, setShowMedicalHistory] = useState<boolean>(false)
     const [showAddress, setShowAddress] = useState<boolean>(false)
+    const [showFiles, setShowFiles] = useState<boolean>(false)
+
+    const [socialIdExists, setSocialIdExists] = useState<boolean | undefined>(undefined)
+    const [checkingSocialId, setCheckingSocialId] = useState<boolean>(false)
+
 
     const [patient, setPatient] = useState<Patient | undefined>(inputPatient)
     const [visits, setVisits] = useState<Visit[]>([])
 
+    const fileInputRef = useRef<HTMLInputElement>(null)
     const [files, setFiles] = useState<{ fileName: string, bytes: Buffer | Uint8Array }[]>([])
-    const [showFiles, setShowFiles] = useState<boolean>(false)
 
-    console.log('ManagePatient', { socialIdError, patient, visits, files, inputPatient })
+    console.log('ManagePatient', { socialIdError, patient, visits, files, showFiles, inputPatient, showMedicalHistory, showAddress })
 
     const init = async () => {
         if (!inputPatient)
@@ -75,12 +84,12 @@ export const ManagePatient = memo(function ManagePatient({ inputPatient, onDone 
                 <Input
                     label={t('ManagePatient.socialId')}
                     labelId={t('ManagePatient.socialId')}
-                    className='w-[7rem]'
+                    className={`${socialIdExists === false ? 'border-success' : (socialIdExists === true ? 'border-error' : '')} ${checkingSocialId === true ? 'w-[9rem]' : 'w-[7rem]'}`}
                     containerProps={{ className: 'w-full' }}
                     labelContainerProps={{ stackProps: { className: 'justify-between' } }}
-                    onChange={(e) => {
+                    onChange={async (e) => {
                         const id = e.target.value
-                        if (id.length > 10)
+                        if (id.match(/^[0-9]*$/) === null)
                             return
 
                         if (id.length !== 10 && id.length !== 0)
@@ -89,12 +98,32 @@ export const ManagePatient = memo(function ManagePatient({ inputPatient, onDone 
                             setSocialIdError(false)
 
                         setPatient({ ...patient, socialId: id })
+
+                        if (id.length === 0) {
+                            setSocialIdExists(undefined)
+                            return
+                        }
+
+                        if (id.length !== 10) {
+                            setSocialIdExists(undefined)
+                            return
+                        }
+
+                        setCheckingSocialId(true)
+                        const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.socialIdExists(id);
+                        setCheckingSocialId(false)
+                        console.log({ res })
+                        if (res.code >= 200 && res.code < 300 && res.data === false)
+                            setSocialIdExists(false)
+                        else
+                            setSocialIdExists(true)
                     }}
                     id='socialId'
                     value={patient?.socialId ?? ''}
                     required
                     animateHeight
-                    errorText={socialIdError ? 'must have 10 digits' : undefined}
+                    endIcon={checkingSocialId === true ? <CircularLoading size='sm' /> : undefined}
+                    errorText={socialIdExists === true ? t('ManagePatient.thisSocialIdAlreadyExists') : (socialIdError ? t('ManagePatient.mustHave10Digits') : undefined)}
                     helperText={!patient?.socialId || patient?.socialId.trim() === '' ? 'required' : undefined}
                 />
                 {/* First name */}
@@ -149,11 +178,31 @@ export const ManagePatient = memo(function ManagePatient({ inputPatient, onDone 
                 />
 
                 {/* Files */}
-                <Button className='w-fit' variant='outline' onClick={() => setShowFiles(true)}>{t('ManagePatient.Documents')}</Button>
-                {patient && patient._id &&
-                    <Modal open={showFiles} onClose={() => setShowFiles(false)}>
-                        <DocumentManagement patientId={patient._id as string} />
-                    </Modal>
+                {patient && patient._id
+                    ? <>
+                        <Button className='w-fit' variant='outline' onClick={() => setShowFiles(true)}>{t('ManagePatient.Documents')}</Button>
+                        <Modal open={showFiles} onClose={() => setShowFiles(false)}>
+                            <DocumentManagement patientId={patient._id as string} />
+                        </Modal>
+                    </>
+                    : <>
+                        <Stack stackProps={{ className: 'items-center justify-between' }}>
+                            <Button className='w-fit' variant='outline' onClick={() => fileInputRef.current?.click()}>{t('ManagePatient.Documents')}</Button>
+                            {files.length > 0 && `${localizeNumbers(locale.language, files.length)} ${t('ManagePatient.files')}`}
+                        </Stack>
+                        <Input
+                            inputRef={fileInputRef}
+                            className='hidden'
+                            type='file'
+                            multiple={true}
+                            onChange={async (e) => {
+                                const fs: { fileName: string, bytes: Buffer | Uint8Array }[] = []
+                                for (const f of (e.target.files as unknown) as File[])
+                                    fs.push({ fileName: f.name, bytes: new Uint8Array(await f.arrayBuffer()) })
+
+                                setFiles(fs)
+                            }} />
+                    </>
                 }
             </Stack>
 

@@ -1,36 +1,41 @@
 import { ComponentProps, useState } from 'react';
 import { Time } from '../../../Lib/DateTime';
 import { Input } from '../Input';
+import { t } from 'i18next';
 
 export function TimeField({ defaultTime, onChange, inputProps }: { defaultTime?: Time; onChange?: (time: Time) => void; inputProps?: ComponentProps<typeof Input> }) {
-    const [hour, setHour] = useState<number | undefined>(undefined);
-    const [minute, setMinute] = useState<number | undefined>(undefined);
-    const [second, setSecond] = useState<number | undefined>(undefined);
-
-    if (!hour && defaultTime?.hour)
-        setHour(defaultTime.hour);
-
-    if (!minute && defaultTime?.minute)
-        setMinute(defaultTime.minute);
-
-    if (!second && defaultTime?.second)
-        setSecond(defaultTime.second);
+    const [time, setTime] = useState<string>(defaultTime ? `${defaultTime.hour}:${defaultTime.minute}:${defaultTime.second}` : '');
+    const [error, setError] = useState<string | undefined>(undefined);
 
     return (
         <Input
-            type='time'
-            step={1}
-            value={hour === undefined ? '' : `${hour?.toString().padStart(2, '0')}:${minute?.toString().padStart(2, '0')}:${second?.toString().padStart(2, '0')}`}
+            type='text'
+            value={time}
+            errorText={error}
+            animateHeight={true}
             onChange={(e) => {
-                setHour(Number(e.target.value.split(':')[0]));
-                setMinute(Number(e.target.value.split(':')[1]));
-                setSecond(Number(e.target.value.split(':')[2]));
-                if (onChange)
-                    onChange({
-                        hour: Number(e.target.value.split(':')[0]),
-                        minute: Number(e.target.value.split(':')[1]),
-                        second: Number(e.target.value.split(':')[2]),
-                    });
+                setTime(e.target.value)
+
+                try {
+                    let [h, m, s] = e.target.value.split(':').map(s => parseInt(s))
+                    if (!Number.isInteger(h) || !Number.isInteger(m) || !Number.isInteger(s)) {
+                        setError(t('TimeField.invalidTimeFormat'))
+                        return
+                    }
+
+                    if (h < 0 || h > 23 || m < 0 || m > 59 || s < 0 || s > 59) {
+                        setError(t('TimeField.invalidTimeFormat'))
+                        return
+                    }
+
+                    setError(undefined)
+
+                    if (onChange)
+                        onChange({ hour: h, minute: m, second: s, })
+                }
+                catch (e) {
+                    setError(t('TimeField.invalidTimeFormat'))
+                }
             }}
             style={{ width: '7rem' }}
             {...inputProps}

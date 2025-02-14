@@ -16,11 +16,6 @@ import { ManagePatient } from './ManagePatient';
 export function ManagePatientModal({ open, onClose, inputPatient }: { open: boolean, onClose?: () => void, inputPatient?: Patient }) {
     const [loading, setLoading] = useState<boolean>(false)
 
-    const [dialogOpen, setDialogOpen] = useState(false)
-    const [dialogTitle, setDialogTitle] = useState('')
-    const [dialogAction, setDialogAction] = useState<CallableFunction>()
-    const [dialogContent, setDialogContent] = useState('')
-
     console.log('ManagePatientModal', { loading, open, onClose, inputPatient })
 
     const submit = async (patient: Patient, visits: Visit[], files: { fileName: string, bytes: Buffer | Uint8Array }[]) => {
@@ -30,16 +25,19 @@ export function ManagePatientModal({ open, onClose, inputPatient }: { open: bool
             if (inputPatient) {
                 id = patient!._id!.toString()
                 const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.updatePatient(patient!);
+                console.log('updatePatient', { res })
                 if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.matchedCount !== 1 || res.data.modifiedCount !== 1)
                     throw new Error(t('ManagePatient.failedToUpdatePatient'))
                 for (const visit of visits) {
                     const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.updateVisit(visit);
+                    console.log('updateVisit', { res })
                     if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.matchedCount !== 1 || res.data.modifiedCount !== 1)
                         throw new Error(t('ManagePatient.failedToUpdatePatientVisits'))
                 }
             }
             else {
                 const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createPatient(patient!)
+                console.log('createPatient', { res })
                 if (res.code !== 200 || !res.data || res.data.acknowledged !== true || res.data.insertedId.toString() === '')
                     throw new Error(t('ManagePatient.failedToRegisterPatient'))
 
@@ -49,11 +47,13 @@ export function ManagePatientModal({ open, onClose, inputPatient }: { open: bool
                     visit.patientId = id
                     if (visit._id) {
                         const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.updateVisit(visit);
+                        console.log('updateVisit', { res })
                         if (res.code !== 200 || !res.data || !res.data.acknowledged)
                             throw new Error(t('ManagePatient.failedToRegisterPatientVisits'))
                     }
                     else {
                         const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.createVisit(visit);
+                        console.log('createVisit', { res })
                         if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.insertedId.toString() === '')
                             throw new Error(t('ManagePatient.failedToRegisterPatientVisits'))
                     }
@@ -61,6 +61,7 @@ export function ManagePatientModal({ open, onClose, inputPatient }: { open: bool
             }
 
             response = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadFiles(id as string, files)
+            console.log('uploadFiles', { response })
             if (response.code !== 200 || response.data !== true)
                 throw new Error(t('ManagePatient.failedToUploadPatientsDocuments'))
         } catch (error) {
@@ -93,26 +94,11 @@ export function ManagePatientModal({ open, onClose, inputPatient }: { open: bool
                 >
                     <ManagePatient
                         onDone={(p, v, f) => {
-                            setDialogTitle(`About to ${inputPatient ? 'update' : 'register'}...`)
-                            setDialogContent('Are you sure?')
-                            setDialogAction(() => submit(p, v, f))
-                            setDialogOpen(true)
+                            submit(p, v, f)
                         }}
                     />
                 </Modal>
-
             }
-
-            <Modal
-                open={dialogOpen}
-                onClose={() => setDialogOpen(false)}
-            >
-                <Stack direction='vertical'>
-                    {dialogContent}
-                    <Button onClick={() => setDialogOpen(false)}>No</Button>
-                    <Button onClick={() => { if (dialogAction) dialogAction(); setDialogOpen(false); if (onClose) onClose() }}>Yes</Button>
-                </Stack>
-            </Modal>
         </>
     )
 }

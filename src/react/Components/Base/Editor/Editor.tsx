@@ -173,22 +173,15 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
         type: string;
         data: string;
     } | undefined> => {
-        return new Promise(async (resolve, rej) => {
-            try {
-                console.group('Editor', 'getCanvas')
+        console.log('Editor', 'getCanvas')
 
-                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(id)
-                console.log({ res })
+        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(id)
+        console.log({ res })
 
-                setTimeout(() => {
-                    if (res.code !== 200 || !res.data)
-                        resolve(undefined)
+        if (res.code !== 200 || !res.data)
+            return
 
-                    resolve(res.data)
-                }, 2000)
-            }
-            finally { console.groupEnd() }
-        })
+        return res.data
     }
 
     const dataRef = useRef<{

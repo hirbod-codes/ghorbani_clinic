@@ -21,6 +21,9 @@
         "gregorianCalendarName": "Gregorian",
         "Asia/Tehran": "Asia/Tehran"
     },
+    "TimeField": {
+        "invalidTimeFormat": "Invalid time format"
+    },
     "Home": {
         "Patients": "Patients",
         "Visits": "Visits",
@@ -132,6 +135,9 @@
         "successfullyUpdatedPatientMedicalHistory": "Successfully updated patient medical history"
     },
     "ManagePatient": {
+        "thisSocialIdAlreadyExists": "This social id already exists",
+        "mustHave10Digits": "Must have10 digits",
+        "files": "Files",
         "UpdatePatient": "Update patient",
         "RegisterPatient": "Register patient",
         "Documents": "Documents",

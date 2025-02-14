@@ -127,7 +127,7 @@ export const ManageVisits = memo(function ManageVisits({ patientId = '', default
                                                 {t('ManageVisits.time')}
                                             </p>
                                             <TimeField
-                                                inputProps={{ className: 'w-[4rem]' }}
+                                                inputProps={{ className: 'w-[7rem]' }}
                                                 defaultTime={toDateTimeView(visits[i].due, local).time}
                                                 onChange={(time) => {
                                                     visitsTimes[i] = time

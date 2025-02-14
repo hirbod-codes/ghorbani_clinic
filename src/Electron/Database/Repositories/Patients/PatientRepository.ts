@@ -11,9 +11,12 @@ import { Unauthenticated } from "../../Exceptions/Unauthenticated";
 import { authRepository, privilegesRepository } from "../../main";
 import { resources } from "../Auth/resources";
 import { getFields } from "../../Models/helpers";
+import { string } from "yup";
+import { BadRequest } from "../../Exceptions/BadRequest";
 
 export class PatientRepository extends MongoDB implements IPatientRepository {
     async handleEvents() {
+        ipcMain.handle('social-id-exists', async (_e, { socialId }: { socialId: string }) => await this.handleErrors(async () => await this.socialIdExists(socialId)))
         ipcMain.handle('create-patient', async (_e, { patient }: { patient: Patient; }) => await this.handleErrors(async () => await this.createPatient(patient)))
         ipcMain.handle('get-patients-estimated-count', async () => await this.handleErrors(async () => await this.getPatientsEstimatedCount()))
         ipcMain.handle('get-patient-with-visits', async (_e, { socialId }: { socialId: string; }) => await this.handleErrors(async () => await this.getPatientWithVisits(socialId)))
@@ -25,6 +28,25 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         ipcMain.handle('delete-patient', async (_e, { id }: { id: string; }) => await this.handleErrors(async () => await this.deletePatient(id)))
     }
 
+    async socialIdExists(socialId: string): Promise<boolean> {
+        const user = await authRepository.getAuthenticatedUser()
+        if (!user)
+            throw new Unauthenticated();
+
+        if (
+            !(await privilegesRepository.getAccessControl()).can(user.roleName).read(resources.PATIENT).granted ||
+            !(await privilegesRepository.getAccessControl()).can(user.roleName).create(resources.PATIENT).granted
+        )
+            throw new Unauthorized()
+
+        if (!string().required().length(10).matches(/^[0-9]{10}$/).isValidSync(socialId))
+            throw new BadRequest('Invalid patient info provided.');
+
+        const patient = await (await this.getPatientsCollection()).findOne({ socialId })
+
+        return patient !== null && patient !== undefined
+    }
+
     async createPatient(patient: Patient): Promise<InsertOneResult> {
         const user = await authRepository.getAuthenticatedUser()
         if (!user)
@@ -34,7 +56,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
             throw new Unauthorized()
 
         if (!patientSchema.isValidSync(patient))
-            throw new Error('Invalid patient info provided.');
+            throw new BadRequest('Invalid patient info provided.');
 
         patient = patientSchema.cast(patient);
         patient.schemaVersion = 'v0.0.1';
@@ -109,7 +131,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
             return null
 
         if (!patientSchema.isValidSync(patient))
-            throw new Error('Invalid patient info provided.');
+            throw new BadRequest('Invalid patient info provided.');
 
         const readablePatient = extractKeys(patient, getFields(patientReadableFields, permission.attributes));
 
@@ -135,7 +157,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
 
     async getPatientsByCreatedAtDate(startDate: number, endDate: number, ascending = false) {
         if (startDate > endDate)
-            throw new Error('Invalid start and end date provided')
+            throw new BadRequest('Invalid start and end date provided')
 
         console.log('Authenticating...')
         const user = await authRepository.getAuthenticatedUser()
