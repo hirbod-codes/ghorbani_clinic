@@ -48,6 +48,8 @@ export type IPrivilegesRepository = dbAPI & {
 
 export type IPatientRepository = dbAPI & {
     handleEvents(): Promise<void>;
+    socialIdExists(socialId: string): Promise<boolean>
+    getPatientById(id: string): Promise<Patient | null | undefined>
     createPatient(patient: Patient): Promise<InsertOneResult>;
     getPatientWithVisits(socialId: string): Promise<Patient & { visits: Visit[] } | null>;
     getPatientsEstimatedCount(): Promise<number>;

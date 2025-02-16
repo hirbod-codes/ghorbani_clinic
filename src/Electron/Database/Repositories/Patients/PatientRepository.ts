@@ -18,6 +18,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
     async handleEvents() {
         ipcMain.handle('social-id-exists', async (_e, { socialId }: { socialId: string }) => await this.handleErrors(async () => await this.socialIdExists(socialId)))
         ipcMain.handle('create-patient', async (_e, { patient }: { patient: Patient; }) => await this.handleErrors(async () => await this.createPatient(patient)))
+        ipcMain.handle('get-patient-by-id', async (_e, { id }: { id: string; }) => await this.handleErrors(async () => await this.getPatientById(id)))
         ipcMain.handle('get-patients-estimated-count', async () => await this.handleErrors(async () => await this.getPatientsEstimatedCount()))
         ipcMain.handle('get-patient-with-visits', async (_e, { socialId }: { socialId: string; }) => await this.handleErrors(async () => await this.getPatientWithVisits(socialId)))
         ipcMain.handle('get-patients-with-visits', async (_e, { offset, count }: { offset: number; count: number; }) => await this.handleErrors(async () => await this.getPatientsWithVisits(offset, count)))
@@ -64,6 +65,20 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         patient.updatedAt = DateTime.utc().toUnixInteger();
 
         return await (await this.getPatientsCollection()).insertOne(patient)
+    }
+
+    async getPatientById(id: string): Promise<Patient | null | undefined> {
+        const user = await authRepository.getAuthenticatedUser()
+        if (!user)
+            throw new Unauthenticated();
+
+        if (!(await privilegesRepository.getAccessControl()).can(user.roleName).read(resources.PATIENT).granted)
+            throw new Unauthorized()
+
+        if (!string().required().isValidSync(id))
+            throw new BadRequest('Invalid patient info provided.');
+
+        return await (await this.getPatientsCollection()).findOne({ _id: new ObjectId(id) })
     }
 
     async getPatientsEstimatedCount(): Promise<number> {

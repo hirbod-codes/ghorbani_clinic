@@ -6,12 +6,13 @@ export type SlideProps = {
     collection: (null | { value: number | string, displayValue: number | string })[]
     headers?: string[]
     onElmClick?: (value: string | number, i: number) => void | Promise<void>
+    onPointerEnter?: (value: string | number, i: number) => void | Promise<void>
     onPointerOver?: (value: string | number, i: number) => void | Promise<void>
-    onPointerOut?: (value: string | number, i: number) => void | Promise<void>
+    onPointerLeave?: (value: string | number, i: number) => void | Promise<void>
     coloredIndex?: number
 }
 
-export const Slide = memo(function Slide({ columns, collection, headers, onElmClick, onPointerOver, onPointerOut, coloredIndex }: SlideProps) {
+export const Slide = memo(function Slide({ columns, collection, headers, onElmClick, onPointerEnter, onPointerOver, onPointerLeave, coloredIndex }: SlideProps) {
     const [selectedIndex, setSelectedIndex] = useState<number>()
 
     useEffect(() => {
@@ -36,21 +37,22 @@ export const Slide = memo(function Slide({ columns, collection, headers, onElmCl
                         <p className="text-center">{e}</p>
                     </div>
                 )}
-                {collection.map((e, i) =>
-                    e === null
+                {collection.map((c, i) =>
+                    c === null
                         ? <div key={i} className='sm:col-span-1' />
                         : <div key={i} className='sm:col-span-1 sm:row-span-1' >
                             <Button
-                                onPointerOver={async () => { if (onPointerOver) await onPointerOver(e.value, i) }}
-                                onPointerOut={async () => { if (onPointerOut) await onPointerOut(e.value, i) }}
+                                onPointerEnter={async (event) => { if (onPointerEnter) await onPointerEnter(c.value, i) }}
+                                onPointerOver={async (event) => { if (onPointerOver) await onPointerOver(c.value, i) }}
+                                onPointerLeave={async (event) => { if (onPointerLeave) await onPointerLeave(c.value, i) }}
                                 className='text-xs'
                                 variant="outline"
                                 isIcon
                                 size='sm'
                                 fgColor={coloredIndex !== undefined && coloredIndex === i ? 'warning' : (selectedIndex !== undefined && selectedIndex === i ? 'primary' : 'surface-foreground')}
-                                onClick={async () => { setSelectedIndex(i); if (onElmClick) await onElmClick(e.value, i) }}
+                                onPointerDown={async (event) => { event.stopPropagation(); setSelectedIndex(i); if (onElmClick) await onElmClick(c.value, i) }}
                             >
-                                {e.displayValue}
+                                {c.displayValue}
                             </Button>
                         </div>
                 )}

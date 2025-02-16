@@ -11,19 +11,22 @@ import { Stack } from "../Base/Stack";
 import { localizeNumbers } from "../../Localization/helpers";
 
 export type CalendarProps = {
-    validScopes?: CalendarScopes[],
-    onYearSelect?: (year: number) => void | Promise<void>,
-    onMonthSelect?: (year: number, month: number) => void | Promise<void>,
+    validScopes?: CalendarScopes[]
+    onYearSelect?: (year: number) => void | Promise<void>
+    onMonthSelect?: (year: number, month: number) => void | Promise<void>
     onDaySelect?: (year: number, month: number, day: number) => void | Promise<void>
-    onYearPointerOver?: (year: number) => void | Promise<void>,
-    onMonthPointerOver?: (year: number, month: number) => void | Promise<void>,
+    onYearPointerOver?: (year: number) => void | Promise<void>
+    onMonthPointerOver?: (year: number, month: number) => void | Promise<void>
     onDayPointerOver?: (year: number, month: number, day: number) => void | Promise<void>
-    onYearPointerOut?: (year: number) => void | Promise<void>,
-    onMonthPointerOut?: (year: number, month: number) => void | Promise<void>,
-    onDayPointerOut?: (year: number, month: number, day: number) => void | Promise<void>
+    onYearPointerEnter?: (year: number) => void | Promise<void>
+    onMonthPointerEnter?: (year: number, month: number) => void | Promise<void>
+    onDayPointerEnter?: (year: number, month: number, day: number) => void | Promise<void>
+    onYearPointerLeave?: (year: number) => void | Promise<void>
+    onMonthPointerLeave?: (year: number, month: number) => void | Promise<void>
+    onDayPointerLeave?: (year: number, month: number, day: number) => void | Promise<void>
 }
 
-export const Calendar = memo(function Calendar({ validScopes = ['days', 'months', 'years'], onYearSelect, onMonthSelect, onDaySelect, onYearPointerOver, onMonthPointerOver, onDayPointerOver, onYearPointerOut, onMonthPointerOut, onDayPointerOut }: CalendarProps) {
+export const Calendar = memo(function Calendar({ validScopes = ['days', 'months', 'years'], onYearSelect, onMonthSelect, onDaySelect, onYearPointerOver, onMonthPointerOver, onDayPointerOver, onYearPointerEnter, onMonthPointerEnter, onDayPointerEnter, onYearPointerLeave, onMonthPointerLeave, onDayPointerLeave }: CalendarProps) {
     if (!validScopes || validScopes.length === 0)
         throw new Error('No scope provided')
 
@@ -75,7 +78,28 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
                 break;
             case 'days':
                 if (onDaySelect)
-                    onDaySelect(calendarManager.selectedYear, calendarManager.selectedMonth, i + 1 - collection.filter(f => f === null).length)
+                    onDaySelect(calendarManager.selectedYear, calendarManager.selectedMonth, i - collection.filter(f => f === null).length + 1)
+                break;
+        }
+    }
+
+    const onPointerEnter = (value: string | number, i: number) => {
+        switch (calendarManager.getScope()) {
+            case 'years':
+                if (!validScopes.includes('months'))
+                    break;
+                if (onYearPointerEnter)
+                    onYearPointerEnter(value as number)
+                break;
+            case 'months':
+                if (!validScopes.includes('days'))
+                    break;
+                if (onMonthPointerEnter)
+                    onMonthPointerEnter(calendarManager.selectedYear, i + 1)
+                break;
+            case 'days':
+                if (onDayPointerEnter)
+                    onDayPointerEnter(calendarManager.selectedYear, calendarManager.selectedMonth, i - collection.filter(f => f === null).length + 1)
                 break;
         }
     }
@@ -96,28 +120,28 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
                 break;
             case 'days':
                 if (onDayPointerOver)
-                    onDayPointerOver(calendarManager.selectedYear, calendarManager.selectedMonth, i + 1)
+                    onDayPointerOver(calendarManager.selectedYear, calendarManager.selectedMonth, i - collection.filter(f => f === null).length + 1)
                 break;
         }
     }
 
-    const onPointerOut = (value: string | number, i: number) => {
+    const onPointerLeave = (value: string | number, i: number) => {
         switch (calendarManager.getScope()) {
             case 'years':
                 if (!validScopes.includes('months'))
                     break;
-                if (onYearPointerOut)
-                    onYearPointerOut(value as number)
+                if (onYearPointerLeave)
+                    onYearPointerLeave(value as number)
                 break;
             case 'months':
                 if (!validScopes.includes('days'))
                     break;
-                if (onMonthPointerOut)
-                    onMonthPointerOut(calendarManager.selectedYear, i + 1)
+                if (onMonthPointerLeave)
+                    onMonthPointerLeave(calendarManager.selectedYear, i + 1)
                 break;
             case 'days':
-                if (onDayPointerOut)
-                    onDayPointerOut(calendarManager.selectedYear, calendarManager.selectedMonth, i + 1)
+                if (onDayPointerLeave)
+                    onDayPointerLeave(calendarManager.selectedYear, calendarManager.selectedMonth, i - collection.filter(f => f === null).length + 1)
                 break;
         }
     }
@@ -175,8 +199,9 @@ export const Calendar = memo(function Calendar({ validScopes = ['days', 'months'
                     collection={collection.map(n => n === null ? null : ({ value: n, displayValue: calendarManager.getScope() === 'months' ? n : localizeNumbers(local.language, n, { useGrouping: false }) }))}
                     headers={headers}
                     onElmClick={onElmClick}
+                    onPointerEnter={onPointerEnter}
                     onPointerOver={onPointerOver}
-                    onPointerOut={onPointerOut}
+                    onPointerLeave={onPointerLeave}
                     coloredIndex={coloredIndex}
                 />
             </div>
