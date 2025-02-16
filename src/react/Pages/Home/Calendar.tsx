@@ -483,8 +483,7 @@ export function Calendar({ containerProps, calendarContainerProps }: { container
 
             await updateCard(year, month, day)
 
-            if (!fetchingVisits.current && showVisitsStats.current && animationFinish.current)
-                rerender()
+            rerender()
         }, 100)
     }
 
