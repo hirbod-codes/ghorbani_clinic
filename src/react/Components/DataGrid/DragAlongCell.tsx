@@ -41,26 +41,26 @@ export const DragAlongCell = ({ cell }: { cell: Cell<any, unknown>; }) => {
         position: 'relative',
         transform: CSS.Translate.toString(transform), // translate instead of transform to avoid squishing
         transition,
-        width: cell.column.getSize(),
+        // width: cell.column.getSize(),
         zIndex: isDragging ? 1 : 0,
         textAlign: 'center',
-        paddingLeft: '1rem',
+        // paddingLeft: '1rem',
         ...getCommonPinningStyles(cell.column),
     };
 
-    switch (useContext(DataGridContext)!.density.value) {
-        case 'compact':
-            style.padding = '0.25rem 0.25rem';
-            break;
-        case 'standard':
-            style.padding = '0.5rem 0.5rem';
-            break;
-        case 'comfortable':
-            style.padding = '0.75rem 0.75rem';
-            break;
-        default:
-            break;
-    }
+    // switch (useContext(DataGridContext)!.density.value) {
+    //     case 'compact':
+    //         style.padding = '0.25rem 0.25rem';
+    //         break;
+    //     case 'standard':
+    //         style.padding = '0.5rem 0.5rem';
+    //         break;
+    //     case 'comfortable':
+    //         style.padding = '0.75rem 0.75rem';
+    //         break;
+    //     default:
+    //         break;
+    // }
 
     return (
         <motion.td

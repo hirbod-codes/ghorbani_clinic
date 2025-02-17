@@ -34,7 +34,7 @@ export const Navigation = memo(function Navigation() {
 
     return (
         <>
-            <div className="relative w-16 z-20 h-full">
+            <div className="relative z-20 size-full">
                 <motion.div
                     onClick={() => {
                         if (destination) {

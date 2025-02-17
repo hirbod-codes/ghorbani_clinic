@@ -11,7 +11,7 @@ export const Home = memo(function Home() {
     console.log('Home')
 
     return (
-        <div className="grid gap-2 lg:grid-flow-col grid-cols-12 lg:grid-rows-4 justify-center h-full px-2 lg:px-0 overflow-y-auto  overflow-x-hidden lg:overflow-hidden">
+        <div className="grid gap-2 lg:grid-flow-col grid-cols-12 lg:grid-rows-4 justify-center h-full px-2 lg:px-0 overflow-y-auto overflow-x-hidden lg:overflow-hidden">
             <div className="sm:col-span-12 lg:col-span-4 col-span-12 lg:row-span-2">
                 <Stack direction="vertical" stackProps={{ className: 'h-full min-h-[12cm]' }}>
                     <Clock containerProps={{ stackProps: { className: 'py-2 border rounded-xl bg-surface-container shadow-sm' } }} />

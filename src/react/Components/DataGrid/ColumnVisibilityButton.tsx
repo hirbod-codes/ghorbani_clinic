@@ -24,7 +24,7 @@ export function ColumnVisibilityButton() {
                 anchorRef={ref}
                 onOpenChange={(b) => { if (!b) setOpen(false) }}
                 open={open}
-                containerProps={{ className: 'p-2 rounded-md' }}
+                containerProps={{ className: 'bg-surface-container-high border mt-2 p-2 rounded-md' }}
             >
                 <Stack direction='vertical'>
                     {
@@ -33,7 +33,7 @@ export function ColumnVisibilityButton() {
                                 key={i}
                                 label={t(`Columns.${column.id}`)}
                                 labelId={t(`Columns.${column.id}`)}
-                                checked={table.getVisibleFlatColumns().find((c) => c.id === column.id) !== undefined}
+                                checked={column.getIsVisible()}
                                 onCheckedChange={(e) => {
                                     const entries = table.getAllColumns().map(c => [c.id, column.id !== c.id ? (table.getVisibleFlatColumns().find(f => f.id === c.id) !== undefined) : e])
                                     table.setColumnVisibility(Object.fromEntries(entries))

@@ -7,8 +7,7 @@ import { Patient } from "../../Electron/Database/Models/Patient";
 import { AuthContext } from "../Contexts/AuthContext";
 import { resources } from "../../Electron/Database/Repositories/Auth/resources";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
-import { publish, subscribe } from "../Lib/Events";
-import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
+import { publish } from "../Lib/Events";
 import { useNavigate } from "react-router-dom";
 import { MedicalHistory } from "../Components/Patients/MedicalHistory";
 import { EditorModal } from "../Components/Base/Editor/EditorModal";
@@ -62,8 +61,6 @@ export const Patients = memo(function Patients() {
     const [showingMH, setShowingMH] = useState<boolean>(false)
     const [showingDocuments, setShowingDocuments] = useState<boolean>(false)
 
-    const [showGrid, setShowGrid] = useState(false)
-
     console.log('Patients', {
         auth,
         configuration,
@@ -113,10 +110,6 @@ export const Patients = memo(function Patients() {
             init(page.offset, page.limit)
                 .then(() => {
                     setLoading(false)
-                    // subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
-                    // if (e?.detail === '/Patients')
-                    setShowGrid(true)
-                    // })
                 })
     }, [])
 
@@ -283,12 +276,12 @@ export const Patients = memo(function Patients() {
 
     return (
         <>
-            <div className="size-full shadow-lg">
-                {!patients || patients?.length === 0 || !showGrid
+            <div className="relative h-full shadow-lg">
+                {patients === undefined || loading
                     ? <CircularLoadingScreen />
                     : <DataGrid
                         configName='patients'
-                        containerProps={{ stackProps: { style: { backgroundImage: `linear-gradient(to bottom right, ${dataGridGradientColor.toHex()} , transparent)` } } }}
+                        containerProps={{ stackProps: { style: { backgroundImage: themeOptions.mode === 'light' ? `linear-gradient(to bottom right, ${dataGridGradientColor.toHex()} , transparent)` : undefined } } }}
                         data={patients ?? []}
                         defaultColumnOrderModel={['counter', 'actions', 'socialId', 'firstName', 'lastName', 'age', 'documents', 'medicalHistory', 'phoneNumber', 'gender', 'address', 'birthDate']}
                         overWriteColumns={overWriteColumns}

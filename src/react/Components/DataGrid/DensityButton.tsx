@@ -22,6 +22,7 @@ export function DensityButton() {
                 anchorRef={ref}
                 open={open}
                 onOpenChange={(b) => { if (!b) setOpen(b) }}
+                containerProps={{ className: 'bg-surface-container-high border mt-2 p-2 rounded-md' }}
             >
                 <Stack direction="vertical">
                     <Button variant='text' onClick={() => ctx.density.set('compact')}>

@@ -30,26 +30,24 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
         transform: CSS.Translate.toString(transform), // translate instead of transform to avoid squishing
         transition,
         whiteSpace: 'nowrap',
-        width: header.column.getSize(),
+        // width: header.column.getSize(),
         zIndex: isDragging ? 1 : 0,
         ...getCommonPinningStyles(header.column),
     };
 
-    switch (ctx.density.value) {
-        case 'compact':
-            style.padding = '0.5rem 1rem';
-            break;
-        case 'standard':
-            style.padding = '0.75rem 1.25.rem';
-            break;
-        case 'comfortable':
-            style.padding = '1rem 1.75rem';
-            break;
-        default:
-            break;
-    }
-
-    const visibleFlatColumns = table.getVisibleFlatColumns()
+    // switch (ctx.density.value) {
+    //     case 'compact':
+    //         style.padding = '0.5rem 1rem';
+    //         break;
+    //     case 'standard':
+    //         style.padding = '0.75rem 1.25.rem';
+    //         break;
+    //     case 'comfortable':
+    //         style.padding = '1rem 1.75rem';
+    //         break;
+    //     default:
+    //         break;
+    // }
 
     return (
         <>
@@ -115,7 +113,7 @@ export const DraggableTableHeader = ({ header }: { header: Header<any, unknown>;
                     </Button>
                 </Stack>
 
-                <div id='border' className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-4/6 z-[-1] w-full${visibleFlatColumns[visibleFlatColumns.length - 1].id === header.column.id ? '' : ' border-r'}`} />
+                <div id='border' className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-4/6 z-[-1] w-full${header.column.getIsLastColumn() ? '' : ' border-r'}`} />
             </th >
         </>
     );
