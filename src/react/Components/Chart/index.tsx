@@ -276,7 +276,7 @@ export function Chart({
 
             {(shapes.map(s =>
                 s.getChartOptions() && s.xLabels.map((l, i) =>
-                    l.value !== undefined && l.node !== undefined
+                    l.value !== undefined && l.node !== undefined && l.value! >= (s.getChartOptions()!.offset?.left ?? 0) && l.value! <= ((s.getChartOptions()!.offset?.left ?? 0) + (s.getChartOptions()?.width ?? 0))
                         ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: `${(s.getChartOptions()!.height ?? 0) + (s.getChartOptions()!.offset!.top ?? 0) + (s.getChartOptions()!.xAxisOffset ?? 0)}px`, left: l.value }}>
                             <div className="relative -translate-y-1/2 -translate-x-1/2">
                                 {l.node}
@@ -288,7 +288,7 @@ export function Chart({
 
             {(shapes.map(s =>
                 s.getChartOptions() && s.yLabels.map((l, i) =>
-                    l.value !== undefined && l.node !== undefined
+                    l.value !== undefined && l.node !== undefined && l.value! >= (s.getChartOptions()!.offset?.top ?? 0) && l.value! <= ((s.getChartOptions()!.offset?.top ?? 0) + (s.getChartOptions()?.height ?? 0))
                         ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: l.value, left: `${(s.getChartOptions()!.offset!.left ?? 0) - (s.getChartOptions()!.yAxisOffset ?? 0)}px` }}>
                             <div className="relative -translate-y-1/2 -translate-x-full">
                                 {l.node}

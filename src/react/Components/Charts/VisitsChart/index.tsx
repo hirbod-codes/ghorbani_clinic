@@ -166,7 +166,7 @@ export function VisitsChart() {
         // {dateTS => count}
         let map: { [k: string]: number } = {}
         for (let i = 0; i < vs.length; i++) {
-            let k = DateTime.fromSeconds(vs[i].due!).toFormat('yyyy M')
+            let k = toFormat(vs[i].due!, local, undefined, 'yyyy M')
 
             if (map[k] === undefined)
                 map[k] = 1
@@ -177,7 +177,9 @@ export function VisitsChart() {
         if (local.calendar === 'Gregorian')
             return Object.entries(map).map(e => ({ count: e[1], dateTS: DateTime.fromFormat(e[0], 'yyyy M').toUnixInteger() }))
         else
-            return Object.entries(map).map(e => ({ count: e[1], dateTS: toDateTime({ date: persianToGregorian({ year: Number(e[0].split(' ')[0]), month: Number(e[0].split(' ')[1]), day: 1 }), time: { hour: 0, minute: 0, second: 0, millisecond: 0 } }, local, { ...local, calendar: 'Gregorian', zone: 'UTC' }).toUnixInteger() }))
+            return Object.entries(map).map(e => {
+                return ({ count: e[1], dateTS: toDateTime({ date: persianToGregorian({ year: Number(e[0].split(' ')[0]), month: Number(e[0].split(' ')[1]), day: 1 }), time: { hour: 0, minute: 0, second: 0, millisecond: 0 } }, local, { ...local, calendar: 'Gregorian', zone: 'UTC' }).toUnixInteger() })
+            })
 
     }
 

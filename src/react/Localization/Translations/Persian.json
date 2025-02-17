@@ -48,6 +48,10 @@
         "PatientsPerMonth": "بیمار در ماه",
         "Patients": "بیماران"
     },
+    "VisitsChart": {
+        "count": "تعداد",
+        "date": "تاریخ"
+    },
     "Calendar": {
         "failedToUpdateVisit": "بروزرسانی نوبت با شکست مواجه شد",
         "successfullyUpdatedVisit": "نوبت با موفقیت بروزرسانی شد",

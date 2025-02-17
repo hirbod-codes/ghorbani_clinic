@@ -48,6 +48,10 @@
         "PatientsPerMonth": "Patients per month",
         "Patients": "Patients"
     },
+    "VisitsChart": {
+        "count": "Count",
+        "date": "Date"
+    },
     "Calendar": {
         "failedToUpdateVisit": "Failed to update the visit",
         "successfullyUpdatedVisit": "Successfully updated the visit",
