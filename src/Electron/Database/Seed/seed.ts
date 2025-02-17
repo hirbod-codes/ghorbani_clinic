@@ -16,13 +16,13 @@ export async function seedMedicalHistories(medicalHistoriesCollection: Collectio
     try {
         await medicalHistoriesCollection.deleteMany()
 
-        const medicalHistoriesCount = faker.number.int({ min: 20, max: 60 })
+        const medicalHistoriesCount = faker.number.int({ min: 40, max: 60 })
 
         for (let i = 0; i < medicalHistoriesCount; i++) {
             let tryCount = 0
             while (tryCount < 3)
                 try {
-                    const medicalHistoryCreatedAt = DateTime.fromISO(faker.date.between({ from: '2019-01-01T00:00:00.000Z', to: '2024-01-01T00:00:00.000Z' }).toISOString())
+                    const medicalHistoryCreatedAt = DateTime.fromISO(faker.date.between({ from: DateTime.utc().minus({ years: 2 }).toISO(), to: DateTime.utc().minus({ years: 1 }).toISO() }).toISOString())
 
                     let medicalHistory: MedicalHistory = {
                         schemaVersion: 'v0.0.1',
@@ -82,11 +82,12 @@ export async function seedPatientsVisits(patientCount: number, patientsCollectio
         await patientsCollection.deleteMany()
         await visitsCollection.deleteMany()
 
-        for (let i = 0; i < patientCount; i++) {
+        let i = 0;
+        for (; i < patientCount; i++) {
             let tryCount = 0
-            while (tryCount < 3)
+            while (tryCount < 6)
                 try {
-                    const patientCreatedAt = DateTime.fromISO(faker.date.between({ from: DateTime.utc().minus({ months: 3 }).toISO(), to: DateTime.utc().plus({ months: 3 }).toISO() }).toISOString())
+                    const patientCreatedAt = DateTime.fromISO(faker.date.between({ from: DateTime.utc().minus({ years: 1 }).toISO(), to: DateTime.utc().minus({ months: 1 }).toISO() }).toISOString())
                     const gender = faker.datatype.boolean(0.5) ? 'male' : 'female'
                     const age = faker.number.int({ min: 8, max: 60 })
                     let patient = {
@@ -118,8 +119,8 @@ export async function seedPatientsVisits(patientCount: number, patientsCollectio
 
                     const id = (await patientsCollection.insertOne(patient)).insertedId.toString()
 
-                    for (let i = 0; i < faker.number.int({ min: 0, max: 10 }); i++) {
-                        const visitCreatedAt = patientCreatedAt.plus({ days: faker.number.int({ min: 0, max: 30 }) })
+                    for (let j = 0; j < faker.number.int({ min: 0, max: 20 }); j++) {
+                        const visitCreatedAt = patientCreatedAt.plus({ days: faker.number.int({ min: 0, max: 28 }) })
                         let visit = {
                             schemaVersion: 'v0.0.1',
                             patientId: ObjectId.createFromHexString(id),
@@ -141,17 +142,17 @@ export async function seedPatientsVisits(patientCount: number, patientsCollectio
 
                         await visitsCollection.insertOne(visit)
                     }
+
                     break
                 } catch (error) {
                     tryCount++
                     console.error('error', error)
                     console.log('i', i)
-                    if (tryCount >= 3) {
-                        console.log('The retry limit exceeded, terminating...')
-                        return
-                    }
+                    if (tryCount >= 3)
+                        console.log('The retry limit exceeded!!!')
                 }
         }
+        console.log(`${i + 1} patients has created.`)
     }
     catch (err) {
         console.error(err)
