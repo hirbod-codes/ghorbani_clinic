@@ -2,15 +2,16 @@ import { Point } from "../../Lib/Math"
 import { CanvasOffsets, Label } from "./index.d"
 
 export class LineChart {
-    static calculateXLabels(xLabels: Label[], xRange: [number | undefined, number | undefined], width: number, offset: CanvasOffsets) {
+    static calculateXLabels(xLabels: Label[], xRange: [number | undefined, number | undefined], width: number, offset: CanvasOffsets): Label[] {
         width = width - offset.left - offset.right
+        console.log('calculateXLabels', (xLabels), width, offset, (xRange))
 
         return this.linearInterpolation(xLabels.map((l, i) => l.value).filter(f => f !== undefined && f !== null), width, xRange)
             .map(v => v + offset!.left)
             .map((value, i) => ({ ...xLabels[i], value }))
     }
 
-    static calculateYLabels(yLabels: Label[], yRange: [number | undefined, number | undefined], height: number, offset: CanvasOffsets) {
+    static calculateYLabels(yLabels: Label[], yRange: [number | undefined, number | undefined], height: number, offset: CanvasOffsets): Label[] {
         height = height - offset.top - offset.bottom
 
         return this.linearInterpolation(yLabels.map((l, i) => l.value).filter(f => f !== undefined && f !== null), height, yRange)
@@ -43,7 +44,7 @@ export class LineChart {
         height = height - offset.top - offset.bottom
 
         localX = this.linearInterpolation(localX, width, xRange).map(v => v + offset!.left)
-        localY = this.linearInterpolation(localY, height - offset.top - offset.bottom, yRange)
+        localY = this.linearInterpolation(localY, height, yRange)
             .map(v => height - v)
             .map(v => v + offset!.top)
 

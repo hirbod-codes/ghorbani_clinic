@@ -98,7 +98,7 @@ export function VisitsChart() {
                 console.warn('safety limit exceeded!')
         }
 
-        yLabels.current = Array(5).fill(0).map((v, i) => ({ value: (yRange![1]! - yRange![0]!) * i / 4, node: localizeNumbers(local.language, (yRange![1]! - yRange![0]!) * i / 4), options: { className: 'text-xs' } }))
+        yLabels.current = Array(5).fill(0).map((v, i) => ({ value: (yRange.current![1]! - yRange.current![0]!) * i / 4, node: localizeNumbers(local.language, (yRange.current![1]! - yRange.current![0]!) * i / 4), options: { className: 'text-xs' } }))
 
         setShapes([
             {
@@ -114,6 +114,7 @@ export function VisitsChart() {
                         </Stack>,
                     hoverRadius: 4,
                     getDataPointOnHover(hoverPoint, hoverOptions) {
+                        console.log('getDataPointOnHover', { hoverPoint, hoverOptions, dataPoints })
                         if (hoverOptions?.hoverRadius === undefined)
                             return undefined
 
@@ -132,22 +133,28 @@ export function VisitsChart() {
                         return undefined
                     },
                 },
-                onCanvasCoordsChange(canvasCoords) {
+                onCanvasCoordsChange(shape) {
+                    if (!shape.canvasCoords)
+                        return
+
                     dataPoints.current = LineChart.calculateDataPoints(
                         visitsPerDay.map(v => v.dateTS),
                         visitsPerDay.map(v => v.count),
                         xRange.current!,
                         yRange.current!,
-                        canvasCoords.width,
-                        canvasCoords.height,
-                        canvasCoords.offset
+                        shape.canvasCoords.width,
+                        shape.canvasCoords.height,
+                        shape.canvasCoords.offset
                     )
 
-                    if (xLabels.current)
-                        xLabels.current = LineChart.calculateXLabels(xLabels.current, xRange.current!, canvasCoords.width, canvasCoords.offset)
+                    xLabels.current = LineChart.calculateXLabels(xLabels.current!, xRange.current!, shape.canvasCoords.width, shape.canvasCoords.offset)
+                        .map(v => ({ ...v, options: { className: 'text-xs' } }))
+                    shape.xLabels = xLabels.current
 
-                    if (yLabels.current)
-                        yLabels.current = LineChart.calculateXLabels(yLabels.current, yRange.current!, canvasCoords.width, canvasCoords.offset)
+                    yLabels.current = LineChart.calculateYLabels(yLabels.current!, yRange.current!, shape.canvasCoords.height, shape.canvasCoords.offset)
+                        .map((v, i) => ({ ...v, node: localizeNumbers(local.language, (yRange.current![1]! - yRange.current![0]!) * i / 4) }))
+                        .map(v => ({ ...v, options: { className: 'text-xs' } }))
+                    shape.yLabels = yLabels.current
                 },
                 draw(dx, ctx, shape) {
                     if (!dataPoints.current)

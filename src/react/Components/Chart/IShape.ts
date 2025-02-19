@@ -17,7 +17,7 @@ export interface IShape {
     offscreenCanvas?: HTMLCanvasElement
     styleOptions?: CanvasStyleOptions
     canvasCoords?: Dimensions
-    onCanvasCoordsChange?: (canvasCoords: Dimensions) => void
+    onCanvasCoordsChange?: (shape: IShape) => void
     draw: (dx: number, ctx: CanvasRenderingContext2D, shape: IShape) => void
     doNotCache?: boolean
     hoverOptions?: HoverOptions

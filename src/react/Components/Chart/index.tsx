@@ -43,6 +43,8 @@ export function Chart({
     const hover = useRef<{ [k: number]: { open?: boolean, top?: number, left?: number, node?: ReactNode } }>({})
     const hoverEvent = useRef<PointerEvent>()
 
+    const shapeGroupAdded = useRef<boolean>(false)
+
     const [, rerender] = useReducer(x => x + 1, 0)
 
     console.log('Chart', { dimensions, canvasRef, ctx, containerRef, shapes, xAxis, yAxis });
@@ -66,8 +68,8 @@ export function Chart({
                 width: dimensionsInput?.width ?? rect.width,
                 height: dimensionsInput?.height ?? rect.height,
                 offset: dimensionsInput?.offset ?? { top: 20, right: 20, left: 60, bottom: 60 },
-                xAxisOffset: dimensionsInput?.xAxisOffset ?? 0,
-                yAxisOffset: dimensionsInput?.yAxisOffset ?? 0,
+                xAxisOffset: dimensionsInput?.xAxisOffset ?? 15,
+                yAxisOffset: dimensionsInput?.yAxisOffset ?? 15,
             }
 
             if (!xAxis)
@@ -99,8 +101,10 @@ export function Chart({
     }, [canvasRef?.current, containerRef?.current])
 
     useEffect(() => {
-        if (ctx.current && dimensions.current) {
+        if (ctx.current && dimensions.current && shapeGroupAdded.current === false) {
             console.log('Chart', 'useEffect2')
+
+            shapeGroupAdded.current = true
 
             ShapeManager.addShapeGroup(
                 chartKey,
@@ -131,7 +135,7 @@ export function Chart({
                             s.canvasCoords = { ...dimensions.current, ...s.canvasCoords }
 
                         if (s.onCanvasCoordsChange)
-                            s.onCanvasCoordsChange(s.canvasCoords)
+                            s.onCanvasCoordsChange(s)
 
                         return s
                     }),
@@ -142,7 +146,7 @@ export function Chart({
             if (afterChartOptionsSet)
                 afterChartOptionsSet({ ...dimensions.current, width: dimensions.current.width, height: dimensions.current.height })
 
-            // rerender()
+            rerender()
 
             ShapeManager.runAnimations()
         }
@@ -160,7 +164,7 @@ export function Chart({
 
                 let shouldRerender = false
 
-                let point = shape.hoverOptions.getDataPointOnHover({ x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY })
+                let point = shape.hoverOptions.getDataPointOnHover({ x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY }, shape.hoverOptions)
 
                 if (
                     (hover.current[i]?.open === true && point === undefined) ||
@@ -223,8 +227,8 @@ export function Chart({
 
             {(shapes.map(s =>
                 s.canvasCoords && s.xLabels && s.xLabels.map((l, i) =>
-                    l.value !== undefined && l.node !== undefined && l.value! >= (s.canvasCoords!.offset?.left ?? 0) && l.value! <= ((s.canvasCoords!.offset?.left ?? 0) + (s.canvasCoords?.width ?? 0))
-                        ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: `${(s.canvasCoords!.height ?? 0) + (s.canvasCoords!.offset!.top ?? 0) + (s.canvasCoords!.xAxisOffset ?? 0)}px`, left: l.value }}>
+                    l.value !== undefined && l.node !== undefined && l.value! >= s.canvasCoords!.offset?.left && l.value! <= (s.canvasCoords!.width - s.canvasCoords!.offset?.right)
+                        ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: `${s.canvasCoords!.height - s.canvasCoords!.offset!.bottom + s.canvasCoords!.xAxisOffset}px`, left: l.value }}>
                             <div className="relative -translate-y-1/2 -translate-x-1/2">
                                 {l.node}
                             </div>
@@ -235,8 +239,8 @@ export function Chart({
 
             {(shapes.map(s =>
                 s.canvasCoords && s.yLabels && s.yLabels.map((l, i) =>
-                    l.value !== undefined && l.node !== undefined && l.value! >= (s.canvasCoords!.offset?.top ?? 0) && l.value! <= ((s.canvasCoords!.offset?.top ?? 0) + (s.canvasCoords?.height ?? 0))
-                        ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: l.value, left: `${(s.canvasCoords!.offset!.left ?? 0) - (s.canvasCoords!.yAxisOffset ?? 0)}px` }}>
+                    l.value !== undefined && l.node !== undefined && l.value! >= s.canvasCoords!.offset?.top && l.value! <= (s.canvasCoords!.height - s.canvasCoords!.offset?.bottom)
+                        ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: l.value, left: `${s.canvasCoords!.offset!.left - s.canvasCoords!.yAxisOffset}px` }}>
                             <div className="relative -translate-y-1/2 -translate-x-full">
                                 {l.node}
                             </div>
