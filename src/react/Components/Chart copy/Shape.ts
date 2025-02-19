@@ -16,6 +16,8 @@ export class Shape {
     private animationsStop: { [k: string | number]: boolean } = {}
     private animationsPassed: { [k: string | number]: number } = {}
     private animationsFirstTimestamp: { [k: string | number]: number } = {}
+    private animationsCache: { [k: string | number]: HTMLCanvasElement } = {}
+
 
     protected setDefaults(key: number | string) {
         while (this.lock === true)
@@ -72,14 +74,25 @@ export class Shape {
             this.animationsStop[key] = true
     }
 
-    animate(t: DOMHighResTimeStamp, animationKey: number | string, animationCallback: (dx: number) => void) {
+    private animateFromCache(animationKey: number | string, canvasWidth: number, canvasHeight: number, ctx: CanvasRenderingContext2D, animationCallback: (dx: number, c: CanvasRenderingContext2D) => void): void {
+        if (this.animationsCache[animationKey] === undefined) {
+            let canvas = document.createElement('canvas')
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            animationCallback(1, canvas.getContext('2d')!)
+            this.animationsCache[animationKey] = canvas
+        } else
+            ctx.drawImage(this.animationsCache[animationKey], 0, 0)
+    }
+
+    animate(t: DOMHighResTimeStamp, animationKey: number | string, canvasWidth: number, canvasHeight: number, ctx: CanvasRenderingContext2D, animationCallback: (dx: number, c: CanvasRenderingContext2D) => void): void {
         this.setDefaults(animationKey)
 
         if (this.animationsDuration[animationKey] === undefined || this.animationsDuration[animationKey] <= 0) {
             if (typeof this.animationsController[animationKey] === 'number' && this.animationsController[animationKey] >= 0)
-                animationCallback(1)
+                this.animateFromCache(animationKey, canvasWidth, canvasHeight, ctx, animationCallback)
             else if (Array.isArray(this.animationsController[animationKey]) && this.animationsController[animationKey].length > 0)
-                animationCallback(1)
+                this.animateFromCache(animationKey, canvasWidth, canvasHeight, ctx, animationCallback)
 
             return
         }
@@ -90,7 +103,7 @@ export class Shape {
         this.animationsPassed[animationKey] = t - this.animationsFirstTimestamp[animationKey]
 
         if (this.animationsStop[animationKey] === true)
-            animationCallback(this.animationsPreviousDx[animationKey])
+            animationCallback(this.animationsPreviousDx[animationKey], ctx)
         else {
             let dx = (this.animationsPassed[animationKey] % this.animationsDuration[animationKey]) / this.animationsDuration[animationKey]
 
@@ -101,13 +114,13 @@ export class Shape {
                 return
 
             if (tmp === true)
-                animationCallback(1)
+                this.animateFromCache(animationKey, canvasWidth, canvasHeight, ctx, animationCallback)
             else {
                 if (this.animationsPreviousDx[animationKey] > dx)
                     this.animationsRunCounts[animationKey] += 1
                 this.animationsPreviousDx[animationKey] = dx
 
-                animationCallback(tmp)
+                animationCallback(tmp, ctx)
             }
         }
     }

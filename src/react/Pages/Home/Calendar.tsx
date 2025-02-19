@@ -49,17 +49,9 @@ export const Calendar = memo(function Calendar({ containerProps, calendarContain
     const readsPatient = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).read(resources.PATIENT).granted, [auth])
     const readsVisit = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).read(resources.VISIT).granted, [auth])
 
-    // const readsPatient = false
-    // const readsVisit = false
-
-    console.log('Home.Calendar', JSON.stringify({ showVisitsStats: showVisitsStats.current, isLocked: isLocked.current, visitsLength: visitsPatients.current.visits.length, patientsCount, fetchingVisits: fetchingVisits.current, containerProps, calendarContainerProps, animationFinish: animationFinish.current }, undefined, 4))
+    console.log('Home.Calendar', { showVisitsStats: showVisitsStats.current, isLocked: isLocked.current, visitsLength: visitsPatients.current.visits.length, patientsCount, fetchingVisits: fetchingVisits.current, containerProps, calendarContainerProps, animationFinish: animationFinish.current })
 
     const updateCard = async (year: number, month: number, day: number) => {
-        // if (year === previousDate.current?.year && month === previousDate.current?.month && day === previousDate.current?.day)
-        //     return
-
-        // previousDate.current = { year, month, day }
-
         fetchingVisits.current = true
         const vp = await getVisitsPatients(await getVisitsInDate({ year, month, day }, configuration.local) ?? [])
         visitsPatients.current = vp ?? []

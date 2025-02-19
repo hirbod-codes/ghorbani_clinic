@@ -1,11 +1,11 @@
 import { Patient } from "@/src/Electron/Database/Models/Patient"
 import { ConfigurationContext } from "@/src/react/Contexts/Configuration/ConfigurationContext"
 import { ReactNode, useContext, useEffect, useRef, useState } from "react"
-import { LineChart } from "../../Chart/LineChart"
+import { LineChart } from "../../Chart copy/LineChart"
 import { DateTime } from "luxon"
 import { RendererDbAPI } from "@/src/Electron/Database/renderer"
 import { gregorianToPersian, persianToGregorian, toDateTime, toFormat } from "@/src/react/Lib/DateTime/date-time-helpers"
-import { Chart } from "../../Chart"
+import { Chart } from "../../Chart copy"
 import { localizeNumbers } from "@/src/react/Localization/helpers"
 
 export function PatientsChart() {
@@ -35,10 +35,10 @@ export function PatientsChart() {
         if (patients.length <= 0)
             return
 
-        let pspm = calculatePatientsPerMonth(patients)
+        let patientsPerMonth = calculatePatientsPerMonth(patients)
 
-        let yRange: [number | undefined, number | undefined] = [0, pspm.reduce((p, c, i) => c.count > p ? c.count : p, 0)]
-        xRange.current = [pspm[0].dateTS, pspm[pspm.length - 1].dateTS]
+        let yRange: [number | undefined, number | undefined] = [0, patientsPerMonth.reduce((p, c, i) => c.count > p ? c.count : p, 0)]
+        xRange.current = [patientsPerMonth[0].dateTS, patientsPerMonth[patientsPerMonth.length - 1].dateTS]
 
         let xLabels: { value: number, node: ReactNode }[] = []
         if (local.calendar === 'Gregorian') {
@@ -79,8 +79,8 @@ export function PatientsChart() {
         }
 
         let chart = new LineChart({
-            x: pspm.map(v => v.dateTS),
-            y: pspm.map(v => v.count),
+            x: patientsPerMonth.map(v => v.dateTS),
+            y: patientsPerMonth.map(v => v.count),
             xLabels: xLabels.map(v => ({ ...v, options: { className: 'text-xs' } })),
             yLabels: Array(5).fill(0).map((v, i) => ({ value: (yRange![1]! - yRange![0]!) * i / 4, node: localizeNumbers(local.language, (yRange![1]! - yRange![0]!) * i / 4), options: { className: 'text-xs' } })),
             xRange: xRange.current,

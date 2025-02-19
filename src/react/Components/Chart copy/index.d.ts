@@ -2,25 +2,6 @@ import { PointerEvent, ReactNode } from "react"
 import { EasingName } from "../Animations/easings"
 import { Point } from "../../Lib/Math"
 
-export type Dimensions = {
-    width: number,
-    height: number,
-    offset: CanvasOffsets
-}
-
-export type DimensionsOptional = {
-    width?: number,
-    height?: number,
-    offset?: CanvasOffsets
-}
-
-export type CanvasOffsets = {
-    top: number,
-    left: number,
-    right: number,
-    bottom: number
-}
-
 export type ChartOptions = {
     bgColor?: string
     width?: number

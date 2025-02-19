@@ -54,11 +54,13 @@ export class SelectionBox {
             result = 'move'
 
         for (const k in this.paths)
-            if (k === 'move' || k === 'rotate' || !this.paths[k as Position])
-                continue
-            else if (this.paths[k as Position] && ctx.isPointInPath(this.paths[k as Position]!, point.x, point.y)) {
-                result = k as Position
-                break
+            if (Object.prototype.hasOwnProperty.call(this.paths, k)) {
+                if (k === 'move' || k === 'rotate' || !this.paths[k as Position])
+                    continue
+                else if (this.paths[k as Position] && ctx.isPointInPath(this.paths[k as Position]!, point.x, point.y)) {
+                    result = k as Position
+                    break
+                }
             }
 
         ctx.restore()
@@ -114,23 +116,24 @@ export class SelectionBox {
 
         ctx.restore()
 
-        for (const key in boundaries) {
-            ctx.save()
+        for (const key in boundaries)
+            if (Object.prototype.hasOwnProperty.call(boundaries, key)) {
+                ctx.save()
 
-            ctx.fillStyle = this.fillStyle
+                ctx.fillStyle = this.fillStyle
 
-            this.paths[key as Position] = new Path2D
+                this.paths[key as Position] = new Path2D
 
-            if (this.shape.transformArgs)
-                ctx.setTransform(this.shape.transformArgs)
+                if (this.shape.transformArgs)
+                    ctx.setTransform(this.shape.transformArgs)
 
-            const boundary = boundaries[key as Position]
-            this.paths[key as Position]!.rect(boundary.topLeft.x, boundary.topLeft.y, boundary.right.x - boundary.left.x, boundary.bottom.y - boundary.top.y)
+                const boundary = boundaries[key as Position]
+                this.paths[key as Position]!.rect(boundary.topLeft.x, boundary.topLeft.y, boundary.right.x - boundary.left.x, boundary.bottom.y - boundary.top.y)
 
-            ctx.fill(this.paths[key as Position]!)
+                ctx.fill(this.paths[key as Position]!)
 
-            ctx.restore()
-        }
+                ctx.restore()
+            }
     }
 
     getBoundary(): Boundary {
