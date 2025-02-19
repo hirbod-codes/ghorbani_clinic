@@ -1,3 +1,4 @@
+import { Bezier } from "bezier-js"
 import { Point } from "../../Lib/Math"
 import { CanvasOffsets, Label } from "./index.d"
 
@@ -89,6 +90,45 @@ export class LineChart {
         }
 
         return extremePoints
+    }
+
+    static calculateControlPoints(dataPoints: Point[], loopCallback?: (controls: [Point, Point, Point, Point], index: number) => any): [Point, Point, Point, Point][] {
+        let points: [Point, Point, Point, Point][] = []
+        for (let i = 0; i <= dataPoints.length - 2; i++) {
+            let p = dataPoints[i]
+            let np = dataPoints[i + 1]
+            let cp1 = { x: p.x + ((np.x - p.x) / 2), y: p.y }
+            let cp2 = { x: np.x - ((np.x - p.x) / 2), y: np.y }
+
+            points.push([p, cp1, cp2, np])
+
+            if (loopCallback)
+                loopCallback([p, cp1, cp2, np], i)
+        }
+
+        return points
+
+    }
+
+    static bezierCurve(dataPoints: Point[], animationDuration?: undefined, drawLine?: (curve: Bezier, controlPoints: [Point, Point, Point, Point], pointIndex: number) => void): Bezier[]
+    static bezierCurve(dataPoints: Point[], animationDuration: number, drawLine?: (curve: Bezier, controlPoints: [Point, Point, Point, Point], pointIndex: number) => void): Point[]
+    static bezierCurve(dataPoints: Point[], animationDuration?: number, drawLine?: (curve: Bezier, controlPoints: [Point, Point, Point, Point], pointIndex: number) => void): Point[] | Bezier[] {
+        let length: number = 0
+        let curves: Bezier[] = []
+
+        this.calculateControlPoints(dataPoints, (c, i) => {
+            let curve = new Bezier(...c)
+            length += curve.length()
+            curves.push(curve)
+
+            if (drawLine)
+                drawLine(curve, c, i)
+        })
+
+        if (animationDuration !== undefined)
+            return curves.reduce<Point[]>((p, c, i) => p.concat(c.getLUT(c.length() * 4)), [])
+        else
+            return curves
     }
 }
 

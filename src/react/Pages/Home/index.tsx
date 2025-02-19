@@ -7,6 +7,7 @@ import { t } from "i18next";
 // import { PatientsChart } from "../../Components/Charts/PatientsChart";
 import { Analytics } from "../../Components/Analytics";
 import { VisitsChart } from "../../Components/Chart/VisitsChart";
+import { PatientsChart } from "../../Components/Chart/PatientsChart";
 
 export const Home = memo(function Home() {
     console.log('Home')
@@ -24,7 +25,7 @@ export const Home = memo(function Home() {
                 <Analytics />
             </div>
 
-            {/* <div className="sm:col-span-12 lg:col-span-9 col-span-12 lg:row-span-2 row-span-2 border rounded-xl bg-surface-container shadow-sm">
+            <div className="sm:col-span-12 lg:col-span-9 col-span-12 lg:row-span-2 row-span-2 border rounded-xl bg-surface-container shadow-sm">
                 <Stack direction="vertical" stackProps={{ className: 'p-4 h-full' }}>
                     <Stack stackProps={{ className: 'justify-between items-center' }}>
                         <div className="text-2xl">{t('Home.Patients')}</div>
@@ -35,7 +36,7 @@ export const Home = memo(function Home() {
                         <PatientsChart />
                     </div>
                 </Stack>
-            </div> */}
+            </div>
 
             <div className="sm:col-span-12 lg:col-span-9 col-span-12 lg:row-span-2 row-span-2 border rounded-xl bg-surface-container shadow-sm">
                 <Stack direction="vertical" stackProps={{ className: 'p-4 h-full' }}>
