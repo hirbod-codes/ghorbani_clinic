@@ -2,22 +2,40 @@ import { PointerEvent, ReactNode } from "react"
 import { EasingName } from "../Animations/easings"
 import { Point } from "../../Lib/Math"
 
+export type HoverOptions = {
+    getDataPointOnHover: (hoverPoint: Point, hoverOptions?: HoverOptions) => Point & { index: number } | undefined
+    getHoverNode: (index: number) => ReactNode
+    hoverRadius: number
+    hoverWidth?: number
+    hoverHeight?: number
+}
+
+export type Label = {
+    value?: number
+    node?: ReactNode
+    options?: ComponentProps<'div'>
+}
+
 export type Dimensions = {
-    width: number,
-    height: number,
+    width: number
+    height: number
     offset: CanvasOffsets
+    xAxisOffset: number
+    yAxisOffset: number
 }
 
 export type DimensionsOptional = {
-    width?: number,
-    height?: number,
+    width?: number
+    height?: number
     offset?: CanvasOffsets
+    xAxisOffset?: number
+    yAxisOffset?: number
 }
 
 export type CanvasOffsets = {
-    top: number,
-    left: number,
-    right: number,
+    top: number
+    left: number
+    right: number
     bottom: number
 }
 
@@ -25,7 +43,7 @@ export type ChartOptions = {
     bgColor?: string
     width?: number
     height?: number
-    offset?: { top: number, left: number, right: number, bottom: number }
+    offset?: CanvasOffsets
     xAxisOffset?: number
     yAxisOffset?: number
 }

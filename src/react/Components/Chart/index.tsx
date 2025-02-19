@@ -8,6 +8,7 @@ import { cn } from "../../shadcn/lib/utils"
 import { ShapeManager } from "./ShapeManager"
 import { Dimensions } from './index.d'
 import { IShape } from "./IShape"
+import { Point } from "../../Lib/Math"
 
 export type ChartProps = {
     chartKey: string
@@ -39,6 +40,9 @@ export function Chart({
 
     const containerRef = useRef<HTMLDivElement>(null)
 
+    const hover = useRef<{ [k: number]: { open?: boolean, top?: number, left?: number, node?: ReactNode } }>({})
+    const hoverEvent = useRef<PointerEvent>()
+
     const [, rerender] = useReducer(x => x + 1, 0)
 
     console.log('Chart', { dimensions, canvasRef, ctx, containerRef, shapes, xAxis, yAxis });
@@ -62,6 +66,8 @@ export function Chart({
                 width: dimensionsInput?.width ?? rect.width,
                 height: dimensionsInput?.height ?? rect.height,
                 offset: dimensionsInput?.offset ?? { top: 20, right: 20, left: 60, bottom: 60 },
+                xAxisOffset: dimensionsInput?.xAxisOffset ?? 0,
+                yAxisOffset: dimensionsInput?.yAxisOffset ?? 0,
             }
 
             if (!xAxis)
@@ -69,7 +75,9 @@ export function Chart({
             xAxis.canvasCoords = {
                 width: rect.width,
                 height: rect.height,
-                offset: dimensions.current.offset!
+                offset: dimensions.current.offset!,
+                xAxisOffset: dimensions.current!.xAxisOffset,
+                yAxisOffset: dimensions.current!.yAxisOffset,
             }
             if (!xAxis.styleOptions)
                 xAxis.styleOptions = {}
@@ -80,7 +88,9 @@ export function Chart({
             yAxis.canvasCoords = {
                 width: rect.width,
                 height: rect.height,
-                offset: dimensions.current.offset!
+                offset: dimensions.current.offset!,
+                xAxisOffset: dimensions.current!.xAxisOffset,
+                yAxisOffset: dimensions.current!.yAxisOffset,
             }
             if (!yAxis.styleOptions)
                 yAxis.styleOptions = {}
@@ -108,20 +118,23 @@ export function Chart({
                         )
                         ctx.clip(path)
                     },
-                } as IShape].concat(shapes).concat([xAxis, yAxis]).map(s => {
-                    if (!dimensions.current)
+                } as IShape]
+                    .concat(shapes)
+                    .concat([xAxis, yAxis])
+                    .map(s => {
+                        if (!dimensions.current)
+                            return s
+
+                        if (!s.canvasCoords)
+                            s.canvasCoords = dimensions.current
+                        else
+                            s.canvasCoords = { ...dimensions.current, ...s.canvasCoords }
+
+                        if (s.onCanvasCoordsChange)
+                            s.onCanvasCoordsChange(s.canvasCoords)
+
                         return s
-
-                    if (!s.canvasCoords)
-                        s.canvasCoords = dimensions.current
-                    else
-                        s.canvasCoords = { ...dimensions.current, ...s.canvasCoords }
-
-                    if (s.onCanvasCoordsChange)
-                        s.onCanvasCoordsChange(s.canvasCoords)
-
-                    return s
-                }),
+                    }),
                 ctx.current,
                 dimensions.current
             )
@@ -135,12 +148,102 @@ export function Chart({
         }
     }, [dimensions?.current, ctx?.current])
 
+    const onPointerOver = useCallback(function onPointerOver(e: PointerEvent) {
+        hoverEvent.current = e
+
+        if (shapes)
+            for (let i = 0; i < shapes.length; i++) {
+                let shape = shapes[i]
+
+                if (shape.hoverOptions === undefined)
+                    continue
+
+                let shouldRerender = false
+
+                let point = shape.hoverOptions.getDataPointOnHover({ x: e.nativeEvent.offsetX, y: e.nativeEvent.offsetY })
+
+                if (
+                    (hover.current[i]?.open === true && point === undefined) ||
+                    (hover.current[i]?.open === false && point !== undefined)
+                )
+                    shouldRerender = true
+
+                if (hover.current[i] === undefined)
+                    hover.current[i] = {}
+
+                if (point === undefined)
+                    hover.current[i].open = false
+                else {
+                    const canvasDomRect = canvasRef.current?.getBoundingClientRect()
+                    hover.current[i] = {
+                        open: true,
+                        top: (canvasDomRect?.top ?? 0) + point?.y,
+                        left: (canvasDomRect?.left ?? 0) + point?.x,
+                        node: shape.hoverOptions.getHoverNode !== undefined ? shape.hoverOptions.getHoverNode!(point.index) : ''
+                    }
+                }
+
+                if (shouldRerender)
+                    rerender()
+            }
+    }, [shapes])
+
     return (
         <div dir="ltr" className="size-full overflow-hidden" ref={containerRef}>
             <canvas
                 ref={canvasRef}
                 className="size-full"
+                onPointerMove={onPointerOver}
+                onPointerLeave={() => {
+                    hoverEvent.current = undefined
+                    hover.current = {}
+                    rerender()
+                }}
             />
+
+            {shapes.map((s, i) =>
+                <DropdownMenu
+                    key={i}
+                    open={hover.current[i]?.open ?? false}
+                    verticalPosition="top"
+                    containerProps={{
+                        className: 'pointer-events-none select-none',
+                        style: { zIndex: 50 }
+                    }}
+                    anchorDomRect={{
+                        width: 10,
+                        height: 10,
+                        top: hover.current[i]?.top,
+                        left: hover.current[i]?.left,
+                    }}
+                >
+                    {hover.current[i]?.node}
+                </DropdownMenu>
+            )}
+
+            {(shapes.map(s =>
+                s.canvasCoords && s.xLabels && s.xLabels.map((l, i) =>
+                    l.value !== undefined && l.node !== undefined && l.value! >= (s.canvasCoords!.offset?.left ?? 0) && l.value! <= ((s.canvasCoords!.offset?.left ?? 0) + (s.canvasCoords?.width ?? 0))
+                        ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: `${(s.canvasCoords!.height ?? 0) + (s.canvasCoords!.offset!.top ?? 0) + (s.canvasCoords!.xAxisOffset ?? 0)}px`, left: l.value }}>
+                            <div className="relative -translate-y-1/2 -translate-x-1/2">
+                                {l.node}
+                            </div>
+                        </div>
+                        : undefined
+                )
+            ))}
+
+            {(shapes.map(s =>
+                s.canvasCoords && s.yLabels && s.yLabels.map((l, i) =>
+                    l.value !== undefined && l.node !== undefined && l.value! >= (s.canvasCoords!.offset?.top ?? 0) && l.value! <= ((s.canvasCoords!.offset?.top ?? 0) + (s.canvasCoords?.height ?? 0))
+                        ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: l.value, left: `${(s.canvasCoords!.offset!.left ?? 0) - (s.canvasCoords!.yAxisOffset ?? 0)}px` }}>
+                            <div className="relative -translate-y-1/2 -translate-x-full">
+                                {l.node}
+                            </div>
+                        </div>
+                        : undefined
+                )
+            ))}
         </div>
     )
 }
@@ -148,7 +251,8 @@ export function Chart({
 Chart.XAxis = {
     control: 0,
     styleOptions: {
-        lineCap: 'square'
+        lineCap: 'square',
+        lineWidth: 2
     },
     draw(dx, ctx, shape) {
         if (!shape.canvasCoords)
@@ -173,7 +277,8 @@ Chart.XAxis = {
 Chart.YAxis = {
     control: 0,
     styleOptions: {
-        lineCap: 'square'
+        lineCap: 'square',
+        lineWidth: 2
     },
     draw(dx, ctx, shape) {
         if (!shape.canvasCoords)

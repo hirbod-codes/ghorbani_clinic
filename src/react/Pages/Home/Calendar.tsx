@@ -91,6 +91,8 @@ export const Calendar = memo(function Calendar({ containerProps, calendarContain
 
             await updateCard(year, month, day)
 
+            scope.current.style.display = 'block'
+
             rerender()
         }, 100)
 
@@ -188,17 +190,20 @@ export const Calendar = memo(function Calendar({ containerProps, calendarContain
                 rerender()
             } else {
                 await animate(scope.current, { x: '0', opacity: 0 })
+                scope.current.style.display = 'none'
                 animationFinish.current = true
                 rerender()
             }
         } else {
             if (isLocked.current || showVisitsStats.current) {
+                scope.current.style.display = 'block'
                 let h = containerRef.current!.getBoundingClientRect()!.height
                 await animate(scope.current, { y: h, opacity: 1 })
                 animationFinish.current = true
                 rerender()
             } else {
                 await animate(scope.current, { y: '0', opacity: 0 })
+                scope.current.style.display = 'none'
                 animationFinish.current = true
                 rerender()
             }
@@ -246,7 +251,7 @@ export const Calendar = memo(function Calendar({ containerProps, calendarContain
         <>
             <div onPointerDown={handleClickOnCalendar} ref={containerRef} {...containerProps} className={cn("relative h-full", containerProps?.className)}>
                 <div className="absolute top-0 z-[1] w-full">
-                    <div ref={scope} className="opacity-0 px-0 py-2 lg:px-2 lg:py-0 h-80 ">
+                    <div ref={scope} className={`opacity-0 px-0 py-2 lg:px-2 lg:py-0 h-80`}>
                         <div className="bg-surface-container-high size-full rounded-lg shadow-lg border overflow-auto p-4">
                             {fetchingVisits.current && <div className='absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'><CircularLoading size='lg' /></div>}
 

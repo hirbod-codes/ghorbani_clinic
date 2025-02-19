@@ -1,12 +1,24 @@
-import { Bezier } from "bezier-js"
 import { Point } from "../../Lib/Math"
-import { ComponentProps, PointerEvent, ReactNode } from "react"
-import { CanvasOffsets, CanvasStyleOptions, ChartOptions, DrawOnHoverOptions, DrawShapeOptions } from "./index.d"
-import { EasingName, getEasingFunction } from "../Animations/easings"
-import { Dimensions } from "./index.d"
-import { IShape } from "./IShape"
+import { CanvasOffsets, Label } from "./index.d"
 
 export class LineChart {
+    static calculateXLabels(xLabels: Label[], xRange: [number | undefined, number | undefined], width: number, offset: CanvasOffsets) {
+        width = width - offset.left - offset.right
+
+        return this.linearInterpolation(xLabels.map((l, i) => l.value).filter(f => f !== undefined && f !== null), width, xRange)
+            .map(v => v + offset!.left)
+            .map((value, i) => ({ ...xLabels[i], value }))
+    }
+
+    static calculateYLabels(yLabels: Label[], yRange: [number | undefined, number | undefined], height: number, offset: CanvasOffsets) {
+        height = height - offset.top - offset.bottom
+
+        return this.linearInterpolation(yLabels.map((l, i) => l.value).filter(f => f !== undefined && f !== null), height, yRange)
+            .map(v => height - v)
+            .map(v => v + offset!.top)
+            .map((value, i) => ({ ...yLabels[i], value }))
+    }
+
     static calculateDataPoints(
         x: number[],
         y: number[],

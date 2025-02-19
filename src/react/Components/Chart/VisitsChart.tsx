@@ -11,6 +11,7 @@ import { IShape } from "./IShape"
 import { Chart } from "."
 import { LineChart } from "./LineChart"
 import { Point } from "../../Lib/Math"
+import { Label } from "./index.d"
 
 export function VisitsChart() {
     let local = useContext(ConfigurationContext)!.local
@@ -23,8 +24,13 @@ export function VisitsChart() {
 
     const [ready, setReady] = useState(false)
 
-    const xRange = useRef<[number | undefined, number | undefined]>()
     const dataPoints = useRef<Point[]>()
+
+    const xRange = useRef<[number | undefined, number | undefined]>()
+    const yRange = useRef<[number | undefined, number | undefined]>()
+
+    const xLabels = useRef<Label[]>()
+    const yLabels = useRef<Label[]>()
 
     const hasPlayed = useRef<boolean>(false)
 
@@ -50,23 +56,98 @@ export function VisitsChart() {
         if (visitsPerDay.length <= 0)
             return
 
-        let yRange: [number | undefined, number | undefined] = [0, visitsPerDay.reduce((p, c, i) => c.count > p ? c.count : p, 0)]
+        yRange.current = [0, visitsPerDay.reduce((p, c, i) => c.count > p ? c.count : p, 0)]
         xRange.current = [visitsPerDay[0].dateTS, visitsPerDay[visitsPerDay.length - 1].dateTS]
+
+        xLabels.current = []
+        if (local.calendar === 'Gregorian') {
+            let ts = DateTime.fromSeconds(xRange.current[1]!).set({ day: 1, hour: 0, minute: 0, second: 0, millisecond: 0 }).toUnixInteger()
+            xLabels.current.push({ value: ts, node: getMonth(ts) })
+            let safety = 0
+            while (safety < 2000) {
+                safety++
+                xLabels.current.push({ value: ts, node: getMonth(ts) })
+
+                ts = DateTime.fromSeconds(ts).minus({ months: 1 }).toUnixInteger()
+
+                if (ts <= xRange.current[0]!)
+                    break
+            }
+            if (safety >= 2000)
+                console.warn('safety limit exceeded!')
+        } else {
+            let ts: number
+            let p = gregorianToPersian(DateTime.fromSeconds(xRange.current![1]!).toObject())
+            p.day = 1
+            let safety = 0
+            do {
+                safety++
+
+                ts = toDateTime({ date: persianToGregorian(p), time: { hour: 0, minute: 0, second: 0, millisecond: 0 } }, { ...local, calendar: 'Gregorian', zone: 'UTC' }, { ...local, calendar: 'Gregorian', zone: 'UTC' }).toUnixInteger()
+
+                xLabels.current.push({ value: ts, node: toFormat(ts, local, undefined, 'LLL') })
+
+                if (p.month > 1)
+                    p.month -= 1
+                else {
+                    p.month = 12
+                    p.year -= 1
+                }
+            } while (safety < 2000 && ts > xRange.current[0]!);
+            if (safety >= 2000)
+                console.warn('safety limit exceeded!')
+        }
+
+        yLabels.current = Array(5).fill(0).map((v, i) => ({ value: (yRange![1]! - yRange![0]!) * i / 4, node: localizeNumbers(local.language, (yRange![1]! - yRange![0]!) * i / 4), options: { className: 'text-xs' } }))
 
         setShapes([
             {
                 control: 1,
                 duration: 5000,
+                xLabels: xLabels.current,
+                yLabels: yLabels.current,
+                hoverOptions: {
+                    getHoverNode: (i) =>
+                        <Stack direction="vertical" stackProps={{ className: 'p-2 rounded-lg bg-surface-container border' }}>
+                            <Stack stackProps={{ className: 'justify-between' }}><div>{t('VisitsChart.count')}</div> <div>{localizeNumbers(local.language, visitsPerDay[i].count)}</div></Stack>
+                            <Stack stackProps={{ className: 'justify-between' }}><div>{t('VisitsChart.date')}</div> <div>{toFormat(visitsPerDay[i].dateTS, local, undefined, DATE)}</div></Stack>
+                        </Stack>,
+                    hoverRadius: 4,
+                    getDataPointOnHover(hoverPoint, hoverOptions) {
+                        if (hoverOptions?.hoverRadius === undefined)
+                            return undefined
+
+                        let r = hoverOptions.hoverRadius!
+
+                        if (dataPoints.current !== undefined)
+                            for (let i = 0; i < dataPoints.current.length; i++)
+                                if (
+                                    hoverPoint.x <= dataPoints.current[i].x + r &&
+                                    hoverPoint.x >= dataPoints.current[i].x - r &&
+                                    hoverPoint.y <= dataPoints.current[i].y + r &&
+                                    hoverPoint.y >= dataPoints.current[i].y - r
+                                )
+                                    return { ...dataPoints.current[i], index: i }
+
+                        return undefined
+                    },
+                },
                 onCanvasCoordsChange(canvasCoords) {
                     dataPoints.current = LineChart.calculateDataPoints(
                         visitsPerDay.map(v => v.dateTS),
                         visitsPerDay.map(v => v.count),
                         xRange.current!,
-                        yRange,
+                        yRange.current!,
                         canvasCoords.width,
                         canvasCoords.height,
                         canvasCoords.offset
                     )
+
+                    if (xLabels.current)
+                        xLabels.current = LineChart.calculateXLabels(xLabels.current, xRange.current!, canvasCoords.width, canvasCoords.offset)
+
+                    if (yLabels.current)
+                        yLabels.current = LineChart.calculateXLabels(yLabels.current, yRange.current!, canvasCoords.width, canvasCoords.offset)
                 },
                 draw(dx, ctx, shape) {
                     if (!dataPoints.current)
@@ -81,6 +162,8 @@ export function VisitsChart() {
                     let range = (xRange.current![1]! - xRange.current![0]!)
                     let month = Duration.fromDurationLike({ months: 1 }).toMillis() / 1000
                     let rectWidth = 0.75 * shape.canvasCoords!.width! / (range / month)
+                    if (shape.hoverOptions)
+                        shape.hoverOptions.hoverRadius = rectWidth / 2
                     dataPoints.current.forEach(p => {
                         ctx.beginPath()
                         let roundness = rectWidth / 4
@@ -149,8 +232,6 @@ export function VisitsChart() {
         <Chart
             chartKey="VisitsChart"
             shapes={shapes}
-            xAxis={{ ...Chart.XAxis, styleOptions: { ...Chart.XAxis.styleOptions, lineWidth: 2 } }}
-            yAxis={{ ...Chart.YAxis, styleOptions: { ...Chart.YAxis.styleOptions, lineWidth: 2 } }}
             dimensions={{
                 offset: {
                     top: 0,
