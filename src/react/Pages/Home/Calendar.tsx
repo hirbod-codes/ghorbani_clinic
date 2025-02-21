@@ -177,11 +177,10 @@ export const Calendar = memo(function Calendar({ containerProps, calendarContain
     }, [containerRef.current, scope.current])
 
     const checkState = async () => {
-        // if ( animationFinish.current)
-        //     return
-
         if (document.body.offsetWidth >= 1024) {
             if (isLocked.current || showVisitsStats.current) {
+                scope.current.style.display = 'block'
+                rerender()
                 let w = containerRef.current!.getBoundingClientRect()!.width
                 if (configuration.local.direction === 'rtl')
                     w *= -1
@@ -197,6 +196,7 @@ export const Calendar = memo(function Calendar({ containerProps, calendarContain
         } else {
             if (isLocked.current || showVisitsStats.current) {
                 scope.current.style.display = 'block'
+                rerender()
                 let h = containerRef.current!.getBoundingClientRect()!.height
                 await animate(scope.current, { y: h, opacity: 1 })
                 animationFinish.current = true

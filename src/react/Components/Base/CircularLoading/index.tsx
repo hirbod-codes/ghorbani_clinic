@@ -1,6 +1,8 @@
+import { ComponentProps } from "react";
 import { CircularLoadingIcon } from "../CircularLoadingIcon";
+import { cn } from "@/src/react/shadcn/lib/utils";
 
-export function CircularLoading({ size = 'md' }: { size?: 'xl' | 'lg' | 'md' | 'sm' | 'xs' }) {
+export function CircularLoading({ size = 'md', containerProps }: { size?: 'xl' | 'lg' | 'md' | 'sm' | 'xs', containerProps?: ComponentProps<'div'> }) {
     let className = ''
     switch (size) {
         case 'xl':
@@ -24,7 +26,7 @@ export function CircularLoading({ size = 'md' }: { size?: 'xl' | 'lg' | 'md' | '
     }
 
     return (
-        <div className={className}>
+        <div {...containerProps} className={cn(className, containerProps?.className)}>
             <CircularLoadingIcon />
         </div>
     )

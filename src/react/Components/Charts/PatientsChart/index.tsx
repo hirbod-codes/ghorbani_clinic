@@ -333,8 +333,8 @@ export function PatientsChart() {
             dimensions={{
                 offset: {
                     top: 10,
-                    bottom: 30,
-                    left: 30,
+                    bottom: 45,
+                    left: 45,
                     right: 10,
                 },
             }}

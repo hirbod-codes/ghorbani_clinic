@@ -44,7 +44,8 @@ export class LineChart {
         width = width - offset.left - offset.right
         height = height - offset.top - offset.bottom
 
-        localX = this.linearInterpolation(localX, width, xRange).map(v => v + offset!.left)
+        localX = this.linearInterpolation(localX, width, xRange)
+            .map(v => v + offset!.left)
         localY = this.linearInterpolation(localY, height, yRange)
             .map(v => height - v)
             .map(v => v + offset!.top)
