@@ -142,12 +142,12 @@ export function Chart({
 
             Promise.all(allShapesPromises)
                 .then(allShapes => {
+                    rerender()
+
                     ShapeManager.addShapeGroup(chartKey, allShapes, ctx.current!, dimensions.current!)
 
                     if (afterChartOptionsSet)
                         afterChartOptionsSet(dimensions.current!)
-
-                    rerender()
 
                     console.log('runAnimations')
                     ShapeManager.runAnimations(chartKey)
