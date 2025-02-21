@@ -107,7 +107,6 @@ export class LineChart {
         }
 
         return points
-
     }
 
     static bezierCurve(dataPoints: Point[], animationDuration?: undefined, drawLine?: (curve: Bezier, controlPoints: [Point, Point, Point, Point], pointIndex: number) => void): Bezier[]

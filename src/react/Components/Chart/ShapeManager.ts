@@ -7,41 +7,59 @@ export class ShapeManager {
     private static canvases: { [k: string]: { ctx: CanvasRenderingContext2D, dimensions: Dimensions } } = {}
     private static requestAnimationFrameId: number | undefined = undefined
 
+    private static playingAnimationGroups: string[] = []
+
     static addShapeGroup(key: string, animations: IShape[], ctx: CanvasRenderingContext2D, dimensions: Dimensions): void {
         ShapeManager.shapes[key] = animations
         ShapeManager.canvases[key] = { ctx, dimensions }
     }
 
-    static pauseAnimations() {
+    static pauseAnimations(groupKey: string) {
         if (cancelAnimationFrame === undefined)
             throw new Error('cancelAnimationFrame function is undefined')
 
-        if (ShapeManager.requestAnimationFrameId !== undefined) {
-            cancelAnimationFrame(ShapeManager.requestAnimationFrameId)
-            ShapeManager.requestAnimationFrameId = undefined
-        }
+        if (groupKey.trim() === 'all' || groupKey.trim() === '*') {
+            if (ShapeManager.requestAnimationFrameId !== undefined) {
+                cancelAnimationFrame(ShapeManager.requestAnimationFrameId)
+                ShapeManager.requestAnimationFrameId = undefined
+            }
+        } else if (this.playingAnimationGroups.includes(groupKey.trim()))
+            this.playingAnimationGroups = this.playingAnimationGroups.filter(f => f !== groupKey)
     }
 
     /**
      * 
      * @param endAnimations stop calling painting shapes if there is no running animation
      */
-    static runAnimations(endAnimations = true) {
+    static runAnimations(groupKey: string, endAnimations = true) {
+        console.log('runAnimations', ShapeManager.requestAnimationFrameId, groupKey, endAnimations)
+
         if (requestAnimationFrame === undefined)
             throw new Error('requestAnimationFrame function is undefined')
 
+        if (groupKey.trim() === 'all' || groupKey.trim() === '*') {
+            for (const key in this.shapes)
+                if (Object.prototype.hasOwnProperty.call(this.shapes, key))
+                    if (!this.playingAnimationGroups.includes(groupKey))
+                        this.playingAnimationGroups.push(key)
+        } else if (!this.playingAnimationGroups.includes(groupKey.trim()))
+            this.playingAnimationGroups.push(groupKey)
+
         if (ShapeManager.requestAnimationFrameId === undefined)
-            requestAnimationFrame((t) => ShapeManager.animate(t, endAnimations))
+            ShapeManager.requestAnimationFrameId = requestAnimationFrame((t) => ShapeManager.animate(t, endAnimations))
     }
 
     private static animate(t: DOMHighResTimeStamp, endAnimations = true) {
-        console.log('animate')
+        console.log('animate', this.playingAnimationGroups)
 
         let draw = false
         for (const groupKey in ShapeManager.shapes)
             if (Object.prototype.hasOwnProperty.call(ShapeManager.shapes, groupKey)) {
                 console.log('groupKey', { [groupKey]: ShapeManager.shapes[groupKey] })
                 console.log('groupKey', { [groupKey]: ShapeManager.canvases[groupKey] })
+
+                if (!this.playingAnimationGroups.includes(groupKey))
+                    continue
 
                 ShapeManager.canvases[groupKey].ctx.clearRect(0, 0, ShapeManager.canvases[groupKey].dimensions.width, ShapeManager.canvases[groupKey].dimensions.height)
 
@@ -54,7 +72,7 @@ export class ShapeManager {
                     if (animation.passed && animation.passed <= (animation.delay ?? 0))
                         continue
 
-                    if (!animation.initial)
+                    if (animation.initial === undefined)
                         animation.initial = t
 
                     animation.passed = t - animation.initial
@@ -103,7 +121,9 @@ export class ShapeManager {
             }
 
         if (draw === true && endAnimations === true)
-            requestAnimationFrame((t) => ShapeManager.animate(t, endAnimations))
+            ShapeManager.requestAnimationFrameId = requestAnimationFrame((t) => ShapeManager.animate(t, endAnimations))
+        else
+            ShapeManager.requestAnimationFrameId = undefined
     }
 
     private static animateFromCache(animation: IShape, ctx: CanvasRenderingContext2D, dimensions: Dimensions) {

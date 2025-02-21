@@ -1,8 +1,6 @@
 import { CanvasStyleOptions, HoverOptions, Label } from "./index.d";
 import { EasingName } from "../Animations/easings";
 import { Dimensions } from "./index.d";
-import { Point } from "../../Lib/Math";
-import { ComponentProps, ReactNode } from "react";
 
 export interface IShape {
     initial?: number
@@ -17,7 +15,7 @@ export interface IShape {
     offscreenCanvas?: HTMLCanvasElement
     styleOptions?: CanvasStyleOptions
     canvasCoords?: Dimensions
-    onCanvasCoordsChange?: (shape: IShape) => void
+    onCanvasCoordsChange?: (shape: IShape) => void | Promise<void>
     draw: (dx: number, ctx: CanvasRenderingContext2D, shape: IShape) => void
     doNotCache?: boolean
     hoverOptions?: HoverOptions

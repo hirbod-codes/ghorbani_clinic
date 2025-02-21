@@ -43,8 +43,6 @@ export function Chart({
     const hover = useRef<{ [k: number]: { open?: boolean, top?: number, left?: number, node?: ReactNode } }>({})
     const hoverEvent = useRef<PointerEvent>()
 
-    const shapeGroupAdded = useRef<boolean>(false)
-
     const [, rerender] = useReducer(x => x + 1, 0)
 
     console.log('Chart', { dimensions, canvasRef, ctx, containerRef, shapes, xAxis, yAxis });
@@ -101,15 +99,16 @@ export function Chart({
     }, [canvasRef?.current, containerRef?.current])
 
     useEffect(() => {
-        if (ctx.current && dimensions.current && shapeGroupAdded.current === false) {
-            console.log('Chart', 'useEffect2')
+        initAnimations()
+    }, [dimensions?.current, ctx?.current, shapes])
 
-            shapeGroupAdded.current = true
+    const initAnimations = () => {
+        if (ctx.current && dimensions.current) {
+            console.log('Chart', 'useEffect2', chartKey, shapes)
 
-            ShapeManager.addShapeGroup(
-                chartKey,
-                // Note: Do not use the shorter syntax for map method because s might be a class instance(the short syntax will omit function properties like 'draw')
-                [{
+            // Note: Do not use the shorter syntax for map method because s might be a class instance(the short syntax will omit function properties like 'draw')
+            let allShapesPromises = [
+                {
                     control: 0,
                     doNotCache: true,
                     draw(dx, ctx, shape) {
@@ -122,35 +121,40 @@ export function Chart({
                         )
                         ctx.clip(path)
                     },
-                } as IShape]
-                    .concat(shapes)
-                    .concat([xAxis, yAxis])
-                    .map(s => {
-                        if (!dimensions.current)
-                            return s
-
-                        if (!s.canvasCoords)
-                            s.canvasCoords = dimensions.current
-                        else
-                            s.canvasCoords = { ...dimensions.current, ...s.canvasCoords }
-
-                        if (s.onCanvasCoordsChange)
-                            s.onCanvasCoordsChange(s)
-
+                } as IShape
+            ]
+                .concat(shapes)
+                .concat([xAxis, yAxis])
+                .map(async s => {
+                    if (!dimensions.current)
                         return s
-                    }),
-                ctx.current,
-                dimensions.current
-            )
 
-            if (afterChartOptionsSet)
-                afterChartOptionsSet({ ...dimensions.current, width: dimensions.current.width, height: dimensions.current.height })
+                    if (!s.canvasCoords)
+                        s.canvasCoords = dimensions.current
+                    else
+                        s.canvasCoords = { ...dimensions.current, ...s.canvasCoords }
 
-            rerender()
+                    if (s.onCanvasCoordsChange)
+                        await s.onCanvasCoordsChange(s)
 
-            ShapeManager.runAnimations()
+                    return s
+                })
+
+            Promise.all(allShapesPromises)
+                .then(allShapes => {
+                    ShapeManager.addShapeGroup(chartKey, allShapes, ctx.current!, dimensions.current!)
+
+                    if (afterChartOptionsSet)
+                        afterChartOptionsSet(dimensions.current!)
+
+                    rerender()
+
+                    console.log('runAnimations')
+                    ShapeManager.runAnimations(chartKey)
+                })
+
         }
-    }, [dimensions?.current, ctx?.current])
+    }
 
     const onPointerOver = useCallback(function onPointerOver(e: PointerEvent) {
         hoverEvent.current = e

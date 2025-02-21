@@ -62,6 +62,7 @@ const createWindow = (): void => {
             frame: false,
             webPreferences: {
                 preload: path.join(__dirname, 'preload.js'),
+                nodeIntegrationInWorker: true
             },
         });
 
@@ -110,11 +111,23 @@ app.on('activate', () => {
         createWindow()
 });
 
+const filter = {
+    urls: ['*/*']
+};
+
+session.defaultSession.webRequest.onBeforeSendHeaders(
+    filter,
+    (details, callback) => {
+        console.log(details);
+        details.requestHeaders['Origin'] = 'default-src \'self\'';
+        callback({ requestHeaders: details.requestHeaders });
+    }
+);
 session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     callback({
         responseHeaders: {
             ...details.responseHeaders,
-            'Content-Security-Policy': ['default-src \'none\'', 'script-src \'self\'']
+            'Content-Security-Policy': ['default-src \'self\'']
         }
     })
 })

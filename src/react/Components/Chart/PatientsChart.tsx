@@ -25,7 +25,7 @@ export function PatientsChart() {
 
     const dataPoints = useRef<Point[]>()
     const drawPoints = useRef<Point[]>()
-    const controlPoints = useRef<[Point, Point, Point, Point][]>()
+    const controlsCurves = useRef<Bezier[][]>()
 
     const xRange = useRef<[number | undefined, number | undefined]>()
     const yRange = useRef<[number | undefined, number | undefined]>()
@@ -98,27 +98,91 @@ export function PatientsChart() {
             {
                 control: 0,
                 onCanvasCoordsChange(shape) {
-                    if (!drawPoints.current) {
+                    return new Promise((resolve, reject) => {
                         if (!shape.canvasCoords)
                             return
 
-                        dataPoints.current = LineChart.calculateDataPoints(
-                            patientsPerMonth.map(p => p.dateTS),
-                            patientsPerMonth.map(p => p.count),
-                            xRange.current!,
-                            yRange.current!,
-                            shape.canvasCoords.width,
-                            shape.canvasCoords.height,
-                            shape.canvasCoords.offset
-                        )
+                        if (!dataPoints.current)
+                            dataPoints.current = LineChart.calculateDataPoints(
+                                patientsPerMonth.map(p => p.dateTS),
+                                patientsPerMonth.map(p => p.count),
+                                xRange.current!,
+                                yRange.current!,
+                                shape.canvasCoords.width,
+                                shape.canvasCoords.height,
+                                shape.canvasCoords.offset
+                            )
 
-                        drawPoints.current = LineChart.bezierCurve(dataPoints.current, duration)
-                    }
+                        if (!drawPoints.current)
+                            drawPoints.current = LineChart.bezierCurve(dataPoints.current, duration)
 
-                    controlPoints.current = LineChart.calculateControlPoints(drawPoints.current)
+                        if (controlsCurves.current)
+                            return
+
+                        const workerFunction = () => {
+                            self.addEventListener('message', (e) => {
+                                self.postMessage(performIntensiveTask(e.data))
+                            })
+
+                            function performIntensiveTask(data) {
+                                try {
+                                    let { drawPoints, lineWidth } = JSON.parse(data)
+                                    console.log('performIntensiveTaskperformIntensiveTaskperformIntensiveTaskperformIntensiveTask', { drawPoints, lineWidth })
+
+                                    // return 'hi'
+                                    return JSON.stringify(LineChart.calculateControlPoints(drawPoints).map(c => new Bezier(...c).offset((lineWidth ?? 0) / 2) as Bezier[]))
+                                } catch (e) {
+                                    console.error('performIntensiveTask', e)
+                                    return 'error'
+                                }
+                            }
+                        }
+
+
+                        let w = `
+                            const Bezier = require('bezier-js').Bezier
+
+                            ${LineChart.toString()}
+
+                            (${workerFunction.toString()})()
+                        `
+                        const workerUrl = URL.createObjectURL(new Blob([w], { type: 'application/javascript' }))
+                        const worker = new Worker(workerUrl, { type: 'module' });
+
+                        if (!worker.onmessage)
+                            worker.onmessage = ((e) => {
+                                console.log('worker onmessage')
+                                try {
+                                    if (!controlsCurves.current)
+                                        controlsCurves.current = JSON.parse(e.data)
+                                } catch (e) {
+                                    console.error(e)
+                                    reject()
+                                } finally {
+                                    worker.terminate()
+                                }
+                                resolve()
+                            })
+
+                        if (!worker.onerror)
+                            worker.onerror = ((e) => {
+                                console.error('onerror', e)
+                                reject()
+                            })
+
+                        if (!worker.onmessageerror)
+                            worker.onmessageerror = ((e) => {
+                                console.error('onmessageerror', e)
+                                reject()
+                            })
+
+                        worker.postMessage(JSON.stringify({ drawPoints: drawPoints.current, lineWidth: shape.styleOptions?.lineWidth }))
+
+                        console.log('worker posted message')
+                    })
                 },
                 draw(dx, ctx, shape) {
-                    if (!drawPoints.current || !controlPoints.current)
+                    if (!drawPoints.current || !controlsCurves.current)
                         return
 
                     ctx.save()
@@ -137,23 +201,18 @@ export function PatientsChart() {
 
                     ctx.beginPath()
 
-                    console.log('controlPoints.current', controlPoints.current)
-
                     let firstPoint: Point | undefined = undefined
-                    console.time('control points')
-                    for (const c of controlPoints.current) {
-                        let curves = (new Bezier(...c).offset((shape.styleOptions?.lineWidth ?? 0) / 2) as Bezier[])
+                    for (const controlCurves of controlsCurves.current) {
                         if (firstPoint === undefined) {
-                            firstPoint = curves[0].points[0]
+                            firstPoint = controlCurves[0].points[0]
                             ctx.moveTo(firstPoint.x, firstPoint.y)
                         }
-                        curves.forEach((b, j) => {
+                        controlCurves.forEach((b, j) => {
                             // ctx.moveTo(firstPoint!.x, firstPoint!.y)
                             ctx.bezierCurveTo(b.points[1].x, b.points[1].y, b.points[2].x, b.points[2].y, b.points[3].x, b.points[3].y)
                             firstPoint = b.points[b.points.length - 1]
                         })
                     }
-                    console.timeEnd('control points')
 
                     ctx.stroke()
 

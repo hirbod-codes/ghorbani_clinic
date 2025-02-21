@@ -137,24 +137,26 @@ export function VisitsChart() {
                     if (!shape.canvasCoords)
                         return
 
-                    dataPoints.current = LineChart.calculateDataPoints(
-                        visitsPerDay.map(v => v.dateTS),
-                        visitsPerDay.map(v => v.count),
-                        xRange.current!,
-                        yRange.current!,
-                        shape.canvasCoords.width,
-                        shape.canvasCoords.height,
-                        shape.canvasCoords.offset
-                    )
+                    if (!dataPoints.current) {
+                        dataPoints.current = LineChart.calculateDataPoints(
+                            visitsPerDay.map(v => v.dateTS),
+                            visitsPerDay.map(v => v.count),
+                            xRange.current!,
+                            yRange.current!,
+                            shape.canvasCoords.width,
+                            shape.canvasCoords.height,
+                            shape.canvasCoords.offset
+                        )
 
-                    xLabels.current = LineChart.calculateXLabels(xLabels.current!, xRange.current!, shape.canvasCoords.width, shape.canvasCoords.offset)
-                        .map(v => ({ ...v, options: { className: 'text-xs' } }))
-                    shape.xLabels = xLabels.current
+                        xLabels.current = LineChart.calculateXLabels(xLabels.current!, xRange.current!, shape.canvasCoords.width, shape.canvasCoords.offset)
+                            .map(v => ({ ...v, options: { className: 'text-xs' } }))
+                        shape.xLabels = xLabels.current
 
-                    yLabels.current = LineChart.calculateYLabels(yLabels.current!, yRange.current!, shape.canvasCoords.height, shape.canvasCoords.offset)
-                        .map((v, i) => ({ ...v, node: localizeNumbers(local.language, (yRange.current![1]! - yRange.current![0]!) * i / 4) }))
-                        .map(v => ({ ...v, options: { className: 'text-xs' } }))
-                    shape.yLabels = yLabels.current
+                        yLabels.current = LineChart.calculateYLabels(yLabels.current!, yRange.current!, shape.canvasCoords.height, shape.canvasCoords.offset)
+                            .map((v, i) => ({ ...v, node: localizeNumbers(local.language, (yRange.current![1]! - yRange.current![0]!) * i / 4) }))
+                            .map(v => ({ ...v, options: { className: 'text-xs' } }))
+                        shape.yLabels = yLabels.current
+                    }
                 },
                 draw(dx, ctx, shape) {
                     if (!dataPoints.current)
