@@ -232,7 +232,7 @@ export function PatientsChart() {
                     if (!shape.canvasCoords)
                         return
 
-                    if (!drawPoints.current) {
+                    if (!dataPoints.current)
                         dataPoints.current = LineChart.calculateDataPoints(
                             patientsPerMonth.map(p => p.dateTS),
                             patientsPerMonth.map(p => p.count),
@@ -243,17 +243,16 @@ export function PatientsChart() {
                             shape.canvasCoords.offset
                         )
 
+                    if (!drawPoints.current)
                         drawPoints.current = LineChart.bezierCurve(dataPoints.current, duration)
-                    }
 
-                    xLabels.current = LineChart.calculateXLabels(xLabels.current!, xRange.current!, shape.canvasCoords.width, shape.canvasCoords.offset)
+
+                    shape.xLabels = LineChart.calculateXLabels(xLabels.current!, xRange.current!, shape.canvasCoords.width, shape.canvasCoords.offset)
                         .map(v => ({ ...v, options: { className: 'text-xs' } }))
-                    shape.xLabels = xLabels.current
 
-                    yLabels.current = LineChart.calculateYLabels(yLabels.current!, yRange.current!, shape.canvasCoords.height, shape.canvasCoords.offset)
+                    shape.yLabels = LineChart.calculateYLabels(yLabels.current!, yRange.current!, shape.canvasCoords.height, shape.canvasCoords.offset)
                         .map((v, i) => ({ ...v, node: localizeNumbers(local.language, (yRange.current![1]! - yRange.current![0]!) * i / 4) }))
                         .map(v => ({ ...v, options: { className: 'text-xs' } }))
-                    shape.yLabels = yLabels.current
                 },
                 draw(dx, ctx, shape) {
                     if (!drawPoints.current)
