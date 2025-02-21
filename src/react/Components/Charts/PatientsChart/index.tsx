@@ -11,9 +11,12 @@ import { Label } from "../../Chart/index.d"
 import { IShape } from "../../Chart/IShape"
 import { Bezier } from "bezier-js"
 import { Point } from "@/src/react/Lib/Math"
+import { ColorStatic } from "@/src/react/Lib/Colors/ColorStatic"
 
 export function PatientsChart() {
-    let local = useContext(ConfigurationContext)!.local
+    let configuration = useContext(ConfigurationContext)!
+    const local = configuration.local
+    const themeOptions = configuration.themeOptions
 
     const [patients, setPatients] = useState<Patient[]>([])
     const [shapes, setShapes] = useState<IShape[]>()
@@ -93,6 +96,9 @@ export function PatientsChart() {
         yLabels.current = Array(5).fill(0).map((v, i) => ({ value: (yRange.current![1]! - yRange.current![0]!) * i / 4, node: localizeNumbers(local.language, (yRange.current![1]! - yRange.current![0]!) * i / 4), options: { className: 'text-xs' } }))
 
         let duration = 5000
+
+        const rgb = ColorStatic.parse(themeOptions.colors.success[themeOptions.mode].main).toRgb()
+        // rgb.setAlpha(0.5)
 
         setShapes([
             {
@@ -188,9 +194,11 @@ export function PatientsChart() {
                     let offsetTop = shape.canvasCoords!.offset!.top
                     let offsetLeft = shape.canvasCoords!.offset!.left
                     let g = ctx.createLinearGradient(offsetLeft, offsetTop, offsetLeft, offsetTop + shape.canvasCoords!.height!)
-                    g.addColorStop(0, '#00ff0080')
+                    g.addColorStop(0, rgb.toHex())
                     g.addColorStop(1, 'transparent')
                     shape.styleOptions!.fillStyle = g
+
+                    ctx.fillStyle = g
 
                     ctx.beginPath()
 
@@ -277,8 +285,8 @@ export function PatientsChart() {
                 },
                 styleOptions: {
                     fillStyle: 'transparent',
-                    strokeStyle: '#00ff0080',
-                    lineWidth: 2,
+                    strokeStyle: rgb.toHex(),
+                    lineWidth: 4,
                     lineCap: 'round',
                 },
                 ease: 'easeOutExpo'

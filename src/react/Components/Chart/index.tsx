@@ -43,6 +43,8 @@ export function Chart({
     const hover = useRef<{ [k: number]: { open?: boolean, top?: number, left?: number, node?: ReactNode } }>({})
     const hoverEvent = useRef<PointerEvent>()
 
+    const hasInit = useRef<boolean>(false)
+
     const [, rerender] = useReducer(x => x + 1, 0)
 
     console.log('Chart', { dimensions, canvasRef, ctx, containerRef, shapes, xAxis, yAxis });
@@ -81,7 +83,8 @@ export function Chart({
             }
             if (!xAxis.styleOptions)
                 xAxis.styleOptions = {}
-            xAxis.styleOptions.strokeStyle = themeOptions.colors.surface[themeOptions.mode].foreground
+            if (!xAxis.styleOptions.strokeStyle)
+                xAxis.styleOptions.strokeStyle = themeOptions.colors.surface[themeOptions.mode].foreground
 
             if (!yAxis)
                 yAxis = Chart.YAxis
@@ -94,7 +97,8 @@ export function Chart({
             }
             if (!yAxis.styleOptions)
                 yAxis.styleOptions = {}
-            yAxis.styleOptions.strokeStyle = themeOptions.colors.surface[themeOptions.mode].foreground
+            if (!yAxis.styleOptions.strokeStyle)
+                yAxis.styleOptions.strokeStyle = themeOptions.colors.surface[themeOptions.mode].foreground
         }
     }, [canvasRef?.current, containerRef?.current])
 
@@ -103,8 +107,10 @@ export function Chart({
     }, [dimensions?.current, ctx?.current, shapes])
 
     const initAnimations = () => {
-        if (ctx.current && dimensions.current) {
+        if (ctx.current && dimensions.current && hasInit.current === false) {
             console.log('Chart', 'useEffect2', chartKey, shapes)
+
+            hasInit.current = true
 
             // Note: Do not use the shorter syntax for map method because s might be a class instance(the short syntax will omit function properties like 'draw')
             let allShapesPromises = [

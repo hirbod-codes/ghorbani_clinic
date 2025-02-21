@@ -12,9 +12,12 @@ import { LineChart } from "../../Chart/LineChart"
 import { Label } from "../../Chart/index.d"
 import { Point } from "@/src/react/Lib/Math"
 import { Stack } from "../../Base/Stack"
+import { ColorStatic } from "@/src/react/Lib/Colors/ColorStatic"
 
 export function VisitsChart() {
-    let local = useContext(ConfigurationContext)!.local
+    let configuration = useContext(ConfigurationContext)!
+    const local = configuration.local
+    const themeOptions = configuration.themeOptions
 
     const [visits, setVisits] = useState<Visit[]>([])
     const [shapes, setShapes] = useState<IShape[]>()
@@ -99,6 +102,9 @@ export function VisitsChart() {
         }
 
         yLabels.current = Array(5).fill(0).map((v, i) => ({ value: (yRange.current![1]! - yRange.current![0]!) * i / 4, node: localizeNumbers(local.language, (yRange.current![1]! - yRange.current![0]!) * i / 4), options: { className: 'text-xs' } }))
+
+        const rgb = ColorStatic.parse(themeOptions.colors.success[themeOptions.mode].main).toRgb()
+        // rgb.setAlpha(0.5)
 
         setShapes([
             {
@@ -185,7 +191,8 @@ export function VisitsChart() {
                     ctx.restore()
                 },
                 styleOptions: {
-                    fillStyle: '#00ff0080',
+                    fillStyle: rgb.toHex(),
+                    // fillStyle: '#00ff0080',
                     strokeStyle: 'transparent',
                     lineWidth: 0,
                     lineCap: 'round',
