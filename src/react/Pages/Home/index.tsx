@@ -3,11 +3,9 @@ import { Calendar } from "./Calendar";
 import { Clock } from "../../Components/Clock";
 import { Stack } from "../../Components/Base/Stack";
 import { t } from "i18next";
-// import { VisitsChart } from "../../Components/Charts/VisitsChart";
-// import { PatientsChart } from "../../Components/Charts/PatientsChart";
+import { VisitsChart } from "../../Components/Charts/VisitsChart";
+import { PatientsChart } from "../../Components/Charts/PatientsChart";
 import { Analytics } from "../../Components/Analytics";
-import { VisitsChart } from "../../Components/Chart/VisitsChart";
-import { PatientsChart } from "../../Components/Chart/PatientsChart";
 
 export const Home = memo(function Home() {
     console.log('Home')
