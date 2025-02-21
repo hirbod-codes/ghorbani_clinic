@@ -125,16 +125,9 @@ export function PatientsChart() {
                             })
 
                             function performIntensiveTask(data) {
-                                try {
-                                    let { drawPoints, lineWidth } = JSON.parse(data)
-                                    console.log('performIntensiveTaskperformIntensiveTaskperformIntensiveTaskperformIntensiveTask', { drawPoints, lineWidth })
+                                let { drawPoints, lineWidth } = JSON.parse(data)
 
-                                    // return 'hi'
-                                    return JSON.stringify(LineChart.calculateControlPoints(drawPoints).map(c => new Bezier(...c).offset((lineWidth ?? 0) / 2) as Bezier[]))
-                                } catch (e) {
-                                    console.error('performIntensiveTask', e)
-                                    return 'error'
-                                }
+                                return JSON.stringify(LineChart.calculateControlPoints(drawPoints).map(c => new Bezier(...c).offset((lineWidth ?? 0) / 2) as Bezier[]))
                             }
                         }
 
