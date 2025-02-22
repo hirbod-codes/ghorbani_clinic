@@ -7,7 +7,7 @@ import { TextEditor } from "../TextEditor/TextEditor";
 import { Canvas } from "../Canvas";
 import { ConfigurationContext } from "../../../Contexts/Configuration/ConfigurationContext";
 import { SaveIcon } from "../../Icons/SaveIcon";
-import { isCanvasEmpty } from "../Canvas/helpers";
+import { buildShapes, isCanvasEmpty } from "../Canvas/helpers";
 import { Canvas as CanvasModel } from "../../../../Electron/Database/Models/Canvas";
 import { CircularLoadingIcon } from "../CircularLoadingIcon";
 import { Separator } from "@/src/react/shadcn/components/ui/separator";
@@ -15,6 +15,8 @@ import { Button } from "@/src/react/Components/Base/Button";
 import { CloudUploadIcon, EyeIcon, FileTypeIcon, FolderCheckIcon, SquarePenIcon } from "lucide-react";
 import { Tooltip } from "../Tooltip";
 import { Stack } from "../Stack";
+import { IShape } from "../Canvas/Shapes/IShape";
+import { ObjectId } from "mongodb";
 
 export type EditorProps = {
     hideCanvas?: boolean;
@@ -46,6 +48,8 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
     const imageRef = useRef<HTMLImageElement | null>(null)
     const [imageSrc, setImageSrc] = useState<string>()
     const [status, setStatus] = useState<string>('showing')
+
+    const canvasShapes = useRef<IShape[]>()
 
     const [contentHasUnsavedChanges, setContentHasUnsavedChangesState] = useState<boolean>(false)
     const [canvasHasUnsavedChanges, setCanvasHasUnsavedChangesState] = useState<boolean>(false)
@@ -113,21 +117,15 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                 return
 
             if (!isCanvasEmpty(canvas)) {
-                const dataUrl = canvas.current?.toDataURL()
-                if (!dataUrl)
+                let shapes = canvasShapes.current?.map(s => s.getSerializableModel())
+                if (!shapes)
                     return
-
-                const type = dataUrl.split(',')[0].replace(';base64', '').replace('data:', '')
-                const data = dataUrl.split(',')[1]
-                console.log({ dataUrl, type, data })
 
                 const c: CanvasModel = {
                     width: canvas.current?.width,
                     height: canvas.current?.height,
-                    colorSpace: 'srgb',
                     backgroundColor: canvas.current.style.backgroundColor,
-                    type,
-                    data,
+                    data: shapes,
                 }
                 console.log({ canvasModel: c })
                 const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(c)
@@ -166,16 +164,16 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
     }
 
     const getCanvas = async (id: string): Promise<{
-        colorSpace: NonNullable<PredefinedColorSpace | undefined>;
+        schemaVersion?: string | undefined;
+        _id?: string | ObjectId | undefined;
         backgroundColor: string;
         width: number;
         height: number;
-        type: string;
-        data: string;
+        data: any[];
     } | undefined> => {
         console.log('Editor', 'getCanvas')
 
-        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.downloadCanvas(id)
+        const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.getCanvas(id)
         console.log({ res })
 
         if (res.code !== 200 || !res.data)
@@ -185,12 +183,12 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
     }
 
     const dataRef = useRef<{
-        colorSpace: NonNullable<PredefinedColorSpace | undefined>;
+        schemaVersion?: string | undefined;
+        _id?: string | ObjectId | undefined;
         backgroundColor: string;
         width: number;
         height: number;
-        type: string;
-        data: string;
+        data: any[];
     } | undefined>(undefined)
 
     const init = async () => {
@@ -212,6 +210,9 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
         }
 
         dataRef.current = await getCanvas(canvasId)
+        if (dataRef.current)
+            dataRef.current.data = buildShapes(dataRef.current.data)
+
         setLoading(false)
 
         if (!dataRef.current) {
@@ -251,13 +252,13 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                     return
                 }
 
-                const src = `data:${dataRef.current.type};base64,${dataRef.current.data}`
+                // const src = `data:${dataRef.current.type};base64,${dataRef.current.data}`
 
-                if (imageSrc === src) {
-                    return
-                }
+                // if (imageSrc === src) {
+                //     return
+                // }
 
-                setImageSrc(src);
+                // setImageSrc(src);
 
                 if (dataRef.current.backgroundColor)
                     setBackgroundColor(dataRef.current.backgroundColor)
@@ -351,7 +352,10 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                                     }
 
                                     {canvasId &&
-                                        <img ref={imageRef} src={imageSrc} style={{ backgroundColor }} />
+                                        <Canvas
+                                            canvasBackground={dataRef.current?.backgroundColor}
+                                            defaultShapes={dataRef.current?.data}
+                                        />
                                     }
                                 </Stack>
                             </>
@@ -398,11 +402,14 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                                 <div className="flex-grow">
                                     <Canvas
                                         canvasRef={canvas}
-                                        onChange={async (empty) => {
+                                        onChange={async (shapes, empty) => {
                                             setCanvasHasUnsavedChanges(true);
+                                            canvasShapes.current = shapes
                                             if (onChange)
                                                 await onChange(text, canvasId)
                                         }}
+                                        canvasBackground={dataRef.current?.backgroundColor}
+                                        defaultShapes={dataRef.current?.data}
                                     />
                                 </div>
                             </>

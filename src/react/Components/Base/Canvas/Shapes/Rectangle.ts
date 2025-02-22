@@ -15,14 +15,39 @@ export class Rectangle implements IShape {
     fill: string | CanvasGradient | CanvasPattern
     transformArgs: DOMMatrix | Matrix = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0, }
 
-    constructor(x: number, y: number, w: number, h: number, lineWidth: number, stroke: string | CanvasGradient | CanvasPattern, fill: string | CanvasGradient | CanvasPattern) {
-        this.x = x
-        this.y = y
-        this.w = w
-        this.h = h
-        this.lineWidth = lineWidth
-        this.stroke = stroke
-        this.fill = fill
+    constructor(x?: number, y?: number, w?: number, h?: number, lineWidth?: number, stroke?: string | CanvasGradient | CanvasPattern, fill?: string | CanvasGradient | CanvasPattern) {
+        this.x = x ?? 0
+        this.y = y ?? 0
+        this.w = w ?? 0
+        this.h = h ?? 0
+        this.lineWidth = lineWidth ?? 0
+        this.stroke = stroke ?? 'black'
+        this.fill = fill ?? 'transparent'
+    }
+
+    getSerializableModel(): any {
+        return {
+            type: 'Rectangle',
+            x: this.x,
+            y: this.y,
+            w: this.w,
+            h: this.h,
+            lineWidth: this.lineWidth,
+            stroke: this.stroke,
+            fill: this.fill,
+            transformArgs: this.transformArgs,
+        }
+    }
+
+    setSerializableModel(model: any): void {
+        this.x = model.x
+        this.y = model.y
+        this.w = model.w
+        this.h = model.h
+        this.lineWidth = model.lineWidth
+        this.stroke = model.stroke
+        this.fill = model.fill
+        this.transformArgs = model.transformArgs
     }
 
     getBoundary(): Boundary {

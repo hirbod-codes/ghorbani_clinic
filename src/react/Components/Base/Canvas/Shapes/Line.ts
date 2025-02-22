@@ -16,12 +16,37 @@ export class Line implements IShape {
 
     private points: (Point & { lineWidth: number })[] = []
 
-    constructor(lineWidth: number, stroke: string, pressureMagnitude: number, isPressureSensitive: boolean, mode: 'eraser' | 'pencil') {
-        this.lineWidth = lineWidth
-        this.stroke = stroke
-        this.pressureMagnitude = pressureMagnitude
-        this.isPressureSensitive = isPressureSensitive
-        this.mode = mode
+    constructor(lineWidth?: number, stroke?: string, pressureMagnitude?: number, isPressureSensitive?: boolean, mode?: 'eraser' | 'pencil') {
+        this.lineWidth = lineWidth ?? 0
+        this.stroke = stroke ?? 'black'
+        this.pressureMagnitude = pressureMagnitude ?? 1
+        this.isPressureSensitive = isPressureSensitive ?? false
+        this.mode = mode ?? 'pencil'
+    }
+
+    getSerializableModel(): any {
+        return {
+            type: 'Line',
+            lineWidth: this.lineWidth,
+            stroke: this.stroke,
+            pressureMagnitude: this.pressureMagnitude,
+            isPressureSensitive: this.isPressureSensitive,
+            mode: this.mode,
+            transformArgs: this.transformArgs,
+            rotationDegree: this.rotationDegree,
+            points: this.points,
+        }
+    }
+
+    setSerializableModel(model: any): void {
+        this.lineWidth = model.lineWidth
+        this.stroke = model.stroke
+        this.pressureMagnitude = model.pressureMagnitude
+        this.isPressureSensitive = model.isPressureSensitive
+        this.mode = model.mode
+        this.transformArgs = model.transformArgs
+        this.rotationDegree = model.rotationDegree
+        this.points = model.points
     }
 
     scale(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): void {

@@ -18,10 +18,10 @@ export class Circle implements IShape {
     shadowOffsetY: number | undefined
     transformArgs: DOMMatrix | Matrix = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0, }
 
-    constructor(x: number, y: number, r: number, lineWidth?: number, stroke?: string | CanvasGradient | CanvasPattern, fill?: string | CanvasGradient | CanvasPattern, shadowBlur?: number, shadowColor?: string, shadowOffsetX?: number, shadowOffsetY?: number) {
-        this.x = x
-        this.y = y
-        this.r = r
+    constructor(x?: number, y?: number, r?: number, lineWidth?: number, stroke?: string | CanvasGradient | CanvasPattern, fill?: string | CanvasGradient | CanvasPattern, shadowBlur?: number, shadowColor?: string, shadowOffsetX?: number, shadowOffsetY?: number) {
+        this.x = x ?? 0
+        this.y = y ?? 0
+        this.r = r ?? 0
         this.lineWidth = lineWidth
         this.stroke = stroke
         this.fill = fill
@@ -29,6 +29,37 @@ export class Circle implements IShape {
         this.shadowColor = shadowColor
         this.shadowOffsetX = shadowOffsetX
         this.shadowOffsetY = shadowOffsetY
+    }
+
+    getSerializableModel(): any {
+        return {
+            type: 'Circle',
+            x: this.x,
+            y: this.y,
+            r: this.r,
+            lineWidth: this.lineWidth,
+            stroke: this.stroke,
+            fill: this.fill,
+            shadowBlur: this.shadowBlur,
+            shadowColor: this.shadowColor,
+            shadowOffsetX: this.shadowOffsetX,
+            shadowOffsetY: this.shadowOffsetY,
+            transformArgs: this.transformArgs,
+        }
+    }
+
+    setSerializableModel(model: any): void {
+        this.x = model.x
+        this.y = model.y
+        this.r = model.r
+        this.lineWidth = model.lineWidth
+        this.stroke = model.stroke
+        this.fill = model.fill
+        this.shadowBlur = model.shadowBlur
+        this.shadowColor = model.shadowColor
+        this.shadowOffsetX = model.shadowOffsetX
+        this.shadowOffsetY = model.shadowOffsetY
+        this.transformArgs = model.transformArgs
     }
 
     getCenterPoint(): Point {
@@ -59,6 +90,9 @@ export class Circle implements IShape {
     }
 
     isInside(ctx: CanvasRenderingContext2D, point: Point): boolean {
+        if (this.path === undefined)
+            return false
+
         return ctx.isPointInPath(this.path, point.x, point.y)
     }
 

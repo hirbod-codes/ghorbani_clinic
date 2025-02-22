@@ -3,7 +3,7 @@ import { type Patient, collectionName as patientsCollectionName } from "./Models
 import { type MedicalHistory, collectionName as patientsMedicalHistoriesCollectionName } from "./Models/MedicalHistory";
 import { Visit, collectionName as visitsCollectionName } from "./Models/Visit";
 import { collectionName as patientsDocumentsCollectionName } from "./Models/PatientsDocuments";
-import { collectionName as canvasCollectionName } from "./Models/Canvas";
+import { Canvas, collectionName as canvasCollectionName } from "./Models/Canvas";
 import { collectionName as privilegesCollectionName } from "./Models/Privilege";
 import { collectionName as usersCollectionName } from "./Models/User";
 import type { dbAPI } from "./dbAPI";
@@ -319,6 +319,7 @@ export class MongoDB implements dbAPI {
         await this.addPatientsCollection()
         await this.addMedicalHistoriesCollection()
         await this.addVisitsCollection()
+        await this.addCanvasCollection()
     }
 
     private async addUsersCollection() {
@@ -402,6 +403,13 @@ export class MongoDB implements dbAPI {
             await db.createIndex(visitsCollectionName, { updatedAt: 1 }, { name: 'updated-at' })
     }
 
+    private async addCanvasCollection() {
+        const db = await this.getDb();
+
+        if (!(await db.listCollections().toArray()).map(e => e.name).includes(canvasCollectionName))
+            await db.createCollection(canvasCollectionName)
+    }
+
     async getUsersCollection(client?: MongoClient, db?: Db): Promise<Collection<User>> {
         return (db ?? (await this.getDb(client))).collection<User>(usersCollectionName)
     }
@@ -426,8 +434,8 @@ export class MongoDB implements dbAPI {
         return new GridFSBucket(db ?? (await this.getDb(client)), { bucketName: patientsDocumentsCollectionName });
     }
 
-    async getCanvasBucket(client?: MongoClient, db?: Db): Promise<GridFSBucket> {
-        return new GridFSBucket(db ?? (await this.getDb(client)), { bucketName: canvasCollectionName });
+    async getCanvasCollection(client?: MongoClient, db?: Db): Promise<Collection<Canvas>> {
+        return (db ?? (await this.getDb(client))).collection<Canvas>(canvasCollectionName)
     }
 
     async handleErrors(callback: () => Promise<unknown> | unknown, jsonStringify = true): Promise<string | any> {

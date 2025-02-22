@@ -4,6 +4,8 @@ import { Point } from "../../../../Lib/Math";
 import { SelectionBox } from "./SelectionBox";
 
 export interface IShape {
+    getSerializableModel(): any;
+    setSerializableModel(model: any): void;
     getCenterPoint(): Point;
     updateWidth(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): void;
     updateHeight(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string): void;

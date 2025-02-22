@@ -42,6 +42,9 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
     const [referencePoint, setReferencePoint] = useState<Point | undefined>(undefined)
 
     const onDown = (draw: Draw) => {
+        if (!draw.currentPoint)
+            return
+
         setReferencePoint(draw.currentPoint)
 
         shapes.helper = new Rectangle(draw.currentPoint.x, draw.currentPoint.y, 0, 0, Number(lineWidth), 'cyan', '#00000000')
@@ -64,7 +67,7 @@ export function RectangleTool({ shapes, canvasBackground, setOnDraw, setOnUpHook
     }
 
     const onDraw = (draw: Draw) => {
-        if (!draw)
+        if (!draw.currentPoint)
             return
 
         if (!hasMoved)

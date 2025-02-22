@@ -4,7 +4,7 @@ export type Point = { x: number; y: number }
 
 export type Draw = {
     ctx: CanvasRenderingContext2D
-    currentPoint: Point
+    currentPoint?: Point
     prevPoint?: Point
     e?: PointerEvent<HTMLCanvasElement>
     canvasRef: MutableRefObject<HTMLCanvasElement | null>

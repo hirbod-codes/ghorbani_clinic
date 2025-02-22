@@ -18,23 +18,46 @@ export class RectangleGradient implements IShape {
     y: number
     w: number
     h: number
-    canvasGradient: Gradients
+    canvasGradient?: Gradients
     transformArgs: DOMMatrix | Matrix = { a: 1, b: 0, c: 0, d: 1, e: 0, f: 0, }
 
-    constructor(x: number, y: number, w: number, h: number, canvasGradient: Gradients) {
-        this.x = x
-        this.y = y
-        this.w = w
-        this.h = h
+    constructor(x?: number, y?: number, w?: number, h?: number, canvasGradient?: Gradients) {
+        this.x = x ?? 0
+        this.y = y ?? 0
+        this.w = w ?? 0
+        this.h = h ?? 0
         this.canvasGradient = canvasGradient
     }
 
-    updateGradient(gradient: UpdateGradient) {
-        this.canvasGradient = { ...this.canvasGradient, ...gradient }
+    getSerializableModel(): any {
+        return {
+            type: 'RectangleGradient',
+            x: this.x,
+            y: this.y,
+            w: this.w,
+            h: this.h,
+            canvasGradient: this.canvasGradient,
+            transformArgs: this.transformArgs,
+        }
     }
 
-    getGradient(): Gradients {
-        return this.canvasGradient
+    setSerializableModel(model: any): void {
+        this.x = model.x
+        this.y = model.y
+        this.w = model.w
+        this.h = model.h
+        this.canvasGradient = model.canvasGradient
+        this.transformArgs = model.transformArgs
+    }
+
+    updateGradient(gradient: UpdateGradient) {
+        if (this.canvasGradient)
+            this.canvasGradient = { ...this.canvasGradient, ...gradient }
+    }
+
+    getGradient(): Gradients | undefined {
+        if (this.canvasGradient)
+            return this.canvasGradient
     }
 
     redraw(d: Draw): void {

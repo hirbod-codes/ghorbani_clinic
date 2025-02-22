@@ -97,10 +97,10 @@ export type IPatientsDocumentsRepository = dbAPI & {
 
 export type ICanvasRepository = dbAPI & {
     handleEvents(): Promise<void>;
-    uploadCanvas(canvas: Canvas): Promise<string>;
-    retrieveCanvases(id: string): Promise<GridFSFile[]>;
-    downloadCanvas(id: string): Promise<Canvas | null>;
-    downloadCanvases(ids: string[]): Promise<Canvas[]>;
-    openCanvas(id: string): Promise<void>;
-    deleteCanvas(id: string): Promise<boolean>;
+    uploadCanvas(canvas: Canvas): Promise<InsertOneResult>;
+    getCanvas(id: string): Promise<Canvas>;
+    // downloadCanvas(id: string): Promise<Canvas | null>;
+    // downloadCanvases(ids: string[]): Promise<Canvas[]>;
+    // openCanvas(id: string): Promise<void>;
+    deleteCanvas(id: string): Promise<DeleteResult>;
 }

@@ -6,7 +6,6 @@ import { PencilTool } from "./Tools/PencilTool";
 import { Shapes } from "./Shapes/Shapes";
 import { RectangleTool } from "./Tools/RectangleTool";
 import { SelectTool } from "./Tools/SelectTool";
-import { mainTransition } from "../../../Styles/animations";
 import { t } from "i18next";
 import { ConfigurationContext } from "@/src/react/Contexts/Configuration/ConfigurationContext";
 import { AnimatedSlide } from "../../Animations/AnimatedSlide";
@@ -18,36 +17,19 @@ import { Button } from "../Button";
 import { Stack } from "../Stack";
 import { ColorStatic } from "@/src/react/Lib/Colors/ColorStatic";
 import { cn } from "@/src/react/shadcn/lib/utils";
-
-const xOffset = 100;
-const variants = {
-    enter: {
-        name: 'enter',
-        x: -xOffset.toString() + '%',
-        transition: mainTransition
-    },
-    active: {
-        name: 'active',
-        x: 0,
-        transition: { ...mainTransition, delay: 0.5 }
-    },
-    exit: {
-        name: 'exit',
-        x: xOffset.toString() + '%',
-        transition: mainTransition
-    }
-};
+import { IShape } from "./Shapes/IShape";
 
 export type Tool = 'pencil' | 'eraser' | 'rectangle' | 'circle' | 'select'
 
 export type CanvasProps = {
     canvasRef?: MutableRefObject<HTMLCanvasElement | null>
-    onChange?: (empty?: boolean) => void | Promise<void>
+    onChange?: (shapes: IShape[], empty?: boolean) => void | Promise<void>
     canvasBackground?: string
     canvasProps?: ComponentProps<'canvas'>
+    defaultShapes?: IShape[]
 }
 
-export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onChange, canvasProps }: CanvasProps) {
+export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onChange, canvasProps, defaultShapes }: CanvasProps) {
     if (!canvasRef)
         canvasRef = useRef<HTMLCanvasElement | null>(null)
 
@@ -57,7 +39,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
 
     const [loading, setLoading] = useState<boolean>(false)
 
-    const [shapes, setShapes] = useState<Shapes>(new Shapes([]))
+    const [shapes, setShapes] = useState<Shapes>(new Shapes(defaultShapes))
 
     const [onDownHook, setOnDownHook] = useState<((draw: Draw) => void) | undefined>(undefined)
     const [onUpHook, setOnUpHook] = useState<((draw: Draw) => void) | undefined>(undefined)
@@ -71,24 +53,20 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
         </div>
     }])
 
-    const { onDown, onUp, onMove, clear } = useDraw(canvasRef, onChange, draw, onHoverHook, onDownHook, onUpHook)
+    const { onDown, onUp, onMove, clear } = useDraw(canvasRef, (e) => { if (onChange) onChange(shapes.shapes, e) }, draw, onHoverHook, onDownHook, onUpHook)
 
     const printRef = useRef<HTMLImageElement | null>(null)
     const print = useReactToPrint({ onAfterPrint: () => { setLoading(false); if (printRef.current) printRef.current.src = '' } })
 
-    const resizeCanvas = (canvasRef: MutableRefObject<HTMLCanvasElement | null>) => {
-        if (!canvasRef.current)
-            return
-
-        canvasRef.current.width = canvasRef.current.clientWidth
-        canvasRef.current.height = canvasRef.current.clientHeight
-        const ctx = canvasRef.current.getContext('2d')
-        ctx?.scale(1, 1)
-    }
-
     useEffect(() => {
-        if (canvasRef.current)
-            resizeCanvas(canvasRef)
+        if (canvasRef.current) {
+            canvasRef.current.width = canvasRef.current.clientWidth
+            canvasRef.current.height = canvasRef.current.clientHeight
+            const ctx = canvasRef.current.getContext('2d')!
+            ctx.scale(1, 1)
+
+            shapes.draw({ canvasRef, ctx })
+        }
     }, [canvasRef.current])
 
     return (
@@ -141,7 +119,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                                 rerender()
 
                                 if (onChange && shapes.shapes.length > 0)
-                                    onChange(false)
+                                    onChange(shapes.shapes, false)
                             }}>
                             {canvasRef.current?.style.backgroundColor === themeOptions.colors.surface.light["container-high"] ? <SunIcon fontSize='inherit' /> : <MoonIcon fontSize='inherit' />}
                         </Button>

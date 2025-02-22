@@ -20,6 +20,9 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
     const [shouldScale, setShouldScale] = useState<boolean>(false)
 
     const onDown = (draw: Draw) => {
+        if (!draw.currentPoint)
+            return
+
         setReferencePoint(draw.currentPoint)
         shapes.select(draw.ctx, draw.currentPoint)
         shapes.draw(draw)
@@ -36,7 +39,7 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
     }
 
     const onMoveHook = (draw: Draw) => {
-        if (!shapes.hasSelection() || !selectedHandler)
+        if (!shapes.hasSelection() || !selectedHandler || !draw.currentPoint)
             return
 
         const shape = shapes.getSelectedShape()
@@ -61,7 +64,7 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
     }
 
     const onHoverHook = (draw: Draw) => {
-        if (!shapes.hasSelection() || selectedHandler || !shapes.selectionBox || !draw.canvasRef.current)
+        if (!shapes.hasSelection() || selectedHandler || !shapes.selectionBox || !draw.canvasRef.current || !draw.currentPoint)
             return
 
         const direction = shapes.selectionBox.isInside(draw.ctx, draw.currentPoint)
