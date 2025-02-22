@@ -133,6 +133,8 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
                             onClick={() => {
                                 clear()
                                 setShapes(new Shapes([]))
+                                if (onChange)
+                                    onChange([], true)
                             }}>
                             <SquareXIcon fontSize="medium" />
                         </Button>

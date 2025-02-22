@@ -117,42 +117,40 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
             if (!canvas.current)
                 return
 
-            if (!isCanvasEmpty(canvas)) {
-                let shapes = canvasShapes.current?.map(s => s.getSerializableModel())
-                if (!shapes)
-                    return
+            let shapes = canvasShapes.current?.map(s => s.getSerializableModel()) ?? []
 
-                const c: CanvasModel = {
-                    width: canvas.current?.width,
-                    height: canvas.current?.height,
-                    backgroundColor: canvas.current.style.backgroundColor,
-                    data: shapes,
-                }
-                console.log({ canvasModel: c })
-                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(c)
+            const c: CanvasModel = {
+                width: canvas.current?.width,
+                height: canvas.current?.height,
+                backgroundColor: canvas.current.style.backgroundColor,
+                data: shapes,
+            }
+            console.log({ canvasModel: c })
+            const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(c)
 
-                console.log({ res })
-                if (res.code !== 200 || !res.data || !res.data.acknowledged) {
-                    publish(RESULT_EVENT_NAME, {
-                        severity: 'error',
-                        message: t('Editor.failedToUploadCanvas')
-                    })
-
-                    return
-                }
-
+            console.log({ res })
+            if (res.code !== 200 || !res.data || !res.data.acknowledged) {
                 publish(RESULT_EVENT_NAME, {
-                    severity: 'success',
-                    message: t('Editor.successfullyUploadedCanvas')
+                    severity: 'error',
+                    message: t('Editor.failedToUploadCanvas')
                 })
 
-                if (canvasId)
-                    console.log(await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteCanvas(canvasId))
+                return
+            }
 
-                setCanvasId(res.data.insertedId.toString())
+            publish(RESULT_EVENT_NAME, {
+                severity: 'success',
+                message: t('Editor.successfullyUploadedCanvas')
+            })
 
-                id = res.data.insertedId.toString()
-            } else if (canvasId)
+            if (canvasId)
+                console.log(await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteCanvas(canvasId))
+
+            setCanvasId(res.data.insertedId.toString())
+
+            id = res.data.insertedId.toString()
+
+            if (canvasId)
                 console.log(await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteCanvas(canvasId))
 
             if (onSave)

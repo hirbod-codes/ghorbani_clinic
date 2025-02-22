@@ -1,11 +1,11 @@
-import { MutableRefObject, useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { Shapes } from "../Shapes/Shapes"
 import { Draw, Position } from "../types"
 import { getRadiansFromTwoPoints } from "../../../../Lib/Math/2d"
 import { Point } from "../../../../Lib/Math"
 import { Stack } from "../../Stack"
 import { Button } from "../../Button"
-import { MousePointerSquareDashedIcon, SquareXIcon, TrashIcon } from "lucide-react"
+import { MousePointerSquareDashedIcon, TrashIcon } from "lucide-react"
 
 export type SelectToolProps = {
     shapes: Shapes
