@@ -1,16 +1,19 @@
-import { useEffect, useState } from "react"
+import { MutableRefObject, useCallback, useEffect, useState } from "react"
 import { Shapes } from "../Shapes/Shapes"
 import { Draw, Position } from "../types"
 import { getRadiansFromTwoPoints } from "../../../../Lib/Math/2d"
 import { Point } from "../../../../Lib/Math"
+import { Stack } from "../../Stack"
+import { Button } from "../../Button"
+import { MousePointerSquareDashedIcon, SquareXIcon, TrashIcon } from "lucide-react"
 
 export type SelectToolProps = {
-    shapes: Shapes,
-    canvasBackground: string,
-    setOnDraw: (onDraw: (draw: Draw) => void) => void,
-    setOnHoverHook: (onHoverHook: (draw: Draw) => void) => void,
-    setOnUpHook: (setOnUpHook: (draw: Draw) => void) => void,
-    setOnDownHook: (setOnDownHook: (draw: Draw) => void) => void,
+    shapes: Shapes
+    canvasBackground: string
+    setOnDraw: (onDraw: (draw: Draw) => void) => void
+    setOnHoverHook: (onHoverHook: (draw: Draw) => void) => void
+    setOnUpHook: (setOnUpHook: (draw: Draw) => void) => void
+    setOnDownHook: (setOnDownHook: (draw: Draw) => void) => void
 }
 
 export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook, setOnUpHook, setOnDownHook }: SelectToolProps) {
@@ -19,9 +22,36 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
 
     const [shouldScale, setShouldScale] = useState<boolean>(false)
 
-    const onDown = (draw: Draw) => {
+    const [mode, setModeState] = useState<'select' | 'delete'>('select')
+
+    const setMode = (m) => {
+
+        shapes.deselect()
+        setSelectedHandler(undefined)
+        setReferencePoint(undefined)
+
+        setModeState(m)
+    }
+
+    const onDown = useCallback((draw: Draw) => {
         if (!draw.currentPoint)
             return
+
+        if (mode === 'delete') {
+            shapes.select(draw.ctx, draw.currentPoint)
+
+            let i = shapes.getSelection()
+            if (i !== undefined)
+                shapes.removeAt(i)
+
+            shapes.deselect()
+            setSelectedHandler(undefined)
+            setReferencePoint(undefined)
+
+            shapes.draw(draw)
+
+            return
+        }
 
         setReferencePoint(draw.currentPoint)
         shapes.select(draw.ctx, draw.currentPoint)
@@ -31,7 +61,7 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
             return
 
         setSelectedHandler(shapes.selectionBox.isInside(draw.ctx, draw.currentPoint))
-    }
+    }, [mode])
 
     const onUp = (draw: Draw) => {
         setSelectedHandler(undefined)
@@ -139,8 +169,19 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
         setOnHoverHook(() => onHoverHook)
         setOnUpHook(() => onUp)
         setOnDownHook(() => onDown)
-    }, [selectedHandler, referencePoint])
+    }, [selectedHandler, referencePoint, mode])
 
-    return (<></>)
+    return (
+        <>
+            <Stack stackProps={{ className: 'items-center h-full w-max' }}>
+                <Button isIcon variant='text' fgColor={mode === 'select' ? 'success' : 'surface-foreground'} onClick={() => setMode('select')}>
+                    <MousePointerSquareDashedIcon />
+                </Button>
+                <Button isIcon variant='text' fgColor={mode === 'delete' ? 'error' : 'surface-foreground'} onClick={() => setMode('delete')}>
+                    <TrashIcon fontSize="medium" />
+                </Button>
+            </Stack>
+        </>
+    )
 }
 
