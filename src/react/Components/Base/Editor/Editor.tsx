@@ -1,5 +1,5 @@
 import { t } from "i18next";
-import { useState, useRef, useEffect, useContext, memo, useReducer, createRef } from "react"
+import { useState, useRef, useEffect, useContext, memo, useReducer } from "react"
 import { RendererDbAPI } from "../../../../Electron/Database/renderer";
 import { RESULT_EVENT_NAME } from "../../../Contexts/ResultWrapper";
 import { publish } from "../../../Lib/Events";
@@ -7,7 +7,7 @@ import { TextEditor } from "../TextEditor/TextEditor";
 import { Canvas } from "../Canvas";
 import { ConfigurationContext } from "../../../Contexts/Configuration/ConfigurationContext";
 import { SaveIcon } from "../../Icons/SaveIcon";
-import { buildShapes, isCanvasEmpty } from "../Canvas/helpers";
+import { buildShapes } from "../Canvas/helpers";
 import { Canvas as CanvasModel } from "../../../../Electron/Database/Models/Canvas";
 import { CircularLoadingIcon } from "../CircularLoadingIcon";
 import { Separator } from "@/src/react/shadcn/components/ui/separator";
