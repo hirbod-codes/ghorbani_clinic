@@ -1,35 +1,27 @@
-import { styled } from '@mui/material/styles';
-import { Grid, Button, Stack, TextField, Select, MenuItem, FormControl, Divider, DialogTitle, DialogContent, DialogContentText, DialogActions, Dialog, Typography, Modal, Slide, Paper } from '@mui/material';
-import { useState, useContext, useEffect } from 'react';
+import { useState, useContext, useEffect, memo, useRef } from 'react';
 import { DateTime } from 'luxon'
 
 import { Patient } from '../../../Electron/Database/Models/Patient';
 import type { Visit } from '../../../Electron/Database/Models/Visit';
 import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext';
-import { DateField } from '../DateTime/DateField';
+import { DateField } from '../Base/DateTime/DateField';
 import { ManageVisits } from '../Visits/ManageVisit';
-import LoadingScreen from '../LoadingScreen';
 import { t } from 'i18next';
 import { RendererDbAPI } from '../../../Electron/Database/renderer';
-import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
-import { publish } from '../../Lib/Events';
 import { MedicalHistory } from './MedicalHistory';
-import { EditorModal } from '../Editor/EditorModal';
+import { EditorModal } from '../Base/Editor/EditorModal';
 import { DocumentManagement } from '../DocumentManagement';
-import { toDateTime, toDateTimeView } from '../../Lib/DateTime/date-time-helpers';
-import { MainProcessResponse } from 'src/Electron/types';
-
-const VisuallyHiddenInput = styled('input')({
-    clip: 'rect(0 0 0 0)',
-    clipPath: 'inset(50%)',
-    height: 1,
-    overflow: 'hidden',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    whiteSpace: 'nowrap',
-    width: 1,
-});
+import { toDateTimeView } from '../../Lib/DateTime/date-time-helpers';
+import { Modal } from '../Base/Modal';
+import { Input } from '../Base/Input';
+import { Button } from '../Base/Button';
+import { Select } from '../Base/Select';
+import { Stack } from '../Base/Stack';
+import { Separator } from '../../shadcn/components/ui/separator';
+import { localizeNumbers } from '../../Localization/helpers';
+import { CircularLoadingIcon } from '../Base/CircularLoadingIcon';
+import { CrossIcon } from 'lucide-react';
+import { CircularLoading } from '../Base/CircularLoading';
 
 async function getVisits(patientId?: string): Promise<Visit[] | undefined> {
     if (!patientId)
@@ -43,27 +35,26 @@ async function getVisits(patientId?: string): Promise<Visit[] | undefined> {
     return res.data ?? []
 }
 
-export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, onClose?: (event: {}, reason: "backdropClick" | "escapeKeyDown") => void, inputPatient?: Patient }) {
+export const ManagePatient = memo(function ManagePatient({ inputPatient, onDone }: { onDone?: (patient: Patient, visits: Visit[], files: { fileName: string, bytes: Buffer | Uint8Array }[]) => void, inputPatient?: Patient }) {
     const locale = useContext(ConfigurationContext)!.local
 
     const [socialIdError, setSocialIdError] = useState<boolean>(false)
 
-    const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined)
-    const [loading, setLoading] = useState<boolean>(false)
     const [showMedicalHistory, setShowMedicalHistory] = useState<boolean>(false)
     const [showAddress, setShowAddress] = useState<boolean>(false)
+    const [showFiles, setShowFiles] = useState<boolean>(false)
+
+    const [socialIdExists, setSocialIdExists] = useState<boolean | undefined>(undefined)
+    const [checkingSocialId, setCheckingSocialId] = useState<boolean>(false)
+
 
     const [patient, setPatient] = useState<Patient | undefined>(inputPatient)
     const [visits, setVisits] = useState<Visit[]>([])
 
+    const fileInputRef = useRef<HTMLInputElement>(null)
     const [files, setFiles] = useState<{ fileName: string, bytes: Buffer | Uint8Array }[]>([])
-    const [showFiles, setShowFiles] = useState<boolean>(false)
 
-    const [dialogOpen, setDialogOpen] = useState(false)
-    const [dialogTitle, setDialogTitle] = useState('')
-    const [dialogContent, setDialogContent] = useState('')
-
-    console.log('ManagePatient', { socialIdError, errorMessage, loading, patient, visits, files, open, onClose, inputPatient })
+    console.log('ManagePatient', { socialIdError, patient, visits, files, showFiles, inputPatient, showMedicalHistory, showAddress })
 
     const init = async () => {
         if (!inputPatient)
@@ -82,262 +73,231 @@ export function ManagePatient({ open, onClose, inputPatient }: { open: boolean, 
         init()
     }, [inputPatient])
 
-    const submit = async () => {
-        let id: string | undefined = undefined, response: MainProcessResponse<boolean> | undefined = undefined
-
-        try {
-            if (inputPatient) {
-                id = patient!._id!.toString()
-                const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.updatePatient(patient!);
-                if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.matchedCount !== 1 || res.data.modifiedCount !== 1)
-                    throw new Error(t('ManagePatient.failedToUpdatePatient'))
-                for (const visit of visits) {
-                    const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.updateVisit(visit);
-                    if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.matchedCount !== 1 || res.data.modifiedCount !== 1)
-                        throw new Error(t('ManagePatient.failedToUpdatePatientVisits'))
-                }
-            }
-            else {
-                const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.createPatient(patient!)
-                if (res.code !== 200 || !res.data || res.data.acknowledged !== true || res.data.insertedId.toString() === '')
-                    throw new Error(t('ManagePatient.failedToRegisterPatient'))
-
-                id = res.data.insertedId.toString()
-
-                for (const visit of visits) {
-                    visit.patientId = id
-                    if (visit._id) {
-                        const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.updateVisit(visit);
-                        if (res.code !== 200 || !res.data || !res.data.acknowledged)
-                            throw new Error(t('ManagePatient.failedToRegisterPatientVisits'))
-                    }
-                    else {
-                        const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.createVisit(visit);
-                        if (res.code !== 200 || !res.data || !res.data.acknowledged || res.data.insertedId.toString() === '')
-                            throw new Error(t('ManagePatient.failedToRegisterPatientVisits'))
-                    }
-                }
-            }
-
-            response = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadFiles(id as string, files)
-            if (response.code !== 200 || response.data !== true)
-                throw new Error(t('ManagePatient.failedToUploadPatientsDocuments'))
-        } catch (error) {
-            console.error(error)
-        } finally {
-            if (!response || response.data !== true) {
-                publish(RESULT_EVENT_NAME, {
-                    severity: 'error',
-                    message: t('ManagePatient.failedToRegisteredPatient')
-                })
-            }
-
-            publish(RESULT_EVENT_NAME, {
-                severity: 'success',
-                message: t('ManagePatient.successfullyRegisteredPatient')
-            })
-        }
-    }
-
     return (
-        <>
-            <Modal
-                onClose={onClose}
-                open={open}
-                closeAfterTransition
-                disableAutoFocus
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
-                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
-            >
-                <Slide direction={open ? 'up' : 'down'} in={open} timeout={250}>
-                    <Paper sx={{ width: '80%', height: '90%', padding: '0.5rem 2rem', overflow: 'auto' }}>
-                        {loading
-                            ? <LoadingScreen />
-                            : (
-                                errorMessage !== undefined
-                                    ? <Typography align='center'>{errorMessage}</Typography>
-                                    :
-                                    <>
-                                        <Grid container spacing={2} columns={11}>
-                                            <Grid item xs={11}>
-                                                <Typography variant='h4'>
-                                                    {inputPatient ? 'Update' : 'Register'} patient
-                                                </Typography>
-                                            </Grid>
+        <div className='grid grid-cols-11 space-x-1 space-y-1 w-full'>
+            <div className='col-span-full text-lg py-4'>
+                {inputPatient ? t('ManagePatient.UpdatePatient') : t('ManagePatient.RegisterPatient')}
+            </div>
 
-                                            <Grid item xs={5}>
-                                                <Stack direction='column' spacing={1}>
-                                                    {/* Social Id */}
-                                                    <Stack direction='row' justifyContent='space-between' alignItems='center'>
-                                                        <Typography variant='body1'>
-                                                            {t('ManagePatient.socialId')}
-                                                        </Typography>
-                                                        <TextField variant='standard' onChange={(e) => {
-                                                            const id = e.target.value
-                                                            if (id.length !== 10)
-                                                                setSocialIdError(true)
-                                                            else
-                                                                setSocialIdError(false)
+            <Stack direction='vertical' stackProps={{ className: 'lg:col-span-5 col-span-full' }}>
+                {/* Social Id */}
+                <Input
+                    label={t('ManagePatient.socialId')}
+                    labelId={t('ManagePatient.socialId')}
+                    className={`${socialIdExists === false ? 'border-success' : (socialIdExists === true ? 'border-error' : '')} ${checkingSocialId === true ? 'w-[9rem]' : 'w-[7rem]'}`}
+                    containerProps={{ className: 'w-full' }}
+                    labelContainerProps={{ stackProps: { className: 'justify-between' } }}
+                    onChange={async (e) => {
+                        const id = e.target.value
+                        if (id.match(/^[0-9]*$/) === null)
+                            return
 
-                                                            setPatient({ ...patient, socialId: id })
-                                                        }} id='socialId' value={patient?.socialId ?? ''} required sx={{ width: '7rem' }} error={socialIdError} helperText={socialIdError ? 'must have 10 digits' : ''} />
-                                                    </Stack>
-                                                    {/* First name */}
-                                                    <Stack direction='row' justifyContent='space-between' alignItems='center'>
-                                                        <Typography variant='body1'>
-                                                            {t('ManagePatient.firstName')}
-                                                        </Typography>
-                                                        <TextField variant='standard' onChange={(e) => setPatient({ ...patient!, firstName: e.target.value })} id='firstName' value={patient?.firstName ?? ''} sx={{ width: '7rem' }} />
-                                                    </Stack>
+                        if (id.length !== 10 && id.length !== 0)
+                            setSocialIdError(true)
+                        else
+                            setSocialIdError(false)
 
-                                                    {/* Last name */}
-                                                    <Stack direction='row' justifyContent='space-between' alignItems='center'>
-                                                        <Typography variant='body1'>
-                                                            {t('ManagePatient.lastName')}
-                                                        </Typography>
-                                                        <TextField variant='standard' onChange={(e) => setPatient({ ...patient!, lastName: e.target.value })} id='lastName' value={patient?.lastName ?? ''} sx={{ width: '7rem' }} />
-                                                    </Stack>
+                        setPatient({ ...patient, socialId: id })
 
-                                                    {/* Address */}
-                                                    <Button sx={{ width: 'fit-content' }} variant='outlined' onClick={() => setShowAddress(true)}>
-                                                        {t('ManagePatient.address')}
-                                                    </Button>
-                                                    <EditorModal
-                                                        open={showAddress}
-                                                        onClose={() => setShowAddress(false)}
-                                                        text={patient?.address?.text}
-                                                        canvasId={patient?.address?.canvas as string}
-                                                        onSave={(address, canvasId) => setPatient({ ...patient!, address: { text: address, canvas: canvasId } })}
-                                                        title={t('ManagePatient.address')}
-                                                    />
+                        if (id.length === 0) {
+                            setSocialIdExists(undefined)
+                            return
+                        }
 
-                                                    {/* Medical History */}
-                                                    <Button sx={{ width: 'fit-content' }} variant='outlined' onClick={() => setShowMedicalHistory(true)}>
-                                                        {t('ManagePatient.medicalHistory')}
-                                                    </Button>
-                                                    <MedicalHistory
-                                                        open={showMedicalHistory}
-                                                        onClose={() => setShowMedicalHistory(false)}
-                                                        inputMedicalHistory={patient?.medicalHistory}
-                                                        onSave={(mh) => {
-                                                            setPatient({ ...patient!, medicalHistory: mh });
-                                                            setShowMedicalHistory(false)
-                                                        }}
-                                                    />
+                        if (id.length !== 10) {
+                            setSocialIdExists(undefined)
+                            return
+                        }
 
-                                                    {/* Files */}
-                                                    <Button onClick={() => setShowFiles(true)}>Documents</Button>
-                                                    {patient && patient._id &&
-                                                        <Modal open={showFiles} onClose={() => setShowFiles(false)}>
-                                                            <DocumentManagement patientId={patient._id as string} />
-                                                        </Modal>
-                                                    }
-                                                </Stack>
-                                            </Grid>
+                        setCheckingSocialId(true)
+                        const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.socialIdExists(id);
+                        setCheckingSocialId(false)
+                        console.log({ res })
+                        if (res.code >= 200 && res.code < 300 && res.data === false)
+                            setSocialIdExists(false)
+                        else
+                            setSocialIdExists(true)
+                    }}
+                    id='socialId'
+                    value={patient?.socialId ?? ''}
+                    required
+                    animateHeight
+                    endIcon={checkingSocialId === true ? <CircularLoading size='sm' /> : undefined}
+                    errorText={socialIdExists === true ? t('ManagePatient.thisSocialIdAlreadyExists') : (socialIdError ? t('ManagePatient.mustHave10Digits') : undefined)}
+                    helperText={!patient?.socialId || patient?.socialId.trim() === '' ? 'required' : undefined}
+                />
+                {/* First name */}
+                <Input
+                    label={t('ManagePatient.firstName')}
+                    labelId={t('ManagePatient.firstName')}
+                    className='w-[7rem]'
+                    containerProps={{ className: 'w-full' }}
+                    labelContainerProps={{ stackProps: { className: 'justify-between' } }}
+                    onChange={(e) => setPatient({ ...patient!, firstName: e.target.value })}
+                    id='firstName'
+                    value={patient?.firstName ?? ''}
+                />
 
-                                            <Grid item container xs={1} justifyContent='center'>
-                                                <Divider orientation='vertical' variant='middle' />
-                                            </Grid>
+                {/* Last name */}
+                <Input
+                    label={t('ManagePatient.lastName')}
+                    labelId={t('ManagePatient.lastName')}
+                    className='w-[7rem]'
+                    containerProps={{ className: 'w-full' }}
+                    labelContainerProps={{ stackProps: { className: 'justify-between' } }}
+                    onChange={(e) => setPatient({ ...patient!, lastName: e.target.value })}
+                    id='lastName'
+                    value={patient?.lastName ?? ''}
+                />
 
-                                            <Grid item xs={5}>
-                                                <Stack direction='column' spacing={1}>
-                                                    {/* Phone Number */}
-                                                    <Stack direction='row' justifyContent='space-between' alignItems='center'>
-                                                        <Typography variant='body1'>
-                                                            {t('ManagePatient.phoneNumber')}
-                                                        </Typography>
-                                                        <TextField variant='standard' value={patient?.phoneNumber ?? ''} sx={{ width: '7rem' }} />
-                                                    </Stack>
+                {/* Address */}
+                <Button className='w-fit' variant='outline' onClick={() => setShowAddress(true)}>
+                    {t('ManagePatient.address')}
+                </Button>
+                <EditorModal
+                    open={showAddress}
+                    onClose={() => setShowAddress(false)}
+                    text={patient?.address?.text}
+                    canvasId={patient?.address?.canvas as string}
+                    onSave={(address, canvasId) => setPatient({ ...patient!, address: { text: address, canvas: canvasId } })}
+                    title={t('ManagePatient.address')}
+                />
 
-                                                    {/* Age */}
-                                                    <Stack direction='row' justifyContent='space-between' alignItems='center'>
-                                                        <Typography variant='body1'>
-                                                            {t('ManagePatient.age')}
-                                                        </Typography>
-                                                        <TextField variant='standard' value={patient?.age ?? ''} sx={{ width: '7rem' }} disabled />
-                                                    </Stack>
+                {/* Medical History */}
+                <Button className='w-fit' variant='outline' onClick={() => setShowMedicalHistory(true)}>
+                    {t('ManagePatient.medicalHistory')}
+                </Button>
+                <MedicalHistory
+                    open={showMedicalHistory}
+                    onClose={() => setShowMedicalHistory(false)}
+                    inputMedicalHistory={patient?.medicalHistory}
+                    onDone={(mh) => {
+                        setPatient({ ...patient!, medicalHistory: mh });
+                        setShowMedicalHistory(false)
+                    }}
+                />
 
-                                                    {/* Birth Date */}
-                                                    <Stack direction='row' justifyContent='space-between' alignItems='center'>
-                                                        <Typography variant='body1'>
-                                                            {t('ManagePatient.birthDate')}
-                                                        </Typography>
-                                                        <DateField
-                                                            width='4rem'
-                                                            onChange={(date) => {
-                                                                const birthDate = toDateTimeView(toDateTime({ date, time: { hour: 0, minute: 0, second: 0 } }, { ...locale, calendar: 'Gregorian' }, locale))
+                {/* Files */}
+                {patient && patient._id
+                    ? <>
+                        <Button className='w-fit' variant='outline' onClick={() => setShowFiles(true)}>{t('ManagePatient.Documents')}</Button>
+                        <Modal open={showFiles} onClose={() => setShowFiles(false)}>
+                            <DocumentManagement patientId={patient._id as string} />
+                        </Modal>
+                    </>
+                    : <>
+                        <Stack stackProps={{ className: 'items-center justify-between' }}>
+                            <Button className='w-fit' variant='outline' onClick={() => fileInputRef.current?.click()}>{t('ManagePatient.Documents')}</Button>
+                            {files.length > 0 && `${localizeNumbers(locale.language, files.length)} ${t('ManagePatient.files')}`}
+                        </Stack>
+                        <Input
+                            inputRef={fileInputRef}
+                            className='hidden'
+                            type='file'
+                            multiple={true}
+                            onChange={async (e) => {
+                                const fs: { fileName: string, bytes: Buffer | Uint8Array }[] = []
+                                for (const f of (e.target.files as unknown) as File[])
+                                    fs.push({ fileName: f.name, bytes: new Uint8Array(await f.arrayBuffer()) })
 
-                                                                const now = DateTime.local({ zone: locale.zone })
+                                setFiles(fs)
+                            }} />
+                    </>
+                }
+            </Stack>
 
-                                                                setPatient({
-                                                                    ...patient!,
-                                                                    age: now.year - birthDate.date.year,
-                                                                    birthDate: DateTime.local(birthDate.date.year, birthDate.date.month, birthDate.date.day, { zone: locale.zone }).toUnixInteger(),
-                                                                })
-                                                            }}
-                                                            defaultDate={patient?.birthDate ? toDateTimeView(toDateTime(patient?.birthDate, locale)).date : undefined} />
-                                                    </Stack>
+            <div className='lg:col-span-1 invisible lg:visible flex flex-row justify-center '>
+                <Separator orientation='vertical' />
+            </div>
 
-                                                    {/* Gender */}
-                                                    <Stack direction='row' justifyContent='space-between' alignItems='center'>
-                                                        <Typography variant='body1'>
-                                                            {t('ManagePatient.gender')}
-                                                        </Typography>
-                                                        <FormControl variant='standard' >
-                                                            <Select onChange={(e) => setPatient({ ...patient!, gender: e.target.value })} value={patient?.gender ?? ''} sx={{ width: '7rem' }} >
-                                                                <MenuItem value='male'>male</MenuItem>
-                                                                <MenuItem value='female'>female</MenuItem>
-                                                            </Select>
-                                                        </FormControl>
-                                                    </Stack>
-                                                </Stack>
-                                            </Grid>
+            <Stack direction='vertical' stackProps={{ className: 'lg:col-span-5 col-span-full' }}>
+                {/* Phone Number */}
+                <Input
+                    label={t('ManagePatient.phoneNumber')}
+                    labelId={t('ManagePatient.phoneNumber')}
+                    className='w-[7rem]'
+                    containerProps={{ className: 'w-full' }}
+                    labelContainerProps={{ stackProps: { className: 'justify-between' } }}
+                    value={patient?.phoneNumber ?? ''}
+                    onChange={(e) => { if ((e.target.value.trim().match(/\D+/)?.length ?? 0) <= 0) setPatient({ ...patient!, phoneNumber: e.target.value }) }}
+                />
 
-                                            <Grid item xs={11}>
-                                            </Grid>
+                {/* Age */}
+                <Input
+                    label={t('ManagePatient.age')}
+                    labelId={t('ManagePatient.age')}
+                    className='w-[7rem]'
+                    containerProps={{ className: 'w-full' }}
+                    labelContainerProps={{ stackProps: { className: 'justify-between' } }}
+                    value={patient?.age ?? ''}
+                    readOnly
+                    disabled
+                />
 
-                                            {/* Manage Visits */}
-                                            <Grid item xs={11}>
-                                                {patient && <ManageVisits patientId={patient._id! as string} onChange={(visits: Visit[]) => setVisits(visits)} defaultVisits={visits} />}
-                                            </Grid>
+                {/* Birth Date */}
+                <Stack stackProps={{ className: 'justify-between items-center m-0' }}>
+                    <p>
+                        {t('ManagePatient.birthDate')}
+                    </p>
+                    <DateField
+                        id='birthDate'
+                        width='4rem'
+                        onChange={(date) => {
+                            const birthDate = toDateTimeView({ date, time: { hour: 0, minute: 0, second: 0 } }, { ...locale, calendar: 'Gregorian' }, locale)
 
-                                            <Grid item xs={11}>
-                                                {/* Submit */}
-                                                <Button
-                                                    variant="contained"
-                                                    fullWidth
-                                                    color='success'
-                                                    onClick={() => {
-                                                        setDialogTitle(`About to ${inputPatient ? 'update' : 'register'}...`)
-                                                        setDialogContent('Are you sure?')
-                                                        setDialogOpen(true)
-                                                    }}>
-                                                    {t('ManagePatient.done')}
-                                                </Button>
-                                            </Grid>
-                                            <Grid item xs={11}>
-                                            </Grid>
-                                        </Grid>
+                            const now = DateTime.local({ zone: locale.zone })
 
-                                        <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} >
-                                            <DialogTitle>
-                                                {dialogTitle}
-                                            </DialogTitle>
-                                            <DialogContent>
-                                                <DialogContentText>
-                                                    {dialogContent}
-                                                </DialogContentText>
-                                            </DialogContent>
-                                            <DialogActions>
-                                                <Button onClick={() => setDialogOpen(false)}>No</Button>
-                                                <Button onClick={() => { submit(); setDialogOpen(false) }}>Yes</Button>
-                                            </DialogActions>
-                                        </Dialog>
-                                    </>
-                            )}
-                    </Paper>
-                </Slide>
-            </Modal>
-        </>
+                            setPatient({
+                                ...patient!,
+                                age: now.year - birthDate.date.year,
+                                birthDate: DateTime.local(birthDate.date.year, birthDate.date.month, birthDate.date.day, { zone: locale.zone }).toUnixInteger(),
+                            })
+                        }}
+                        defaultDate={patient?.birthDate ? toDateTimeView(patient?.birthDate, locale).date : undefined}
+                    />
+                </Stack>
+
+                {/* Gender */}
+                <Stack stackProps={{ className: 'justify-between items-center m-0' }}>
+                    <p>
+                        {t('ManagePatient.gender')}
+                    </p>
+                    <Select
+                        id='gender'
+                        onValueChange={(value) => setPatient({ ...patient!, gender: value })}
+                        defaultValue={patient?.gender ?? ''}
+                        inputProps={{ className: 'w-[7rem]' }}
+                    >
+                        <Select.Item value='male' >{t('ManagePatient.male')}</Select.Item>
+                        <Select.Item value='female' >{t('ManagePatient.female')}</Select.Item>
+                    </Select>
+                </Stack>
+            </Stack>
+
+            <div className='col-span-full py-2' />
+
+            <div className='col-span-full text-md w-full text-center border-b'>
+                {t('ManagePatient.visits')}
+            </div>
+
+            {/* Manage Visits */}
+            <div className='col-span-full'>
+                <ManageVisits patientId={patient?._id as string | undefined} onChange={(visits: Visit[]) => setVisits(visits)} defaultVisits={visits} />
+            </div>
+
+            <div className='col-span-full'>
+                {/* Submit */}
+                <Button
+                    className='w-full'
+                    fgColor='success-foreground'
+                    bgColor='success'
+                    onClick={() => {
+                        if (onDone && patient)
+                            onDone(patient, visits, files)
+                    }}>
+                    {t('ManagePatient.done')}
+                </Button>
+            </div>
+        </div>
     )
-}
+})

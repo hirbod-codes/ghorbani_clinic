@@ -1,5 +1,5 @@
-import { Box, useTheme } from "@mui/material";
-import { ReactNode } from 'react';
+import { ReactNode, useContext } from 'react';
+import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext';
 
 export function CircularProgressBar({ percentComplete, size = 50, strokeWidth = 5, colors, children }: {
     percentComplete: number;
@@ -8,12 +8,12 @@ export function CircularProgressBar({ percentComplete, size = 50, strokeWidth = 
     colors?: { progress: string; base: string; };
     children?: ReactNode;
 }) {
-    const theme = useTheme();
+    const themeOptions = useContext(ConfigurationContext)!.themeOptions;
 
     if (!colors)
         colors = {
-            progress: theme.palette.primary[theme.palette.mode],
-            base: theme.palette.background.default,
+            base: themeOptions.colors.success[themeOptions.mode].main,
+            progress: themeOptions.colors.primary[themeOptions.mode].main,
         };
     const radius = (size - strokeWidth) / 2;
     const circumference = radius * 2 * Math.PI;
@@ -21,15 +21,12 @@ export function CircularProgressBar({ percentComplete, size = 50, strokeWidth = 
 
     return (
         <>
-            <Box width={size + 'px'} height={size + 'px'} overflow={'visible'}>
+            <div className={`w-[${size}px] h-[${size}px] overflow-visible`}>
                 <svg
                     viewBox={`0 0 ${size} ${size}`}
+                    className='absolute rotate-[145]'
                     width={size + 'px'}
                     height={size + 'px'}
-                    style={{
-                        transform: 'rotate(145deg)',
-                        position: 'absolute'
-                    }}
                 >
                     <circle
                         strokeWidth={strokeWidth}
@@ -52,17 +49,10 @@ export function CircularProgressBar({ percentComplete, size = 50, strokeWidth = 
                         stroke={colors.progress}
                     />
                 </svg>
-                <Box
-                    sx={{
-                        width: '100%',
-                        position: 'relative',
-                        top: '50%',
-                        transform: 'translate(0, -50%)',
-                    }}
-                >
+                <div className='w-full relative top-1/2 translate-x-0 translate-y-[-50%]'>
                     {children}
-                </Box>
-            </Box>
+                </div>
+            </div>
         </>
     );
 }

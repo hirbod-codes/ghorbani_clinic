@@ -1,10 +1,15 @@
-import { Stack, TextField, Button, Checkbox, FormControlLabel, FormGroup, Typography, Box, Tabs, Tab, CircularProgress } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { t } from 'i18next';
 import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper';
 import { publish } from '../../Lib/Events';
 import { dbAPI } from '../../../Electron/Database/dbAPI';
 import { configAPI } from '../../../Electron/Configuration/renderer.d';
+import { Input } from '../Base/Input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../shadcn/components/ui/tabs';
+import { Switch } from '../Base/Switch';
+import { Button } from '../../Components/Base/Button';
+import { CircularLoadingIcon } from '../Base/CircularLoadingIcon';
+import { Stack } from '../Base/Stack';
 
 export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean }) {
     const [tabValue, setTabValue] = useState<number>(0);
@@ -34,33 +39,33 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
     return (
         <>
             {!noTitle &&
-                <Typography variant={'h5'}>
+                <h5>
                     {t('DbSettingsForm.dbSettings')}
-                </Typography>
+                </h5>
             }
 
-            <Box sx={{ width: '100%' }}>
-                <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-                    <Tabs value={tabValue} onChange={(e, v) => setTabValue(v)}>
-                        <Tab label="Remote" />
-                        <Tab label="Search" />
-                    </Tabs>
-                </Box>
+            <Tabs defaultValue="Remote">
+                <TabsList>
+                    <TabsTrigger value="Remote">Remote</TabsTrigger>
+                    <TabsTrigger value="Search">Search</TabsTrigger>
+                </TabsList>
+                <TabsContent value="Remote">
+                    <Stack direction='vertical'>
+                        <Input value={username} placeholder={t('DbSettingsForm.username')} onChange={(e) => setUsername(e.target.value)} label={t('DbSettingsForm.username')} />
+                        <Input type='password' value={password} placeholder={t('DbSettingsForm.password')} onChange={(e) => setPassword(e.target.value)} label={t('DbSettingsForm.password')} />
 
-                <div hidden={tabValue !== 0}>
-                    <Stack direction='column' spacing={2}>
-                        <TextField variant='standard' type='text' value={username} onChange={(e) => setUsername(e.target.value)} label={t('DbSettingsForm.username')} />
-                        <TextField variant='standard' type='password' value={password} onChange={(e) => setPassword(e.target.value)} label={t('DbSettingsForm.password')} />
+                        <Input value={url.replace('mongodb://', '')} placeholder={t('DbSettingsForm.ip_port')} onChange={(e) => setUrl('mongodb://' + e.target.value.replace('mongodb://', ''))} label={t('DbSettingsForm.url')} />
+                        <Input value={databaseName} onChange={(e) => setDatabaseName(e.target.value)} placeholder={t('DbSettingsForm.databaseName')} label={t('DbSettingsForm.databaseName')} />
 
-                        <TextField variant='standard' type='text' value={url.replace('mongodb://', '')} placeholder={t('DbSettingsForm.ip:port')} onChange={(e) => setUrl('mongodb://' + e.target.value.replace('mongodb://', ''))} label={t('DbSettingsForm.url')} />
-                        <TextField variant='standard' type='text' value={databaseName} onChange={(e) => setDatabaseName(e.target.value)} label={t('DbSettingsForm.databaseName')} />
-
-                        <FormGroup>
-                            <FormControlLabel control={<Checkbox checked={supportsTransaction} onChange={(e) => setSupportsTransaction(e.target.checked)} />} label={t('DbSettingsForm.supportsTransaction')} />
-                        </FormGroup>
+                        <Switch
+                            label={t('DbSettingsForm.supportsTransaction')}
+                            labelId={t('DbSettingsForm.supportsTransaction')}
+                            checked={supportsTransaction}
+                            onChange={(e) => setSupportsTransaction(Boolean(e.currentTarget.value))}
+                        />
 
                         <Button
-                            variant='outlined'
+                            variant='outline'
                             onClick={async () => {
                                 const settings = {
                                     url,
@@ -113,23 +118,26 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                                 }
                             }}
                         >
-                            {loading ? <CircularProgress /> : t('DbSettingsForm.done')}
+                            {loading ? <CircularLoadingIcon /> : t('DbSettingsForm.done')}
                         </Button>
                     </Stack>
-                </div>
-                <div hidden={tabValue !== 1}>
-                    <Stack direction='column' spacing={2}>
-                        <TextField variant='standard' type='text' value={username} onChange={(e) => setUsername(e.target.value)} label={t('DbSettingsForm.username')} />
-                        <TextField variant='standard' type='password' value={password} onChange={(e) => setPassword(e.target.value)} label={t('DbSettingsForm.password')} />
+                </TabsContent>
+                <TabsContent value="Search">
+                    <Stack direction='vertical'>
+                        <Input value={username} onChange={(e) => setUsername(e.target.value)} label={t('DbSettingsForm.username')} />
+                        <Input type='password' value={password} onChange={(e) => setPassword(e.target.value)} label={t('DbSettingsForm.password')} />
 
-                        <TextField variant='standard' type='text' value={databaseName} onChange={(e) => setDatabaseName(e.target.value)} label={t('DbSettingsForm.databaseName')} />
+                        <Input value={databaseName} onChange={(e) => setDatabaseName(e.target.value)} label={t('DbSettingsForm.databaseName')} />
 
-                        <FormGroup>
-                            <FormControlLabel control={<Checkbox checked={supportsTransaction} onChange={(e) => setSupportsTransaction(e.target.checked)} />} label={t('DbSettingsForm.supportsTransaction')} />
-                        </FormGroup>
+                        <Switch
+                            label={t('DbSettingsForm.supportsTransaction')}
+                            labelId={t('DbSettingsForm.supportsTransaction')}
+                            checked={supportsTransaction}
+                            onChange={(e) => setSupportsTransaction(Boolean(e.currentTarget.value))}
+                        />
 
                         <Button
-                            variant='outlined'
+                            variant='outline'
                             onClick={async () => {
                                 const settings = {
                                     databaseName,
@@ -163,11 +171,11 @@ export default function DbSettingsForm({ noTitle = false }: { noTitle?: boolean 
                                 await (window as typeof window & { dbAPI: dbAPI }).dbAPI.initializeDb()
                             }}
                         >
-                            {loading ? <CircularProgress /> : t('DbSettingsForm.search')}
+                            {loading ? <CircularLoadingIcon /> : t('DbSettingsForm.search')}
                         </Button>
                     </Stack>
-                </div>
-            </Box>
+                </TabsContent>
+            </Tabs>
         </>
     )
 }

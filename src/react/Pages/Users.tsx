@@ -1,6 +1,4 @@
 import { useState, useRef, useEffect, useContext, memo } from "react";
-import { AddOutlined, DeleteOutlined, EditOutlined, RefreshOutlined, RemoveRedEyeOutlined } from '@mui/icons-material';
-import { Modal, Slide, Grid, List, ListItemButton, ListItemText, ListItemIcon, Paper, Typography, Button, Divider, Box, Stack, IconButton, Collapse, CircularProgress } from "@mui/material";
 import { t } from "i18next";
 import { roles as staticRoles } from "../../Electron/Database/Repositories/Auth/dev-permissions";
 import { resources } from "../../Electron/Database/Repositories/Auth/resources";
@@ -13,14 +11,23 @@ import ManageUser from "../Components/ManageUser";
 import { ManageRole } from "../Components/ManageRole";
 import { DataGrid } from "../Components/DataGrid";
 import { RESULT_EVENT_NAME } from "../Contexts/ResultWrapper";
-import { publish, subscribe } from "../Lib/Events";
-import { PAGE_SLIDER_ANIMATION_END_EVENT_NAME } from "./AnimatedLayout";
+import { publish } from "../Lib/Events";
 import { useNavigate } from "react-router-dom";
-import LoadingScreen from "../Components/LoadingScreen";
 import { ColumnDef } from "@tanstack/react-table";
+import { Button } from "../Components/Base/Button";
+import { EditIcon, EyeOffIcon, PlusIcon, RefreshCwIcon, Trash2Icon } from "lucide-react";
+import { CircularLoadingIcon } from "../Components/Base/CircularLoadingIcon";
+import { Accordion, AccordionContent, AccordionTrigger } from "../shadcn/components/ui/accordion";
+import { AccordionItem } from "@radix-ui/react-accordion";
+import { Separator } from "../shadcn/components/ui/separator";
+import { Modal } from "../Components/Base/Modal";
+import { CircularLoadingScreen } from "../Components/Base/CircularLoadingScreen";
+import { Stack } from "../Components/Base/Stack";
+import { ColorStatic } from "../Lib/Colors/ColorStatic";
 
 export const Users = memo(function Users() {
     const configuration = useContext(ConfigurationContext)!
+    const themeOptions = configuration.themeOptions
     const auth = useContext(AuthContext)
     const navigate = useNavigate()
 
@@ -146,12 +153,12 @@ export const Users = memo(function Users() {
         {
             accessorKey: 'createdAt',
             id: 'createdAt',
-            cell: ({ getValue }) => toFormat(Number(getValue() as string), configuration.local, undefined, DATE),
+            cell: ({ getValue }) => typeof getValue() === 'number' ? toFormat(getValue() as number, configuration.local, undefined, DATE) : '-',
         },
         {
             accessorKey: 'updatedAt',
             id: 'updatedAt',
-            cell: ({ getValue }) => toFormat(Number(getValue() as string), configuration.local, undefined, DATE),
+            cell: ({ getValue }) => typeof getValue() === 'number' ? toFormat(getValue() as number, configuration.local, undefined, DATE) : '-',
         },
     ]
 
@@ -169,18 +176,23 @@ export const Users = memo(function Users() {
             id: 'actions',
             accessorKey: 'actions',
             cell: ({ row }) =>
-                <Stack direction='row' alignItems='center'>
+                <Stack stackProps={{ className: "justify-center w-full" }}>
                     {
                         updatesUser &&
-                        <IconButton
+                        <Button
+                            isIcon
+                            variant='text'
                             onClick={() => { setOpenManageUserModal(true); setEditingUser(users.find(u => u._id === row.original._id)) }}
                         >
-                            {editingUser === undefined ? <EditOutlined /> : <CircularProgress size={20} />}
-                        </IconButton>
+                            {editingUser === undefined ? <EditIcon /> : <CircularLoadingIcon />}
+                        </Button>
                     }
                     {
                         deletesUser &&
-                        <IconButton
+                        <Button
+                            isIcon
+                            variant='text'
+                            fgColor='error'
                             onClick={async () => {
                                 await deleteUser(row.original._id);
                                 await updateRows(role)
@@ -188,8 +200,8 @@ export const Users = memo(function Users() {
                                     await auth!.logout()
                             }}
                         >
-                            {deletingUser === undefined ? <DeleteOutlined /> : <CircularProgress size={20} />}
-                        </IconButton>
+                            {deletingUser === undefined ? <Trash2Icon /> : <CircularLoadingIcon />}
+                        </Button>
                     }
                 </Stack>
         }
@@ -206,22 +218,26 @@ export const Users = memo(function Users() {
     }, [])
 
     useEffect(() => {
-        subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
-            if (e?.detail === '/Users')
-                setShowGrid(true)
-        })
+        // subscribe(PAGE_SLIDER_ANIMATION_END_EVENT_NAME, (e: CustomEvent) => {
+        //     if (e?.detail === '/Users')
+        setShowGrid(true)
+        // })
     }, [])
+
+    let dataGridGradientColor = ColorStatic.parse(themeOptions.colors.primary[themeOptions.mode].main).toRgb()
+    dataGridGradientColor.setAlpha(0.1)
 
     return (
         <>
-            <Grid container spacing={1} sx={{ p: 2 }} height={'100%'}>
+            <div className="grid grid-cols-12 gap-2 h-full">
                 {/* Roles */}
                 {
                     readsRole &&
-                    <Grid item xs={4} sm={2} onMouseLeave={() => setRoleActionsCollapse([])}>
-                        <Paper sx={{ p: 1, height: '100%' }}>
-                            <Typography textAlign='center' variant='h4'>{t('Users.roles')}</Typography>
-                            <List dense>
+                    <div className="max-sm:col-span-full sm:col-span-full md:col-span-2" onMouseLeave={() => setRoleActionsCollapse([])}>
+                        <Stack direction='vertical' stackProps={{ className: 'border rounded-md' }}>
+                            <h4 className="text-center pt-2 pb-4">{t('Users.roles')}</h4>
+                            <Separator />
+                            <Stack direction='vertical' stackProps={{ className: 'p-2' }}>
                                 {roles?.map((r, i) =>
                                     <div
                                         key={i}
@@ -233,121 +249,104 @@ export const Users = memo(function Users() {
                                         }}
                                         onMouseLeave={() => { if (timeout.current.r) clearTimeout(timeout.current.r) }}
                                     >
-                                        <Box sx={{ mt: 1 }}></Box>
+                                        <Button variant="outline" disabled={role === r} fgColor={role === r ? 'primary' : 'surface-foreground'} onClick={async () => { await updateRows(r, false) }}>
+                                            <p>
+                                                {t(`Roles.${r}`)}
+                                            </p>
+                                        </Button>
 
-                                        <ListItemButton selected={role === r} onClick={async () => { await updateRows(r, false) }}>
-                                            <ListItemText primary={t(`Roles.${r}`)} />
-                                        </ListItemButton>
-
-                                        <Collapse in={roleActionsCollapse.includes(r)} unmountOnExit timeout={500}>
-                                            <List component="div" disablePadding>
-                                                <ListItemButton onClick={() => { setOpenManageRoleModal(true); setReadingRole(r) }} sx={{ pl: 4 }}>
-                                                    <ListItemIcon>
-                                                        <RemoveRedEyeOutlined />
-                                                    </ListItemIcon>
-                                                    <ListItemText primary={t("Users.show")} />
-                                                </ListItemButton>
-                                                {/* Not recommended for small projects(needs transaction support.) */}
-                                                {/* {
+                                        <Accordion type="multiple">
+                                            <AccordionItem value='roleActionCollapse'>
+                                                <AccordionTrigger></AccordionTrigger>
+                                                <AccordionContent>
+                                                    <Stack direction="vertical">
+                                                        <Button variant='outline' onClick={() => { setOpenManageRoleModal(true); setReadingRole(r) }} className="pl-4">
+                                                            <EyeOffIcon />
+                                                            <p>{t("Users.show")}</p>
+                                                        </Button>
+                                                        {/* Not recommended for small projects(needs transaction support.) */}
+                                                        {/* {
                                                     updatesRole &&
-                                                    <ListItemButton onClick={() => { setOpenManageRoleModal(true); setEditingRole(r) }} sx={{ pl: 4 }}>
+                                                    <Button onClick={() => { setOpenManageRoleModal(true); setEditingRole(r) }} className="pl-4">
                                                         <ListItemIcon>
-                                                            {editingRole ? <CircularProgress size={20} /> : <EditOutlined />}
+                                                            {editingRole ? <CircularLoading /> : <EditOutlined />}
                                                         </ListItemIcon>
                                                         <ListItemText primary={t("Users.edit")} />
-                                                    </ListItemButton>
+                                                    </Button>
                                                 } */}
-                                                {
-                                                    deletesRole &&
-                                                    <ListItemButton onClick={async () => { await deleteRole(r); await refresh() }} sx={{ pl: 4 }}>
-                                                        <ListItemIcon>
-                                                            {deletingRole ? <CircularProgress size={20} /> : <DeleteOutlined />}
-                                                        </ListItemIcon>
-                                                        <ListItemText primary={t("Users.delete")} />
-                                                    </ListItemButton>
-                                                }
-                                            </List>
-                                        </Collapse>
+                                                        {
+                                                            deletesRole &&
+                                                            <Button fgColor='error' variant='outline' onClick={async () => { await deleteRole(r); await refresh() }} className="pl-4">
+                                                                {deletingRole ? <CircularLoadingIcon /> : <Trash2Icon />}
+                                                                <p>{t("Users.delete")}</p>
+                                                            </Button>
+                                                        }
+                                                    </Stack>
+                                                </AccordionContent>
+                                            </AccordionItem>
+                                        </Accordion>
                                     </div>
                                 )}
                                 {
                                     createsRole &&
                                     <>
-                                        <Box sx={{ mt: 1 }}></Box>
-                                        <Divider />
-                                        <Stack direction='row' justifyContent='center' mt={1} onClick={() => setOpenManageRoleModal(true)}>
-                                            <IconButton><AddOutlined /></IconButton>
-                                        </Stack>
+                                        <Separator />
+                                        <div className="flex flex-row justify-center" onClick={() => setOpenManageRoleModal(true)}>
+                                            <Button isIcon bgColor="success" fgColor="surface-dim" size="sm"><PlusIcon /></Button>
+                                        </div>
                                     </>
                                 }
-                            </List>
-                        </Paper>
-                    </Grid>
+                            </Stack>
+                        </Stack>
+                    </div>
                 }
                 {/* Users */}
                 {
                     readsUser &&
-                    <Grid item xs={readsRole ? 8 : 12} sm={readsRole ? 10 : 12}>
-                        <Paper sx={{ p: 1, height: '100%' }} elevation={3}>
-                            {!showGrid
-                                ? <LoadingScreen />
-                                : <DataGrid
-                                    configName='users'
-                                    data={rows}
-                                    overWriteColumns={columns}
-                                    loading={loading}
-                                    defaultColumnOrderModel={['actions']}
-                                    additionalColumns={additionalColumns}
-                                    appendHeaderNodes={[
-                                        <Button onClick={async () => await fetchUsers()} startIcon={<RefreshOutlined />}>{t('Users.Refresh')}</Button>,
-                                        createsUser && <Button onClick={() => setOpenManageUserModal(true)} startIcon={<AddOutlined />}>{t('Users.Create')}</Button>,
-                                    ]}
-                                />
-                            }
-                        </Paper>
-                    </Grid>
+                    <div className={`${readsRole ? 'max-sm:col-span-full sm:col-span-full md:col-span-10' : 'col-span-full'}`}>
+                        {!showGrid
+                            ? <CircularLoadingScreen />
+                            : <DataGrid
+                                configName='users'
+                                containerProps={{ stackProps: { style: { backgroundImage: `linear-gradient(to bottom right, ${dataGridGradientColor.toHex()} , transparent)` } } }}
+                                data={rows}
+                                overWriteColumns={columns}
+                                loading={loading}
+                                defaultColumnOrderModel={['actions']}
+                                additionalColumns={additionalColumns}
+                                appendHeaderNodes={[
+                                    <Button variant='outline' onClick={async () => await fetchUsers()}><RefreshCwIcon />{t('Users.Refresh')}</Button>,
+                                    createsUser && <Button variant='outline' onClick={() => setOpenManageUserModal(true)}><PlusIcon />{t('Users.Create')}</Button>,
+                                ]}
+                            />
+                        }
+                    </div>
                 }
-            </Grid>
+            </div >
 
             <Modal
                 onClose={() => { setOpenManageUserModal(false); setEditingUser(undefined) }}
                 open={openManageUserModal}
-                closeAfterTransition
-                disableEscapeKeyDown
-                disableAutoFocus
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
-                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
             >
-                <Slide direction={openManageUserModal ? 'up' : 'down'} in={openManageUserModal} timeout={250}>
-                    <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
-                        <ManageUser roles={roles ?? []} defaultUser={editingUser} onFinish={async () => {
-                            setOpenManageUserModal(false)
-                            setEditingUser(undefined)
-                            await updateRows(role)
-                        }} />
-                    </Paper>
-                </Slide>
+                <div className="w-[60%] px-2 py-8">
+                    <ManageUser roles={roles ?? []} defaultUser={editingUser} onFinish={async () => {
+                        setOpenManageUserModal(false)
+                        setEditingUser(undefined)
+                        await updateRows(role)
+                    }} />
+                </div>
             </Modal>
 
             <Modal
                 onClose={() => { setOpenManageRoleModal(false); setEditingRole(undefined) }}
                 open={openManageRoleModal}
-                closeAfterTransition
-                disableEscapeKeyDown
-                disableAutoFocus
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
-                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
             >
-                <Slide direction={openManageRoleModal ? 'up' : 'down'} in={openManageRoleModal} timeout={250}>
-                    <Paper sx={{ width: '60%', overflowY: 'auto', height: '80%', padding: '0.5rem 2rem' }}>
-                        <ManageRole defaultRole={editingRole ?? readingRole} onFinish={async () => {
-                            setOpenManageRoleModal(false)
-                            setEditingRole(undefined)
-                            setReadingRole(undefined)
-                            await refresh()
-                        }} />
-                    </Paper>
-                </Slide>
+                <ManageRole defaultRole={editingRole ?? readingRole} onFinish={async () => {
+                    setOpenManageRoleModal(false)
+                    setEditingRole(undefined)
+                    setReadingRole(undefined)
+                    await refresh()
+                }} />
             </Modal>
         </>
     )

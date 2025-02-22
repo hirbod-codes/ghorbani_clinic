@@ -1,12 +1,12 @@
-import { Paper, Stack, Typography, useTheme } from "@mui/material"
 import { DateTime } from "luxon"
-import { memo, useContext, useEffect, useState } from "react"
+import { ComponentProps, memo, useContext, useEffect, useState } from "react"
 import { ConfigurationContext } from "../../Contexts/Configuration/ConfigurationContext"
 import { toFormat } from "../../Lib/DateTime/date-time-helpers"
-import { getLuxonLocale } from "../../Lib/helpers"
+import { getLuxonLocale } from "../../Lib/localization"
+import { Stack } from "../Base/Stack"
+import { cn } from "../../shadcn/lib/utils"
 
-export const Clock = memo(function Clock() {
-    const theme = useTheme()
+export const Clock = memo(function Clock({ containerProps }: { containerProps?: ComponentProps<typeof Stack> }) {
     const configuration = useContext(ConfigurationContext)!
 
     const getDate = () => localizeNumbers(toFormat(DateTime.utc().toUnixInteger(), configuration.local, undefined, 'cccc y/M/d'), getLuxonLocale(configuration.local.language))
@@ -22,7 +22,7 @@ export const Clock = memo(function Clock() {
         return result
     }
 
-    const [date, setDate] = useState('getDate()')
+    const [date, setDate] = useState(getDate())
     const [time, setTime] = useState(getTime())
 
     useEffect(() => {
@@ -33,18 +33,10 @@ export const Clock = memo(function Clock() {
     }, []);
 
     return (
-        <>
-            <Paper sx={{ p: 2 }}>
-                <Stack direction='column' alignItems='center' sx={{ borderWidth: '1px', borderColor: theme.palette.grey[400] }}>
-                    <Typography variant="body1">
-                        {date}
-                    </Typography>
-                    <Typography variant="body1">
-                        {time}
-                    </Typography>
-                </Stack>
-            </Paper>
-        </>
+        <Stack direction="vertical" {...containerProps} stackProps={{ ...containerProps?.stackProps, className: cn("items-center", containerProps?.stackProps?.className), }}>
+            <p>{date}</p>
+            <p>{time}</p>
+        </Stack>
     )
 })
 

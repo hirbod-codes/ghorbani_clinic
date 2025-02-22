@@ -1,10 +1,11 @@
-import { Date } from "src/react/Lib/DateTime";
+import { Date } from "@/src/react/Lib/DateTime";
 import { toFormat } from "../../Lib/DateTime/date-time-helpers";
 import { getGregorianMonths, isLeapGregorianYear, getGregorianWeekDays } from "../../Lib/DateTime/gregorian-calendar";
 import { getPersianMonths, isLeapPersianYear, getPersianWeekDays } from "../../Lib/DateTime/persian-calendar";
-import { getLanguageCode, getMuiLocale } from "../../Lib/helpers";
+import { getLanguageCode, getMuiLocale } from "../../Lib/localization";
 import { CalendarScopes } from "./index.d";
 import { Calendar, LanguageCodes, Local } from "../../../Electron/Configuration/renderer.d";
+import { localizeNumbers } from "../../Localization/helpers";
 
 export class CalendarManager {
     private type: Calendar;
@@ -63,9 +64,9 @@ export class CalendarManager {
     getTitle(): string {
         switch (this.scope) {
             case 'days':
-                return `${this.selectedYear}, ${this.getMonths()[this.selectedMonth - 1].name}`;
+                return `${localizeNumbers(this.languageCode, this.selectedYear, { useGrouping: false })}, ${this.getMonths()[this.selectedMonth - 1].name}`;
             case 'months':
-                return this.selectedYear.toString();
+                return localizeNumbers(this.languageCode, this.selectedYear, { useGrouping: false }).toString();
             case 'years':
                 return '';
             default:
@@ -101,7 +102,6 @@ export class CalendarManager {
     }
 
     setDays(year: number, month: number): void {
-        console.log({ year, month })
         const weekDay = this.getWeekDay({ year, month, day: 1 });
         let index;
         if (this.local.language === 'en' && this.type === 'Persian') {

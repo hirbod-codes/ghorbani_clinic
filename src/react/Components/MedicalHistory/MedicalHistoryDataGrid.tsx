@@ -10,16 +10,20 @@ import { RESULT_EVENT_NAME } from "../../../react/Contexts/ResultWrapper"
 import { t } from "i18next"
 import { ColumnDef } from "@tanstack/react-table"
 import { DATE, toFormat } from "../../../react/Lib/DateTime/date-time-helpers"
-import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, CircularProgress, IconButton, Stack } from "@mui/material"
-import { AddOutlined, DeleteOutline, RefreshOutlined, SearchOutlined } from "@mui/icons-material"
 import { DataGrid } from "../DataGrid"
-import { EditorModal } from "../Editor/EditorModal"
-import { Modal } from "../Modal"
+import { EditorModal } from "../Base/Editor/EditorModal"
+import { Modal } from "../Base/Modal"
 import { MedicalHistorySearch } from "./MedicalHistorySearch"
+import { Button } from "../../Components/Base/Button"
+import { PlusIcon, RefreshCwIcon, SearchIcon, TrashIcon } from "lucide-react"
+import { CircularLoadingIcon } from "../Base/CircularLoadingIcon"
+import { Stack } from "../Base/Stack"
+import { ColorStatic } from "../../Lib/Colors/ColorStatic"
 
 export function MedicalHistoryDataGrid() {
     const auth = useContext(AuthContext)
     const configuration = useContext(ConfigurationContext)!
+    const themeOptions = configuration.themeOptions
     const navigate = useNavigate()
 
     if (!auth?.accessControl?.can(auth?.user?.roleName ?? '').read(resources.MEDICAL_HISTORY).granted)
@@ -93,8 +97,8 @@ export function MedicalHistoryDataGrid() {
                 })
     }, [])
 
-    const createsMedicalHistory = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).create(resources.MEDICAL_HISTORY), [auth])
-    const deletesMedicalHistory = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).delete(resources.MEDICAL_HISTORY), [auth])
+    const createsMedicalHistory = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).create(resources.MEDICAL_HISTORY).granted, [auth])
+    const deletesMedicalHistory = useMemo(() => auth?.user && auth?.accessControl && auth?.accessControl.can(auth?.user.roleName).delete(resources.MEDICAL_HISTORY).granted, [auth])
 
     const overWriteColumns: ColumnDef<any>[] = [
         {
@@ -104,17 +108,17 @@ export function MedicalHistoryDataGrid() {
         {
             accessorKey: 'name',
             id: 'name',
-            cell: (props) => <Stack direction='row' sx={{ maxHeight: '100px', overflow: 'auto', width: '200px' }}>{props.getValue() as any}</Stack>,
+            cell: (props) => <div className="flex flex-row max-h-full overflow-auto w-[200px]">{props.getValue() as any}</div>,
         },
         {
             accessorKey: 'createdAt',
             id: 'createdAt',
-            cell: (props) => toFormat(props.getValue() as number, configuration.local, undefined, DATE),
+            cell: ({ getValue }) => typeof getValue() === 'number' ? toFormat(getValue() as number, configuration.local, undefined, DATE) : '-',
         },
         {
             accessorKey: 'updatedAt',
             id: 'updatedAt',
-            cell: (props) => toFormat(props.getValue() as number, configuration.local, undefined, DATE),
+            cell: ({ getValue }) => typeof getValue() === 'number' ? toFormat(getValue() as number, configuration.local, undefined, DATE) : '-',
         },
     ]
 
@@ -122,7 +126,10 @@ export function MedicalHistoryDataGrid() {
         {
             id: 'actions',
             accessorKey: 'actions',
-            cell: ({ row }) => <IconButton
+            cell: ({ row }) => <Button
+                isIcon
+                variant='text'
+                fgColor='error'
                 onClick={async () => {
                     setDialog({
                         open: true,
@@ -153,15 +160,19 @@ export function MedicalHistoryDataGrid() {
                     })
                 }}
             >
-                {deletingMedicalHistoryId === row.original._id ? <CircularProgress size={20} /> : <DeleteOutline />}
-            </IconButton>
+                {deletingMedicalHistoryId === row.original._id ? <CircularLoadingIcon /> : <TrashIcon />}
+            </Button>
         },
     ]
+
+    let dataGridGradientColor = ColorStatic.parse(themeOptions.colors.primary[themeOptions.mode].main).toRgb()
+    dataGridGradientColor.setAlpha(0.1)
 
     return (
         <>
             {!loading &&
                 <DataGrid
+                    containerProps={{ stackProps: { style: { backgroundImage: `linear-gradient(to bottom right, ${dataGridGradientColor.toHex()} , transparent)` } } }}
                     configName='medicalHistories'
                     data={medicalHistories ?? []}
                     defaultColumnOrderModel={['actions', 'name']}
@@ -177,9 +188,9 @@ export function MedicalHistoryDataGrid() {
                         return result
                     }}
                     appendHeaderNodes={[
-                        <Button onClick={async () => await init(page.offset, page.limit)} startIcon={<RefreshOutlined />}>{t('MedicalHistories.Refresh')}</Button>,
-                        <Button onClick={async () => setSearchModalOpen(true)} startIcon={<SearchOutlined />}>{t('MedicalHistories.Search')}</Button>,
-                        createsMedicalHistory && <Button onClick={() => setCreatingMedicalHistory(true)} startIcon={<AddOutlined />}>{t('MedicalHistories.Create')}</Button>,
+                        <Button variant='outline' onClick={async () => await init(page.offset, page.limit)} ><RefreshCwIcon />{t('MedicalHistories.Refresh')}</Button>,
+                        <Button variant='outline' onClick={async () => setSearchModalOpen(true)} ><SearchIcon />{t('MedicalHistories.Search')}</Button>,
+                        createsMedicalHistory && <Button variant='outline' onClick={() => setCreatingMedicalHistory(true)} ><PlusIcon />{t('MedicalHistories.Create')}</Button>,
                     ]}
                 />}
 
@@ -223,26 +234,22 @@ export function MedicalHistoryDataGrid() {
                 }}
             />
 
-            <Dialog open={dialog.open} onClose={closeDialog} >
-                {dialog.title &&
-                    <DialogTitle>
-                        {dialog.title}
-                    </DialogTitle>
-                }
-                <DialogContent>
-                    <DialogContentText whiteSpace={'break-spaces'}>
-                        {dialog.content}
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={closeDialog}>{t('MedicalHistories.No')}</Button>
-                    <Button onClick={() => {
-                        if (dialog.action && typeof dialog.action === 'function')
-                            dialog.action()
-                        closeDialog()
-                    }}>{t('MedicalHistories.Yes')}</Button>
-                </DialogActions>
-            </Dialog>
+            <Modal
+                open={dialog.open}
+                onClose={closeDialog}
+            >
+                <Stack direction="vertical" stackProps={{ className: 'justify-between' }}>
+                    {dialog.content}
+                    <Stack>
+                        <Button onClick={closeDialog}>{t('MedicalHistories.No')}</Button>
+                        <Button onClick={() => {
+                            if (dialog.action && typeof dialog.action === 'function')
+                                dialog.action()
+                            closeDialog()
+                        }}>{t('MedicalHistories.Yes')}</Button>
+                    </Stack>
+                </Stack>
+            </Modal>
         </>
     )
 }

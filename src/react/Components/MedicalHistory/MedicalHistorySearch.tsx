@@ -1,39 +1,23 @@
-import { AddOutlined, Done, RemoveOutlined, SearchOutlined } from "@mui/icons-material";
-import { CircularProgress, IconButton, InputAdornment, Paper, Stack, TextField, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Button, Typography, Checkbox, Divider, Box } from "@mui/material";
 import { t } from "i18next";
-import { useContext, useEffect, useMemo, useState } from "react";
+import { memo, useContext, useEffect, useMemo, useState } from "react";
 import { MedicalHistory } from "../../../Electron/Database/Models/MedicalHistory";
-import { mainTransition } from "../../Styles/animations";
 import { RendererDbAPI } from "../../../Electron/Database/renderer";
-import { TrashIcon } from "../Icons/TrashIcon";
 import { AuthContext } from "../../Contexts/AuthContext";
 import { resources } from "../../../Electron/Database/Repositories/Auth/resources";
 import { publish } from "../../Lib/Events";
 import { RESULT_EVENT_NAME } from "../../Contexts/ResultWrapper";
-import { EditorModal } from "../Editor/EditorModal";
+import { EditorModal } from "../Base/Editor/EditorModal";
 import { AnimatedList } from "../Animations/AnimatedList";
+import { Input } from "../Base/Input";
+import { CircularLoadingIcon } from "../Base/CircularLoadingIcon";
+import { Button } from "../../Components/Base/Button";
+import { CheckIcon, PlusIcon, SearchIcon, Trash2Icon } from "lucide-react";
+import { Switch } from "../Base/Switch";
+import { Separator } from "../../shadcn/components/ui/separator";
+import { Modal } from "../Base/Modal";
+import { Stack } from "../Base/Stack";
 
-const xOffset = 100;
-const delay = 100
-const variants = {
-    enter: (i: number) => ({
-        name: 'enter',
-        x: -xOffset.toString() + '%',
-        transition: { ...mainTransition, delay: i * delay }
-    }),
-    active: {
-        name: 'active',
-        x: 0,
-        transition: { ...mainTransition, delay: 0.5 }
-    },
-    exit: (i: number) => ({
-        name: 'exit',
-        x: xOffset.toString() + '%',
-        transition: { ...mainTransition, delay: i * delay }
-    })
-};
-
-export function MedicalHistorySearch({ creatable = false, deletable = false, defaultSelection, selectable = false, onSelectionChange }: { creatable?: boolean, deletable?: boolean, defaultSelection?: string[], selectable?: boolean, onSelectionChange?: (selection: string[]) => (void | Promise<void>) }) {
+export const MedicalHistorySearch = memo(function MedicalHistorySearch({ creatable = false, deletable = false, selection: defaultSelection, selectable = false, onDone, onCancel }: { creatable?: boolean, deletable?: boolean, selection?: string[], selectable?: boolean, onDone?: (selection: string[]) => (void | Promise<void>), onCancel?: () => (void | Promise<void>) }) {
     const auth = useContext(AuthContext)
 
     const initDialog: any = {
@@ -103,104 +87,121 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
         })
 
     const [selection, setSelection] = useState(defaultSelection ?? [])
-
     useEffect(() => {
-        if (onSelectionChange)
-            onSelectionChange(selection)
-    }, [selection])
+        if (defaultSelection)
+            setSelection(defaultSelection)
+    }, [defaultSelection])
+
+    console.log('MedicalHistorySearch', { creatable, deletable, defaultSelection, selectable, creatingMedicalHistory, searchStr, medicalHistories, isSearching, selection });
 
     return (
         <>
-            <Stack direction='column' justifyContent='start' alignItems='center' sx={{ width: '100%', height: '100%' }} spacing={2}>
-                <Stack direction='row' alignItems='center'>
-                    <TextField
-                        variant='standard'
-                        type='text'
+            <Stack direction='vertical' stackProps={{ className: 'justify-start items-center size-full' }}>
+                <Stack stackProps={{ className: 'items-center' }}>
+                    <Input
                         value={searchStr}
                         onChange={(e) => setSearchStr(e.target.value)}
-                        label={t('MedicalHistorySearch.search')}
-                        InputProps={{
-                            startAdornment: <InputAdornment position='end'>
-                                <SearchOutlined />
-                            </InputAdornment>
-                        }}
+                        className={createsMedicalHistory && creatable ? 'pl-[1cm] pr-[2cm]' : undefined}
+                        startIcon={isSearching ? <CircularLoadingIcon /> : <SearchIcon onClick={search} className="cursor-pointer" />}
+                        endIcon={
+                            createsMedicalHistory && creatable &&
+                            <Button
+                                bgColor="success"
+                                fgColor='success-foreground'
+                                className="h-full border-0"
+                                onClick={() => setCreatingMedicalHistory(true)}
+                            >
+                                +{t('MedicalHistories.Add')}
+                            </Button>
+                        }
+                        endIconProps={{ className: 'right-[1px] h-[calc(100%-2px)] border-0' }}
+                        onKeyDown={e => { if (e.code === 'Enter' || e.code === 'NumpadEnter') search() }}
                     />
+                </Stack>
 
-                    {isSearching
-                        ? <CircularProgress size={20} />
-                        : <IconButton size='small' onClick={search}>
-                            <Done />
-                        </IconButton>
+                <Stack direction='vertical' stackProps={{ className: 'justify-between flex-grow overflow-hidden size-full' }}>
+                    <div className='h-full w-full p-2 overflow-auto shadow-md'>
+                        <AnimatedList
+                            collection={medicalHistories.map((md, i) => ({
+                                key: md.name,
+                                elm:
+                                    <Stack stackProps={{ className: 'items-center justify-between w-full' }}>
+                                        {selectable === true &&
+                                            <Switch checked={selection?.find(f => f === md.name) !== undefined} onCheckedChange={(v) => {
+                                                if (selection.find(f => f === md.name) !== undefined)
+                                                    setSelection(selection.filter(f => f !== md.name))
+                                                else
+                                                    setSelection([...selection, md.name])
+                                            }} />
+                                        }
+                                        <p className="overflow-auto">
+                                            {md.name}
+                                        </p>
+                                        {deletesMedicalHistory && deletable &&
+                                            <Button isIcon variant="text" fgColor="error" onClick={() => deleteMedicalHistory(md._id as string)}>
+                                                <Trash2Icon />
+                                            </Button>
+                                        }
+                                    </Stack>
+                            }))}
+                            withDelay={false}
+                        />
+                    </div>
+
+                    <Separator />
+
+                    {selectable &&
+                        <div className="h-[48%] w-full p-2 overflow-auto shadow-md">
+                            <AnimatedList
+                                presenceMode="sync"
+                                motionDivProps={{ transition: { ease: [0, 0.5, 0.5, 1] } }}
+                                collection={selection.map((name, i) => ({
+                                    key: name,
+                                    elm:
+                                        <Stack stackProps={{ className: 'items-center justify-between w-full' }}>
+                                            <p className="overflow-auto">
+                                                {name}
+                                            </p>
+
+                                            <Button isIcon variant='text' fgColor='error' onClick={() => setSelection(selection.filter(f => f !== name))}>
+                                                <Trash2Icon />
+                                            </Button>
+                                        </Stack>
+                                }))}
+                                withDelay={false}
+                            />
+                        </div>
                     }
                 </Stack>
 
-                <Box sx={{ flexGrow: 2, overflow: 'hidden', width: '100%' }}>
-                    <Stack direction='column' justifyContent='space-between' sx={{ height: '100%', width: '100%' }}>
-                        <Paper sx={{ height: '48%', width: '100%', p: 2, overflow: 'auto' }} elevation={3}>
-                            <AnimatedList
-                                collection={medicalHistories.map((md, i) => ({
-                                    key: md.name,
-                                    elm:
-                                        <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={2} sx={{ width: '100%' }}>
-                                            {selectable === true &&
-                                                <Checkbox size='small' checked={selection?.find(f => f === md.name) !== undefined} onChange={(e) => setSelection((old) => {
-                                                    if (old.find(f => f === md.name) !== undefined)
-                                                        return old.filter(f => f !== md.name)
-                                                    else
-                                                        return [...old, md.name]
-                                                })} />
-                                            }
-                                            <Typography variant='body1' sx={{ overflow: 'auto' }}>
-                                                {md.name}
-                                            </Typography>
-                                            {deletesMedicalHistory && deletable &&
-                                                <IconButton onClick={() => deleteMedicalHistory(md._id as string)}>
-                                                    <TrashIcon color="red" />
-                                                </IconButton>
-                                            }
-                                        </Stack>
-                                }))}
-                                withDelay={true}
-                            />
-                        </Paper>
+                <Stack stackProps={{ className: 'w-full justify-around' }}>
+                    <Button
+                        bgColor='error'
+                        fgColor='error-foreground'
+                        onClick={() => {
+                            if (onCancel)
+                                onCancel()
+                        }}
+                    >
+                        {t('MedicalHistories.cancel')}
 
-                        <Divider orientation="horizontal" />
+                    </Button>
+                    <Button
+                        onClick={() => {
+                            if (onDone)
+                                onDone(selection)
+                        }}
+                    >
+                        {t('MedicalHistories.done')}
 
-                        {selectable &&
-                            <Paper sx={{ height: '48%', width: '100%', p: 2, overflow: 'auto' }} elevation={3}>
-                                <AnimatedList
-                                    collection={selection.map((name, i) => ({
-                                        key: name,
-                                        elm:
-                                            <Stack direction='row' alignItems='center' justifyContent='space-between' spacing={2} sx={{ width: '100%' }}>
-                                                <Typography variant='body1' sx={{ overflow: 'auto' }}>
-                                                    {name}
-                                                </Typography>
-
-                                                <IconButton onClick={() => setSelection(selection.filter(f => f !== name))}>
-                                                    <RemoveOutlined color="error" />
-                                                </IconButton>
-                                            </Stack>
-                                    }))}
-                                    withDelay={true}
-                                />
-                            </Paper>
-                        }
-                    </Stack>
-                </Box>
-
-                {createsMedicalHistory && creatable &&
-                    <IconButton onClick={() => setCreatingMedicalHistory(true)} color="success">
-                        <AddOutlined />
-                    </IconButton>
-                }
-            </Stack >
+                    </Button>
+                </Stack>
+            </Stack>
 
             {/* Medical history creation, Name field */}
-            < EditorModal
+            <EditorModal
                 open={creatingMedicalHistory}
-                onClose={() => setCreatingMedicalHistory(false)
-                }
+                onClose={() => setCreatingMedicalHistory(false)}
                 hideCanvas={true}
                 title={t('MedicalHistories.creationModalTitle')}
                 onSave={async (mh, canvasId) => {
@@ -233,19 +234,13 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
                 }}
             />
 
-            < Dialog open={dialog.open} onClose={closeDialog} >
-                {
-                    dialog.title &&
-                    <DialogTitle>
-                        {dialog.title}
-                    </DialogTitle>
-                }
-                < DialogContent >
-                    <DialogContentText whiteSpace={'break-spaces'}>
-                        {dialog.content}
-                    </DialogContentText>
-                </DialogContent >
-                <DialogActions>
+            <Modal
+                open={dialog.open}
+                onClose={closeDialog}
+            >
+                {dialog.content}
+
+                <Stack>
                     <Button onClick={closeDialog}>{t('MedicalHistories.No')}</Button>
                     <Button onClick={async () => {
                         if (dialog.action)
@@ -254,9 +249,9 @@ export function MedicalHistorySearch({ creatable = false, deletable = false, def
                     }}>
                         {t('MedicalHistories.Yes')}
                     </Button>
-                </DialogActions>
-            </Dialog >
+                </Stack>
+            </Modal>
         </>
     )
-}
+})
 

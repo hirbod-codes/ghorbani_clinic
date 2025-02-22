@@ -45,6 +45,18 @@ export const privileges: Privilege[] = [
 
     { schemaVersion: 'v0.0.1', role: roles.SECRETARY, action: 'create:any', resource: resources.VISIT, attributes: '*', updatedAt: ts, createdAt: ts },
 
+    { schemaVersion: 'v0.0.1', role: roles.ADMIN, action: 'create:any', resource: resources.CANVAS, attributes: '*', updatedAt: ts, createdAt: ts },
+    { schemaVersion: 'v0.0.1', role: roles.ADMIN, action: 'read:any', resource: resources.CANVAS, attributes: '*', updatedAt: ts, createdAt: ts },
+    { schemaVersion: 'v0.0.1', role: roles.ADMIN, action: 'update:any', resource: resources.CANVAS, attributes: '*', updatedAt: ts, createdAt: ts },
+    { schemaVersion: 'v0.0.1', role: roles.ADMIN, action: 'delete:any', resource: resources.CANVAS, attributes: '*', updatedAt: ts, createdAt: ts },
+
+    { schemaVersion: 'v0.0.1', role: roles.DOCTOR, action: 'create:any', resource: resources.CANVAS, attributes: '*', updatedAt: ts, createdAt: ts },
+    { schemaVersion: 'v0.0.1', role: roles.DOCTOR, action: 'read:any', resource: resources.CANVAS, attributes: '*', updatedAt: ts, createdAt: ts },
+    { schemaVersion: 'v0.0.1', role: roles.DOCTOR, action: 'update:any', resource: resources.CANVAS, attributes: '*', updatedAt: ts, createdAt: ts },
+    { schemaVersion: 'v0.0.1', role: roles.DOCTOR, action: 'delete:any', resource: resources.CANVAS, attributes: '*', updatedAt: ts, createdAt: ts },
+
+    { schemaVersion: 'v0.0.1', role: roles.SECRETARY, action: 'create:any', resource: resources.CANVAS, attributes: '*', updatedAt: ts, createdAt: ts },
+
     { schemaVersion: 'v0.0.1', role: roles.ADMIN, action: 'create:any', resource: resources.FILE, attributes: '*', updatedAt: ts, createdAt: ts },
     { schemaVersion: 'v0.0.1', role: roles.ADMIN, action: 'read:any', resource: resources.FILE, attributes: '*', updatedAt: ts, createdAt: ts },
     { schemaVersion: 'v0.0.1', role: roles.ADMIN, action: 'update:any', resource: resources.FILE, attributes: '*', updatedAt: ts, createdAt: ts },

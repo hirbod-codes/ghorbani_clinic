@@ -1,50 +1,29 @@
-import { Localization, enUS, faIR } from "@mui/material/locale"
-import { string } from "yup"
-import { i18n } from 'i18next';
-import type { LanguageCodes } from "../../Electron/Configuration/renderer.d";
+/**
+* Performs a deep merge of objects and returns new object. Does not modify
+* objects (immutable) and merges arrays via concatenation.
+*
+* @param {...object} objects - Objects to merge
+* @returns {object} New object with merged key/values
+*/
+function deepMerge(...objects: any[]): object {
+    const isObject = obj => obj && typeof obj === 'object';
 
-export function getLanguageCode(muiLocal: Localization): LanguageCodes {
-    switch (muiLocal) {
-        case enUS:
-            return 'en'
-        case faIR:
-            return 'fa'
-        default:
-            throw new Error('Unknown language encountered.')
-    }
-}
+    return objects.reduce((prev, obj) => {
+        Object.keys(obj).forEach(key => {
+            const pVal = prev[key];
+            const oVal = obj[key];
 
-export function getMuiLocale(languageCode: LanguageCodes): Localization
-export function getMuiLocale(i18n: i18n): Localization
-export function getMuiLocale(arg: LanguageCodes | i18n): Localization {
-    let language
-    if (string().required().min(1).isValidSync(arg))
-        language = arg
-    else
-        language = arg.language
+            if (Array.isArray(pVal) && Array.isArray(oVal)) {
+                prev[key] = pVal.concat(...oVal);
+            }
+            else if (isObject(pVal) && isObject(oVal)) {
+                prev[key] = deepMerge(pVal, oVal);
+            }
+            else {
+                prev[key] = oVal;
+            }
+        });
 
-    switch (language) {
-        case 'en':
-            return enUS
-        case 'fa':
-            return faIR
-        default:
-            throw new Error('Unknown language encountered: ' + arg.toString())
-    }
-}
-
-export function getLuxonLocale(code: LanguageCodes): string
-export function getLuxonLocale(i18n: i18n): string
-export function getLuxonLocale(arg: i18n | LanguageCodes): string {
-    if (!string().required().isValidSync(arg))
-        arg = (arg as i18n).language as LanguageCodes;
-
-    switch (arg) {
-        case 'en':
-            return 'en-US'
-        case 'fa':
-            return 'fa-IR'
-        default:
-            throw new Error('Unknown language encountered')
-    }
+        return prev;
+    }, {});
 }

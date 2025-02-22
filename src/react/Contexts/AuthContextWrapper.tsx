@@ -5,11 +5,11 @@ import { User } from '../../Electron/Database/Models/User';
 import { AuthContext } from './AuthContext';
 import { AccessControl } from 'accesscontrol';
 import { ConfigurationContext } from './Configuration/ConfigurationContext';
-import { Modal, Paper, Slide } from '@mui/material';
 import { LoginForm } from '../Components/Auth/LoginForm';
 import { RESULT_EVENT_NAME } from './ResultWrapper';
 import { publish } from '../Lib/Events';
 import { useNavigate } from 'react-router-dom';
+import { Modal } from '../Components/Base/Modal';
 
 export const AuthContextWrapper = memo(function AuthContextWrapper({ children }: { children?: ReactNode; }) {
     const { t } = useTranslation();
@@ -72,7 +72,7 @@ export const AuthContextWrapper = memo(function AuthContextWrapper({ children }:
             });
 
             await init();
-            navigate('/')
+            navigate(0)
         } catch (error) {
             console.error(error);
 
@@ -162,24 +162,17 @@ export const AuthContextWrapper = memo(function AuthContextWrapper({ children }:
 
     return (
         <>
-            <AuthContext.Provider value={{ user: auth.user, accessControl: auth.ac, isAuthLoading: isAuthLoading.current, logout, showModal: () => setShowModal(true), fetchUser: async () => { await fetchUser() } }}>
+            <AuthContext.Provider value={{ user: auth.user, accessControl: auth.ac, isAuthLoading: isAuthLoading.current, logout, showModal: () => setShowModal(!showModal), fetchUser: async () => { await fetchUser() } }}>
                 {!isAuthLoading.current && memoizedChildren}
             </AuthContext.Provider>
 
             <Modal
                 open={showModal}
                 onClose={() => setShowModal(false)}
-                closeAfterTransition
-                disableEscapeKeyDown
-                disableAutoFocus
-                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
             >
-                <Slide direction={showModal ? 'up' : 'down'} in={showModal} timeout={250}>
-                    <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
-                        <LoginForm onFinish={async (username, password) => { await login(username, password); setShowModal(false); }} />
-                    </Paper>
-                </Slide>
+                <div className='w-full px-2 py-4'>
+                    <LoginForm onFinish={async (username, password) => { await login(username, password); setShowModal(false); }} />
+                </div>
             </Modal>
         </>
     );

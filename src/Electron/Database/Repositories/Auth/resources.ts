@@ -2,6 +2,7 @@ import { readableFields as privilegeReadableFields, updatableFields as privilege
 import { readableFields as userReadableFields, updatableFields as userUpdatableFields } from "../../Models/User"
 import { readableFields as patientReadableFields, updatableFields as patientUpdatableFields } from "../../Models/Patient"
 import { readableFields as visitReadableFields, updatableFields as visitUpdatableFields } from "../../Models/Visit"
+import { readableFields as canvasReadableFields, updatableFields as canvasUpdatableFields } from "../../Models/Canvas"
 
 export const resources = {
     USER: 'user',
@@ -10,7 +11,8 @@ export const resources = {
     VISIT: 'visit',
     FILE: 'file',
     DB: 'db',
-    MEDICAL_HISTORY: 'medicalHistory'
+    MEDICAL_HISTORY: 'medicalHistory',
+    CANVAS: 'canvas',
 }
 
 export function getAttributes(resource: string, action: string) {
@@ -36,6 +38,8 @@ export function getReadAttributes(resource: string): string[] {
             return patientReadableFields
         case resources.VISIT:
             return visitReadableFields
+        case resources.CANVAS:
+            return canvasReadableFields
         case resources.FILE:
             return []
         case resources.DB:
@@ -58,6 +62,8 @@ export function getUpdateAttributes(resource: string): string[] {
             return patientUpdatableFields
         case resources.VISIT:
             return visitUpdatableFields
+        case resources.CANVAS:
+            return canvasUpdatableFields
         case resources.FILE:
             return []
         case resources.DB:

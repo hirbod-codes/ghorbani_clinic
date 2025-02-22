@@ -1,4 +1,3 @@
-import { Button, CircularProgress, Dialog, DialogActions, DialogTitle, Divider, Grid, Stack } from '@mui/material'
 import DbSettingsForm from '../../../react/Components/Settings/DbSettingsForm'
 import { t } from 'i18next'
 import { memo, useContext, useState } from 'react'
@@ -7,6 +6,13 @@ import { RESULT_EVENT_NAME } from '../../Contexts/ResultWrapper'
 import { AuthContext } from '../../Contexts/AuthContext'
 import { RendererDbAPI } from '../../../Electron/Database/renderer'
 import { appAPI } from '../../../Electron/appRendererEvents'
+import { Modal } from '../../Components/Base/Modal'
+import { Button } from '../../Components/Base/Button'
+import { CircularLoadingIcon } from '../../Components/Base/CircularLoadingIcon'
+import { Separator } from '../../shadcn/components/ui/separator'
+import { Stack } from '../../Components/Base/Stack'
+import { Container } from '../../Components/Base/Container'
+import { BanIcon, CheckIcon } from 'lucide-react'
 
 export const DbSettings = memo(function DbSettings() {
     const auth = useContext(AuthContext)
@@ -19,7 +25,7 @@ export const DbSettings = memo(function DbSettings() {
     const [truncating, setTruncating] = useState<boolean>(false)
 
     const [checkingConnectionHealth, setCheckingConnectionHealth] = useState<boolean>(false)
-    const [connectionHealth, setConnectionHealth] = useState<boolean>(false)
+    const [connectionHealth, setConnectionHealth] = useState<boolean | undefined>(undefined)
     const checkConnectionHealth = async () => {
         const result = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.checkConnectionHealth()
         console.log('checkConnectionHealth', { result: Boolean(result) })
@@ -30,125 +36,106 @@ export const DbSettings = memo(function DbSettings() {
 
     return (
         <>
-            <Grid container>
-                <Grid item sm={3} />
-                <Grid item xs={12} sm={6}>
+            <Container className='absolute top-1/4 left-1/2 -translate-x-1/2'>
+                <Stack direction='vertical'>
+                    <Stack>
+                        <Button onClick={() => setOpenSeedQuestion(true)}>
+                            {t("DbSettings.Seed")}
+                        </Button>
 
-                    <Stack p={2} spacing={2} direction='column'>
-                        <Stack spacing={2} direction='row'>
-                            <Button variant='contained' onClick={() => setOpenSeedQuestion(true)}>
-                                {t("DbSettings.Seed")}
-                            </Button>
+                        <Button fgColor='success' onClick={() => setOpenTruncateDbQuestion(true)}>
+                            {t("DbSettings.Truncate")}
+                        </Button>
 
-                            <Button color='success' variant='contained' onClick={() => setOpenTruncateDbQuestion(true)}>
-                                {t("DbSettings.Truncate")}
-                            </Button>
-
-                            <Button
-                                color={connectionHealth ? 'success' : 'error'}
-                                endIcon={checkingConnectionHealth && <CircularProgress size={30} />}
-                                variant='contained'
-                                onClick={async () => { setCheckingConnectionHealth(true); await checkConnectionHealth(); setCheckingConnectionHealth(false) }}
-                            >
-                                {t("DbSettings.CheckConnection")}
-                            </Button>
-                        </Stack>
-
-                        <Divider />
-
-                        <DbSettingsForm noTitle />
+                        <Button
+                            className='[&_svg]:size-5'
+                            fgColor={connectionHealth === undefined ? 'primary' : (connectionHealth === true ? 'success' : 'error')}
+                            onClick={async () => { setCheckingConnectionHealth(true); await checkConnectionHealth(); setCheckingConnectionHealth(false) }}
+                        >
+                            {t("DbSettings.CheckConnection")}
+                            {checkingConnectionHealth && <CircularLoadingIcon />}
+                            {!checkingConnectionHealth && connectionHealth === true && <CheckIcon />}
+                            {!checkingConnectionHealth && connectionHealth === false && <BanIcon />}
+                        </Button>
                     </Stack>
-                </Grid>
-                <Grid item sm={3} />
-            </Grid >
 
-            <Dialog
-                open={openSeedQuestion}
-                onClose={() => setOpenSeedQuestion(false)}
-            >
-                <DialogTitle>
-                    {t('DbSettings.doYouWantToSeedDB')}
-                </DialogTitle>
-                <DialogActions>
-                    <Button
-                        onClick={async () => {
-                            try {
-                                setSeeding(true);
-                                let result = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.initializeDb()
-                                console.log({ result })
-                                if (!result) {
-                                    publish(RESULT_EVENT_NAME, {
-                                        severity: 'error',
-                                        message: t('DbSettings.failedToSeedDB')
-                                    });
-                                    setSeeding(false);
-                                }
-                                else {
-                                    result = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.seed();
-                                    console.log({ result })
-                                    setSeeding(false);
+                    <Separator />
 
-                                    if (result === true) {
-                                        publish(RESULT_EVENT_NAME, {
-                                            severity: 'success',
-                                            message: t('DbSettings.successfullySeededDB')
-                                        });
-                                        setOpenSeedQuestion(false);
-                                    }
-                                    else
-                                        publish(RESULT_EVENT_NAME, {
-                                            severity: 'error',
-                                            message: t('DbSettings.failedToSeedDB')
-                                        });
-                                }
-                            } catch (error) {
-                                console.error(error);
-                                setSeeding(false);
-                            }
-                        }}
-                    >
-                        {seeding ? <CircularProgress size={35} /> : t('DbSettings.yes')}
-                    </Button>
-                    <Button onClick={() => setOpenSeedQuestion(false)}>{t('DbSettings.no')}</Button>
-                </DialogActions>
-            </Dialog >
+                    <DbSettingsForm noTitle />
+                </Stack>
+            </Container>
 
-            <Dialog
-                open={openTruncateDbQuestion}
-                onClose={() => setOpenTruncateDbQuestion(false)}
-            >
-                <DialogTitle>
-                    {t('DbSettings.doYouWantToTruncateDB')}
-                </DialogTitle>
-                <DialogActions>
-                    <Button color='error' onClick={async () => {
+            <Modal open={openSeedQuestion} onClose={() => setOpenSeedQuestion(false)}>
+                <Button
+                    onClick={async () => {
                         try {
-                            setTruncating(true);
-                            const result = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.truncate();
-                            setTruncating(false);
-
-                            if (result === true) {
-                                setOpenTruncateDbQuestion(false);
-                                await auth!.logout();
-                                window.location.reload();
-                                (window as typeof window & { dbAPI: appAPI; }).dbAPI.reLaunch()
-                            }
-
-                            else
+                            setSeeding(true);
+                            let result = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.initializeDb()
+                            console.log({ result })
+                            if (!result) {
                                 publish(RESULT_EVENT_NAME, {
                                     severity: 'error',
                                     message: t('DbSettings.failedToSeedDB')
                                 });
+                                setSeeding(false);
+                            }
+                            else {
+                                result = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.seed();
+                                console.log({ result })
+                                setSeeding(false);
+
+                                if (result === true) {
+                                    publish(RESULT_EVENT_NAME, {
+                                        severity: 'success',
+                                        message: t('DbSettings.successfullySeededDB')
+                                    });
+                                    setOpenSeedQuestion(false);
+                                }
+                                else
+                                    publish(RESULT_EVENT_NAME, {
+                                        severity: 'error',
+                                        message: t('DbSettings.failedToSeedDB')
+                                    });
+                            }
                         } catch (error) {
                             console.error(error);
-                            setTruncating(false);
+                            setSeeding(false);
                         }
-                    }}>
-                        {truncating ? <CircularProgress size={35} /> : t('DbSettings.yes')}
-                    </Button>
-                    <Button onClick={() => setOpenTruncateDbQuestion(false)}>{t('DbSettings.no')}</Button>
-                </DialogActions>
-            </Dialog>
+                    }}
+                >
+                    {seeding ? <CircularLoadingIcon /> : t('DbSettings.yes')}
+                </Button>
+                <Button onClick={() => setOpenSeedQuestion(false)}>{t('DbSettings.no')}</Button>
+            </Modal>
+
+            <Modal open={openTruncateDbQuestion} onClose={() => setOpenTruncateDbQuestion(false)}>
+                <Button fgColor='error' onClick={async () => {
+                    try {
+                        setTruncating(true);
+                        const result = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.truncate();
+                        setTruncating(false);
+
+                        if (result === true) {
+                            setOpenTruncateDbQuestion(false);
+                            await auth!.logout();
+                            window.location.reload();
+                            (window as typeof window & { dbAPI: appAPI; }).dbAPI.reLaunch()
+                        }
+
+                        else
+                            publish(RESULT_EVENT_NAME, {
+                                severity: 'error',
+                                message: t('DbSettings.failedToSeedDB')
+                            });
+                    } catch (error) {
+                        console.error(error);
+                        setTruncating(false);
+                    }
+                }}>
+                    {truncating ? <CircularLoadingIcon /> : t('DbSettings.yes')}
+                </Button>
+                <Button onClick={() => setOpenTruncateDbQuestion(false)}>{t('DbSettings.no')}</Button>
+            </Modal>
         </>
     )
 })

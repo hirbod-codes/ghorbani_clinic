@@ -48,6 +48,8 @@ export type IPrivilegesRepository = dbAPI & {
 
 export type IPatientRepository = dbAPI & {
     handleEvents(): Promise<void>;
+    socialIdExists(socialId: string): Promise<boolean>
+    getPatientById(id: string): Promise<Patient | null | undefined>
     createPatient(patient: Patient): Promise<InsertOneResult>;
     getPatientWithVisits(socialId: string): Promise<Patient & { visits: Visit[] } | null>;
     getPatientsEstimatedCount(): Promise<number>;
@@ -95,10 +97,10 @@ export type IPatientsDocumentsRepository = dbAPI & {
 
 export type ICanvasRepository = dbAPI & {
     handleEvents(): Promise<void>;
-    uploadCanvas(canvas: Canvas): Promise<string>;
-    retrieveCanvases(id: string): Promise<GridFSFile[]>;
-    downloadCanvas(id: string): Promise<Canvas | null>;
-    downloadCanvases(ids: string[]): Promise<Canvas[]>;
-    openCanvas(id: string): Promise<void>;
-    deleteCanvas(id: string): Promise<boolean>;
+    uploadCanvas(canvas: Canvas): Promise<InsertOneResult>;
+    getCanvas(id: string): Promise<Canvas>;
+    // downloadCanvas(id: string): Promise<Canvas | null>;
+    // downloadCanvases(ids: string[]): Promise<Canvas[]>;
+    // openCanvas(id: string): Promise<void>;
+    deleteCanvas(id: string): Promise<DeleteResult>;
 }

@@ -26,6 +26,16 @@ export function handleConfigEvents() {
             writeConfigSync({ ...readConfig(), rendererConfig: config })
         } catch (e) { console.error(e) }
     })
+
+    ipcMain.handle('get-downloads-directory-size', () => {
+        return readConfig()?.downloadsDirectorySize
+    })
+
+    ipcMain.handle('set-downloads-directory-size', (_e, { downloadsDirectorySize }: { downloadsDirectorySize: number }) => {
+        if (typeof downloadsDirectorySize === 'number' || typeof downloadsDirectorySize === 'bigint')
+            if (!Number.isNaN(downloadsDirectorySize) && Number.isFinite(downloadsDirectorySize))
+                writeConfigSync({ ...readConfig(), downloadsDirectorySize })
+    })
 }
 
 export function readConfig(): Config {

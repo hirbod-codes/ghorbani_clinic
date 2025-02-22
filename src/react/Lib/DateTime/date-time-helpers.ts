@@ -1,9 +1,9 @@
 import { getGregorianMonths, gregorian_to_jd, isLeapGregorianYear, jd_to_gregorian } from "./gregorian-calendar"
 import { getPersianMonths, isLeapPersianYear, jd_to_persian, persian_to_jd } from "./persian-calendar"
 import { DateTime } from "luxon"
-import type { Date, Time, GregorianDate, PersianDate, DateTimeView } from '../DateTime'
+import type { Date, Time, GregorianDate, PersianDate, DateTimeView } from '.'
 import { mixed } from "yup"
-import { getLuxonLocale } from "../helpers"
+import { getLuxonLocale } from "../localization"
 import { Local } from "../../../Electron/Configuration/renderer.d"
 
 export const DATE_TIME = 'cccc d/M/y H:m:s'
@@ -45,7 +45,7 @@ export function toDateTime(dateTime: number | DateTime | DateTimeView, toLocal: 
     if (typeof dateTime === 'number' || typeof dateTime === 'bigint')
         return toDateTime(DateTime.fromSeconds(dateTime, { zone: 'UTC' }), toLocal, { zone: 'UTC', calendar: 'Gregorian', direction: 'ltr', language: 'en' })
     else if (dateTime instanceof DateTime)
-        return dateTime.reconfigure({ outputCalendar: toLocal.calendar }).setLocale(getLuxonLocale(toLocal.language)).setZone(toLocal.zone)
+        return dateTime.reconfigure({ outputCalendar: toLocal.calendar === 'Gregorian' ? undefined : toLocal.calendar }).setLocale(getLuxonLocale(toLocal.language)).setZone(toLocal.zone)
 
     let convertedDateTimeView: DateTimeView
     if (fromLocal!.calendar === 'Persian')

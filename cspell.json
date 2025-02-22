@@ -4,13 +4,15 @@
         "cspell.json",
         "src/react/Localization/Translations/",
         "src/react/Lib/DateTime/astro.ts",
-        "src/react/Lib/DateTime/*-calendar.ts"
+        "src/react/Lib/DateTime/*-calendar.ts",
+        "src/react/Lib/Colors/**"
     ],
     "dictionaryDefinitions": [],
     "dictionaries": [],
     "words": [
         "idraw",
         "Konva",
+        "shadcn",
         "Tldraw"
     ],
     "ignoreWords": [],

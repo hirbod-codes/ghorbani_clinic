@@ -9,7 +9,7 @@ export const AnimatedOutlet = memo(function AnimatedOutlet(): JSX.Element {
     const outlet = useOutlet();
 
     return (
-        <AnimatePresence mode='sync'>
+        <AnimatePresence mode='sync' initial={false}>
             {outlet && cloneElement(outlet, { key: location.pathname })}
         </AnimatePresence>
     );
