@@ -6,7 +6,6 @@ import { t } from "i18next";
 import { VisitsChart } from "../../Components/Charts/VisitsChart";
 import { PatientsChart } from "../../Components/Charts/PatientsChart";
 import { Analytics } from "../../Components/Analytics";
-import { createPortal } from "react-dom";
 
 export const Home = memo(function Home() {
     console.log('Home')

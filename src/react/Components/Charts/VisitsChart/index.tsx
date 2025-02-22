@@ -100,8 +100,12 @@ export function VisitsChart() {
             if (safety >= 2000)
                 console.warn('safety limit exceeded!')
         }
+        xLabels.current = xLabels.current
+            .map(l => ({ ...l, options: { className: 'text-xs' } }))
 
-        yLabels.current = Array(5).fill(0).map((v, i) => ({ value: (yRange.current![1]! - yRange.current![0]!) * i / 4, node: localizeNumbers(local.language, (yRange.current![1]! - yRange.current![0]!) * i / 4), options: { className: 'text-xs' } }))
+        yLabels.current = Array(5)
+            .fill(0)
+            .map((v, i) => ({ value: (yRange.current![1]! - yRange.current![0]!) * i / 4, node: localizeNumbers(local.language, ((yRange.current![1]! - yRange.current![0]!) * i / 4).toFixed(0)), options: { className: 'text-xs' } }))
 
         const rgb = ColorStatic.parse(themeOptions.colors.success[themeOptions.mode].main).toRgb()
 
@@ -154,12 +158,9 @@ export function VisitsChart() {
                         )
 
                         xLabels.current = LineChart.calculateXLabels(xLabels.current!, xRange.current!, shape.canvasCoords.width, shape.canvasCoords.offset)
-                            .map(v => ({ ...v, options: { className: 'text-xs' } }))
                         shape.xLabels = xLabels.current
 
                         yLabels.current = LineChart.calculateYLabels(yLabels.current!, yRange.current!, shape.canvasCoords.height, shape.canvasCoords.offset)
-                            .map((v, i) => ({ ...v, node: localizeNumbers(local.language, (yRange.current![1]! - yRange.current![0]!) * i / 4) }))
-                            .map(v => ({ ...v, options: { className: 'text-xs' } }))
                         shape.yLabels = yLabels.current
                     }
                 },

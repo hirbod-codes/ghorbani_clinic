@@ -237,60 +237,64 @@ export function Chart({
         <div dir="ltr" className="relative size-full border rounded-lg" ref={containerRef}>
             {!ready && <CircularLoading containerProps={{ className: 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' }} />}
 
-            {showCanvas && <canvas
-                ref={canvasRef}
-                className="size-full"
-                onPointerMove={onPointerOver}
-                onPointerLeave={() => {
-                    hoverEvent.current = undefined
-                    hover.current = {}
-                    rerender()
-                }}
-            />}
+            {showCanvas &&
+                <>
+                    <canvas
+                        ref={canvasRef}
+                        className="size-full"
+                        onPointerMove={onPointerOver}
+                        onPointerLeave={() => {
+                            hoverEvent.current = undefined
+                            hover.current = {}
+                            rerender()
+                        }}
+                    />
 
-            {shapes.map((s, i) =>
-                <DropdownMenu
-                    key={i}
-                    open={hover.current[i]?.open ?? false}
-                    verticalPosition="top"
-                    containerProps={{
-                        className: 'pointer-events-none select-none',
-                        style: { zIndex: 50 }
-                    }}
-                    anchorDomRect={{
-                        width: 10,
-                        height: 10,
-                        top: hover.current[i]?.top,
-                        left: hover.current[i]?.left,
-                    }}
-                >
-                    {hover.current[i]?.node}
-                </DropdownMenu>
-            )}
+                    {shapes.map((s, i) =>
+                        <DropdownMenu
+                            key={i}
+                            open={hover.current[i]?.open ?? false}
+                            verticalPosition="top"
+                            containerProps={{
+                                className: 'pointer-events-none select-none',
+                                style: { zIndex: 50 }
+                            }}
+                            anchorDomRect={{
+                                width: 10,
+                                height: 10,
+                                top: hover.current[i]?.top,
+                                left: hover.current[i]?.left,
+                            }}
+                        >
+                            {hover.current[i]?.node}
+                        </DropdownMenu>
+                    )}
 
-            {(shapes.map(s =>
-                s.canvasCoords && s.xLabels && s.xLabels.map((l, i) =>
-                    l.value !== undefined && l.node !== undefined && l.value! >= s.canvasCoords!.offset?.left && l.value! <= (s.canvasCoords!.width - s.canvasCoords!.offset?.right)
-                        ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: `${s.canvasCoords!.height - s.canvasCoords!.offset!.bottom + s.canvasCoords!.xAxisOffset}px`, left: l.value }}>
-                            <div className="relative -translate-x-1/2">
-                                {l.node}
-                            </div>
-                        </div>
-                        : undefined
-                )
-            ))}
+                    {(shapes.map(s =>
+                        s.canvasCoords && s.xLabels && s.xLabels.map((l, i) =>
+                            l.value !== undefined && l.node !== undefined && l.value! >= s.canvasCoords!.offset?.left && l.value! <= (s.canvasCoords!.width - s.canvasCoords!.offset?.right)
+                                ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: `${s.canvasCoords!.height - s.canvasCoords!.offset!.bottom + s.canvasCoords!.xAxisOffset}px`, left: l.value }}>
+                                    <div className="relative -translate-x-1/2">
+                                        {l.node}
+                                    </div>
+                                </div>
+                                : undefined
+                        )
+                    ))}
 
-            {(shapes.map(s =>
-                s.canvasCoords && s.yLabels && s.yLabels.map((l, i) =>
-                    l.value !== undefined && l.node !== undefined && l.value! >= s.canvasCoords!.offset?.top && l.value! <= (s.canvasCoords!.height - s.canvasCoords!.offset?.bottom)
-                        ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: l.value, left: `${s.canvasCoords!.offset!.left - s.canvasCoords!.yAxisOffset}px` }}>
-                            <div className="relative -translate-x-full">
-                                {l.node}
-                            </div>
-                        </div>
-                        : undefined
-                )
-            ))}
+                    {(shapes.map(s =>
+                        s.canvasCoords && s.yLabels && s.yLabels.map((l, i) =>
+                            l.value !== undefined && l.node !== undefined && l.value! >= s.canvasCoords!.offset?.top && l.value! <= (s.canvasCoords!.height - s.canvasCoords!.offset?.bottom)
+                                ? <div key={i} {...l.options} className={cn("absolute", l?.options?.className)} style={{ ...l?.options?.style, top: l.value, left: `${s.canvasCoords!.offset!.left - s.canvasCoords!.yAxisOffset}px` }}>
+                                    <div className="relative -translate-x-full">
+                                        {l.node}
+                                    </div>
+                                </div>
+                                : undefined
+                        )
+                    ))}
+                </>
+            }
         </div>
     )
 }
@@ -312,7 +316,7 @@ Chart.XAxis = {
         if (shape.styleOptions)
             Object.keys(shape.styleOptions).forEach(k => ctx[k] = shape.styleOptions![k])
 
-        let y = shape.canvasCoords.height - shape.canvasCoords.offset.bottom + (shape.styleOptions?.lineWidth ?? 0) / 2
+        let y = shape.canvasCoords.height - shape.canvasCoords.offset.bottom - (shape.styleOptions?.lineWidth ?? 0) / 2
         ctx.moveTo(shape.canvasCoords.offset.left, y)
         ctx.lineTo(shape.canvasCoords.width - shape.canvasCoords.offset.right, y)
 
