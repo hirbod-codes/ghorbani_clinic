@@ -1,21 +1,29 @@
-import { FileDownloadOutlined } from "@mui/icons-material";
-import { Button } from "@mui/material";
 import { t } from "i18next";
 import { useContext } from "react";
 import { appAPI } from "src/Electron/appRendererEvents";
 import { DataGridContext } from "./Context";
+import { Row } from "@tanstack/react-table";
+import { FileDownIcon } from "lucide-react";
+import { Button } from "../Base/Button";
 
 export function ExportButton() {
-    const table = useContext(DataGridContext).table
+    const table = useContext(DataGridContext)!.table!
 
     return (
         <>
-            <Button onClick={() => {
-                const json = JSON.stringify([].concat(table.getTopRows(), table.getCenterRows(), table.getBottomRows()), undefined, 4);
-                (window as typeof window & { appAPI: appAPI }).appAPI.saveFile(json)
-            }} startIcon={<FileDownloadOutlined />}>
-                {t('DataGrid.export')}
-            </Button>
+            <Button
+                variant='outline'
+                onClick={async () => {
+                    const json = JSON.stringify(([] as Row<any>[]).concat(table.getTopRows(), table.getCenterRows(), table.getBottomRows()), undefined, 4)
+                    const path = await (window as typeof window & { appAPI: appAPI }).appAPI.saveFileDialog();
+                    if (path.canceled)
+                        return
+
+                    (window as typeof window & { appAPI: appAPI }).appAPI.saveFile({ content: json, path: path.filePath })
+                }}
+            >
+                <FileDownIcon />{t('DataGrid.export')}
+            </Button >
         </>
     )
 }

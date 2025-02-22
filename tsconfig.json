@@ -4,10 +4,14 @@
         "module": "CommonJS",
         "allowJs": true,
         "skipLibCheck": true,
+        "strictNullChecks": true,
         "esModuleInterop": true,
         "noImplicitAny": false,
         "sourceMap": true,
         "baseUrl": ".",
+        "paths": {
+          "@/*": ["./*"]
+        },
         "outDir": "dist",
         "moduleResolution": "Node",
         "resolveJsonModule": true,

@@ -1,8 +1,15 @@
-import { useState, useCallback, ReactNode, useMemo, memo } from 'react';
-import { Result } from './ResultTypes.d';
+import { useState, ReactNode, useMemo, memo } from 'react';
 import { Alert, Snackbar } from '@mui/material';
 import { CheckOutlined, CloseOutlined, DangerousOutlined } from '@mui/icons-material';
 import { subscribe } from '../Lib/Events';
+import { AlertColor, AlertPropsColorOverrides } from '@mui/material';
+import { OverridableStringUnion } from "@mui/types";
+
+export type Result = {
+    message: string;
+    severity: OverridableStringUnion<AlertColor, AlertPropsColorOverrides>;
+    action?: ReactNode;
+};
 
 export const RESULT_EVENT_NAME = 'showResult'
 
@@ -12,7 +19,7 @@ export const ResultWrapper = memo(function ResultWrapper({ children }: { childre
 
     const memoizedChildren = useMemo(() => children, [])
 
-    subscribe(RESULT_EVENT_NAME, (e?: CustomEvent) => { setResult(e?.detail); setResultOpen(true) })
+    subscribe(RESULT_EVENT_NAME, (e?: any) => { setResult(e?.detail); setResultOpen(true) })
 
     console.log('-------------ResultContextWrapper', '{ result }')
 

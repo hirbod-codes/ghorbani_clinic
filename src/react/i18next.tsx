@@ -4,8 +4,8 @@ import { initReactI18next } from "react-i18next";
 //Import all translation files
 import Persian from "./Localization/Translations/Persian.json";
 import English from "./Localization/Translations/English.json";
-import { Direction } from "./Lib/Localization";
-import ICU from "i18next-icu";
+// import ICU from "i18next-icu";
+import { Direction } from "../Electron/Configuration/renderer.d";
 
 export type Language = {
     code: string,
@@ -38,7 +38,7 @@ export const resources = {
 }
 
 i18next
-    .use(ICU)
+    // .use(ICU)
     .use(initReactI18next)
     .init({
         resources,

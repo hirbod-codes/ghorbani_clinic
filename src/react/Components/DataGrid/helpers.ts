@@ -1,8 +1,7 @@
 import { ColumnDef } from '@tanstack/react-table';
-import { useTheme } from "@mui/material";
 import { Column } from "@tanstack/react-table";
 import { CSSProperties, useContext } from "react";
-import { ConfigurationContext } from '../../Contexts/ConfigurationContext';
+import { ConfigurationContext } from '../../Contexts/Configuration/ConfigurationContext';
 
 export const getColumns = (data: any[], overWriteColumns?: ColumnDef<any>[], additionalColumns?: ColumnDef<any>[], orderedColumnsFields?: string[]): ColumnDef<any>[] => {
     if (!data || data.length === 0)
@@ -52,8 +51,9 @@ export const getColumns = (data: any[], overWriteColumns?: ColumnDef<any>[], add
 };
 
 export function getCommonPinningStyles(column: Column<any>): CSSProperties {
-    const theme = useTheme();
-    const direction = useContext(ConfigurationContext).get.locale.direction
+    const c = useContext(ConfigurationContext)!
+    const theme = c.themeOptions
+    const direction = c.local.direction
 
     const isPinned = column.getIsPinned();
     const isLastLeftPinnedColumn = isPinned === 'left' && column.getIsLastColumn('left');
@@ -66,7 +66,8 @@ export function getCommonPinningStyles(column: Column<any>): CSSProperties {
     const right = isPinned === `right` ? `${column.getStart('right')}px` : undefined
 
     return {
-        backgroundColor: isPinned ? theme.palette.background.default : undefined,
+        color: isPinned ? theme.colors.surface[theme.mode].foreground : undefined,
+        backgroundColor: isPinned ? theme.colors.surface[theme.mode]['container-low'] : undefined,
         boxShadow: isLastLeftPinnedColumn ? '-4px 0 4px -4px gray inset' : isFirstRightPinnedColumn ? '4px 0 4px -4px gray inset' : undefined,
         left: direction === 'ltr' ? left : right,
         right: direction === 'ltr' ? right : left,

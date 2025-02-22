@@ -12,6 +12,7 @@ import { extractKeys, extractKeysRecursive } from "../../helpers";
 import { getFields } from "../../Models/helpers";
 import { ipcMain } from "electron";
 import { hashSync } from "bcryptjs";
+import { BadRequest } from "../../Exceptions/BadRequest";
 
 export class UsersRepository extends MongoDB implements IUsersRepository {
     async handleEvents(): Promise<void> {
@@ -135,24 +136,27 @@ export class UsersRepository extends MongoDB implements IUsersRepository {
             throw new Unauthorized()
         console.log(funcName, 'authorized')
 
+        if (!user._id)
+            throw new BadRequest('Invalid user data provided')
+
         const id = user._id.toString();
 
-        user = Object.fromEntries(Object.entries(user).filter(arr => (updatableFields as string[]).includes(arr[0])));
-        Object.keys(user).forEach(k => {
+        const updatableUser = Object.fromEntries(Object.entries(user).filter(arr => (updatableFields as string[]).includes(arr[0])));
+        Object.keys(updatableUser).forEach(k => {
             if (!getFields(updatableFields, permission.attributes).includes(k))
                 throw new Unauthorized();
         });
 
-        user.updatedAt = DateTime.utc().toUnixInteger();
+        updatableUser.updatedAt = DateTime.utc().toUnixInteger();
 
-        console.log(funcName, 'casted user update', JSON.stringify(user, undefined, 4))
+        console.log(funcName, 'casted updatableUser update', JSON.stringify(updatableUser, undefined, 4))
 
-        const result = (await (await this.getUsersCollection()).updateOne({ _id: new ObjectId(id) }, { $set: { ...user } }, { upsert: false }))
+        const result = (await (await this.getUsersCollection()).updateOne({ _id: new ObjectId(id) }, { $set: { ...updatableUser } }, { upsert: false }))
         console.log(funcName, 'result', JSON.stringify(result, undefined, 4))
 
-        console.log(funcName, 'update logged in user if successful')
+        console.log(funcName, 'update logged in updatableUser if successful')
         if (result.acknowledged && result.matchedCount === 1)
-            if ((await authRepository.getAuthenticatedUser())?._id.toString() === id)
+            if ((await authRepository.getAuthenticatedUser())?._id?.toString() === id)
                 await authRepository.updateAuthenticatedUser(id)
 
         console.log(funcName, 'return')

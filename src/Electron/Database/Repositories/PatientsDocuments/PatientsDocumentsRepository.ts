@@ -129,11 +129,11 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
         if (!saveDirectory) {
             const fullSize = f.reduce((p, c) => p + c.length, 0)
             const size = readConfig()?.downloadsDirectorySize
-            if (size !== undefined && !Number.isNaN(size) && (await StorageHelper.getSize(DOWNLOADS_DIRECTORY)) + fullSize >= size)
+            if (size !== undefined && !Number.isNaN(size) && ((await StorageHelper.getSize(DOWNLOADS_DIRECTORY)) ?? 2_000_000_000) + fullSize >= size)
                 return false
         }
 
-        const paths = []
+        const paths: string[] = []
         for (const doc of f) {
             const filePath = Path.join(folderPath, doc._id.toString(), doc.filename)
             console.log('downloadFile', 'filePath', filePath)
@@ -216,7 +216,7 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
 
         if (!saveDirectory) {
             const limit = readConfig()?.downloadsDirectorySize
-            if (limit !== undefined && !Number.isNaN(limit) && (await StorageHelper.getSize(DOWNLOADS_DIRECTORY)) + f[0].length >= limit) {
+            if (limit !== undefined && !Number.isNaN(limit) && ((await StorageHelper.getSize(DOWNLOADS_DIRECTORY)) ?? 2_000_000_000) + f[0].length >= limit) {
                 console.log('downloads directory will exceed storage limit, exiting...')
                 return false
             }
@@ -265,7 +265,7 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
                 console.log('shell result', await shell.openPath(filePath))
 
             console.log('file already exist, exiting...')
-            return
+            return true
         }
 
         if (!await this.downloadFile(patientId, fileId, filename)) {
@@ -284,6 +284,7 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
             console.log('shell result', await shell.openPath(filePath))
 
         console.log('finished opening...')
+        return true
     }
 
     async deleteFiles(patientId: string): Promise<boolean> {
@@ -339,7 +340,7 @@ export class PatientsDocumentsRepository extends MongoDB implements IPatientsDoc
         if (fs.existsSync(path)) {
             const pathSize = await StorageHelper.calculateSizes(path)
             try { fs.rmSync(path) }
-            catch (e) { return; }
+            catch (e) { console.error(e); return false; }
             await StorageHelper.subtractSize(DOWNLOADS_DIRECTORY, pathSize)
         }
 

@@ -8,7 +8,7 @@ export class Auth {
 
     static getAuthenticated(): User | null {
         try {
-            if (this.authenticatedUser && (this.authenticatedAt + this.EXPIRATION_SECONDS) > DateTime.utc().toUnixInteger())
+            if (this.authenticatedUser && this.authenticatedAt !== null && (this.authenticatedAt + this.EXPIRATION_SECONDS) > DateTime.utc().toUnixInteger())
                 return this.authenticatedUser
             else
                 return null

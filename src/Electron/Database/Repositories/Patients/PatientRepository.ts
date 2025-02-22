@@ -11,17 +11,41 @@ import { Unauthenticated } from "../../Exceptions/Unauthenticated";
 import { authRepository, privilegesRepository } from "../../main";
 import { resources } from "../Auth/resources";
 import { getFields } from "../../Models/helpers";
+import { string } from "yup";
+import { BadRequest } from "../../Exceptions/BadRequest";
 
 export class PatientRepository extends MongoDB implements IPatientRepository {
     async handleEvents() {
+        ipcMain.handle('social-id-exists', async (_e, { socialId }: { socialId: string }) => await this.handleErrors(async () => await this.socialIdExists(socialId)))
         ipcMain.handle('create-patient', async (_e, { patient }: { patient: Patient; }) => await this.handleErrors(async () => await this.createPatient(patient)))
+        ipcMain.handle('get-patient-by-id', async (_e, { id }: { id: string; }) => await this.handleErrors(async () => await this.getPatientById(id)))
         ipcMain.handle('get-patients-estimated-count', async () => await this.handleErrors(async () => await this.getPatientsEstimatedCount()))
         ipcMain.handle('get-patient-with-visits', async (_e, { socialId }: { socialId: string; }) => await this.handleErrors(async () => await this.getPatientWithVisits(socialId)))
         ipcMain.handle('get-patients-with-visits', async (_e, { offset, count }: { offset: number; count: number; }) => await this.handleErrors(async () => await this.getPatientsWithVisits(offset, count)))
         ipcMain.handle('get-patient', async (_e, { socialId }: { socialId: string; }) => await this.handleErrors(async () => await this.getPatient(socialId)))
         ipcMain.handle('get-patients', async (_e, { offset, count }: { offset: number; count: number; }) => await this.handleErrors(async () => await this.getPatients(offset, count)))
+        ipcMain.handle('get-patients-by-created-at-date', async (_e, { startDate, endDate, ascending }: { startDate: number, endDate: number, ascending?: boolean }) => await this.handleErrors(async () => await this.getPatientsByCreatedAtDate(startDate, endDate, ascending)))
         ipcMain.handle('update-patient', async (_e, { patient }: { patient: Patient; }) => await this.handleErrors(async () => await this.updatePatient(patient)))
         ipcMain.handle('delete-patient', async (_e, { id }: { id: string; }) => await this.handleErrors(async () => await this.deletePatient(id)))
+    }
+
+    async socialIdExists(socialId: string): Promise<boolean> {
+        const user = await authRepository.getAuthenticatedUser()
+        if (!user)
+            throw new Unauthenticated();
+
+        if (
+            !(await privilegesRepository.getAccessControl()).can(user.roleName).read(resources.PATIENT).granted ||
+            !(await privilegesRepository.getAccessControl()).can(user.roleName).create(resources.PATIENT).granted
+        )
+            throw new Unauthorized()
+
+        if (!string().required().length(10).matches(/^[0-9]{10}$/).isValidSync(socialId))
+            throw new BadRequest('Invalid patient info provided.');
+
+        const patient = await (await this.getPatientsCollection()).findOne({ socialId })
+
+        return patient !== null && patient !== undefined
     }
 
     async createPatient(patient: Patient): Promise<InsertOneResult> {
@@ -33,7 +57,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
             throw new Unauthorized()
 
         if (!patientSchema.isValidSync(patient))
-            throw new Error('Invalid patient info provided.');
+            throw new BadRequest('Invalid patient info provided.');
 
         patient = patientSchema.cast(patient);
         patient.schemaVersion = 'v0.0.1';
@@ -41,6 +65,20 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         patient.updatedAt = DateTime.utc().toUnixInteger();
 
         return await (await this.getPatientsCollection()).insertOne(patient)
+    }
+
+    async getPatientById(id: string): Promise<Patient | null | undefined> {
+        const user = await authRepository.getAuthenticatedUser()
+        if (!user)
+            throw new Unauthenticated();
+
+        if (!(await privilegesRepository.getAccessControl()).can(user.roleName).read(resources.PATIENT).granted)
+            throw new Unauthorized()
+
+        if (!string().required().isValidSync(id))
+            throw new BadRequest('Invalid patient info provided.');
+
+        return await (await this.getPatientsCollection()).findOne({ _id: new ObjectId(id) })
     }
 
     async getPatientsEstimatedCount(): Promise<number> {
@@ -54,7 +92,7 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         return await (await this.getPatientsCollection()).estimatedDocumentCount()
     }
 
-    async getPatientWithVisits(socialId: string): Promise<Patient & { visits: Visit[] }> {
+    async getPatientWithVisits(socialId: string): Promise<Patient & { visits: Visit[] } | null> {
         const user = await authRepository.getAuthenticatedUser()
         if (!user)
             throw new Unauthenticated();
@@ -103,12 +141,12 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!permission.granted)
             throw new Unauthorized()
 
-        const patient: Patient = await (await this.getPatientsCollection()).findOne({ socialId: socialId });
+        const patient = await (await this.getPatientsCollection()).findOne({ socialId: socialId });
         if (!patient)
             return null
 
         if (!patientSchema.isValidSync(patient))
-            throw new Error('Invalid patient info provided.');
+            throw new BadRequest('Invalid patient info provided.');
 
         const readablePatient = extractKeys(patient, getFields(patientReadableFields, permission.attributes));
 
@@ -125,11 +163,32 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
         if (!permission.granted)
             throw new Unauthorized()
 
-        const patients: Patient[] = await (await this.getPatientsCollection()).find().limit(count).skip(offset * count).sort('createdAt', -1).toArray();
+        const patients: Patient[] = await (await this.getPatientsCollection()).find().sort('createdAt', -1).limit(count).skip(offset * count).toArray();
 
         const readablePatients = extractKeysRecursive(patients, getFields(patientReadableFields, permission.attributes));
 
         return readablePatients
+    }
+
+    async getPatientsByCreatedAtDate(startDate: number, endDate: number, ascending = false) {
+        if (startDate > endDate)
+            throw new BadRequest('Invalid start and end date provided')
+
+        console.log('Authenticating...')
+        const user = await authRepository.getAuthenticatedUser()
+        if (!user)
+            throw new Unauthenticated();
+
+        console.log('Authorizing...')
+        const privileges = await privilegesRepository.getAccessControl();
+        if (!privileges.can(user.roleName).read(resources.PATIENT).granted)
+            throw new Unauthorized()
+
+        const patients: Patient[] = await (await this.getPatientsCollection()).find({ $and: [{ createdAt: { $lte: endDate } }, { createdAt: { $gte: startDate } }] }).sort('createdAt', ascending ? 1 : -1).toArray()
+
+        const readableVisits = extractKeysRecursive(patients, getFields(patientReadableFields, privileges.can(user.roleName).read(resources.PATIENT).attributes));
+
+        return readableVisits
     }
 
     async getPatientsWithVisits(offset: number, count: number): Promise<(Patient & { visits: Visit[] })[]> {
@@ -189,15 +248,15 @@ export class PatientRepository extends MongoDB implements IPatientRepository {
 
         const id = patient._id;
 
-        patient = Object.fromEntries(Object.entries(patient).filter(arr => (updatableFields as string[]).includes(arr[0])));
-        Object.keys(patient).forEach(k => {
+        const updatablePatient = Object.fromEntries(Object.entries(patient).filter(arr => (updatableFields as string[]).includes(arr[0])));
+        Object.keys(updatablePatient).forEach(k => {
             if (!getFields(updatableFields, permission.attributes).includes(k))
                 throw new Unauthorized();
         });
 
-        patient.updatedAt = DateTime.utc().toUnixInteger();
+        updatablePatient.updatedAt = DateTime.utc().toUnixInteger();
 
-        return (await (await this.getPatientsCollection()).updateOne({ _id: new ObjectId(id) }, { $set: { ...patient } }, { upsert: false }))
+        return (await (await this.getPatientsCollection()).updateOne({ _id: new ObjectId(id) }, { $set: { ...updatablePatient } }, { upsert: false }))
     }
 
     async deletePatient(id: string): Promise<DeleteResult> {

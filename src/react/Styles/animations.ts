@@ -6,6 +6,8 @@ export const mainTransition: Transition = {
     damping: 15
 }
 
+export const modalTransition: Transition = { ease: 'easeOut', duration: 0.4 }
+
 export const gradientBackgroundTransitions: Transition = {
     ...mainTransition
 }

@@ -1,43 +1,60 @@
-import { ConfigurationContextWrapper } from '../Contexts/ConfigurationContextWrapper';
+import { ConfigurationContextWrapper } from '../Contexts/Configuration/ConfigurationContextWrapper';
 import { AuthContextWrapper } from '../Contexts/AuthContextWrapper';
 import { ResultWrapper } from '../Contexts/ResultWrapper';
-import { Navigation } from '../Components/Navigation';
+import { AppBar } from '../Components/AppBar';
 import { AnimatedOutlet } from './AnimatedOutlet';
 import { MenuBar } from '../Components/MenuBar/MenuBar';
 import { GradientBackground } from '../Components/GradientBackground';
-import { Box, Stack } from '@mui/material';
-import { memo, useMemo } from 'react';
-
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { Stack } from '../Components/Base/Stack';
+import { Navigation } from '../Components/Navigation';
 
 export const Layout = memo(function Layout() {
-    console.log('Layout');
-
-    const App = useMemo(() => (
-        <>
-            <GradientBackground />
-
-            <Box sx={{ position: 'absolute', height: '100%', width: '100%', top: 0, left: 0 }}>
-                <Stack direction='column' spacing={0} sx={{ overflow: 'hidden', height: '100%', width: '100%' }}>
-                    <MenuBar />
-
-                    <Navigation />
-
-                    <Box sx={{ overflow: 'hidden', flexGrow: 1, width: '100%', position: 'relative', mt: 3 }}>
-                        <AnimatedOutlet />
-                    </Box>
-                </Stack>
-            </Box>
-        </>
-    ), [])
-
-    const authContextWrapper = useMemo(() => <AuthContextWrapper>{App}</AuthContextWrapper>, [])
+    const authContextWrapper = useMemo(() => <AuthContextWrapper><App /></AuthContextWrapper>, [])
     const resultWrapper = useMemo(() => <ResultWrapper>{authContextWrapper}</ResultWrapper>, [])
 
     return (
-        <>
-            <ConfigurationContextWrapper>
-                {resultWrapper}
-            </ConfigurationContextWrapper>
-        </>
+        <ConfigurationContextWrapper>
+            {resultWrapper}
+        </ConfigurationContextWrapper>
     );
+})
+
+export const App = memo(function App() {
+    const stackRef = useRef<HTMLDivElement>(null)
+    const [width, setWidth] = useState<string | undefined>(undefined)
+
+    useEffect(() => {
+        if (stackRef.current) {
+            const rect = stackRef.current?.getBoundingClientRect()
+            let w = rect?.width
+            if (w)
+                setWidth(`${w - 64}px`)
+        }
+    }, [stackRef.current])
+
+    return (
+        <>
+            <GradientBackground />
+
+            <Stack direction='vertical' stackProps={{ className: 'h-screen w-screen overflow-hidden mx-0' }}>
+                <div className="w-full">
+                    <MenuBar />
+                </div>
+
+                <Stack stackRef={stackRef} stackProps={{ className: 'flex-grow w-full overflow-hidden p-2' }}>
+                    <div className="w-[64px] h-full">
+                        <Navigation />
+                    </div>
+
+                    <Stack direction='vertical' stackProps={{ className: 'flex-grow h-full relative overflow-hidden bg-surface', style: { width } }}>
+                        <AppBar />
+                        <div className="flex-grow h-0">
+                            <AnimatedOutlet />
+                        </div>
+                    </Stack>
+                </Stack>
+            </Stack>
+        </>
+    )
 })

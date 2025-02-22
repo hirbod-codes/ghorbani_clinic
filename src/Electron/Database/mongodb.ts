@@ -3,14 +3,15 @@ import { type Patient, collectionName as patientsCollectionName } from "./Models
 import { type MedicalHistory, collectionName as patientsMedicalHistoriesCollectionName } from "./Models/MedicalHistory";
 import { Visit, collectionName as visitsCollectionName } from "./Models/Visit";
 import { collectionName as patientsDocumentsCollectionName } from "./Models/PatientsDocuments";
-import { collectionName as canvasCollectionName } from "./Models/Canvas";
+import { Canvas, collectionName as canvasCollectionName } from "./Models/Canvas";
 import { collectionName as privilegesCollectionName } from "./Models/Privilege";
 import { collectionName as usersCollectionName } from "./Models/User";
 import type { dbAPI } from "./dbAPI";
 import { ipcMain } from "electron";
 import { Unauthorized } from "./Exceptions/Unauthorized";
 import { Unauthenticated } from "./Exceptions/Unauthenticated";
-import { MongodbConfig, readConfig, writeConfigSync } from "../Configuration/main";
+import { MongodbConfig } from "../Configuration/main.d";
+import { readConfig, writeConfigSync } from "../Configuration/main";
 import { Privilege } from "./Models/Privilege";
 import { User } from "./Models/User";
 import { bonjour } from '../BonjourService';
@@ -20,11 +21,13 @@ import { ConfigurationError } from "../Configuration/Exceptions/ConfigurationErr
 import { ConnectionError } from "./Exceptions/ConnectionError";
 import { authRepository, privilegesRepository } from "./main";
 import { resources } from "./Repositories/Auth/resources";
+import { BadRequest } from "./Exceptions/BadRequest";
 
 export class MongoDB implements dbAPI {
     private static db: Db | null = null
 
     async handleEvents(): Promise<void> {
+        ipcMain.handle('check-connection-health', async () => await this.checkConnectionHealth())
         ipcMain.handle('truncate', async () => await this.truncate())
         ipcMain.handle('seed', async () => await this.seed())
         ipcMain.handle('initialize-db', async () => await this.initializeDb())
@@ -33,8 +36,20 @@ export class MongoDB implements dbAPI {
         ipcMain.handle('search-for-db-service', async (_e, { databaseName, supportsTransaction = false, auth }: { databaseName?: string, supportsTransaction: boolean, auth?: { username: string, password: string } }) => await this.searchForDbService(databaseName, supportsTransaction, auth))
     }
 
-    async getConfig(): Promise<MongodbConfig> {
-        return readConfig().mongodb
+    async checkConnectionHealth(): Promise<boolean> {
+        try {
+            const db = await this.getDb(await this.getClient(), false)
+            const stats = await db.stats()
+            console.log({ stats })
+            return stats.ok as boolean
+        } catch (error) {
+            console.error(error)
+            return false
+        }
+    }
+
+    async getConfig(): Promise<MongodbConfig | undefined> {
+        return readConfig()?.mongodb
     }
 
     protected transactionClient: MongoClient | undefined = undefined
@@ -45,7 +60,7 @@ export class MongoDB implements dbAPI {
 
         console.log(funcName, 'called')
 
-        const supportsTransaction = readConfig().mongodb.supportsTransaction
+        const supportsTransaction = readConfig()?.mongodb?.supportsTransaction
         if (!supportsTransaction) {
             console.log(funcName, 'Transactions are not supported.')
             return
@@ -62,13 +77,13 @@ export class MongoDB implements dbAPI {
 
         console.log(funcName, 'called')
 
-        const supportsTransaction = readConfig().mongodb.supportsTransaction
+        const supportsTransaction = readConfig()?.mongodb?.supportsTransaction
         if (!supportsTransaction) {
             console.log(funcName, 'Transactions are not supported.')
             return
         }
 
-        await this.session.abortTransaction()
+        await this.session?.abortTransaction()
     }
 
     async commitTransaction(): Promise<void> {
@@ -76,13 +91,13 @@ export class MongoDB implements dbAPI {
 
         console.log(funcName, 'called')
 
-        const supportsTransaction = readConfig().mongodb.supportsTransaction
+        const supportsTransaction = readConfig().mongodb?.supportsTransaction
         if (!supportsTransaction) {
             console.log(funcName, 'Transactions are not supported.')
             return
         }
 
-        await this.session.commitTransaction()
+        await this.session?.commitTransaction()
     }
 
     async endSession(): Promise<void> {
@@ -90,13 +105,13 @@ export class MongoDB implements dbAPI {
 
         console.log(funcName, 'called')
 
-        const supportsTransaction = readConfig().mongodb.supportsTransaction
+        const supportsTransaction = readConfig().mongodb?.supportsTransaction
         if (!supportsTransaction) {
             console.log(funcName, 'Transactions are not supported.')
             return
         }
 
-        await this.session.endSession()
+        await this.session?.endSession()
     }
 
     async updateConfig(config: MongodbConfig): Promise<boolean> {
@@ -114,7 +129,7 @@ export class MongoDB implements dbAPI {
                 bonjour.unpublishAll(() => {
                     console.log('bonjour service unpublished all of the previous services.')
 
-                    bonjour.publish({ name: 'clinic-db', type: 'mongodb', protocol: 'tcp', port: Number(c.mongodb.url.split('://')[1]?.split(':')[1]), disableIPv6: true })
+                    bonjour.publish({ name: 'clinic-db', type: 'mongodb', protocol: 'tcp', port: Number(config.url.split('://')[1]?.split(':')[1]), disableIPv6: true })
                     console.log('new bonjour service has published.')
                 })
 
@@ -139,6 +154,11 @@ export class MongoDB implements dbAPI {
 
                 browser.on('up', (s: Service) => {
                     console.log('found service')
+
+                    if (s.referer === undefined) {
+                        resolve(false)
+                        return
+                    }
 
                     const c = readConfig()
                     writeConfigSync({
@@ -197,11 +217,11 @@ export class MongoDB implements dbAPI {
         }
     }
 
-    async getDb(client?: MongoClient, useCache = true): Promise<Db | null> {
+    async getDb(client?: MongoClient, useCache = true): Promise<Db> {
         console.group('getDb')
 
         try {
-            if (useCache)
+            if (useCache && MongoDB.db)
                 return MongoDB.db
 
             const c = readConfig()
@@ -299,6 +319,7 @@ export class MongoDB implements dbAPI {
         await this.addPatientsCollection()
         await this.addMedicalHistoriesCollection()
         await this.addVisitsCollection()
+        await this.addCanvasCollection()
     }
 
     private async addUsersCollection() {
@@ -382,6 +403,13 @@ export class MongoDB implements dbAPI {
             await db.createIndex(visitsCollectionName, { updatedAt: 1 }, { name: 'updated-at' })
     }
 
+    private async addCanvasCollection() {
+        const db = await this.getDb();
+
+        if (!(await db.listCollections().toArray()).map(e => e.name).includes(canvasCollectionName))
+            await db.createCollection(canvasCollectionName)
+    }
+
     async getUsersCollection(client?: MongoClient, db?: Db): Promise<Collection<User>> {
         return (db ?? (await this.getDb(client))).collection<User>(usersCollectionName)
     }
@@ -406,8 +434,8 @@ export class MongoDB implements dbAPI {
         return new GridFSBucket(db ?? (await this.getDb(client)), { bucketName: patientsDocumentsCollectionName });
     }
 
-    async getCanvasBucket(client?: MongoClient, db?: Db): Promise<GridFSBucket> {
-        return new GridFSBucket(db ?? (await this.getDb(client)), { bucketName: canvasCollectionName });
+    async getCanvasCollection(client?: MongoClient, db?: Db): Promise<Collection<Canvas>> {
+        return (db ?? (await this.getDb(client))).collection<Canvas>(canvasCollectionName)
     }
 
     async handleErrors(callback: () => Promise<unknown> | unknown, jsonStringify = true): Promise<string | any> {
@@ -425,7 +453,9 @@ export class MongoDB implements dbAPI {
             console.error('error in main process')
             console.error('error', error)
             console.error('error json', JSON.stringify(error, undefined, 4))
-            if (error instanceof Unauthorized)
+            if (error instanceof BadRequest)
+                return JSON.stringify({ code: 400 })
+            else if (error instanceof Unauthorized)
                 return JSON.stringify({ code: 403 })
             else if (error instanceof Unauthenticated)
                 return JSON.stringify({ code: 401 })

@@ -36,7 +36,7 @@ export const pointFromLineDistance = (p1: Point, p2: Point, p: Point): number =>
     return Math.abs(p.x * (p1.y - p2.y) + p1.x * (p2.y - p.y) + p2.x * (p.y - p1.y)) / twoPointDistance(p1, p2)
 }
 
-export const lineFunction = (p1: Point, p2: Point, x: number): number => {
+export const lineFunction = (p1: Point, p2: Point, x: number): number | undefined => {
     const m = (p2.y - p1.y) / (p2.x - p1.x)
     if (Math.abs(m) === Infinity)
         return p1.x === x ? Infinity : undefined

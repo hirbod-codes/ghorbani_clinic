@@ -1,71 +1,52 @@
 import { ipcMain } from 'electron'
 import fs from 'fs'
-import path from 'path'
-import { v4 as uuidV4 } from 'uuid';
-import { CONFIGURATION_DIRECTORY } from '../../directories';
-import type { ConfigurationStorableData } from "../../react/Contexts/ConfigurationContext"
-import { User } from '../Database/Models/User';
-import { ColumnPinningState, VisibilityState } from '@tanstack/react-table';
-import { Density } from 'src/react/Components/DataGrid/Context';
-
-export type MongodbConfig = {
-    supportsTransaction: boolean;
-    url: string;
-    databaseName: string;
-    auth?: {
-        username: string;
-        password: string;
-    };
-};
-
-export type AuthConfig = { users: User[] }
-
-export type Peer = {
-    isMaster: boolean,
-    hostName: string,
-    port: number,
-    ip: string
-}
-
-export type Config = {
-    configuration?: ConfigurationStorableData,
-    downloadsDirectorySize?: number,
-    storage?: { [path: string]: number },
-    mongodb?: MongodbConfig,
-    auth?: AuthConfig,
-    peers?: Peer[],
-    appIdentifier?: string,
-    appName?: string,
-    isMaster?: boolean,
-    port?: number,
-    ip?: string,
-    columnPinningModels?: { [k: string]: ColumnPinningState },
-    columnVisibilityModels?: { [k: string]: VisibilityState },
-    columnOrderModels?: { [k: string]: string[] },
-    tableDensity?: { [k: string]: Density }
-}
+import { v4 as uuidV4 } from 'uuid'
+import { CONFIGURATION_DIRECTORY, CONFIGURATION_FILE } from '../../directories'
+import type { Config as RendererConfig } from './renderer.d'
+import type { Config } from './main.d'
+import { mixed } from 'yup'
 
 export function handleConfigEvents() {
-    ipcMain.handle('read-config', () => {
-        return readConfig()
+    ipcMain.handle('read-db-config', () => {
+        return readConfig()?.mongodb
     })
 
-    ipcMain.on('write-config', (_e, { config }: { config: Config }) => {
-        writeConfigSync(config)
+    ipcMain.handle('read-config', () => {
+        return readConfig()?.rendererConfig
+    })
+
+    ipcMain.on('write-config', (_e, { config }: { config: RendererConfig }) => {
+        try {
+            if (!mixed<RendererConfig>().required().isValidSync(config)) {
+                console.warn('Invalid configuration data provided by renderer process.')
+                return
+            } else
+                config = mixed<RendererConfig>().required().cast(config)
+
+            writeConfigSync({ ...readConfig(), rendererConfig: config })
+        } catch (e) { console.error(e) }
+    })
+
+    ipcMain.handle('get-downloads-directory-size', () => {
+        return readConfig()?.downloadsDirectorySize
+    })
+
+    ipcMain.handle('set-downloads-directory-size', (_e, { downloadsDirectorySize }: { downloadsDirectorySize: number }) => {
+        if (typeof downloadsDirectorySize === 'number' || typeof downloadsDirectorySize === 'bigint')
+            if (!Number.isNaN(downloadsDirectorySize) && Number.isFinite(downloadsDirectorySize))
+                writeConfigSync({ ...readConfig(), downloadsDirectorySize })
     })
 }
 
 export function readConfig(): Config {
-    const configFile = path.join(CONFIGURATION_DIRECTORY, 'config.json')
-
     const initialConfig = { appIdentifier: 'clinic', appName: `clinic-${uuidV4()}.local`, port: 3001, downloadsDirectorySize: 8_000_000_000 }
 
-    if (!fs.existsSync(configFile)) {
+    if (!fs.existsSync(CONFIGURATION_FILE)) {
         writeConfigSync(initialConfig)
         return initialConfig
     }
 
-    let configJson = fs.readFileSync(configFile).toString()
+    let configJson = fs.readFileSync(CONFIGURATION_FILE).toString()
     let c: Config = JSON.parse(configJson)
 
     if (c.appIdentifier && c.appName && c.port && c.downloadsDirectorySize)
@@ -87,13 +68,10 @@ export function readConfig(): Config {
 
 export function writeConfig(config: Config): Promise<void> {
     return new Promise((res, rej) => {
-        const configFolder = path.join(CONFIGURATION_DIRECTORY)
-        const configFile = path.join(configFolder, 'config.json')
+        if (!fs.existsSync(CONFIGURATION_DIRECTORY))
+            fs.mkdirSync(CONFIGURATION_DIRECTORY, { recursive: true })
 
-        if (!fs.existsSync(configFolder))
-            fs.mkdirSync(configFolder, { recursive: true })
-
-        fs.writeFile(configFile, JSON.stringify(config, undefined, 4), (err) => {
+        fs.writeFile(CONFIGURATION_FILE, JSON.stringify(config, undefined, 4), (err) => {
             if (err) {
                 console.error(err)
                 rej()
@@ -105,11 +83,8 @@ export function writeConfig(config: Config): Promise<void> {
 }
 
 export function writeConfigSync(config: Config): void {
-    const configFolder = path.join(CONFIGURATION_DIRECTORY)
-    const configFile = path.join(configFolder, 'config.json')
+    if (!fs.existsSync(CONFIGURATION_DIRECTORY))
+        fs.mkdirSync(CONFIGURATION_DIRECTORY, { recursive: true })
 
-    if (!fs.existsSync(configFolder))
-        fs.mkdirSync(configFolder, { recursive: true })
-
-    fs.writeFileSync(configFile, JSON.stringify(config))
+    fs.writeFileSync(CONFIGURATION_FILE, JSON.stringify(config))
 }

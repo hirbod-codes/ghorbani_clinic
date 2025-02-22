@@ -4,12 +4,12 @@ import { RendererDbAPI } from '../../Electron/Database/renderer';
 import { User } from '../../Electron/Database/Models/User';
 import { AuthContext } from './AuthContext';
 import { AccessControl } from 'accesscontrol';
-import { ConfigurationContext } from './ConfigurationContext';
-import { Modal, Paper, Slide } from '@mui/material';
+import { ConfigurationContext } from './Configuration/ConfigurationContext';
 import { LoginForm } from '../Components/Auth/LoginForm';
 import { RESULT_EVENT_NAME } from './ResultWrapper';
 import { publish } from '../Lib/Events';
 import { useNavigate } from 'react-router-dom';
+import { Modal } from '../Components/Base/Modal';
 
 export const AuthContextWrapper = memo(function AuthContextWrapper({ children }: { children?: ReactNode; }) {
     const { t } = useTranslation();
@@ -34,7 +34,7 @@ export const AuthContextWrapper = memo(function AuthContextWrapper({ children }:
             // throw error;
         }
     };
-    const fetchUser = async (): Promise<User | undefined> => {
+    const fetchUser = async (): Promise<User | undefined | null> => {
         try {
             console.log('AuthContextWrapper', 'fetchUser')
             const res = await (window as typeof window & { dbAPI: RendererDbAPI; }).dbAPI.getAuthenticatedUser();
@@ -72,7 +72,7 @@ export const AuthContextWrapper = memo(function AuthContextWrapper({ children }:
             });
 
             await init();
-            navigate('/')
+            navigate(0)
         } catch (error) {
             console.error(error);
 
@@ -155,31 +155,24 @@ export const AuthContextWrapper = memo(function AuthContextWrapper({ children }:
     const memoizedChildren = useMemo(() => children, [])
 
     useEffect(() => {
-        console.log('AuthContextWrapper', 'useEffect', 'should init?', !hasInitialized.current && !isAuthLoading.current && configuration?.hasFetchedConfig && !configuration?.showDbConfigurationModal && (!auth.user || !auth.ac))
-        if (!hasInitialized.current && !isAuthLoading.current && configuration?.hasFetchedConfig && !configuration?.showDbConfigurationModal && (!auth.user || !auth.ac))
+        console.log('AuthContextWrapper', 'useEffect', 'should init?', !hasInitialized.current && !isAuthLoading.current && configuration?.isConfigurationContextReady && (!auth.user || !auth.ac))
+        if (!hasInitialized.current && !isAuthLoading.current && configuration?.isConfigurationContextReady && (!auth.user || !auth.ac))
             init()
     }, [])
 
     return (
         <>
-            <AuthContext.Provider value={{ user: auth.user, accessControl: auth.ac, isAuthLoading: isAuthLoading.current, logout, showModal: () => setShowModal(true), fetchUser: async () => { await fetchUser() } }}>
+            <AuthContext.Provider value={{ user: auth.user, accessControl: auth.ac, isAuthLoading: isAuthLoading.current, logout, showModal: () => setShowModal(!showModal), fetchUser: async () => { await fetchUser() } }}>
                 {!isAuthLoading.current && memoizedChildren}
             </AuthContext.Provider>
 
             <Modal
                 open={showModal}
                 onClose={() => setShowModal(false)}
-                closeAfterTransition
-                disableEscapeKeyDown
-                disableAutoFocus
-                slotProps={{ backdrop: { sx: { top: '2rem' } } }}
-                sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', top: '2rem' }}
             >
-                <Slide direction={showModal ? 'up' : 'down'} in={showModal} timeout={250}>
-                    <Paper sx={{ width: '60%', padding: '0.5rem 2rem' }}>
-                        <LoginForm onFinish={async (username, password) => { await login(username, password); setShowModal(false); }} />
-                    </Paper>
-                </Slide>
+                <div className='w-full px-2 py-4'>
+                    <LoginForm onFinish={async (username, password) => { await login(username, password); setShowModal(false); }} />
+                </div>
             </Modal>
         </>
     );

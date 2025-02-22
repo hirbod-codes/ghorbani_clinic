@@ -8,19 +8,65 @@
     "persianCalendarName": "شمسی",
     "gregorianCalendarName": "میلادی",
     "Asia/Tehran": "آسیا/تهران",
+    "common": {
+        "Year": "سال",
+        "Day": "روز",
+        "general": "عمومی",
+        "settings": "تنظیمات",
+        "home": "صفحه اصلی",
+        "language": "زبان",
+        "timeZone": "تایم زون",
+        "calendar": "تقویم",
+        "persianCalendarName": "شمسی",
+        "gregorianCalendarName": "میلادی",
+        "Asia/Tehran": "آسیا/تهران"
+    },
+    "TimeField": {
+        "invalidTimeFormat": "فرم زمان اشتباه"
+    },
+    "Home": {
+        "Patients": "بیماران",
+        "Visits": "نوبت ها",
+        "Monthly": "ماهاته",
+        "Daily": "روزانه"
+    },
     "SearchPatientField": {
         "search": "جستجو",
         "socialId": "شماره ملی",
+        "Create": "ایجاد",
         "InvalidSocialId": "شماره ملی نامعتبر است",
         "patientNotFound": "بیمار یافت نشد"
     },
     "Analytics": {
-        "failedToFetchPatientsCount": "بازیابی تعداد بیماران با شکست مواجه شد",
-        "failedToFetchVisitsCount": "بازیابی تعداد ویزیت‌ها با شکست مواجه شد",
-        "failedToFetchExpiredVisitsCount": "بازیابی تعداد ویزیت‌های منقضی شده با شکست مواجه شد",
-        "visits": "ویزیت‌ها",
-        "expiredVisits": "ویزیت‌های منقضی شده",
-        "patients": "بیماران"
+        "Summary": " خلاصه ماه گذشته"
+    },
+    "VisitsCounter": {
+        "VisitsPerMonth": "نوبت در ماه",
+        "Visits": "نوبت ها"
+    },
+    "PatientsCounter": {
+        "PatientsPerMonth": "بیمار در ماه",
+        "Patients": "بیماران"
+    },
+    "VisitsChart": {
+        "count": "تعداد",
+        "date": "تاریخ"
+    },
+    "Calendar": {
+        "failedToUpdateVisit": "بروزرسانی نوبت با شکست مواجه شد",
+        "successfullyUpdatedVisit": "نوبت با موفقیت بروزرسانی شد",
+        "Show": "نمایش",
+        "PatientsCount": "تعداد بیماران",
+        "VisitsCount": "تعداد نوبت ها",
+        "diagnosis": "تشخیص",
+        "treatments": "درمان"
+    },
+    "GeneralSetting": {
+        "TemporaryStorageLimit": "محدودیت حافظه موقت"
+    },
+    "Error": {
+        "errorMessage": "متاسفانه، به مشکلی برخوردیم.",
+        "buttonText": "برگرد به خانه"
     },
     "Roles": {
         "admin": "مدیر سیستم",
@@ -74,6 +120,12 @@
         "done": "انجام شد"
     },
     "Patients": {
+        "successfullyFetchedPatients": "اطلاعات بیماران دریافت شد.",
+        "NoData": "No data",
+        "deletePatientDialogContent": "در حال حذف یک بیمار هستید، آیا می خواهید ادامه دهید؟",
+        "Documents": "مدارک",
+        "Yes": "بله",
+        "No": "خیر",
         "failedToFetchPatients": "بازیابی اطلاعات بیماران با شکست مواجه شد",
         "Show": "نمایش",
         "actions": "اقدامات",
@@ -90,6 +142,16 @@
         "successfullyUpdatedPatientMedicalHistory": "تاریخچه پزشکی بیمار با موفقیت بروزرسانی شد"
     },
     "ManagePatient": {
+        "thisSocialIdAlreadyExists": "این کد ملی قبلا استفاده شده",
+        "mustHave10Digits": "باید ۱۰ عدد داشته باشد",
+        "files": "فایل",
+        "UpdatePatient": "بروزرسانی بیمار",
+        "RegisterPatient": "ثبت بیمار",
+        "Documents": "مدارک",
+        "male": "مذکر",
+        "female": "مونث",
+        "visits": "نوبت ها",
+        "failedToUpdatePatient": "بروزرسانی اطلاعات بیمار شکست خورد",
         "failedToUpdatePatientVisits": "بروزرسانی ویزیت‌های بیمار با شکست مواجه شد",
         "failedToRegisterPatient": "ثبت بیمار با شکست مواجه شد",
         "failedToRegisterPatientVisits": "ثبت ویزیت‌های بیمار با شکست مواجه شد",
@@ -108,6 +170,10 @@
         "done": "انجام شد"
     },
     "MedicalHistories": {
+        "done": "Done",
+        "failedToUpdatePatientAddress": "بروزرسانی آدرس بیمار با شکست مواجه شد",
+        "successfullyUpdatedPatientAddress": "آدرس بیمار با موفقیت بروزرسانی شد",
+        "Edit": "ویرایش",
         "failedToFetchMedicalHistories": "بازیابی تاریخچه‌های پزشکی با شکست مواجه شد",
         "successfullyFetchedMedicalHistories": "تاریخچه‌های پزشکی با موفقیت بازیابی شدند",
         "exiting": "خروج",
@@ -120,7 +186,7 @@
         "cancel": "لغو",
         "failedToAddMedicalHistory": "افزودن تاریخچه پزشکی با شکست مواجه شد",
         "successfullyAddedMedicalHistory": "تاریخچه پزشکی با موفقیت افزوده شد",
-        "add": "افزودن",
+        "Add": "افزودن",
         "No": "خیر",
         "Yes": "بله",
         "deleteMedicalHistoryDialogContent": "Are you sure you want to delete this medical history?",
@@ -135,6 +201,9 @@
         "save": "Save"
     },
     "Visits": {
+        "successfullyFetchedVisits": "اطلاعات نوبت ها دریافت شد",
+        "successfullyUpdatedVisit": "بروزرسانی نوبت موفقیت بود",
+        "failedToUpdateVisit": "نوبت حذف نشد!",
         "failedToFetchVisits": "بازیابی ویزیت‌ها با شکست مواجه شد",
         "Show": "نمایش",
         "Refresh": "به‌روزرسانی",
@@ -146,6 +215,8 @@
         "treatments": "درمان‌ها"
     },
     "ManageVisit": {
+        "date": "تاریخ",
+        "time": "زمان",
         "diagnosis": "تشخیص‌ها",
         "treatments": "درمان‌ها"
     },
@@ -160,6 +231,8 @@
         "Db": "پایگاه داده"
     },
     "DbSettings": {
+        "successfullySeededDB": "دیتابیس با موفقیت غنی شد",
+        "CheckConnection": "بررسی اتصال",
         "Seed": "بذرپاشی",
         "Truncate": "تخلیه",
         "doYouWantToSeedDB": "آیا مایل به بذرپاشی پایگاه داده هستید؟",
@@ -172,7 +245,7 @@
         "dbSettings": "تنظیمات پایگاه داده",
         "username": "نام کاربری",
         "password": "گذرواژه",
-        "ip": "آی‌پی",
+        "ip_port": "Ip:Port",
         "url": "آدرس اینترنتی",
         "databaseName": "نام پایگاه داده",
         "supportsTransaction": "پشتیبانی از تراکنش",
@@ -187,6 +260,9 @@
         "search": "جستجو"
     },
     "Editor": {
+        "View": "نمایش",
+        "Notes": "یادداشت",
+        "WhiteBoard": "تخته سفید",
         "failedToUploadCanvas": "بارگذاری بوم با شکست مواجه شد",
         "successfullyUploadedCanvas": "بوم با موفقیت بارگذاری شد",
         "description": "توضیحات"
@@ -198,6 +274,16 @@
         "Yes": "بله"
     },
     "Canvas": {
+        "Reset": "تنظیم مجدد",
+        "FillColor": "رنگ سطح",
+        "StrokeColor": "رنگ اضلاع",
+        "pressureMagnitude": "ضریب فشار",
+        "Print": "پرینت",
+        "BackgroundColor": "رنگ پسزمینه",
+        "Select": "انتخاب",
+        "Pencil": "مداد",
+        "Eraser": "پاک کن",
+        "Rectangle": "مستطیل",
         "radius": "شعاع",
         "lineWidth": "عرض خط",
         "reset": "بازنشانی",
@@ -210,8 +296,8 @@
         "Yes": "بله"
     },
     "Columns": {
-        "columns": "Columns",
-        "counter": "",
+        "columns": "ستون ها",
+        "counter": "ردیف",
         "actions": "اقدامات",
         "_id": "شناسه",
         "patientId": "شناسه بیمار",
@@ -257,5 +343,14 @@
         "comfortable": "منبسط",
         "limit": "تعداد سطر",
         "paginationLimit": "تعداد سطر"
+    },
+    "DocumentManagement": {
+        "successfullyUploadedFiles": "مدارک ارسال شد",
+        "size": "اندازه",
+        "failedToDeleteFile": "حذف فایل شکست خورد",
+        "successfullyDeletedFile": "فایل حذف شد",
+        "failedToOpenFile": "فایل باز نشد",
+        "failedToFetchFile": "دانلود فایل شکست خورد",
+        "successfullyFetchedFile": "فایل دانلود شد"
     }
 }

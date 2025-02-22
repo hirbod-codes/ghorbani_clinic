@@ -11,4 +11,4 @@ export type DataGridContext = {
     };
 }
 
-export const DataGridContext = createContext<DataGridContext>(undefined)
+export const DataGridContext = createContext<DataGridContext | undefined>(undefined)

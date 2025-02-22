@@ -1,29 +1,30 @@
-import { Calendar as CalendarType, Date } from "../../Lib/DateTime";
-import { fromDateTimePartsToFormat } from "../../Lib/DateTime/date-time-helpers";
+import { Date } from "@/src/react/Lib/DateTime";
+import { toFormat } from "../../Lib/DateTime/date-time-helpers";
 import { getGregorianMonths, isLeapGregorianYear, getGregorianWeekDays } from "../../Lib/DateTime/gregorian-calendar";
 import { getPersianMonths, isLeapPersianYear, getPersianWeekDays } from "../../Lib/DateTime/persian-calendar";
-import { getLocale, getReactLocale } from "../../Lib/helpers";
-import { Languages, Locale } from "../../Lib/Localization";
-import { CalendarScope } from "./index.d";
+import { getLanguageCode, getMuiLocale } from "../../Lib/localization";
+import { CalendarScopes } from "./index.d";
+import { Calendar, LanguageCodes, Local } from "../../../Electron/Configuration/renderer.d";
+import { localizeNumbers } from "../../Localization/helpers";
 
 export class CalendarManager {
-    private type: CalendarType;
-    private scope: CalendarScope = 'days';
-    private code: Languages;
-    private locale: Locale;
+    private type: Calendar;
+    private scope: CalendarScopes = 'days';
+    private languageCode: LanguageCodes;
+    private local: Local;
     selectedYear: number;
     selectedMonth: number;
 
-    days: number[];
+    days: (number | null)[];
     months: { name: string; days: number; }[];
     years: number[];
 
-    constructor(type: CalendarType, selectedYear: number, selectedMonth: number, code: Languages, locale: Locale) {
-        this.type = type;
+    constructor(selectedYear: number, selectedMonth: number, local: Local) {
+        this.type = local.calendar;
         this.selectedYear = selectedYear;
         this.selectedMonth = selectedMonth;
-        this.code = code;
-        this.locale = locale;
+        this.languageCode = local.language;
+        this.local = local;
         this.setMonths(selectedYear);
         this.setDays(selectedYear, selectedMonth);
         this.setYears(selectedYear - 19, 20);
@@ -33,20 +34,20 @@ export class CalendarManager {
         return this.scope;
     }
 
-    setScope(scope: CalendarScope, year: number, month: number) {
+    setScope(scope: CalendarScopes, year: number, month: number) {
         if (this.scope === scope)
             return;
 
         this.selectedYear = year;
         this.selectedMonth = month;
         this.scope = scope;
-        
+
         this.setMonths(year);
         this.setDays(year, month);
         this.setYears(year - 19, 20);
     }
 
-    getScopeValues(): number[] | { name: string; days: number; }[] {
+    getScopeValues(): (number | null)[] | { name: string; days: number; }[] {
         switch (this.scope) {
             case 'days':
                 return this.days;
@@ -63,9 +64,9 @@ export class CalendarManager {
     getTitle(): string {
         switch (this.scope) {
             case 'days':
-                return `${this.selectedYear}, ${this.getMonths()[this.selectedMonth - 1].name}`;
+                return `${localizeNumbers(this.languageCode, this.selectedYear, { useGrouping: false })}, ${this.getMonths()[this.selectedMonth - 1].name}`;
             case 'months':
-                return this.selectedYear.toString();
+                return localizeNumbers(this.languageCode, this.selectedYear, { useGrouping: false }).toString();
             case 'years':
                 return '';
             default:
@@ -92,19 +93,19 @@ export class CalendarManager {
             return;
 
         this.months = this.type === 'Persian'
-            ? getPersianMonths(isLeapPersianYear(year), getLocale(getReactLocale(this.code)))
-            : getGregorianMonths(isLeapGregorianYear(year), getLocale(getReactLocale(this.code)));
+            ? getPersianMonths(isLeapPersianYear(year), getLanguageCode(getMuiLocale(this.languageCode)))
+            : getGregorianMonths(isLeapGregorianYear(year), getLanguageCode(getMuiLocale(this.languageCode)));
     }
 
-    getDays(): number[] {
+    getDays(): (number | null)[] {
         return this.days;
     }
 
     setDays(year: number, month: number): void {
         const weekDay = this.getWeekDay({ year, month, day: 1 });
         let index;
-        if (this.locale.code === 'en' && this.type === 'Persian') {
-            index = getGregorianWeekDays(this.code).findIndex(f => f === weekDay);
+        if (this.local.language === 'en' && this.type === 'Persian') {
+            index = getGregorianWeekDays(this.languageCode).findIndex(f => f === weekDay);
             if (index === -1)
                 throw new Error('Invalid Week Day!');
 
@@ -119,17 +120,17 @@ export class CalendarManager {
         for (let i = 0; i < index; i++)
             this.days.push(null);
 
-        const days = this.getMonths()[month].days;
+        const days = this.getMonths()[month - 1].days;
         for (let i = 1; i <= days; i++)
             this.days.push(i);
     }
 
     getWeekDays(): string[] {
-        return this.type === 'Persian' ? getPersianWeekDays(this.code) : getGregorianWeekDays(this.code);
+        return this.type === 'Persian' ? getPersianWeekDays(this.languageCode) : getGregorianWeekDays(this.languageCode);
     }
 
     getWeekDay(date: Date): string {
-        return fromDateTimePartsToFormat({ ...this.locale, calendar: this.type }, { ...this.locale, calendar: this.type }, date, undefined, 'cccc');
+        return toFormat({ date, time: { hour: 0, minute: 0, second: 0 } }, { ...this.local, calendar: this.type }, { ...this.local, calendar: this.type }, 'cccc');
     }
 
     next() {

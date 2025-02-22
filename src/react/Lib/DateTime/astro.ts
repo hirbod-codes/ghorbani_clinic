@@ -271,7 +271,7 @@ export function nutation(jd: number): number[] {
     let i, j, t2, dp = 0, de = 0, ang
     const
         t = (jd - 2451545.0) / 36525.0,
-        ta = [],
+        ta: number[] = [],
         t3 = t * (t2 = t * t)
 
     /* Calculate angles.  The correspondence between the elements
@@ -281,16 +281,11 @@ export function nutation(jd: number): number[] {
 
     */
 
-    ta[0] = dtr(297.850363 + 445267.11148 * t - 0.0019142 * t2 +
-        t3 / 189474.0);
-    ta[1] = dtr(357.52772 + 35999.05034 * t - 0.0001603 * t2 -
-        t3 / 300000.0);
-    ta[2] = dtr(134.96298 + 477198.867398 * t + 0.0086972 * t2 +
-        t3 / 56250.0);
-    ta[3] = dtr(93.27191 + 483202.017538 * t - 0.0036825 * t2 +
-        t3 / 327270);
-    ta[4] = dtr(125.04452 - 1934.136261 * t + 0.0020708 * t2 +
-        t3 / 450000.0);
+    ta[0] = dtr(297.850363 + 445267.11148 * t - 0.0019142 * t2 + t3 / 189474.0);
+    ta[1] = dtr(357.52772 + 35999.05034 * t - 0.0001603 * t2 - t3 / 300000.0);
+    ta[2] = dtr(134.96298 + 477198.867398 * t + 0.0086972 * t2 + t3 / 56250.0);
+    ta[3] = dtr(93.27191 + 483202.017538 * t - 0.0036825 * t2 + t3 / 327270);
+    ta[4] = dtr(125.04452 - 1934.136261 * t + 0.0020708 * t2 + t3 / 450000.0);
 
     /* Range reduce the angles in case the sine and cosine functions
        don't do it as accurately or quickly. */

@@ -7,7 +7,7 @@ import { type RendererEvents as MedicalHistoryRendererEvents, handleRendererEven
 import { type RendererEvents as VisitRendererEvents, handleRendererEvents as handleVisitRendererEvents } from './Repositories/Visits/VisitRenderer';
 import { type RendererEvents as FileRendererEvents, handleRendererEvents as handleFileRendererEvents } from './Repositories/PatientsDocuments/PatientsDocumentsRenderer';
 import { type RendererEvents as CanvasRendererEvents, handleRendererEvents as handleCanvasRendererEvents } from './Repositories/canvas/CanvasRenderer';
-import { MongodbConfig } from "../Configuration/main";
+import { MongodbConfig } from "../Configuration/main.d";
 
 export type RendererDbAPI =
     AuthRendererEvents &
@@ -19,6 +19,7 @@ export type RendererDbAPI =
     FileRendererEvents &
     CanvasRendererEvents &
     {
+        checkConnectionHealth: () => Promise<boolean>,
         truncate: () => Promise<boolean>,
         seed: () => Promise<boolean>,
         initializeDb: () => Promise<boolean>,
@@ -27,9 +28,10 @@ export type RendererDbAPI =
         searchForDbService: (databaseName?: string, supportsTransaction?: boolean, auth?: { username: string, password: string }) => Promise<boolean>;
     }
 
-export function handleDbRendererEvents(): RendererDbAPI {
+export function handleRendererEvents(): RendererDbAPI {
     return {
         ...{
+            checkConnectionHealth: async (): Promise<boolean> => await ipcRenderer.invoke('check-connection-health'),
             truncate: async (): Promise<boolean> => await ipcRenderer.invoke('truncate'),
             seed: async (): Promise<boolean> => await ipcRenderer.invoke('seed'),
             initializeDb: async (): Promise<boolean> => await ipcRenderer.invoke('initialize-db'),

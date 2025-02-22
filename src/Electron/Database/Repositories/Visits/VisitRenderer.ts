@@ -9,7 +9,9 @@ export function handleRendererEvents(): RendererEvents {
         getVisitsEstimatedCount: async (): Promise<MainProcessResponse<number>> => JSON.parse(await ipcRenderer.invoke('get-visits-estimated-count')),
         getExpiredVisitsCount: async (): Promise<MainProcessResponse<number>> => JSON.parse(await ipcRenderer.invoke('get-expired-visits-count')),
         getExpiredVisits: async (): Promise<MainProcessResponse<Visit[]>> => JSON.parse(await ipcRenderer.invoke('get-expired-visits')),
-        getVisits: async (patientIdOffset?: string | number, count?: number): Promise<MainProcessResponse<Visit[]>> => JSON.parse(await ipcRenderer.invoke('get-visits', { patientIdOffset, count })),
+        getVisitsByDate: async (startDate: number, endDate: number, ascending = false): Promise<MainProcessResponse<Visit[]>> => JSON.parse(await ipcRenderer.invoke('get-visits-by-date', { startDate, endDate, ascending })),
+        getVisitsByPatientId: async (patientId: string): Promise<MainProcessResponse<Visit[]>> => JSON.parse(await ipcRenderer.invoke('get-visits-by-patient-id', { patientId })),
+        getVisits: async (offset: number, count: number): Promise<MainProcessResponse<Visit[]>> => JSON.parse(await ipcRenderer.invoke('get-visits', { offset, count })),
         updateVisit: async (visit: Visit): Promise<MainProcessResponse<UpdateResult>> => JSON.parse(await ipcRenderer.invoke('update-visit', { visit })),
         deleteVisit: async (id: string): Promise<MainProcessResponse<DeleteResult>> => JSON.parse(await ipcRenderer.invoke('delete-visit', { id })),
     }
@@ -20,7 +22,9 @@ export type RendererEvents = {
     getVisitsEstimatedCount: () => Promise<MainProcessResponse<number>>
     getExpiredVisitsCount: () => Promise<MainProcessResponse<number>>
     getExpiredVisits: () => Promise<MainProcessResponse<Visit[]>>
-    getVisits(patientIdOffset?: string | number, count?: number): Promise<MainProcessResponse<Visit[]>>
+    getVisitsByDate: (startDate: number, endDate: number, ascending?: boolean) => Promise<MainProcessResponse<Visit[]>>
+    getVisitsByPatientId: (patientId: string) => Promise<MainProcessResponse<Visit[]>>
+    getVisits: (offset: number, count: number) => Promise<MainProcessResponse<Visit[]>>
     updateVisit: (visit: Visit) => Promise<MainProcessResponse<UpdateResult>>
     deleteVisit: (id: string) => Promise<MainProcessResponse<DeleteResult>>
 }
