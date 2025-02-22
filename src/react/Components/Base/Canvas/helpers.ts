@@ -20,26 +20,27 @@ export function isCanvasEmpty(ref: MutableRefObject<HTMLCanvasElement | null>) {
 
 export function buildShapes(models: any[]): IShape[] {
     return models.map(m => {
+        console.log('m', m)
         switch (m.type) {
             case 'Line':
                 let line = new Line()
                 line.setSerializableModel(m)
-                return m
+                return line
 
             case 'Circle':
                 let circle = new Circle()
                 circle.setSerializableModel(m)
-                return m
+                return circle
 
             case 'Rectangle':
                 let rectangle = new Rectangle()
                 rectangle.setSerializableModel(m)
-                return m
+                return rectangle
 
             case 'RectangleGradient':
                 let rectangleGradient = new RectangleGradient()
                 rectangleGradient.setSerializableModel(m)
-                return m
+                return rectangleGradient
 
             default:
                 throw new Error('Unsupported type provided for shape type in buildShapes function');

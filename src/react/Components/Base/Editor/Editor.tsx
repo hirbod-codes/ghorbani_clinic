@@ -1,5 +1,5 @@
 import { t } from "i18next";
-import { useState, useRef, useEffect, useContext, memo, useReducer } from "react"
+import { useState, useRef, useEffect, useContext, memo, useReducer, createRef } from "react"
 import { RendererDbAPI } from "../../../../Electron/Database/renderer";
 import { RESULT_EVENT_NAME } from "../../../Contexts/ResultWrapper";
 import { publish } from "../../../Lib/Events";
@@ -17,6 +17,7 @@ import { Tooltip } from "../Tooltip";
 import { Stack } from "../Stack";
 import { IShape } from "../Canvas/Shapes/IShape";
 import { ObjectId } from "mongodb";
+import { Shapes } from "../Canvas/Shapes/Shapes";
 
 export type EditorProps = {
     hideCanvas?: boolean;
@@ -131,7 +132,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                 const res = await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.uploadCanvas(c)
 
                 console.log({ res })
-                if (res.code !== 200 || !res.data) {
+                if (res.code !== 200 || !res.data || !res.data.acknowledged) {
                     publish(RESULT_EVENT_NAME, {
                         severity: 'error',
                         message: t('Editor.failedToUploadCanvas')
@@ -148,9 +149,9 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                 if (canvasId)
                     console.log(await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteCanvas(canvasId))
 
-                setCanvasId(res.data)
+                setCanvasId(res.data.insertedId.toString())
 
-                id = res.data
+                id = res.data.insertedId.toString()
             } else if (canvasId)
                 console.log(await (window as typeof window & { dbAPI: RendererDbAPI }).dbAPI.deleteCanvas(canvasId))
 
@@ -245,47 +246,29 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
 
         console.log({ status, loading, canvas: canvas.current, dataRef: dataRef.current })
 
-        switch (status) {
-            case 'showing':
-                if (!imageRef.current) {
-                    console.log('no image ref')
-                    return
-                }
+        if (status === 'typing')
+            return
 
-                // const src = `data:${dataRef.current.type};base64,${dataRef.current.data}`
-
-                // if (imageSrc === src) {
-                //     return
-                // }
-
-                // setImageSrc(src);
-
-                if (dataRef.current.backgroundColor)
-                    setBackgroundColor(dataRef.current.backgroundColor)
-
-                break;
-
-            case 'drawing':
-                if (!canvas.current) {
-                    console.log('no canvas ref')
-                    return
-                }
-
-                if (dataRef.current.backgroundColor)
-                    canvas.current.style.backgroundColor = dataRef.current.backgroundColor
-
-                const image = new Image()
-                image.onload = () => {
-                    canvas.current?.getContext('2d', { willReadFrequently: true })?.drawImage(image, 0, 0);
-                }
-                image.src = 'data:image/png;base64,' + dataRef.current.data
-
-                rerender()
-                break;
-
-            default:
-                break;
+        if (!dataRef.current) {
+            console.log('no canvas data')
+            return
         }
+
+        if (!canvas.current) {
+            console.log('no canvas ref')
+            return
+        }
+
+        if (dataRef.current.backgroundColor)
+            setBackgroundColor(dataRef.current.backgroundColor)
+
+        canvas.current.style.backgroundColor = dataRef.current.backgroundColor
+        canvas.current.width = dataRef.current.width
+        canvas.current.height = dataRef.current.height
+        let ctx = canvas.current.getContext('2d')!
+        new Shapes(dataRef.current.data).draw({ canvasRef: canvas, ctx })
+
+        rerender()
     }
 
     useEffect(() => {
@@ -294,7 +277,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
 
     useEffect(() => {
         initCanvas()
-    }, [status, imageRef.current, canvas.current, dataRef.current, loading])
+    }, [status, canvas.current, dataRef.current, loading])
 
     return (
         <>
@@ -352,10 +335,7 @@ export const Editor = memo(function Editor({ hideCanvas = false, hideTextEditor 
                                     }
 
                                     {canvasId &&
-                                        <Canvas
-                                            canvasBackground={dataRef.current?.backgroundColor}
-                                            defaultShapes={dataRef.current?.data}
-                                        />
+                                        <canvas ref={canvas} />
                                     }
                                 </Stack>
                             </>

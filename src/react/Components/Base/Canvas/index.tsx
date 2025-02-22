@@ -59,7 +59,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
     const print = useReactToPrint({ onAfterPrint: () => { setLoading(false); if (printRef.current) printRef.current.src = '' } })
 
     useEffect(() => {
-        if (canvasRef.current) {
+        if (canvasRef.current && shapes) {
             canvasRef.current.width = canvasRef.current.clientWidth
             canvasRef.current.height = canvasRef.current.clientHeight
             const ctx = canvasRef.current.getContext('2d')!
@@ -67,7 +67,7 @@ export function Canvas({ canvasRef, canvasBackground: canvasBackgroundInit, onCh
 
             shapes.draw({ canvasRef, ctx })
         }
-    }, [canvasRef.current])
+    }, [canvasRef.current, shapes])
 
     return (
         <>

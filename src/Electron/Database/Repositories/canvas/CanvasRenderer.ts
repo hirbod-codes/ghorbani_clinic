@@ -1,11 +1,11 @@
 import { ipcRenderer } from "electron"
 import type { MainProcessResponse } from "../../../types"
-import { DeleteResult, GridFSFile } from "mongodb";
+import { DeleteResult, GridFSFile, InsertOneResult } from "mongodb";
 import { Canvas } from "../../Models/Canvas";
 
 export function handleRendererEvents(): RendererEvents {
     return {
-        uploadCanvas: async (canvas: Canvas): Promise<MainProcessResponse<string>> => JSON.parse(await ipcRenderer.invoke('upload-canvas', { canvas })),
+        uploadCanvas: async (canvas: Canvas): Promise<MainProcessResponse<InsertOneResult1>> => JSON.parse(await ipcRenderer.invoke('upload-canvas', { canvas })),
         getCanvas: async (id: string): Promise<MainProcessResponse<Canvas>> => JSON.parse(await ipcRenderer.invoke('get-canvas', { id })),
         // downloadCanvas: async (id: string): Promise<MainProcessResponse<Canvas>> => JSON.parse(await ipcRenderer.invoke('download-canvas', { id })),
         // downloadCanvases: async (ids: string[]): Promise<MainProcessResponse<Canvas[]>> => JSON.parse(await ipcRenderer.invoke('download-canvases', { ids })),
@@ -15,7 +15,7 @@ export function handleRendererEvents(): RendererEvents {
 }
 
 export type RendererEvents = {
-    uploadCanvas(canvas: Canvas): Promise<MainProcessResponse<string>>,
+    uploadCanvas(canvas: Canvas): Promise<MainProcessResponse<InsertOneResult1>>,
     getCanvas(id: string): Promise<MainProcessResponse<Canvas>>,
     // downloadCanvas(id: string): Promise<MainProcessResponse<Canvas>>,
     // downloadCanvases(ids: string[]): Promise<MainProcessResponse<Canvas[]>>,
