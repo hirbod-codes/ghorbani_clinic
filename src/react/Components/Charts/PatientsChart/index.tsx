@@ -98,7 +98,6 @@ export function PatientsChart() {
         let duration = 5000
 
         const rgb = ColorStatic.parse(themeOptions.colors.success[themeOptions.mode].main).toRgb()
-        // rgb.setAlpha(0.5)
 
         setShapes([
             {

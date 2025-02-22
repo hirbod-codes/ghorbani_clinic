@@ -1,4 +1,4 @@
-import { ReactNode, useContext, useEffect, useRef, useState } from "react"
+import { useContext, useEffect, useRef, useState } from "react"
 import { ConfigurationContext } from "@/src/react/Contexts/Configuration/ConfigurationContext"
 import { Visit } from "@/src/Electron/Database/Models/Visit"
 import { DateTime, Duration } from "luxon"
@@ -104,7 +104,6 @@ export function VisitsChart() {
         yLabels.current = Array(5).fill(0).map((v, i) => ({ value: (yRange.current![1]! - yRange.current![0]!) * i / 4, node: localizeNumbers(local.language, (yRange.current![1]! - yRange.current![0]!) * i / 4), options: { className: 'text-xs' } }))
 
         const rgb = ColorStatic.parse(themeOptions.colors.success[themeOptions.mode].main).toRgb()
-        // rgb.setAlpha(0.5)
 
         setShapes([
             {

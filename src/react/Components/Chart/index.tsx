@@ -7,6 +7,7 @@ import { ShapeManager } from "./ShapeManager"
 import { Dimensions } from './index.d'
 import { IShape } from "./IShape"
 import { CircularLoading } from "../Base/CircularLoading"
+import { Button } from "../Base/Button"
 
 export type ChartProps = {
     chartKey: string
@@ -45,38 +46,54 @@ export function Chart({
 
     const [ready, setReady] = useState<boolean>(false)
 
+    const [containerRect, setContainerRect] = useState<DOMRect>()
+    const [showCanvas, setShowCanvas] = useState<boolean>(false)
+
     const [, rerender] = useReducer(x => x + 1, 0)
 
-    console.log('Chart', { dimensions, canvasRef, ctx, containerRef, shapes, xAxis, yAxis });
+    console.log('Chart', { chartKey, dimensions, canvasRef, ctx, containerRef, shapes, xAxis, yAxis });
 
     useEffect(() => {
-        initCanvasSize()
+        if (containerRef.current && !containerRect) {
+            console.log('Chart', 'useEffect', 'initContainerRect')
+            initContainerRect()
+        }
 
-        window.addEventListener('resize', initCanvasSize)
+        window.addEventListener('resize', initContainerRect)
 
-        return () => window.removeEventListener('resize', initCanvasSize)
-    }, [canvasRef?.current, containerRef?.current])
+        return () => window.removeEventListener('resize', initContainerRect)
+    }, [containerRef?.current])
 
-    const initCanvasSize = () => {
-        if (canvasRef.current && containerRef.current) {
-            console.log('Chart', 'useEffect')
-            const rect = containerRef.current.getBoundingClientRect()
-            rect.width = Math.round(rect.width)
-            rect.height = Math.round(rect.height)
+    const initContainerRect = () => {
+        if (!containerRef.current)
+            return
 
+        console.log('initContainerRect', { devicePixelRatio: window.devicePixelRatio })
+
+        const rect = containerRef.current.getBoundingClientRect()
+        console.log(JSON.stringify(rect), { clientHeight: containerRef.current.clientHeight, offsetHeight: containerRef.current.offsetHeight })
+        rect.width = Math.round(rect.width)
+        rect.height = Math.round(rect.height)
+        setContainerRect(rect)
+        setShowCanvas(true)
+    }
+
+    useEffect(() => {
+        if (canvasRef.current && containerRect && !dimensions.current) {
+            console.log('Chart', 'useEffect', 'initCanvasSize')
             ctx.current = canvasRef.current.getContext('2d')!
 
-            canvasRef.current.style.width = rect.width + "px"
-            canvasRef.current.style.height = rect.height + "px"
+            canvasRef.current.style.width = containerRect.width + "px"
+            canvasRef.current.style.height = containerRect.height + "px"
 
             let scale = window.devicePixelRatio
-            canvasRef.current.width = rect.width * scale
-            canvasRef.current.height = rect.height * scale
+            canvasRef.current.width = containerRect.width * scale
+            canvasRef.current.height = containerRect.height * scale
             ctx.current.scale(scale, scale)
 
             dimensions.current = {
-                width: dimensionsInput?.width ?? rect.width,
-                height: dimensionsInput?.height ?? rect.height,
+                width: dimensionsInput?.width ?? containerRect.width,
+                height: dimensionsInput?.height ?? containerRect.height,
                 offset: dimensionsInput?.offset ?? { top: 20, right: 20, left: 60, bottom: 60 },
                 xAxisOffset: dimensionsInput?.xAxisOffset ?? 15,
                 yAxisOffset: dimensionsInput?.yAxisOffset ?? 15,
@@ -84,8 +101,8 @@ export function Chart({
 
             if (xAxis) {
                 xAxis.canvasCoords = {
-                    width: rect.width,
-                    height: rect.height,
+                    width: containerRect.width,
+                    height: containerRect.height,
                     offset: dimensions.current.offset!,
                     xAxisOffset: dimensions.current!.xAxisOffset,
                     yAxisOffset: dimensions.current!.yAxisOffset,
@@ -98,8 +115,8 @@ export function Chart({
 
             if (yAxis) {
                 yAxis.canvasCoords = {
-                    width: rect.width,
-                    height: rect.height,
+                    width: containerRect.width,
+                    height: containerRect.height,
                     offset: dimensions.current.offset!,
                     xAxisOffset: dimensions.current!.xAxisOffset,
                     yAxisOffset: dimensions.current!.yAxisOffset,
@@ -109,8 +126,10 @@ export function Chart({
                 if (!yAxis.styleOptions.strokeStyle)
                     yAxis.styleOptions.strokeStyle = themeOptions.colors.surface[themeOptions.mode].foreground
             }
+
+            rerender()
         }
-    }
+    }, [showCanvas, canvasRef?.current, containerRect])
 
     useEffect(() => {
         initAnimations()
@@ -118,7 +137,7 @@ export function Chart({
 
     const initAnimations = () => {
         if (ctx.current && dimensions.current && hasInit.current === false) {
-            console.log('Chart', 'useEffect2', chartKey, shapes)
+            console.log('Chart', 'useEffect', 'initAnimations', chartKey, shapes)
 
             hasInit.current = true
 
@@ -215,10 +234,10 @@ export function Chart({
     }, [shapes])
 
     return (
-        <div dir="ltr" className="relative size-full border rounded-lg overflow-hidden" ref={containerRef}>
+        <div dir="ltr" className="relative size-full border rounded-lg" ref={containerRef}>
             {!ready && <CircularLoading containerProps={{ className: 'absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' }} />}
 
-            <canvas
+            {showCanvas && <canvas
                 ref={canvasRef}
                 className="size-full"
                 onPointerMove={onPointerOver}
@@ -227,7 +246,7 @@ export function Chart({
                     hover.current = {}
                     rerender()
                 }}
-            />
+            />}
 
             {shapes.map((s, i) =>
                 <DropdownMenu

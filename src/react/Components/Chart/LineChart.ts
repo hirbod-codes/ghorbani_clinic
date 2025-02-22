@@ -5,7 +5,6 @@ import { CanvasOffsets, Label } from "./index.d"
 export class LineChart {
     static calculateXLabels(xLabels: Label[], xRange: [number | undefined, number | undefined], width: number, offset: CanvasOffsets): Label[] {
         width = width - offset.left - offset.right
-        console.log('calculateXLabels', (xLabels), width, offset, (xRange))
 
         return this.linearInterpolation(xLabels.map((l, i) => l.value).filter(f => f !== undefined && f !== null), width, xRange)
             .map(v => v + offset!.left)

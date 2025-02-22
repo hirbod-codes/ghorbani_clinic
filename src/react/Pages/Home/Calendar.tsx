@@ -212,7 +212,7 @@ export const Calendar = memo(function Calendar({ containerProps, calendarContain
 
     useEffect(() => {
         if (readsPatient && readsVisit) {
-            console.log('useEffect1', { containerRef: containerRef.current, scope: scope.current })
+            console.log('Home.Calendar', 'useEffect', 'add pointerdown event', { containerRef: containerRef.current, scope: scope.current })
             document.body.addEventListener("pointerdown", handleClickOutside);
 
             return () => {
@@ -222,14 +222,14 @@ export const Calendar = memo(function Calendar({ containerProps, calendarContain
     }, [containerRef.current, scope.current]);
 
     useEffect(() => {
-        console.log('useEffect2', { isLocked: isLocked.current, showVisitsStats: showVisitsStats.current, animationFinish: animationFinish.current })
+        console.log('Home.Calendar', 'useEffect', 'checkState', { isLocked: isLocked.current, showVisitsStats: showVisitsStats.current, animationFinish: animationFinish.current })
 
         rerender()
         checkState()
     }, [isLocked.current, showVisitsStats.current, containerRef?.current, scope?.current])
 
     useEffect(() => {
-        console.log('useEffect3', { containerRef: containerRef.current, scope: scope.current })
+        console.log('Home.Calendar', 'useEffect', 'calculate scope\'s width', { containerRef: containerRef.current, scope: scope.current })
         if (containerRef.current && scope.current) {
             if (document.body.offsetWidth >= 1024) {
                 let r = containerRef.current.getBoundingClientRect()!.right
@@ -240,7 +240,7 @@ export const Calendar = memo(function Calendar({ containerProps, calendarContain
     }, [containerRef.current, scope.current]);
 
     useEffect(() => {
-        console.log('useEffect4', { cardRef: cardRef.current })
+        console.log('Home.Calendar', 'useEffect', 'calculate card\'s width', { cardRef: cardRef.current })
         if (cardRef.current) {
             cardWidth.current = cardRef.current.getBoundingClientRect()!.width
             rerender()
