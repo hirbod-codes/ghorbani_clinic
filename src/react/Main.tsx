@@ -1,4 +1,4 @@
-import { RouterProvider, createBrowserRouter, Navigate } from "react-router-dom";
+import { RouterProvider, Navigate, createHashRouter, } from "react-router-dom";
 import { Layout } from './Pages/Layout';
 import { AnimatedLayout } from './Pages/AnimatedLayout';
 import { Home } from './Pages/Home';
@@ -27,7 +27,7 @@ export function Main() {
 
     const shouldAnimateLayout = false
 
-    const router = createBrowserRouter([
+    const router = createHashRouter([
         {
             path: '/',
             element: <Layout />,
@@ -71,6 +71,11 @@ export function Main() {
                     element: shouldAnimateLayout ? <AnimatedLayout>{themeSettings}</AnimatedLayout> : themeSettings
                 },
             ]
+        },
+        {
+            path: '*',
+            element: <Layout />,
+            errorElement: <Navigate to="/error" replace={true} />,
         }
     ]);
 
