@@ -92,6 +92,23 @@ app.on('ready', async () => {
 
     try { await db.initializeDb() }
     catch (err) { console.error(err) }
+
+    session.defaultSession.webRequest.onBeforeSendHeaders(
+        filter,
+        (details, callback) => {
+            console.log(details);
+            details.requestHeaders['Origin'] = 'default-src \'self\'';
+            callback({ requestHeaders: details.requestHeaders });
+        }
+    );
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+        callback({
+            responseHeaders: {
+                ...details.responseHeaders,
+                'Content-Security-Policy': ['default-src \'self\'']
+            }
+        })
+    })
 })
 
 if (!app.isPackaged)
@@ -114,20 +131,3 @@ app.on('activate', () => {
 const filter = {
     urls: ['*/*']
 };
-
-session.defaultSession.webRequest.onBeforeSendHeaders(
-    filter,
-    (details, callback) => {
-        console.log(details);
-        details.requestHeaders['Origin'] = 'default-src \'self\'';
-        callback({ requestHeaders: details.requestHeaders });
-    }
-);
-session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-    callback({
-        responseHeaders: {
-            ...details.responseHeaders,
-            'Content-Security-Policy': ['default-src \'self\'']
-        }
-    })
-})
