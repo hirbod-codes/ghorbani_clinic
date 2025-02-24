@@ -72,7 +72,7 @@ export const AuthContextWrapper = memo(function AuthContextWrapper({ children }:
             });
 
             await init();
-            navigate(0)
+            navigate('/')
         } catch (error) {
             console.error(error);
 

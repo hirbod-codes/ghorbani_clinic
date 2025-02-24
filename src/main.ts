@@ -53,6 +53,13 @@ writeConfigSync({
 if (require('electron-squirrel-startup'))
     app.quit();
 
+if (!app.isPackaged)
+    app.whenReady().then(() => {
+        installExtension(REACT_DEVELOPER_TOOLS)
+            .then((ext) => console.log(`Added Extension:  ${ext.name}`))
+            .catch((err) => console.log('An error occurred: ', err));
+    })
+
 let mainWindow: BrowserWindow;
 
 const createWindow = (): void => {
@@ -92,31 +99,7 @@ app.on('ready', async () => {
 
     try { await db.initializeDb() }
     catch (err) { console.error(err) }
-
-    session.defaultSession.webRequest.onBeforeSendHeaders(
-        filter,
-        (details, callback) => {
-            console.log(details);
-            details.requestHeaders['Origin'] = 'default-src \'self\'';
-            callback({ requestHeaders: details.requestHeaders });
-        }
-    );
-    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
-        callback({
-            responseHeaders: {
-                ...details.responseHeaders,
-                'Content-Security-Policy': ['default-src \'self\'']
-            }
-        })
-    })
 })
-
-if (!app.isPackaged)
-    app.whenReady().then(() => {
-        installExtension(REACT_DEVELOPER_TOOLS)
-            .then((ext) => console.log(`Added Extension:  ${ext.name}`))
-            .catch((err) => console.log('An error occurred: ', err));
-    })
 
 app.on('window-all-closed', () => {
     if (process.platform !== 'darwin')
@@ -127,7 +110,3 @@ app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0)
         createWindow()
 });
-
-const filter = {
-    urls: ['*/*']
-};
