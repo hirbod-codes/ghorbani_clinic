@@ -2,12 +2,13 @@ import os from 'os'
 import path from 'path';
 import fs from 'fs';
 import { CONFIGURATION_FILE } from './directories';
-import { app, BrowserWindow, session } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import { handleMenuEvents } from './Electron/Menu/menu';
 import { handleConfigEvents, readConfig, writeConfigSync } from './Electron/Configuration/main';
 import { db, handleDbEvents } from './Electron/Database/main';
 import { handleAppMainEvents } from './Electron/appMainEvents';
 import { installExtension, REACT_DEVELOPER_TOOLS } from 'electron-devtools-installer';
+import started from 'electron-squirrel-startup'
 
 if (!app.isPackaged && fs.existsSync(CONFIGURATION_FILE))
     fs.rmSync(CONFIGURATION_FILE)
@@ -50,7 +51,7 @@ writeConfigSync({
     ip
 })
 
-if (require('electron-squirrel-startup'))
+if (started)
     app.quit();
 
 if (!app.isPackaged)
