@@ -74,7 +74,7 @@ export function Main() {
         },
         {
             path: '*',
-            element: <Layout />,
+            element: <Navigate to="/error" replace={true} />,
             errorElement: <Navigate to="/error" replace={true} />,
         }
     ]);
