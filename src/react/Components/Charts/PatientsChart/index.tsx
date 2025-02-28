@@ -136,14 +136,13 @@ export function PatientsChart() {
                             function performIntensiveTask(data) {
                                 let { drawPoints, lineWidth } = JSON.parse(data)
 
-                                return JSON.stringify(LineChart.calculateControlPoints(drawPoints).map(c => new Bezier(...c).offset((lineWidth ?? 0) / 2) as Bezier[]))
+                                // the Bezier class name will change when used in below line, in compiled code, in worker, therefor the `const Bezier = require('bezier-js').Bezier` statement at the top of the blob wouldn't work!
+                                return JSON.stringify(LineChart.calculateControlPoints(drawPoints).map(c => new (require('bezier-js').Bezier)(...c).offset((lineWidth ?? 0) / 2) as Bezier[]))
                             }
                         }
 
 
                         let w = `
-                            const Bezier = require('bezier-js').Bezier
-
                             ${LineChart.toString()}
 
                             (${workerFunction.toString()})()
