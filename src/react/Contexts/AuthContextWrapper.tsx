@@ -72,7 +72,7 @@ export const AuthContextWrapper = memo(function AuthContextWrapper({ children }:
             });
 
             await init();
-            navigate('/')
+            window.location.reload();
         } catch (error) {
             console.error(error);
 
@@ -96,7 +96,7 @@ export const AuthContextWrapper = memo(function AuthContextWrapper({ children }:
             }
 
             setAuth({ user: undefined, ac: undefined });
-            navigate('/')
+            navigate(0)
             publish(RESULT_EVENT_NAME, {
                 severity: 'success',
                 message: t('successfullyToLogout'),
