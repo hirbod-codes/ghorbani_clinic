@@ -3,20 +3,21 @@ import { memo, useContext, useRef, useState } from 'react';
 import { AuthContext } from '../Contexts/AuthContext';
 import { ConfigurationContext } from '../Contexts/Configuration/ConfigurationContext';
 import { resources } from '../../Electron/Database/Repositories/Auth/resources';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { DatabaseIcon, HistoryIcon, HomeIcon, PaintRollerIcon, SettingsIcon, ShieldAlertIcon, TimerIcon, UsersIcon } from 'lucide-react';
 import { Button } from './Base/Button';
 import { motion } from 'framer-motion'
 
 export const Navigation = memo(function Navigation() {
-    const navigate = useNavigate();
+    const location = useLocation()
+    const navigate = useNavigate()
 
     const auth = useContext(AuthContext)
     const configuration = useContext(ConfigurationContext)!
 
     // Navigation
     const [openDrawer, setOpenDrawer] = useState(false)
-    const [destination, setDestination] = useState<string | undefined>(undefined)
+    const destination = useRef<string | undefined>()
     const timer = useRef<any | undefined>()
 
     const readsUsers = auth?.accessControl && auth?.user && auth?.accessControl.can(auth?.user?.roleName ?? '').read(resources.USER).granted
@@ -24,11 +25,11 @@ export const Navigation = memo(function Navigation() {
     const readsVisits = auth?.accessControl && auth?.user && auth?.accessControl.can(auth?.user?.roleName ?? '').read(resources.VISIT).granted
     const readsMedicalHistories = auth?.accessControl && auth?.user && auth?.accessControl.can(auth?.user?.roleName ?? '').read(resources.MEDICAL_HISTORY).granted
 
-    console.log('Navigation', { auth, configuration, openDrawer })
+    console.log('Navigation', { path: location.pathname, auth, configuration, openDrawer })
 
-    const moveTo = (destination: string) => {
+    const moveTo = (dest: string) => {
         setTimeout(() => {
-            navigate(destination)
+            navigate(dest)
         }, 50)
     }
 
@@ -37,15 +38,15 @@ export const Navigation = memo(function Navigation() {
             <div className="relative z-20 size-full">
                 <motion.div
                     onClick={() => {
-                        if (destination) {
-                            moveTo(destination)
-                            setDestination(undefined)
+                        if (destination.current !== undefined) {
+                            moveTo(destination.current)
+                            destination.current = undefined
                         }
                     }}
                     onAnimationEnd={() => {
-                        if (destination) {
-                            moveTo(destination)
-                            setDestination(undefined)
+                        if (destination.current !== undefined) {
+                            moveTo(destination.current)
+                            destination.current = undefined
                         }
                     }}
                     layout
@@ -65,9 +66,9 @@ export const Navigation = memo(function Navigation() {
 
                     <Button
                         variant='text'
-                        fgColor={window.location.pathname !== '/' ? 'surface-foreground' : 'primary'}
+                        fgColor={location.pathname !== '/' ? 'surface-foreground' : 'primary'}
                         className='w-full justify-start rounded-none'
-                        onClick={() => { if (window.location.pathname !== '/') { setOpenDrawer(false); setDestination('/') } }}
+                        onClick={() => { if (location.pathname !== '/') { destination.current = '/'; setOpenDrawer(false) } }}
                     >
                         <motion.div layout>
                             <HomeIcon />
@@ -84,9 +85,9 @@ export const Navigation = memo(function Navigation() {
                     {readsUsers &&
                         <Button
                             variant='text'
-                            fgColor={window.location.pathname !== '/Users' ? 'surface-foreground' : 'primary'}
+                            fgColor={location.pathname !== '/Users' ? 'surface-foreground' : 'primary'}
                             className='w-full justify-start rounded-none'
-                            onClick={() => { if (window.location.pathname !== '/Users') { setOpenDrawer(false); setDestination('/Users') } }}
+                            onClick={() => { if (location.pathname !== '/Users') { destination.current = '/Users'; setOpenDrawer(false) } }}
                         >
                             <motion.div layout>
                                 <UsersIcon />
@@ -103,9 +104,9 @@ export const Navigation = memo(function Navigation() {
                     {readsPatients &&
                         <Button
                             variant='text'
-                            fgColor={window.location.pathname !== '/Patients' ? 'surface-foreground' : 'primary'}
+                            fgColor={location.pathname !== '/Patients' ? 'surface-foreground' : 'primary'}
                             className='w-full justify-start rounded-none'
-                            onClick={() => { if (window.location.pathname !== '/Patients') { setOpenDrawer(false); setDestination('/Patients') } }}
+                            onClick={() => { if (location.pathname !== '/Patients') { destination.current = '/Patients'; setOpenDrawer(false) } }}
                         >
                             <motion.div layout>
                                 <ShieldAlertIcon />
@@ -122,9 +123,9 @@ export const Navigation = memo(function Navigation() {
                     {readsVisits &&
                         <Button
                             variant='text'
-                            fgColor={window.location.pathname !== '/Visits' ? 'surface-foreground' : 'primary'}
+                            fgColor={location.pathname !== '/Visits' ? 'surface-foreground' : 'primary'}
                             className='w-full justify-start rounded-none'
-                            onClick={() => { if (window.location.pathname !== '/Visits') { setOpenDrawer(false); setDestination('/Visits') } }}
+                            onClick={() => { if (location.pathname !== '/Visits') { destination.current = '/Visits'; setOpenDrawer(false) } }}
                         >
                             <motion.div layout>
                                 <TimerIcon />
@@ -141,9 +142,9 @@ export const Navigation = memo(function Navigation() {
                     {readsMedicalHistories &&
                         <Button
                             variant='text'
-                            fgColor={window.location.pathname !== '/MedicalHistories' ? 'surface-foreground' : 'primary'}
+                            fgColor={location.pathname !== '/MedicalHistories' ? 'surface-foreground' : 'primary'}
                             className='w-full justify-start rounded-none'
-                            onClick={() => { if (window.location.pathname !== '/MedicalHistories') { setOpenDrawer(false); setDestination('/MedicalHistories') } }}
+                            onClick={() => { if (location.pathname !== '/MedicalHistories') { destination.current = '/MedicalHistories'; setOpenDrawer(false) } }}
                         >
                             <motion.div layout>
                                 <HistoryIcon />
@@ -159,9 +160,9 @@ export const Navigation = memo(function Navigation() {
 
                     <Button
                         variant='text'
-                        fgColor={window.location.pathname !== '/ThemeSettings' ? 'surface-foreground' : 'primary'}
+                        fgColor={location.pathname !== '/ThemeSettings' ? 'surface-foreground' : 'primary'}
                         className='w-full justify-start rounded-none'
-                        onClick={() => { if (window.location.pathname !== '/ThemeSettings') { setOpenDrawer(false); setDestination('/ThemeSettings') } }}
+                        onClick={() => { if (location.pathname !== '/ThemeSettings') { destination.current = '/ThemeSettings'; setOpenDrawer(false) } }}
                     >
                         <motion.div layout>
                             <PaintRollerIcon />
@@ -175,9 +176,9 @@ export const Navigation = memo(function Navigation() {
 
                     <Button
                         variant='text'
-                        fgColor={window.location.pathname !== '/General' ? 'surface-foreground' : 'primary'}
+                        fgColor={location.pathname !== '/General' ? 'surface-foreground' : 'primary'}
                         className='w-full justify-start rounded-none'
-                        onClick={() => { if (window.location.pathname !== '/General') { setOpenDrawer(false); setDestination('/General') } }}
+                        onClick={() => { if (location.pathname !== '/General') { destination.current = '/General'; setOpenDrawer(false) } }}
                     >
                         <motion.div layout>
                             <SettingsIcon />
@@ -193,9 +194,9 @@ export const Navigation = memo(function Navigation() {
 
                     <Button
                         variant='text'
-                        fgColor={window.location.pathname !== '/DbSettings' ? 'surface-foreground' : 'primary'}
+                        fgColor={location.pathname !== '/DbSettings' ? 'surface-foreground' : 'primary'}
                         className='w-full justify-start rounded-none'
-                        onClick={() => { if (window.location.pathname !== '/DbSettings') { setOpenDrawer(false); setDestination('/DbSettings') } }}
+                        onClick={() => { if (location.pathname !== '/DbSettings') { destination.current = '/DbSettings'; setOpenDrawer(false) } }}
                     >
                         <motion.div layout>
                             <DatabaseIcon />
