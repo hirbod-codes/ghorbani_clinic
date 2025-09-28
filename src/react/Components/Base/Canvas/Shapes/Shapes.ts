@@ -4,7 +4,6 @@ import { IShape } from "./IShape";
 
 export class Shapes {
     helper: IShape | undefined = undefined
-    selectionBox: SelectionBox | undefined = undefined
     shapes: IShape[]
     private selectionIndex: number | undefined
 
@@ -29,7 +28,7 @@ export class Shapes {
     }
 
     hasSelection(): boolean {
-        return this.selectionIndex != undefined
+        return this.selectionIndex != undefined && this.selectionIndex >= 0
     }
 
     select(ctx: CanvasRenderingContext2D, point: Point): void {
@@ -39,14 +38,13 @@ export class Shapes {
             return
         }
 
-        if (this.selectionIndex === i)
-            return
-
-        this.setSelection(i)
+        if (this.selectionIndex !== i)
+            this.setSelectionIndex(i)
     }
 
     private findSelectedIndex(ctx: CanvasRenderingContext2D, point: Point): number {
-        if (this.selectionBox !== undefined && this.selectionBox.isInside(ctx, point))
+        const selectionBox = this.getSelectionBox()
+        if (selectionBox !== undefined && selectionBox.isInside(ctx, point))
             return this.selectionIndex ?? -1
 
         for (let i = this.shapes.length - 1; i >= 0; i--)
@@ -63,18 +61,21 @@ export class Shapes {
         return this.shapes[this.selectionIndex]
     }
 
-    getSelection() {
+    getSelectionIndex(): number | undefined {
         return this.selectionIndex
     }
 
-    private setSelection(i: number) {
+    private setSelectionIndex(i: number) {
         this.selectionIndex = i
-        this.selectionBox = new SelectionBox(this.shapes[i])
+    }
+
+    getSelectionBox(): SelectionBox | undefined {
+        if (this.selectionIndex !== undefined && this.shapes[this.selectionIndex] !== undefined)
+            return new SelectionBox(this.shapes[this.selectionIndex])
     }
 
     deselect() {
         this.selectionIndex = undefined
-        this.selectionBox = undefined
     }
 
     draw(draw: Draw) {
@@ -92,10 +93,9 @@ export class Shapes {
         if (this.helper)
             this.helper.redraw(draw)
 
-        if (this.selectionBox) {
-            this.selectionBox = new SelectionBox(this.shapes[this.selectionIndex!])
-            this.selectionBox.redraw(draw)
-        }
+        const selectionBox = this.getSelectionBox()
+        if (selectionBox)
+            selectionBox.redraw(draw)
     }
 
     deleteSelectedShape() {

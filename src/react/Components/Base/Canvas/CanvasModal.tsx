@@ -1,7 +1,8 @@
 import { Canvas } from ".";
 import { Modal } from "../Modal";
+import { IShape } from "./Shapes/IShape";
 
-export function CanvasModal({ open, onClose, title, defaultContent, onChange }: { open: boolean; onClose?: () => void; title?: string; defaultContent?: string | undefined; onChange?: (empty?: boolean) => void | Promise<void> }) {
+export function CanvasModal({ open, onClose, title, defaultContent, onChange }: { open: boolean; onClose?: () => void; title?: string; defaultContent?: string | undefined; onChange?: (shapes: IShape[], empty?: boolean) => void | Promise<void> }) {
     console.log('CanvasModal', { open, onClose, title, defaultContent, onChange })
 
     return (
