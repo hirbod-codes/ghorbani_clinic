@@ -16,6 +16,7 @@ export class AuthRepository extends MongoDB implements IAuthRepository {
 
     async login(username: string, password: string): Promise<boolean> {
         const user = await (await this.getUsersCollection()).findOne({ username: username });
+        console.log(user)
         if (user && compareSync(password, user.password)) {
             Auth.authenticatedUser = user
             Auth.authenticatedAt = DateTime.utc().toUnixInteger()

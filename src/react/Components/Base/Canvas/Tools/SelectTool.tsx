@@ -40,7 +40,7 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
         if (mode === 'delete') {
             shapes.select(draw.ctx, draw.currentPoint)
 
-            let i = shapes.getSelection()
+            let i = shapes.getSelectionIndex()
             if (i !== undefined)
                 shapes.removeAt(i)
 
@@ -57,10 +57,11 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
         shapes.select(draw.ctx, draw.currentPoint)
         shapes.draw(draw)
 
-        if (!shapes.hasSelection() || shapes.selectionBox === undefined)
+        const selectionBox = shapes.getSelectionBox()
+        if (!shapes.hasSelection() || selectionBox === undefined)
             return
 
-        setSelectedHandler(shapes.selectionBox.isInside(draw.ctx, draw.currentPoint))
+        setSelectedHandler(selectionBox.isInside(draw.ctx, draw.currentPoint))
     }, [mode])
 
     const onUp = (draw: Draw) => {
@@ -69,12 +70,13 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
     }
 
     const onMoveHook = (draw: Draw) => {
-        if (!shapes.hasSelection() || !selectedHandler || !draw.currentPoint)
+        const selectionBox = shapes.getSelectionBox()
+        if (!shapes.hasSelection() || !selectedHandler || !draw.currentPoint || !selectionBox)
             return
 
         const shape = shapes.getSelectedShape()
 
-        if (!draw.prevPoint || !shape || !shapes.selectionBox)
+        if (!draw.prevPoint || !shape || !shapes.getSelectionBox())
             return
 
         if (selectedHandler === 'move')
@@ -83,10 +85,10 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
             shape.rotate(draw.prevPoint, draw.currentPoint)
         else {
             if (shouldScale)
-                shape.scale(draw.prevPoint, draw.currentPoint, shapes.selectionBox, selectedHandler)
+                shape.scale(draw.prevPoint, draw.currentPoint, selectionBox, selectedHandler)
             else {
-                shape.updateWidth(draw.prevPoint, draw.currentPoint, shapes.selectionBox, selectedHandler)
-                shape.updateHeight(draw.prevPoint, draw.currentPoint, shapes.selectionBox, selectedHandler)
+                shape.updateWidth(draw.prevPoint, draw.currentPoint, selectionBox, selectedHandler)
+                shape.updateHeight(draw.prevPoint, draw.currentPoint, selectionBox, selectedHandler)
             }
         }
 
@@ -94,11 +96,13 @@ export function SelectTool({ shapes, canvasBackground, setOnDraw, setOnHoverHook
     }
 
     const onHoverHook = (draw: Draw) => {
-        if (!shapes.hasSelection() || selectedHandler || !shapes.selectionBox || !draw.canvasRef.current || !draw.currentPoint)
+        const selectionBox = shapes.getSelectionBox()
+        if (!shapes.hasSelection() || !selectionBox || !draw.canvasRef.current || !draw.currentPoint)
             return
 
-        const direction = shapes.selectionBox.isInside(draw.ctx, draw.currentPoint)
+        const direction = selectionBox.isInside(draw.ctx, draw.currentPoint)
 
+        console.log(!shapes.hasSelection(), !selectionBox, !draw.canvasRef.current, !draw.currentPoint, draw, direction);
         if (!direction) {
             if (draw.canvasRef.current.style.cursor !== 'default')
                 draw.canvasRef.current.style.cursor = 'default'

@@ -144,7 +144,7 @@ export class Rectangle implements IShape {
     scale(prevPoint: Point, currentPoint: Point, selectionBox: SelectionBox, selectedHandler: string) {
         let x = this.getHorizontalDistance(prevPoint, currentPoint, selectionBox, selectedHandler)
         let y = this.getVerticalDistance(prevPoint, currentPoint, selectionBox, selectedHandler)
-        console.log(x, y)
+        // console.log(x, y)
 
         const calcScale = (old: number, change: number) => (old + 2 * change) / old
 
@@ -224,7 +224,7 @@ export class Rectangle implements IShape {
         let shouldAdd: boolean | undefined = undefined
 
         let y = lineFunction(p1, p2, currentPoint.x)
-        console.log({ y })
+        // console.log({ y })
 
         if (y === Infinity)
             return 0
@@ -248,7 +248,7 @@ export class Rectangle implements IShape {
         if ((decomposedMatrix.rotation.angle * 180 / Math.PI) < 0)
             shouldAdd = !shouldAdd
 
-        console.log({ shouldAdd, distance })
+        // console.log({ shouldAdd, distance })
         return shouldAdd ? distance : -distance
     }
 
@@ -291,7 +291,7 @@ export class Rectangle implements IShape {
             shouldAdd = !shouldAdd
 
         const rotatedDegree = decomposeTSR(fromObject(this.transformArgs)).rotation.angle * 180 / Math.PI
-        console.log('rotatedDegree', rotatedDegree)
+        // console.log('rotatedDegree', rotatedDegree)
         if (rotatedDegree < -90 || rotatedDegree > 90)
             shouldAdd = !shouldAdd
 

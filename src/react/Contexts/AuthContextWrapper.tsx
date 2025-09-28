@@ -96,6 +96,7 @@ export const AuthContextWrapper = memo(function AuthContextWrapper({ children }:
             }
 
             setAuth({ user: undefined, ac: undefined });
+            navigate(0)
             publish(RESULT_EVENT_NAME, {
                 severity: 'success',
                 message: t('successfullyToLogout'),

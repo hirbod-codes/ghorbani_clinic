@@ -95,10 +95,14 @@ app.on('ready', async () => {
     handleAppMainEvents(mainWindow)
 
     const c = readConfig()
-    if (app.isPackaged && !c.mongodb)
+    if (app.isPackaged || !c.mongodb)
         return
 
-    try { await db.initializeDb() }
+    try {
+        await db.initializeDb()
+        if(await db.seed()!==true)
+            throw new Error("System failed to seed database")
+    }
     catch (err) { console.error(err) }
 })
 
