@@ -4,6 +4,10 @@ import { getBuildConfig, getBuildDefine, external, pluginHotRestart } from './vi
 
 // https://vitejs.dev/config
 export default defineConfig((env) => {
+
+  const isBuild = env.command === "build";
+
+
   const forgeEnv = env as ConfigEnv<'build'>;
   const { forgeConfigSelf } = forgeEnv;
   const define = getBuildDefine(forgeEnv);
@@ -15,7 +19,7 @@ export default defineConfig((env) => {
         formats: ['cjs'],
       },
       rollupOptions: {
-        external,
+        external: isBuild ? [] : external,
       },
     },
     plugins: [pluginHotRestart('restart')],

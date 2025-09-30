@@ -8,10 +8,11 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses';
 
 const config: ForgeConfig = {
     packagerConfig: {
+        overwrite: true,
         asar: true,
     },
     rebuildConfig: {},
-    makers: [new MakerSquirrel({}), new MakerZIP({}, ['darwin']), new MakerDeb({})],
+    makers: [new MakerSquirrel({ usePackageJson: true }), new MakerZIP({}, ['darwin']), new MakerDeb({})],
     plugins: [
         new VitePlugin({
             // `build` can specify multiple entry builds, which can be Main process, Preload scripts, Worker process, etc.

@@ -158,7 +158,7 @@ export const Navigation = memo(function Navigation() {
 
                     <div className='mb-8' />
 
-                    <Button
+                    {/* <Button
                         variant='text'
                         fgColor={location.pathname !== '/ThemeSettings' ? 'surface-foreground' : 'primary'}
                         className='w-full justify-start rounded-none'
@@ -172,7 +172,7 @@ export const Navigation = memo(function Navigation() {
                                 {t("Navigation.Theme")}
                             </motion.div>
                         }
-                    </Button>
+                    </Button> */}
 
                     <Button
                         variant='text'

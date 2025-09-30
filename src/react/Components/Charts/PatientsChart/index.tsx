@@ -12,6 +12,8 @@ import { IShape } from "../../Chart/IShape"
 import { Bezier } from "bezier-js"
 import { Point } from "@/src/react/Lib/Math"
 import { ColorStatic } from "@/src/react/Lib/Colors/ColorStatic"
+import { Date } from "@/src/react/Lib/DateTime"
+import AnimationWorker from "./animation_worker?worker"
 
 export function PatientsChart() {
     let configuration = useContext(ConfigurationContext)!
@@ -36,8 +38,13 @@ export function PatientsChart() {
     const xLabels = useRef<Label[]>()
     const yLabels = useRef<Label[]>()
 
+    const hasPlayed = useRef<boolean>(false)
+
     useEffect(() => {
-        init()
+        if (!hasPlayed.current) {
+            hasPlayed.current = true
+            init()
+        }
     }, [])
 
     async function init() {
@@ -73,7 +80,7 @@ export function PatientsChart() {
                 console.warn('safety limit exceeded!')
         } else {
             let ts = Infinity
-            let p = gregorianToPersian(DateTime.fromSeconds(xRange.current![1]!).toObject())
+            let p = gregorianToPersian(DateTime.fromSeconds(xRange.current![1]!).toObject() as Date)
             p.day = 1
             let safety = 0
             do {
@@ -128,27 +135,7 @@ export function PatientsChart() {
                         if (controlsCurves.current)
                             return
 
-                        const workerFunction = () => {
-                            self.addEventListener('message', (e) => {
-                                self.postMessage(performIntensiveTask(e.data))
-                            })
-
-                            function performIntensiveTask(data) {
-                                let { drawPoints, lineWidth } = JSON.parse(data)
-
-                                // the Bezier class name will change when used in below line, in compiled code, in worker, therefor the `const Bezier = require('bezier-js').Bezier` statement at the top of the blob wouldn't work!
-                                return JSON.stringify(LineChart.calculateControlPoints(drawPoints).map(c => new (require('bezier-js').Bezier)(...c).offset((lineWidth ?? 0) / 2) as Bezier[]))
-                            }
-                        }
-
-
-                        let w = `
-                            ${LineChart.toString()}
-
-                            (${workerFunction.toString()})()
-                        `
-                        const workerUrl = URL.createObjectURL(new Blob([w], { type: 'application/javascript' }))
-                        const worker = new Worker(workerUrl, { type: 'module' });
+                        const worker = new AnimationWorker()
 
                         if (!worker.onmessage)
                             worker.onmessage = ((e) => {

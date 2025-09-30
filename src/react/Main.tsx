@@ -7,7 +7,7 @@ import { Patients } from './Pages/Patients';
 import { Visits } from './Pages/Visits';
 import { General } from './Pages/Settings/General';
 import { DbSettings } from './Pages/Settings/DbSettings';
-import { ThemeSettings } from './Pages/Settings/ThemeSettings';
+// import { ThemeSettings } from './Pages/Settings/ThemeSettings';
 import { MedicalHistories } from "./Pages/MedicalHistories";
 import { useMemo } from "react";
 import { Error } from "./Pages/Error";
@@ -18,7 +18,7 @@ export function Main() {
     const error = useMemo(() => <Error />, [])
     const general = useMemo(() => <General />, [])
     const dbSettings = useMemo(() => <DbSettings />, [])
-    const themeSettings = useMemo(() => <ThemeSettings />, [])
+    // const themeSettings = useMemo(() => <ThemeSettings />, [])
     const home = useMemo(() => <Home />, [])
     const users = useMemo(() => <Users />, [])
     const patients = useMemo(() => <Patients />, [])
@@ -66,10 +66,10 @@ export function Main() {
                     path: "/DbSettings",
                     element: shouldAnimateLayout ? <AnimatedLayout>{dbSettings}</AnimatedLayout> : dbSettings
                 },
-                {
-                    path: "/ThemeSettings",
-                    element: shouldAnimateLayout ? <AnimatedLayout>{themeSettings}</AnimatedLayout> : themeSettings
-                },
+                // {
+                //     path: "/ThemeSettings",
+                //     element: shouldAnimateLayout ? <AnimatedLayout>{themeSettings}</AnimatedLayout> : themeSettings
+                // },
             ]
         },
         {

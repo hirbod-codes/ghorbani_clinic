@@ -32,7 +32,7 @@ export class ShapeManager {
      * @param endAnimations stop calling painting shapes if there is no running animation
      */
     static runAnimations(groupKey: string, endAnimations = true) {
-        console.log('runAnimations', ShapeManager.requestAnimationFrameId, groupKey, endAnimations)
+        // console.log('runAnimations', ShapeManager.requestAnimationFrameId, groupKey, endAnimations)
 
         if (requestAnimationFrame === undefined)
             throw new Error('requestAnimationFrame function is undefined')
@@ -50,13 +50,13 @@ export class ShapeManager {
     }
 
     private static animate(t: DOMHighResTimeStamp, endAnimations = true) {
-        console.log('animate', this.playingAnimationGroups)
+        // console.log('animate', this.playingAnimationGroups)
 
         let draw = false
         for (const groupKey in ShapeManager.shapes)
             if (Object.prototype.hasOwnProperty.call(ShapeManager.shapes, groupKey)) {
-                console.log('groupKey', { [groupKey]: ShapeManager.shapes[groupKey] })
-                console.log('groupKey', { [groupKey]: ShapeManager.canvases[groupKey] })
+                // console.log('groupKey', { [groupKey]: ShapeManager.shapes[groupKey] })
+                // console.log('groupKey', { [groupKey]: ShapeManager.canvases[groupKey] })
 
                 if (!this.playingAnimationGroups.includes(groupKey))
                     continue
@@ -64,7 +64,7 @@ export class ShapeManager {
                 ShapeManager.canvases[groupKey].ctx.clearRect(0, 0, ShapeManager.canvases[groupKey].dimensions.width, ShapeManager.canvases[groupKey].dimensions.height)
 
                 for (const animation of ShapeManager.shapes[groupKey]) {
-                    console.log({ animation })
+                    // console.log({ animation })
 
                     let useCache: boolean = false
                     let dx: number | undefined = undefined
@@ -127,7 +127,7 @@ export class ShapeManager {
     }
 
     private static animateFromCache(animation: IShape, ctx: CanvasRenderingContext2D, dimensions: Dimensions) {
-        console.log('animateFromCache')
+        // console.log('animateFromCache')
 
         if (animation.offscreenCanvas === undefined) {
             let canvas = document.createElement('canvas')
@@ -141,7 +141,7 @@ export class ShapeManager {
     }
 
     private static shouldAnimate(animation: IShape, animationRunsCount: number, animationRunIndex: number, dx: number): number | boolean {
-        console.log('shouldAnimate')
+        // console.log('shouldAnimate')
 
         if (typeof animation.control === 'number')
             if (animation.control < 0)

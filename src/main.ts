@@ -100,7 +100,7 @@ app.on('ready', async () => {
 
     try {
         await db.initializeDb()
-        if(await db.seed()!==true)
+        if (await db.seed() !== true)
             throw new Error("System failed to seed database")
     }
     catch (err) { console.error(err) }

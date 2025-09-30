@@ -13,6 +13,7 @@ import { Label } from "../../Chart/index.d"
 import { Point } from "@/src/react/Lib/Math"
 import { Stack } from "../../Base/Stack"
 import { ColorStatic } from "@/src/react/Lib/Colors/ColorStatic"
+import { Date } from "@/src/react/Lib/DateTime"
 
 export function VisitsChart() {
     let configuration = useContext(ConfigurationContext)!
@@ -80,7 +81,7 @@ export function VisitsChart() {
                 console.warn('safety limit exceeded!')
         } else {
             let ts: number
-            let p = gregorianToPersian(DateTime.fromSeconds(xRange.current![1]!).toObject())
+            let p = gregorianToPersian(DateTime.fromSeconds(xRange.current![1]!).toObject() as Date)
             p.day = 1
             let safety = 0
             do {

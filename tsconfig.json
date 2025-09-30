@@ -17,6 +17,14 @@
         "outDir": "dist",
         "moduleResolution": "Node",
         "resolveJsonModule": true,
-        "jsx": "react-jsx"
-    }
+        "jsx": "react-jsx",
+        "types": [
+            "vite/client"
+        ]
+    },
+    "include": [
+        "*.ts",
+        "src",
+        "vite-env.d.ts"
+    ]
 }

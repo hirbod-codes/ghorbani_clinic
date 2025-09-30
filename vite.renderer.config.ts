@@ -4,6 +4,7 @@ import { pluginExposeRenderer } from './vite.base.config';
 import react from '@vitejs/plugin-react-swc'
 import svgr from 'vite-plugin-svgr'
 import path from 'path';
+import worker from "vite-plugin-worker";
 
 // https://vitejs.dev/config
 export default defineConfig((env) => {
@@ -26,6 +27,7 @@ export default defineConfig((env) => {
                 }
             ),
             pluginExposeRenderer(name),
+            worker({})
         ],
         resolve: {
             preserveSymlinks: true,
